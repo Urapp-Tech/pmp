@@ -1,0 +1,40 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environment
+venv/
+
+# Environment variables
+# .env
+# .env.*
+
+# Alembic compiled files (ignore only compiled files and cache, keep migration scripts)
+alembic/versions/*.pyc
+alembic/versions/__pycache__/
+
+# Docker files and runtime logs
+*.log
+*.pid
+pgdata/
+
+# OS / IDE / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.devcontainer/
+
+# Python packaging
+*.egg-info/
+dist/
+build/
+
+# Test / Coverage
+htmlcov/
+.coverage
+.pytest_cache/
+.tox/
+
+# Shell scripts (optional)
+*.sh

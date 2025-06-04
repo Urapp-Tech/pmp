@@ -1,0 +1,6 @@
+// .vscode/settings.json
+{
+    "python.analysis.extraPaths": ["./app"],
+    "python.defaultInterpreterPath": "/usr/local/bin/python"
+  }
+  
