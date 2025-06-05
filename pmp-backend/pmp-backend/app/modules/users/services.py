@@ -49,9 +49,11 @@ def authenticate_user(db: Session, login_data: UserLogin):
 
     # return LoginResponse(user=user_out, access_token=token)
     return {
-        "user": user_out,
+        "data": user_out,
         "access_token": access_token,
         "refresh_token": refresh_token,
+        "status": "success",
+        "message": "User logged in successfully",
         "token_type": "bearer",
     }
 

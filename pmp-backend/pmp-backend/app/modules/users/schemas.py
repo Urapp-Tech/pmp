@@ -29,9 +29,11 @@ class UserOut(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    user: UserOut
+    data: UserOut
     access_token: str
     refresh_token: str
+    status: str
+    message: str
 
 
 class TokenSchema(BaseModel):
