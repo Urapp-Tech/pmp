@@ -1,11 +1,10 @@
-"""permissions
+"""users
 
-Revision ID: 6f1d70c52d39
-Revises: da7fef7482d8
-Create Date: 2025-05-29 13:22:47.169454
+Revision ID: 7e1e24018562
+Revises: d16578fe52ee
+Create Date: 2025-06-05 09:51:06.956155
 
 """
-
 from typing import Sequence, Union
 
 from alembic import op
@@ -13,46 +12,51 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "6f1d70c52d39"
-down_revision: Union[str, None] = "da7fef7482d8"
+revision: str = '7e1e24018562'
+down_revision: Union[str, None] = 'd16578fe52ee'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
     """Upgrade schema."""
-
     # Enable uuid-ossp extension for UUID generation
     op.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
-
     op.create_table(
-        "permissions",
+        "users",
         sa.Column(
             "id",
             postgresql.UUID(as_uuid=True),
             primary_key=True,
             server_default=sa.text("uuid_generate_v4()"),
         ),
-        sa.Column("name", sa.String(length=255), nullable=False),
-        sa.Column("permission_sequence", sa.Integer(), nullable=True),
         sa.Column(
-            "permission_parent",
+            "role_id",
             postgresql.UUID(as_uuid=True),
-            nullable=True,
-            default=None,
-        ),
-        sa.Column("desc", sa.String(length=255), nullable=False),
-        sa.Column("action", sa.String(length=255), nullable=True),
-        sa.Column("permission_type", sa.String(length=255), nullable=False),
-        sa.Column(
-            "show_on_menu",
-            sa.Boolean(),
+            sa.ForeignKey("roles.id", ondelete="CASCADE"),
             nullable=False,
-            server_default=sa.text("false"),
         ),
+        sa.Column(
+            "landlord_id",
+            postgresql.UUID(as_uuid=True),
+            # sa.ForeignKey("landlords.id", ondelete="CASCADE"),
+            nullable=True,
+        ),
+        sa.Column("is_landlord", sa.Boolean, default=False),
+        sa.Column("fname", sa.String(length=255), nullable=True),
+        sa.Column("lname", sa.String(length=255), nullable=True),        
+        sa.Column("email", sa.String(length=255), nullable=False, unique=True),  # Fixed duplicate column
+        sa.Column("phone", sa.String(length=20), nullable=True),
+        sa.Column("password", sa.String(length=255), nullable=False),
+        sa.Column("profile_pic", sa.String(length=255), nullable=True),
+        sa.Column("gender", sa.String(length=10), nullable=True),
         sa.Column(
             "is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")
         ),
+        sa.Column(
+            "is_verified", sa.Boolean(), nullable=False, server_default=sa.text("false")
+        ),
+
         sa.Column(
             "created_at",
             sa.TIMESTAMP(timezone=True),
@@ -67,7 +71,6 @@ def upgrade() -> None:
         ),
     )
 
-
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_table("permissions")
+    op.drop_table("users")

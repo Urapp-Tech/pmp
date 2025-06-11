@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from app.db.database import Base
 
 
-class User(Base):
+class SuperAdmin(Base):
     __tablename__ = "super_admins"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)

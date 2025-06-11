@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, ForeignKey, Boolean, text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship, backref
 from app.db.database import Base
 
 
@@ -14,6 +15,10 @@ class Role(Base):
     is_active = Column(Boolean, nullable=False, default=True)
 
 
+    # Relationships
+    # users = relationship("User", back_populates="role", cascade="all, delete")
+    # permissions = relationship("RolePermission", back_populates="role", cascade="all, delete")
+
 class RolePermission(Base):
     __tablename__ = "role_permissions"
 
@@ -25,3 +30,6 @@ class RolePermission(Base):
         UUID(as_uuid=True), ForeignKey("permissions.id"), nullable=False
     )
     is_active = Column(Boolean, default=True)
+    # Relationships
+    # role = relationship("Role", back_populates="permissions")
+    # permission = relationship("Permission", back_populates="roles")  # assumes Permission model defines `roles = relationship("RolePermission", ...)`

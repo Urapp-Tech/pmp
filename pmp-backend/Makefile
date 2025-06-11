@@ -17,13 +17,17 @@ rebuild_up:
 	make rebuild
 	make up
 
-# Create Alembic migration (example: make makemig name=initial)
-makemig:
+# Create Alembic migration (example: make migration name=initial)
+migration:
 	docker-compose exec api alembic revision --autogenerate -m "$(name)"
 
 # Apply all migrations up to head
 migrate:
 	docker-compose exec api alembic upgrade head
+	
+# Seed roles and permissions
+seed:
+	docker-compose exec api python -m app.db.seed
 
 # Rollback migrations by one step (or specify steps with 'steps' variable)
 rollback:

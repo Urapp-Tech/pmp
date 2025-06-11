@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer, Boolean, text
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.database import Base
-
+from sqlalchemy.orm import relationship, backref
 
 class Permission(Base):
     __tablename__ = "permissions"
