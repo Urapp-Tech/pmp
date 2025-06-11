@@ -12,9 +12,13 @@ import { Navigate, RouteObject } from 'react-router';
 import Otp from './pages/auth/Otp';
 import AddRolePermissionsPage from '@/pages/role-permissions/AddRolePermissionsPage';
 import UpdateRolePermissionPage from '@/pages/role-permissions/UpdateRolePermissionPage';
+import PropertyManagers from '@/pages/property-managers/List';
+import TenantUsers from './pages/tenant-users/List';
+import Invoices from './pages/Invoices/List';
+import Receipts from './pages/receipts/List';
 
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
-const OfficeUsers = lazy(() => import('@/pages/office-users/OfficeUsers'));
+const OfficeUsers = lazy(() => import('@/pages/property-managers/List'));
 const RolePermissions = lazy(
   () => import('@/pages/role-permissions/RolePermissions')
 );
@@ -73,38 +77,139 @@ export const routeObjects: RouteObject[] = [
             ),
           },
           {
-            path: 'users',
+            path: 'property-managers',
             children: [
               {
                 index: true,
-                element: <Navigate to="admin-users" replace />,
+                element: <Navigate to="list" replace />,
               },
               {
-                path: 'admin-users',
+                path: 'list',
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
-                    <OfficeUsers />
-                  </Suspense>
-                ),
-              },
-              {
-                path: 'employees',
-                element: (
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Employees />
-                  </Suspense>
-                ),
-              },
-              {
-                path: 'employees/history',
-                element: (
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <EmployeeCabinHistory />
+                    <PropertyManagers />
                   </Suspense>
                 ),
               },
             ],
           },
+          {
+            path: 'tenant-users',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <TenantUsers />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'invoices',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Invoices />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'receipts',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Receipts />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          // {
+          //   path: 'property-managers',
+          //   children: [
+          //     {
+          //       index: true,
+          //       element: <Navigate to="admin-users" replace />,
+          //     },
+          //     {
+          //       path: 'admin-users',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <OfficeUsers />
+          //         </Suspense>
+          //       ),
+          //     },
+          //     {
+          //       path: 'employees',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <Employees />
+          //         </Suspense>
+          //       ),
+          //     },
+          //     {
+          //       path: 'employees/history',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <EmployeeCabinHistory />
+          //         </Suspense>
+          //       ),
+          //     },
+          //   ],
+          // },
+          // {
+          //   path: 'property-managers',
+          //   children: [
+          //     {
+          //       index: true,
+          //       element: <Navigate to="admin-users" replace />,
+          //     },
+          //     {
+          //       path: 'admin-users',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <OfficeUsers />
+          //         </Suspense>
+          //       ),
+          //     },
+          //     {
+          //       path: 'employees',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <Employees />
+          //         </Suspense>
+          //       ),
+          //     },
+          //     {
+          //       path: 'employees/history',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <EmployeeCabinHistory />
+          //         </Suspense>
+          //       ),
+          //     },
+          //   ],
+          // },
           {
             path: 'role-permissions',
             children: [

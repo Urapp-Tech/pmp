@@ -46,13 +46,15 @@ def authenticate_user(db: Session, login_data: UserLogin):
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
     user_out = UserOut.model_validate(user)
+    user_out.access_token = access_token
+    user_out.refresh_token = refresh_token
 
     # return LoginResponse(user=user_out, access_token=token)
     return {
         "data": user_out,
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "status": "success",
+        # "access_token": access_token,
+        # "refresh_token": refresh_token,
+        "success": True,
         "message": "User logged in successfully",
         "token_type": "bearer",
     }

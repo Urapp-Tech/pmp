@@ -80,6 +80,8 @@ const Login = () => {
     };
     try {
       const user = await authService.loginService(userData);
+      console.log('user', user.data);
+
       if (user.data.success) {
         setIsLoader(false);
         const { tenantConfig, ...rest } = user.data.data;

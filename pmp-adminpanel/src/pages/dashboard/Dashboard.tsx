@@ -26,7 +26,7 @@ function Dashboard() {
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <Monitor /> Active Cabins
+                <Monitor /> Active Managers
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
@@ -36,7 +36,7 @@ function Dashboard() {
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <MonitorCheck /> Active Assigned Cabins
+                <MonitorCheck /> Active Tenants
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
@@ -46,7 +46,7 @@ function Dashboard() {
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <Users /> Active Employees
+                <Users /> Pending Invoices
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">

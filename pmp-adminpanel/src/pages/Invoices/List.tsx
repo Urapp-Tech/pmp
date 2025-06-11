@@ -49,8 +49,8 @@ import { cn } from '@/lib/utils';
 import userService from '@/services/adminapp/users';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
-import OfficeUsersCreationDialog from './OfficeUserCreateDialog';
-import OfficeUserUpdateDialog from './OfficeUserUpdateDialog';
+import OfficeUsersCreationDialog from './CreateDialog';
+import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/helper';
 
@@ -78,7 +78,7 @@ export type Users = {
   status: 'Active' | 'InActive';
 };
 
-const OfficeUsers = () => {
+const Invoices = () => {
   const userDetails: any = getItem('USER');
   const { toast } = useToast();
 
@@ -421,17 +421,17 @@ const OfficeUsers = () => {
 
   return (
     <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Admin Users" />
+      <TopBar title="Invoices" />
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Admin Users
+              Invoices
             </h2>
             <div className="flex gap-3 items-center">
               <Input
-                placeholder="Search users..."
+                placeholder="Search invoices..."
                 value={search}
                 onChange={handleChange}
                 onKeyPress={handleKeyPress}
@@ -574,4 +574,4 @@ const OfficeUsers = () => {
   );
 };
 
-export default OfficeUsers;
+export default Invoices;

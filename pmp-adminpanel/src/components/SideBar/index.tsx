@@ -41,58 +41,76 @@ export function MainSidebar({
         icon: assets.images.dashboardSidebarIcon,
         items: [],
       },
+      // {
+      //   title: 'Property Managers',
+      //   url: '/admin/users/employees',
+      //   icon: assets.images.usersSidebarIcon,
+      //   items: [],
+      // },
       {
-        title: 'Users',
-        url: '/admin/users/employees',
+        title: 'Property Managers',
+        url: '/admin/property-managers',
         icon: assets.images.usersSidebarIcon,
         items: [],
       },
       {
-        title: 'Admin Users',
-        url: '/admin/users/admin-users',
+        title: 'Tenant Users',
+        url: '/admin/tenant-users',
         icon: assets.images.adminUsersSidebarIcon,
         items: [],
       },
       {
-        title: 'Roles & permissions',
-        url: '/admin/role-permissions',
+        title: 'Inovices',
+        url: '/admin/invoices',
         icon: assets.images.rolePermissionsSidebarIcon,
         items: [],
       },
       {
-        title: 'Blogs',
-        url: '/admin/blogs',
-        icon: assets.images.rolePermissionsSidebarIcon,
-        items: [],
-      },
-      {
-        title: 'Pages',
-        url: '/admin/pages',
+        title: 'Receipts',
+        url: '/admin/receipts',
         icon: assets.images.pagesSidebarIcon,
         items: [],
       },
       {
-        title: 'Help & Feedback',
+        title: 'Financial Reports',
+        url: '/admin/pages',
+        icon: assets.images.pagesSidebarIcon,
+        items: [],
+      },
+      // {
+      //   title: 'Financial Reports',
+      //   url: '/admin/reports',
+      //   icon: assets.images.reportSidebarIcon,
+      //   items: [
+      //     {
+      //       title: 'Operational',
+      //       url: '/admin/operational',
+      //     },
+      //   ],
+      // },
+      {
+        title: 'Bank and Settlement Tracking',
         url: '/admin/feedback',
         icon: assets.images.helpFeedbackSidebarIcon,
         items: [],
       },
       {
-        title: 'Notifications',
+        title: 'Maintenance and Dispute Requests',
         url: '/admin/notifications',
         icon: assets.images.notificationSidebarIcon,
         items: [],
       },
       {
-        title: 'Reports',
-        url: '/admin/reports',
-        icon: assets.images.reportSidebarIcon,
-        items: [
-          {
-            title: 'Operational',
-            url: '/admin/operational',
-          },
-        ],
+        title: 'Plan Flexibility',
+        url: '/admin/feedback',
+        icon: assets.images.helpFeedbackSidebarIcon,
+        items: [],
+      },
+      {
+        title: 'Landlord User Roles',
+        url: '/admin/role-permissions',
+        icon: assets.images.rolePermissionsSidebarIcon,
+        items: [],
       },
       // {
       //   title: 'Operations',
@@ -126,11 +144,12 @@ export function MainSidebar({
   return (
     <Sidebar className="bg-transparent" collapsible="icon" {...props}>
       <SidebarHeader className=" flex items-center justify-center mt-0 mb-2  bg-[#1b46e0]">
-        <div className="max-w-[110px] ml-5 mr-auto mt-2 py-3">
-          <img
+        <div className="text-white max-w-[110px] ml-5 mr-auto mt-2 py-3">
+          PMP - LOGO
+          {/* <img
             src={assets.images.whiteLogo}
             className="max-w-full w-full h-full object-contain"
-          />
+          /> */}
         </div>
       </SidebarHeader>
       <SidebarContent>

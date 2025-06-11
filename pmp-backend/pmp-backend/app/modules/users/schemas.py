@@ -20,9 +20,12 @@ class UserOut(BaseModel):
     id: UUID
     name: str
     email: EmailStr
-    # password: str
-    phone: Optional[str] = None
     gender: str
+    phone: Optional[str] = None
+    # password: str
+
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -30,9 +33,9 @@ class UserOut(BaseModel):
 
 class LoginResponse(BaseModel):
     data: UserOut
-    access_token: str
-    refresh_token: str
-    status: str
+    # access_token: str
+    # refresh_token: str
+    success: bool
     message: str
 
 

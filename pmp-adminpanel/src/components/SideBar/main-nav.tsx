@@ -72,7 +72,7 @@ export function NavMain({
                   to={item.url}
                   onClick={() => handleSubItemClick(item.title)}
                   className={({ isActive }) =>
-                    `${isActive ? 'text-quinary-bg text-[12px] font-semibold' : ''}`
+                    `${isActive ? 'text-quinary-bg text-[12px] mx-2 font-semibold' : 'text-[12px]'}`
                   }
                 >
                   <span className="text-mars-bg font-medium ">

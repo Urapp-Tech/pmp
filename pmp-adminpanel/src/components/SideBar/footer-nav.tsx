@@ -92,7 +92,7 @@ export function FooterNavUser({
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem onClick={() => handleLogout()}>
-        <SidebarMenuButton tooltip="logout">
+        <SidebarMenuButton onClick={() => handleLogout()} tooltip="logout">
           <img src={assets.images.logoutSidebarIcon} />
           {/* <NavLink
             onClick={() => handleLogout()}
