@@ -11,6 +11,7 @@ app = FastAPI(
 )
 
 app.include_router(user_router, prefix="/super-users/users", tags=["Super Users"])
+app.include_router(user_router, prefix="/super-users/users", tags=["Super Users"])
 app.include_router(
     permission_router,
     prefix="/super-users/permissions",
