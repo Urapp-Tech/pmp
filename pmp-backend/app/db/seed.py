@@ -3,11 +3,15 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.db.database import SessionLocal  # ✅ Correct session import
 from app.models.roles import Role
 from app.models.permissions import Permission
-from app.models.super_admins import SuperAdmin  
+from app.models.super_admins import SuperAdmin
+from app.models.landlords import Landlord
 from app.utils.bcrypt import hash_password
 from app.utils.slug import to_kebab_case
 
-def seed_permissions(db, parent_name: str, actions: list[str], permission_type: str = "backend"):
+
+def seed_permissions(
+    db, parent_name: str, actions: list[str], permission_type: str = "backend"
+):
     parent_id = uuid4()
     existing = db.query(Permission).filter_by(name=parent_name).first()
     if existing:
@@ -59,7 +63,7 @@ def seed_roles_permissions_users():
             print("ℹ️ Super Admin role already exists.")
 
         # 2. Seed Permissions
-        modules = ["User", "Role", "Permission"]
+        modules = ["Landlord", "Manager", "User"]
         actions = ["create", "view", "update", "delete"]
 
         for module in modules:
@@ -67,24 +71,47 @@ def seed_roles_permissions_users():
 
         db.commit()
 
-        # 3. Create Admin User
-        email = "admin@gmail.com"
+        # 3. Create Super Admin User
+        email = "superadmin@gmail.com"
         user = db.query(SuperAdmin).filter_by(email=email).first()
         if not user:
             user = SuperAdmin(
                 id=uuid4(),
-                name="Admin",
+                name="Super Admin",
                 phone="12312313",
                 email=email,
-                password=hash_password("123"),  # ❗ Don't use plain text passwords in prod
-                gender="male",
+                password=hash_password(
+                    "123"
+                ),  # ❗ Don't use plain text passwords in prod
                 # is_active=True,
             )
             db.add(user)
             db.commit()
-            print("✅ Admin user created.")
+            print("✅ Super Admin user created.")
         else:
             print("ℹ️ Admin user already exists.")
+
+        other_roles = [
+            {"name": "Landlord", "desc": "Landlord role"},
+            {"name": "Manager", "desc": "Manager role"},
+            {"name": "User", "desc": "Regular user"},
+        ]
+
+        for role_data in other_roles:
+            role = db.query(Role).filter_by(name=role_data["name"]).first()
+            if not role:
+                role = Role(
+                    id=uuid4(),
+                    name=role_data["name"],
+                    desc=role_data["desc"],
+                    is_active=True,
+                )
+                db.add(role)
+                print(f"✅ {role_data['name']} role created.")
+            else:
+                print(f"ℹ️ {role_data['name']} role already exists.")
+
+        db.commit()
 
     except SQLAlchemyError as e:
         db.rollback()

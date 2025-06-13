@@ -12,4 +12,4 @@ class SuperAdmin(Base):
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     phone = Column(String, nullable=True)
-    gender = Column(String, nullable=False)
+    # gender = Column(String, nullable=False)

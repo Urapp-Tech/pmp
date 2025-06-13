@@ -13,11 +13,11 @@ class Role(Base):
     name = Column(String(255), nullable=False)
     desc = Column(String(255), nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
-
-
+    landlord_id = Column(UUID(as_uuid=True), ForeignKey("landlords.id"), nullable=True)
     # Relationships
     # users = relationship("User", back_populates="role", cascade="all, delete")
     # permissions = relationship("RolePermission", back_populates="role", cascade="all, delete")
+
 
 class RolePermission(Base):
     __tablename__ = "role_permissions"

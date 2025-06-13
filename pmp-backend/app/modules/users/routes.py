@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from app.modules.users.schemas import (
@@ -8,6 +9,7 @@ from app.modules.users.schemas import (
     LoginResponse,
     TokenSchema,
     TokenRefreshRequest,
+    PaginatedUserResponse,
 )
 from app.modules.users.services import (
     create_user,
@@ -27,7 +29,11 @@ def get_db():
         db.close()
 
 
-@router.post("/login", response_model=LoginResponse)
+@router.post(
+    "/login",
+    response_model=LoginResponse,
+    summary="Login any user of [landlord, managers and tenant users]",
+)
 def login(user: UserLogin, db: Session = Depends(get_db)):
     return authenticate_user(db, user)
 
@@ -42,6 +48,16 @@ def create(user: UserCreate, db: Session = Depends(get_db)):
     return create_user(db, user)
 
 
-@router.get("/list", response_model=list[UserOut])
-def read(db: Session = Depends(get_db)):
-    return get_users(db)
+# @router.get("/list", response_model=list[UserOut])
+# def read(db: Session = Depends(get_db)):
+#     return get_users(db)
+
+
+@router.get("/list", response_model=PaginatedUserResponse)
+def read_users(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
+    return get_users(db=db, page=page, size=size, search=search)
