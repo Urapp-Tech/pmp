@@ -25,4 +25,5 @@ class PropertyUnit(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default="now()", nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), server_default="now()", nullable=False)
 
-    property = relationship("Property", backref=backref("property_units", order_by=id))
+    # Relationships
+    property = relationship("Property", back_populates="property_units")

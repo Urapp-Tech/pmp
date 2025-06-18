@@ -1,8 +1,8 @@
-import { BACKOFFICE_PREFIX } from '@/utils/constants';
+import { SUB_USER_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
 
 const list = (search: string, page: number, size: number) => {
-  return network.get(`${BACKOFFICE_PREFIX}/list`, {
+  return network.get(`${SUB_USER_PREFIX}/list`, {
     search,
     page,
     size,
@@ -10,15 +10,15 @@ const list = (search: string, page: number, size: number) => {
 };
 
 const create = (data: any) => {
-  return network.postMultipart(`${BACKOFFICE_PREFIX}/create`, data);
+  return network.postMultipart(`${SUB_USER_PREFIX}/create`, data);
 };
 
 const update = (id: string, data: any) => {
-  return network.postMultipart(`${BACKOFFICE_PREFIX}/update/${id}`, data);
+  return network.postMultipart(`${SUB_USER_PREFIX}/update/${id}`, data);
 };
 
 const deleteUser = (id: string) => {
-  return network.post(`${BACKOFFICE_PREFIX}/delete/${id}`, {});
+  return network.post(`${SUB_USER_PREFIX}/delete/${id}`, {});
 };
 
 export default {

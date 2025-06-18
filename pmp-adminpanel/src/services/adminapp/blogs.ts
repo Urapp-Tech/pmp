@@ -13,6 +13,7 @@ const create = (data: any) => {
   return network.postMultipart(`${BLOG_PREFIX}/create`, data);
 };
 
+
 const update = (id: string, data: any) => {
   return network.postMultipart(`${BLOG_PREFIX}/update/${id}`, data);
 };

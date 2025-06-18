@@ -11,8 +11,11 @@ import { lazy, Suspense } from 'react';
 import { Navigate, RouteObject } from 'react-router';
 import Otp from './pages/auth/Otp';
 import AddRolePermissionsPage from '@/pages/role-permissions/AddRolePermissionsPage';
+import CreatePropertyPage from '@/pages/property/CreatePropertyPage';
+import UpdatePropertyPage from '@/pages/property/UpdatePropertyPage';
 import UpdateRolePermissionPage from '@/pages/role-permissions/UpdateRolePermissionPage';
 import PropertyManagers from '@/pages/property-managers/List';
+import Property from '@/pages/property/List';
 import TenantUsers from './pages/tenant-users/List';
 import Invoices from './pages/Invoices/List';
 import Receipts from './pages/receipts/List';
@@ -88,6 +91,31 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <PropertyManagers />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'property',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Property />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'add',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <CreatePropertyPage />
                   </Suspense>
                 ),
               },

@@ -1,17 +1,39 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from app.modules.superusers.routes import router as superuser_router
 from app.modules.users.routes import router as user_router
 from app.modules.permissions.routes import router as permission_router
 from app.modules.roles.routes import router as role_router
+from app.modules.landlords.routes import router as landlord_router
+from app.modules.properties.routes import router as property_router
+from app.utils.logger import  setup_global_logger, error_log, debug_log
+import logging
 
 # app = FastAPI()
 app = FastAPI(
-    docs_url='/docs',         # disables Swagger UI (/docs)
+    docs_url="/docs",  # disables Swagger UI (/docs)
     # openapi_url=None       # disables OpenAPI schema (/openapi.json)
-)
+) 
+# Setup global logging
+setup_global_logger()
+# debug_log({"key": "value", "status": 200})
 
-app.include_router(user_router, prefix="/super-users/users", tags=["Super Users"])
-app.include_router(user_router, prefix="/super-users/users", tags=["Super Users"])
+# error_log( "Division failed")
+# Middleware to log full errors with tracebacks
+@app.middleware("http")
+async def log_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        logging.exception("Unhandled exception in request:")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal Server Error"}
+        )
+
+    
+app.include_router(superuser_router, prefix="/super-users", tags=["Super Users"])
 app.include_router(
     permission_router,
     prefix="/super-users/permissions",
@@ -21,10 +43,33 @@ app.include_router(
     role_router, prefix="/super-users/roles", tags=["Super User - Roles"]
 )
 
+app.include_router(
+    landlord_router,
+    prefix="/admin/landlord-users",
+    tags=["Admin - Users [landlords]"],
+)
+
+app.include_router(
+    user_router,
+    prefix="/admin/users",
+    tags=["Admin - Users [managers,tenant-users]"],
+)
+app.include_router(
+    property_router,
+    prefix="/admin/properties",
+    tags=["Admin - Properties"],
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3005"],  # or ["*"] for development only
+    allow_origins=[
+        "http://localhost:3005",
+        "http://localhost:3006",
+    ],  # or ["*"] for development only
     allow_credentials=True,
     allow_methods=["*"],  # or ["GET", "POST", "PUT", "DELETE"]
     allow_headers=["*"],  # or ["Authorization", "Content-Type"]
 )
+@app.get("/test-error")
+def test_error():
+    return 1 / 0

@@ -32,4 +32,7 @@ class Property(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default="now()", nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), server_default="now()", nullable=False)
 
+    # Relationships
+    landlord = relationship("Landlord", backref="properties")
+    property_units = relationship("PropertyUnit", back_populates="property", cascade="all, delete-orphan")
     

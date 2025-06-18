@@ -1,7 +1,7 @@
 """properties
 
 Revision ID: e28d10dffbe9
-Revises: 42208d679db3
+Revises: 7d83c1005b2a
 Create Date: 2025-06-11 10:33:24.657704
 
 """
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = 'e28d10dffbe9'
-down_revision: Union[str, None] = '42208d679db3'
+down_revision: Union[str, None] = '7d83c1005b2a'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -41,7 +41,7 @@ def upgrade() -> None:
     sa.Column("property_no", sa.String(length=222), nullable=True),
     sa.Column("paci_no", sa.String(length=240), nullable=True),
     sa.Column("civil_no", sa.String(length=240), nullable=True),
-    sa.Column("type", sa.Enum("residential", "commercial", name="p_type"), nullable=True),
+    sa.Column("type", sa.Enum("residential", "commercial", name="type"), nullable=True),
     sa.Column("property_type", sa.String(length=255), nullable=True),
     sa.Column("pictures", sa.JSON(), nullable=True),
     sa.Column("latitude", sa.String(length=255), nullable=True),
@@ -59,4 +59,5 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     op.drop_table('properties')
+    op.execute("DROP TYPE type")
     # ### end Alembic commands ###

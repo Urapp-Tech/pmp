@@ -52,4 +52,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
+    op.drop_table('tenants')
+    op.execute("DROP TYPE tenant_type")
+    # ### end Alembic commands ###
     

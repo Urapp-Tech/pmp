@@ -1,6 +1,10 @@
 from logging.config import fileConfig
 from app.db.database import Base
-from app.models.users import *  # or import individually as needed
+from app.models.roles import Role
+from app.models.landlords import Landlord  # ✅ Important!
+from app.models.permissions import Permission
+from app.models.super_admins import SuperAdmin
+from app.models.users import User
 
 # from app.cars.models import *
 

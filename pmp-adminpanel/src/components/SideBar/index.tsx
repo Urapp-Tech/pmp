@@ -54,6 +54,21 @@ export function MainSidebar({
         items: [],
       },
       {
+        title: 'Properties',
+        url: '/admin/property',
+        icon: assets.images.rolePermissionsSidebarIcon,
+        items: [
+          {
+            title: 'Create Property',
+            url: '/admin/property/add',
+          },
+          {
+            title: 'List Properties',
+            url: '/admin/property/list',
+          },
+        ],
+      },
+      {
         title: 'Tenant Users',
         url: '/admin/tenant-users',
         icon: assets.images.adminUsersSidebarIcon,
