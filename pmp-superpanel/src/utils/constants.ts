@@ -14,7 +14,7 @@ export const SETTING_PREFIX = 'setting';
 export const OPERATON_CAT_PREFIX = 'operation-category';
 export const OPERATON_CAT_ITEM_PREFIX = 'operation-category-item';
 export const OPERATON_REPORT_PREFIX = 'operation-report';
-export const ROLE_PREFIX = 'role';
+export const ROLE_PREFIX = 'roles';
 export const BLOG_PREFIX = 'blog';
 
 export const imageAllowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];

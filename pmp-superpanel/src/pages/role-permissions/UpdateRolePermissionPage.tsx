@@ -61,8 +61,10 @@ const UpdateRolePermissionPage = () => {
     setIsLoader(true);
     let obj = {
       name: data.name,
-      permissions: checkedIds,
+      data: checkedIds,
     };
+    console.log(obj);
+
     try {
       const response = await service.update(state.id, obj);
       if (response.data.success) {
@@ -111,20 +113,20 @@ const UpdateRolePermissionPage = () => {
       const users = await service.permissionList();
       if (users.data.success) {
         setMainIsLoader(false);
-        const result = compilePermissions(users.data.data.list);
+        const result = users.data.items;
         setList(result);
-        console.log('res', result);
+        // console.log('res', result);
 
         const ids: any = [];
         result?.forEach((x: any) => {
-          x.child.forEach((y: any) => {
+          x.data.forEach((y: any) => {
             if (state.permissions.includes(y.id)) {
               return ids.push(y.id);
             }
           });
         });
         setCheckedIds(ids);
-        setTotal(users.data.data.total);
+        setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
         console.log('error: ', users.data.message);
@@ -144,7 +146,7 @@ const UpdateRolePermissionPage = () => {
   const handleSelectAll = (isChecked: boolean) => {
     if (isChecked) {
       const allIds = list.flatMap((item: any) =>
-        item.child.map((child: any) => child.id)
+        item.data.map((child: any) => child.id)
       );
       setCheckedIds(allIds);
     } else {
@@ -154,7 +156,7 @@ const UpdateRolePermissionPage = () => {
 
   const isAllSelected = () => {
     const allIds = list.flatMap((item: any) =>
-      item.child.map((child: any) => child.id)
+      item.data.map((child: any) => child.id)
     );
 
     return allIds.every((id: any) => checkedIds.includes(id));
@@ -184,7 +186,12 @@ const UpdateRolePermissionPage = () => {
                 <FormControl className="m-1 w-full">
                   <div className="">
                     <FormLabel htmlFor="name" className="text-sm font-semibold">
-                      Name
+                      Name{' '}
+                      {state?.name === 'User' ||
+                      state?.name === 'Manager' ||
+                      state?.name === 'Landlord'
+                        ? '(Sysytem generated name cannot be changed)'
+                        : ''}
                     </FormLabel>
                     <Input
                       className="rounded-[20px] h-[60px] px-2 bg-earth-bg text-secondary-bg mt-2 text-[14px] font-medium outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[0] focus-visible:ring-0"
@@ -192,6 +199,10 @@ const UpdateRolePermissionPage = () => {
                       placeholder="manager"
                       type="text"
                       {...register('name', {
+                        disabled:
+                          state?.name === 'User' ||
+                          state?.name === 'Manager' ||
+                          state?.name === 'Landlord',
                         required: 'Please enter your role name',
                         value: state?.name ?? '',
                       })}
@@ -225,7 +236,7 @@ const UpdateRolePermissionPage = () => {
                   </div>
                 </div>
                 <div className="mt-2">
-                  {list.map((item: any, index: number) => (
+                  {list?.map((item: any, index: number) => (
                     <div className="mt-2" key={index}>
                       <FormLabel
                         htmlFor={item.name}
@@ -234,7 +245,7 @@ const UpdateRolePermissionPage = () => {
                         {item.name}
                       </FormLabel>
                       <div className="flex py-2">
-                        {item?.child?.map((child: any, i: number) => (
+                        {item?.data?.map((child: any, i: number) => (
                           <div key={i} className="flex items-center">
                             <Checkbox
                               id={child.id}

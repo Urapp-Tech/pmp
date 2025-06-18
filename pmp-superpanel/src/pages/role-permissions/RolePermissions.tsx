@@ -81,7 +81,7 @@ const RolePermissions = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
@@ -140,6 +140,8 @@ const RolePermissions = () => {
       enableHiding: false,
       cell: ({ row }) => {
         const { id, key } = row.original;
+        console.log('row.original: ', row.original);
+
         return key !== 'SUPER_ADMIN' ? (
           <div className="flex justify-center items-center">
             <div>
@@ -189,8 +191,8 @@ const RolePermissions = () => {
       const users = await service.list({ search, page, size: pageSize });
       if (users.data.success) {
         setMainIsLoader(false);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
+        setList(users.data.items);
+        setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
         console.log('error: ', users.data.message);
@@ -216,16 +218,16 @@ const RolePermissions = () => {
   }, []);
 
   const deleteUserHandler = (data: any) => {
-    const userId = data.id;
+    const roleId = data.id;
     setIsLoader(true);
     service
-      .deleteRole(userId)
+      .deleteRole(roleId)
       .then((updateItem) => {
         if (updateItem.data.success) {
           setDeleteOpen(false);
           setIsLoader(false);
           setList((newArr: any) => {
-            return newArr.filter((item: any) => item.id !== userId);
+            return newArr.filter((item: any) => item.id !== roleId);
           });
           let newtotal = total;
           setTotal((newtotal -= 1));

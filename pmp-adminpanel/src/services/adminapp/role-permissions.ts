@@ -18,7 +18,7 @@ const deleteRole = (id: string) => {
 };
 
 const lov = () => {
-  return network.get(`${ROLE_PREFIX}/lov`);
+  return network.get(`${ROLE_PREFIX}/lov`, {}, 'super');
 };
 
 // PERMISSIONS

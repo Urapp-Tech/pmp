@@ -1,13 +1,51 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from app.models.permissions import Permission as PermissionModel
-from app.modules.permissions.schemas import PermissionCreate, PermissionUpdate
+from app.modules.permissions.schemas import (
+    PermissionCreate,
+    PermissionUpdate,
+    PermissionOut,
+    ChildPermissionOut,
+)
 from uuid import uuid4
 from fastapi import HTTPException, status
 from app.utils.slug import to_kebab_case  # your custom util to convert to kebab-case
 
 # from app.core.config import SERVER_BASE_PATH
 from app.core.config import settings
+
+
+def get_permissions(db: Session) -> dict:
+    all_permissions = db.query(PermissionModel).all()
+
+    parent_map = {}
+    children_map = {}
+
+    for perm in all_permissions:
+        if perm.permission_parent is None:
+            parent_map[perm.id] = perm
+        else:
+            children_map.setdefault(perm.permission_parent, []).append(perm)
+
+    result = []
+    for parent_id, parent in parent_map.items():
+        children = children_map.get(parent_id, [])
+        result.append(
+            PermissionOut(
+                id=parent.id,
+                name=parent.name,
+                desc=parent.desc,
+                permission_type=parent.permission_type,
+                data=[ChildPermissionOut.from_orm(child) for child in children],
+            )
+        )
+
+    return {
+        "items": result,
+        "success": True,
+        "message": "Permissions retrieved successfully",
+        "total": len(result),
+    }
 
 
 def create_permission(db: Session, body: PermissionCreate):

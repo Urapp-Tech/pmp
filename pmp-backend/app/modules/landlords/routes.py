@@ -1,21 +1,26 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Path
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from typing import Optional
+from uuid import UUID
 from app.db.database import SessionLocal
 
 # from app.models import User
 from app.modules.landlords.schemas import (
     LandlordCreate,
-    LandlordOut,
+    LandlordUpdate,
+    LandlordResponse,
     PaginatedLandlordResponse,
     VerifyLandlordRequest,
+    LandlordDeleteResponse,
 )
 from app.modules.landlords.services import (
     create_landlord,
     get_verified_landlords,
     get_unverified_landlords,
     verify_landlord_service,
+    update_landlord,
+    delete_landlord_user,
 )
 
 router = APIRouter()
@@ -29,9 +34,20 @@ def get_db():
         db.close()
 
 
-@router.post("/create", response_model=LandlordOut, summary="Create a new landlord")
+@router.post(
+    "/create", response_model=LandlordResponse, summary="Create a new landlord"
+)
 def create(user: LandlordCreate, db: Session = Depends(get_db)):
     return create_landlord(db, user)
+
+
+@router.post(
+    "/update/{id}",
+    response_model=LandlordResponse,
+    summary="Update an existing landlord",
+)
+def update(id: UUID, user: LandlordUpdate, db: Session = Depends(get_db)):
+    return update_landlord(db, id, user)
 
 
 # @router.get("/list", response_model=list[LandlordOut])
@@ -62,3 +78,10 @@ def read_landlords(
 @router.post("/verify")
 def verify_landlord(data: VerifyLandlordRequest, db: Session = Depends(get_db)):
     return verify_landlord_service(data, db)
+
+
+@router.post("/delete/{id}", response_model=LandlordDeleteResponse)
+def delete_landlord(
+    id: UUID = Path(..., description="Landlord user ID"), db: Session = Depends(get_db)
+):
+    return delete_landlord_user(db, id)

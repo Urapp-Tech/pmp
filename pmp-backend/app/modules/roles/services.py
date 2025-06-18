@@ -2,10 +2,71 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from app.models.roles import Role, RolePermission
+from app.models.permissions import Permission
 from app.models.users import User
-from app.modules.roles.schemas import RoleCreate, RoleUpdate
+from app.modules.roles.schemas import RoleCreate, RoleUpdate, RoleOut, RoleLOV
 from fastapi import HTTPException, status
 import uuid
+from sqlalchemy import or_
+from typing import Optional
+from uuid import UUID
+
+
+def get_roles(db: Session, page: int = 1, size: int = 20, search: Optional[str] = None):
+    query = db.query(Role).filter(Role.name != "Super Admin")
+
+    if search:
+        search_term = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                Role.name.ilike(search_term),
+                Role.desc.ilike(search_term),
+            )
+        )
+
+    total = query.count()
+
+    roles = (
+        query.order_by(Role.created_at.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+        .all()
+    )
+
+    items = []
+
+    for role in roles:
+
+        active_permission_ids = (
+            db.query(Permission.id)
+            .join(RolePermission, RolePermission.permission == Permission.id)
+            .filter(
+                RolePermission.role == role.id,
+                RolePermission.is_active == True,
+                Permission.is_active == True,
+            )
+            .all()
+        )
+
+        active_ids = [perm_id[0] for perm_id in active_permission_ids]
+
+        items.append(
+            RoleOut(
+                id=role.id,
+                name=role.name,
+                desc=role.desc,
+                is_active=role.is_active,
+                permissions=active_ids,
+            )
+        )
+
+    return {
+        "success": True,
+        "total": total,
+        "page": page,
+        "size": size,
+        "items": items,
+    }
 
 
 def create_role(db: Session, body: RoleCreate):
@@ -24,30 +85,33 @@ def create_role(db: Session, body: RoleCreate):
         role = Role(
             id=uuid.uuid4(),
             name=body.name,
-            desc=body.desc,
+            # desc=body.desc,
             is_active=True,
         )
         db.add(role)
         db.flush()
 
-        new_data = []
-        for group in body.data:
-            role_permission = RolePermission(
-                id=uuid.uuid4(),
-                role=role.id,
-                permission=group.id,
-                is_active=group.status,
+        # Check if permissions are provided
+        if not body.data:
+            raise HTTPException(status_code=400, detail="No permissions provided")
+
+        # Create RolePermission entries
+        new_permissions = [
+            RolePermission(
+                id=uuid.uuid4(), role=role.id, permission=perm_id, is_active=True
             )
-            new_data.append(role_permission)
+            for perm_id in body.data
+        ]
+        db.add_all(new_permissions)
 
-        if not new_data:
-            raise HTTPException(status_code=400, detail="No role permissions provided")
-
-        db.add_all(new_data)
         db.commit()
         db.refresh(role)
 
-        return role
+        return {
+            "success": True,
+            "message": "Role created successfully",
+            "role": role,
+        }
 
     except SQLAlchemyError as e:
         db.rollback()
@@ -75,37 +139,38 @@ def update_role(db: Session, role_id: str, body: RoleUpdate):
             )
 
         role.name = body.name
-        role.desc = body.desc
+        # role.desc = body.desc
 
         db.query(RolePermission).filter(RolePermission.role == role.id).update(
             {RolePermission.is_active: False}
         )
 
-        for item in body.data:
+        for prem_id in body.data:
             existing_permission = (
                 db.query(RolePermission)
                 .filter(
                     RolePermission.role == role.id,
-                    RolePermission.permission == item.id,
+                    RolePermission.permission == prem_id,
                 )
                 .first()
             )
 
             if existing_permission:
-                existing_permission.is_active = item.status
+                existing_permission.is_active = True
             else:
                 new_permission = RolePermission(
-                    id=uuid.uuid4(),
-                    role=role.id,
-                    permission=item.id,
-                    is_active=item.status,
+                    id=uuid.uuid4(), role=role.id, permission=prem_id, is_active=True
                 )
                 db.add(new_permission)
 
         db.commit()
         db.refresh(role)
 
-        return {"role": role, "message": "Role has been updated"}
+        return {
+            "role": role,
+            "message": "Role has been updated",
+            "success": True,
+        }
 
     except SQLAlchemyError as e:
         db.rollback()
@@ -113,3 +178,24 @@ def update_role(db: Session, role_id: str, body: RoleUpdate):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Update failed: {str(e)}",
         )
+
+
+def get_role_lov(db: Session):
+    roles = (
+        db.query(Role)
+        .filter(Role.is_active == True, Role.name != "Super Admin")
+        .order_by(Role.name)
+        .all()
+    )
+    return [RoleLOV(id=role.id, name=role.name) for role in roles]
+
+
+def delete_role(db: Session, role_id: UUID):
+    role = db.query(Role).filter(Role.id == role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+
+    role.is_active = False
+    db.commit()
+
+    return {"success": True, "message": "Role deactivated successfully."}

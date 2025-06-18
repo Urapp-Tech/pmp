@@ -31,15 +31,25 @@ type Props = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   callback: (...args: any[]) => any;
+  formData: any;
 };
 
-const OfficeUserCreateDialog = ({
+const OfficeUserUpdateDialog = ({
   isOpen,
   setIsOpen,
   callback,
   isLoader,
+  formData,
 }: Props) => {
-  const form = useForm<Fields>();
+  const form = useForm<Fields>({
+    defaultValues: {
+      password: '',
+      // avatar: formData.avatar || '',
+      role: formData.roleId || '',
+      gender: formData.gender || '',
+    },
+  });
+  console.log('formData', formData);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -69,30 +79,50 @@ const OfficeUserCreateDialog = ({
   } = form;
 
   const onSubmit = async (data: Fields) => {
-    if (file) data.avatar = file;
-    data.userType = 'USER';
-    callback(data);
-    // console.log('s', data);
+    // if (file) data.avatar = file;
+    // data.userType = 'USER';
+    // data.id = formData.id;
+    // callback(data);
+    let obj = {
+      fname: data.firstName,
+      lname: data.lastName,
+      email: data.email,
+      password: data.password,
+      phone: data.phone,
+      gender: data.gender,
+      roleId: data.role,
+    };
+    callback(formData.landlordId, obj);
+    // console.log('s', obj);
   };
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
+  // const fetchRoleLov = async () => {
+  //   try {
+  //     const roles = await service.lov();
+  //     if (roles.data.success) {
+  //       const lov = roles.data.data.map((el: any) => {
+  //         return {
+  //           name: el.name,
+  //           id: el.id,
+  //         };
+  //       });
+  //       setRoleLov(lov);
+  //     } else {
+  //       console.log('error: ', roles.data.message);
+  //     }
+  //   } catch (error: Error | unknown) {
+  //     console.log('error: ', error);
+  //   }
+  // };
+
   const fetchRoleLov = async () => {
     try {
       const roles = await service.lov();
-      if (roles.data.success) {
-        const lov = roles.data.data.map((el: any) => {
-          return {
-            name: el.name,
-            id: el.id,
-          };
-        });
-        setRoleLov(lov);
-      } else {
-        console.log('error: ', roles.data.message);
-      }
+      setRoleLov(roles.data);
     } catch (error: Error | unknown) {
       console.log('error: ', error);
     }
@@ -109,7 +139,7 @@ const OfficeUserCreateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Add New Admin User</DialogTitle>
+          <DialogTitle>Update Landlord User</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -129,6 +159,7 @@ const OfficeUserCreateDialog = ({
                       placeholder="john"
                       type="text"
                       {...register('firstName', {
+                        value: formData?.fname,
                         required: 'Please enter your first name',
                       })}
                     />
@@ -150,7 +181,9 @@ const OfficeUserCreateDialog = ({
                       id="lastName"
                       placeholder="doe"
                       type="text"
-                      {...register('lastName')}
+                      {...register('lastName', {
+                        value: formData?.lname,
+                      })}
                     />
                     {/* {errors.lastName && (
                       <FormMessage>*{errors.lastName.message}</FormMessage>
@@ -170,6 +203,7 @@ const OfficeUserCreateDialog = ({
                       placeholder="johndoe@gmail.com"
                       type="text"
                       {...register('email', {
+                        value: formData?.email,
                         required: 'Please enter your email',
                       })}
                     />
@@ -194,7 +228,12 @@ const OfficeUserCreateDialog = ({
                         type={passwordVisible ? 'text' : 'password'}
                         className="text-sm pr-10 mt-2"
                         {...register('password', {
-                          required: 'Please enter your password.',
+                          pattern: {
+                            value:
+                              /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
+                            message:
+                              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+                          },
                         })}
                       />
                       <Button
@@ -230,10 +269,33 @@ const OfficeUserCreateDialog = ({
                     name="role"
                     label=""
                     items={roleLov}
+                    // value={formData.role}
                     placeholder="Choose an option"
                     rules={{ required: 'This field is required' }}
                   />
                 </div>
+                <div className="w-full">
+                  <FormLabel
+                    htmlFor="gender"
+                    className="text-sm font-medium my-2 block"
+                  >
+                    Gender
+                  </FormLabel>
+                  <SingleSelectDropDown
+                    control={control}
+                    name="gender"
+                    label=""
+                    items={[
+                      { id: 'male', name: 'Male' },
+                      { id: 'female', name: 'Female' },
+                      { id: 'other', name: 'Other' },
+                    ]}
+                    placeholder="Choose an option"
+                    // rules={{ required: 'This field is required' }}
+                  />
+                </div>
+              </div>
+              <div>
                 <FormControl className="m-1 w-full">
                   <div className="">
                     <FormLabel htmlFor="phone" className="text-sm font-medium">
@@ -246,6 +308,7 @@ const OfficeUserCreateDialog = ({
                       type="number"
                       {...register('phone', {
                         required: 'Please enter your phone',
+                        value: formData.phone,
                       })}
                     />
                     {errors.phone && (
@@ -254,7 +317,7 @@ const OfficeUserCreateDialog = ({
                   </div>
                 </FormControl>
               </div>
-              <FormControl className="m-1 w-full">
+              {/* <FormControl className="m-1 w-full">
                 <div className="">
                   <FormLabel htmlFor="address" className="text-sm font-medium">
                     Address
@@ -264,14 +327,14 @@ const OfficeUserCreateDialog = ({
                     id="address"
                     placeholder="Street 55"
                     type="text"
-                    {...register('address')}
+                    {...register('address', { value: formData.address })}
                   />
                   {errors.address && (
                     <FormMessage>*{errors.address.message}</FormMessage>
                   )}
                 </div>
-              </FormControl>
-              <div>
+              </FormControl> */}
+              {/* <div>
                 <div className="flex justify-between">
                   <FormLabel
                     htmlFor="address"
@@ -306,14 +369,14 @@ const OfficeUserCreateDialog = ({
                     </div>
                   ) : null}
                 </div>
-              </div>
-              <DialogFooter className="mt-3">
+              </div> */}
+              <DialogFooter className="mt-6">
                 <Button
                   disabled={isLoader}
                   type="submit"
                   className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                 >
-                  {isLoader && <Loader2 className="animate-spin" />} Add
+                  {isLoader && <Loader2 className="animate-spin" />} Update
                 </Button>
               </DialogFooter>
             </div>
@@ -324,4 +387,4 @@ const OfficeUserCreateDialog = ({
   );
 };
 
-export default OfficeUserCreateDialog;
+export default OfficeUserUpdateDialog;

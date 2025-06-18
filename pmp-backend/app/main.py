@@ -4,7 +4,9 @@ from app.modules.superusers.routes import router as superuser_router
 from app.modules.users.routes import router as user_router
 from app.modules.permissions.routes import router as permission_router
 from app.modules.roles.routes import router as role_router
+from app.modules.securityLogs.routes import router as security_log_router
 from app.modules.landlords.routes import router as landlord_router
+from app.modules.supportTickets.routes import router as support_router
 
 # app = FastAPI()
 app = FastAPI(
@@ -21,6 +23,11 @@ app.include_router(
 app.include_router(
     role_router, prefix="/super-users/roles", tags=["Super User - Roles"]
 )
+app.include_router(
+    security_log_router,
+    prefix="/super-users/security-logs",
+    tags=["Super User - Security Logs"],
+)
 
 app.include_router(
     landlord_router,
@@ -33,6 +40,13 @@ app.include_router(
     prefix="/admin/users",
     tags=["Admin - Users [managers,tenant-users]"],
 )
+
+app.include_router(
+    support_router,
+    prefix="/admin/support-tickets",
+    tags=["Admin - Support Tickets"],
+)
+
 
 app.add_middleware(
     CORSMiddleware,

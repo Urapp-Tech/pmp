@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { SidebarInset } from '@/components/ui/sidebar';
 
 import usersService from '@/services/adminapp/users';
+import securityService from '@/services/adminapp/security-logs';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -53,6 +54,7 @@ import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/helper';
+import dayjs from 'dayjs';
 
 export type Users = {
   id: string; // UUID
@@ -83,7 +85,7 @@ const Receipts = () => {
   const { toast } = useToast();
 
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
@@ -115,115 +117,105 @@ const Receipts = () => {
 
   const columns: ColumnDef<Users>[] = [
     {
-      accessorKey: 'firstName',
-      header: 'Name',
+      accessorKey: 'userName',
+      header: 'User Name',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           <Avatar>
             <AvatarImage
               src={row.original.avatar || ''}
-              alt={row.getValue('firstName') || '@fallback'}
+              alt={row.getValue('userName') || '@fallback'}
             />
             <AvatarFallback>
-              {getInitials(row.getValue('firstName'))}
+              {getInitials(row.getValue('userName'))}
             </AvatarFallback>
           </Avatar>
           <div className="capitalize font-semibold">
-            {row.getValue('firstName')}
+            {row.getValue('userName')}
           </div>
         </div>
       ),
     },
     {
-      accessorKey: 'email',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Email
-            <ArrowUpDown />
-          </Button>
-        );
-      },
+      accessorKey: 'action',
+      header: 'Action',
       cell: ({ row }) => (
-        <div className="lowercase">{row.getValue('email')}</div>
+        <div className="lowercase">{row.getValue('action')}</div>
       ),
     },
     {
-      accessorKey: 'phone',
-      header: 'Phone',
+      accessorKey: 'description',
+      header: 'Description',
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('phone')}</div>
+        <div className="capitalize">{row.getValue('description')}</div>
       ),
     },
     {
-      accessorKey: 'isActive',
-      header: 'Status',
+      accessorKey: 'ipAddress',
+      header: 'IP Address',
       cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[50px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
-          {row.getValue('isActive') ? 'Active' : 'In-Active'}
-        </div>
+        <div className="capitalize">{row.getValue('ipAddress')}</div>
       ),
     },
     {
-      accessorKey: 'address',
-      header: 'Address',
+      accessorKey: 'createdAt',
+      header: 'Created At',
       cell: ({ row }) => (
         <div className="capitalize">
-          {row.getValue('address') ? row.getValue('address') : '---'}
+          {row.getValue('createdAt')
+            ? dayjs(row.getValue('createdAt')).format('YYYY-MM-DD HH:mm:ss')
+            : '---'}
         </div>
       ),
     },
-    {
-      id: 'actions',
-      enableHiding: false,
-      cell: ({ row }) => {
-        // const payment = row.original;
-        const { id } = row.original;
-        return (
-          <div className="flex justify-center items-center">
-            <div>
-              <Pencil
-                className="text-lunar-bg cursor-pointer"
-                onClick={() => handleActionMenu('edit', id)}
-                size={20}
-              />
-            </div>
-            <div className="pl-3">
-              <Trash2
-                className="text-lunar-bg cursor-pointer"
-                size={20}
-                onClick={() => handleActionMenu('delete', id)}
-              />
-            </div>
-          </div>
-          // <DropdownMenu>
-          //   <DropdownMenuTrigger asChild>
-          //     <Button variant="ghost" className="h-8 w-8 p-0">
-          //       <span className="sr-only">Open menu</span>
-          //       <MoreHorizontal />
-          //     </Button>
-          //   </DropdownMenuTrigger>
-          //   <DropdownMenuContent align="end">
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('edit', id)}
-          //     >
-          //       Edit
-          //     </DropdownMenuItem>
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('delete', id)}
-          //     >
-          //       Delete
-          //     </DropdownMenuItem>
-          //   </DropdownMenuContent>
-          // </DropdownMenu>
-        );
-      },
-    },
+    // {
+    //   id: 'actions',
+    //   enableHiding: false,
+    //   cell: ({ row }) => {
+    //     // const payment = row.original;
+    //     const { id } = row.original;
+    //     return (
+    //       <div className="flex justify-center items-center">
+    //         <div>
+    //           <Pencil
+    //             className="text-lunar-bg cursor-pointer"
+    //             onClick={() => handleActionMenu('edit', id)}
+    //             size={20}
+    //           />
+    //         </div>
+    //         <div className="pl-3">
+    //           <Trash2
+    //             className="text-lunar-bg cursor-pointer"
+    //             size={20}
+    //             onClick={() => handleActionMenu('delete', id)}
+    //           />
+    //         </div>
+    //       </div>
+    //       // <DropdownMenu>
+    //       //   <DropdownMenuTrigger asChild>
+    //       //     <Button variant="ghost" className="h-8 w-8 p-0">
+    //       //       <span className="sr-only">Open menu</span>
+    //       //       <MoreHorizontal />
+    //       //     </Button>
+    //       //   </DropdownMenuTrigger>
+    //       //   <DropdownMenuContent align="end">
+    //       //     <DropdownMenuItem
+    //       //       className="cursor-pointer"
+    //       //       onClick={() => handleActionMenu('edit', id)}
+    //       //     >
+    //       //       Edit
+    //       //     </DropdownMenuItem>
+    //       //     <DropdownMenuItem
+    //       //       className="cursor-pointer"
+    //       //       onClick={() => handleActionMenu('delete', id)}
+    //       //     >
+    //       //       Delete
+    //       //     </DropdownMenuItem>
+    //       //   </DropdownMenuContent>
+    //       // </DropdownMenu>
+    //     );
+    //   },
+    // },
   ];
 
   const handleActionMenu = (type: string, actionId: string) => {
@@ -241,11 +233,15 @@ const Receipts = () => {
 
   const fetchUsers = async () => {
     try {
-      const users = await usersService.list(search, page, pageSize);
+      const users = await securityService.getSecurityLogs(
+        search,
+        page,
+        pageSize
+      );
       if (users.data.success) {
         setMainIsLoader(false);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
+        setList(users.data.items);
+        setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
         console.log('error: ', users.data.message);
@@ -270,44 +266,44 @@ const Receipts = () => {
     fetchUsers();
   }, []);
 
-  const deleteUserHandler = (data: any) => {
-    const userId = data.id;
-    setIsLoader(true);
-    userService
-      .deleteUser(userId)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          setDeleteOpen(false);
-          setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.filter((item: any) => item.id !== userId);
-          });
-          let newtotal = total;
-          setTotal((newtotal -= 1));
-          toast({
-            description: updateItem.data.message,
-            className: cn(
-              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-            ),
-            style: {
-              backgroundColor: '#FF5733',
-              color: 'white',
-            },
-          });
-        } else {
-          setIsLoader(false);
-        }
-      })
-      .catch((err: Error) => {
-        console.log('error: ', err);
-        setIsLoader(false);
-      });
-  };
+  // const deleteUserHandler = (data: any) => {
+  //   const userId = data.id;
+  //   setIsLoader(true);
+  //   userService
+  //     .deleteUser(userId)
+  //     .then((updateItem) => {
+  //       if (updateItem.data.success) {
+  //         setDeleteOpen(false);
+  //         setIsLoader(false);
+  //         setList((newArr: any) => {
+  //           return newArr.filter((item: any) => item.id !== userId);
+  //         });
+  //         let newtotal = total;
+  //         setTotal((newtotal -= 1));
+  //         toast({
+  //           description: updateItem.data.message,
+  //           className: cn(
+  //             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+  //           ),
+  //           style: {
+  //             backgroundColor: '#FF5733',
+  //             color: 'white',
+  //           },
+  //         });
+  //       } else {
+  //         setIsLoader(false);
+  //       }
+  //     })
+  //     .catch((err: Error) => {
+  //       console.log('error: ', err);
+  //       setIsLoader(false);
+  //     });
+  // };
 
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
-      const users = await userService.list(search, newPage, pageSize);
+      const users = await securityService.getSecurityLogs();
       if (users.data.success) {
         setPage(newPage);
         setList(users.data.data.list);
@@ -340,111 +336,111 @@ const Receipts = () => {
     },
   });
 
-  const createEmployeeHandler = (data: any) => {
-    console.log('dadad', data);
+  // const createEmployeeHandler = (data: any) => {
+  //   console.log('dadad', data);
 
-    setIsLoader(true);
-    const formData = new FormData();
-    formData.append('userType', data.userType);
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
-    formData.append('email', data.email);
-    formData.append('phone', data.phone);
-    formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
-    userService
-      .create(data)
-      .then((item) => {
-        if (item.data.success) {
-          setIsOpen(false);
-          setIsLoader(false);
-          setList([item.data.data, ...list]);
-          let newtotal = total;
-          setTotal((newtotal += 1));
-        } else {
-          setIsLoader(false);
-          ToastHandler(item.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
-        setIsLoader(false);
-      });
-  };
+  //   setIsLoader(true);
+  //   const formData = new FormData();
+  //   formData.append('userType', data.userType);
+  //   formData.append('firstName', data.firstName);
+  //   formData.append('lastName', data.lastName);
+  //   formData.append('email', data.email);
+  //   formData.append('phone', data.phone);
+  //   formData.append('password', data.password);
+  //   formData.append('address', data.address);
+  //   formData.append('role', data.role);
+  //   if (data.avatar) formData.append('avatar', data.avatar);
+  //   userService
+  //     .create(data)
+  //     .then((item) => {
+  //       if (item.data.success) {
+  //         setIsOpen(false);
+  //         setIsLoader(false);
+  //         setList([item.data.data, ...list]);
+  //         let newtotal = total;
+  //         setTotal((newtotal += 1));
+  //       } else {
+  //         setIsLoader(false);
+  //         ToastHandler(item.data.message);
+  //       }
+  //     })
+  //     .catch((err: Error | any) => {
+  //       console.log('error: ', err);
+  //       ToastHandler(err?.response?.data?.message);
+  //       setIsLoader(false);
+  //     });
+  // };
 
-  const updateEmployeeHandler = (data: any) => {
-    const formData = new FormData();
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
-    formData.append('email', data.email);
-    formData.append('username', data.email);
-    formData.append('phone', data.phone);
-    formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
-    setIsLoader(true);
-    userService
-      .update(data.id, formData)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          setEditOpen(false);
-          setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.map((item: any) => {
-              if (item.id === updateItem.data.data.id) {
-                item.firstName = updateItem.data.data.firstName;
-                item.lastName = updateItem.data.data.lastName;
-                item.email = updateItem.data.data.email;
-                item.phone = updateItem.data.data.phone;
-                item.address = updateItem.data.data.address;
-                item.avatar = updateItem.data.data.avatar;
-              }
-              return { ...item };
-            });
-          });
-          ToastHandler(updateItem.data.message);
-        } else {
-          setIsLoader(false);
-          ToastHandler(updateItem.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
-        setIsLoader(false);
-      });
-  };
+  // const updateEmployeeHandler = (data: any) => {
+  //   const formData = new FormData();
+  //   formData.append('firstName', data.firstName);
+  //   formData.append('lastName', data.lastName);
+  //   formData.append('email', data.email);
+  //   formData.append('username', data.email);
+  //   formData.append('phone', data.phone);
+  //   formData.append('password', data.password);
+  //   formData.append('address', data.address);
+  //   formData.append('role', data.role);
+  //   if (data.avatar) formData.append('avatar', data.avatar);
+  //   setIsLoader(true);
+  //   userService
+  //     .update(data.id, formData)
+  //     .then((updateItem) => {
+  //       if (updateItem.data.success) {
+  //         setEditOpen(false);
+  //         setIsLoader(false);
+  //         setList((newArr: any) => {
+  //           return newArr.map((item: any) => {
+  //             if (item.id === updateItem.data.data.id) {
+  //               item.firstName = updateItem.data.data.firstName;
+  //               item.lastName = updateItem.data.data.lastName;
+  //               item.email = updateItem.data.data.email;
+  //               item.phone = updateItem.data.data.phone;
+  //               item.address = updateItem.data.data.address;
+  //               item.avatar = updateItem.data.data.avatar;
+  //             }
+  //             return { ...item };
+  //           });
+  //         });
+  //         ToastHandler(updateItem.data.message);
+  //       } else {
+  //         setIsLoader(false);
+  //         ToastHandler(updateItem.data.message);
+  //       }
+  //     })
+  //     .catch((err: Error | any) => {
+  //       console.log('error: ', err);
+  //       ToastHandler(err?.response?.data?.message);
+  //       setIsLoader(false);
+  //     });
+  // };
 
   return (
     <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Receipts" />
+      <TopBar title="Security Logs" />
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Receipts
+              Security Logs
             </h2>
             <div className="flex gap-3 items-center">
               <Input
-                placeholder="Search receipts..."
+                placeholder="Search security logs..."
                 value={search}
                 onChange={handleChange}
                 onKeyPress={handleKeyPress}
                 className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
               />
               <DropdownMenu>
-                <Button
+                {/* <Button
                   onClick={() => setIsOpen(true)}
                   className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                   variant={'outline'}
                 >
                   + Add New
-                </Button>
+                </Button> */}
                 <DropdownMenuContent align="end">
                   {table
                     .getAllColumns()
@@ -543,7 +539,7 @@ const Receipts = () => {
           )}
         </div>
       </SidebarInset>
-      {isOpen && (
+      {/* {isOpen && (
         <OfficeUsersCreationDialog
           isLoader={isLoader}
           isOpen={isOpen}
@@ -569,7 +565,7 @@ const Receipts = () => {
           formData={editFormData}
           callback={deleteUserHandler}
         />
-      )}
+      )} */}
     </div>
   );
 };

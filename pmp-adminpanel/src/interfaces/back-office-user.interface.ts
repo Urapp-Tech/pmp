@@ -5,6 +5,7 @@ export interface Fields {
   email: string;
   password: string;
   phone: string;
+  gender: string;
   address: string;
   userType: string;
   avatar: string;

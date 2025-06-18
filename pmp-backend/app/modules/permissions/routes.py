@@ -7,14 +7,24 @@ from app.modules.permissions.schemas import (
     PermissionOut,
     PermissionCreate,
     PermissionUpdate,
+    PermissionListResponse,
 )
-from app.modules.permissions.services import create_permission, update_permission
+from app.modules.permissions.services import (
+    create_permission,
+    update_permission,
+    get_permissions,
+)
 
 # router = APIRouter(prefix="/permissions", tags=["permissions"])
 router = APIRouter()
 # @router.post("/", response_model=PermissionOut, status_code=status.HTTP_201_CREATED)
 # def create_new_permission(permission: Permission, db: Session = Depends(get_db)):
 #     return create_permission(db, permission)
+
+
+@router.get("/list", response_model=PermissionListResponse)
+def read_permissions(db: Session = Depends(get_db)):
+    return get_permissions(db)
 
 
 @router.post("/create", response_model=PermissionOut)
