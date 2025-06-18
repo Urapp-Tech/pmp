@@ -11,7 +11,9 @@ class LandlordCreate(BaseModel):
     email: EmailStr
     password: str
     phone: str
-    is_landlord: bool = True
+    is_verified: bool = Field(..., alias="isVerified")
+    role_id: UUID = Field(..., alias="roleId")
+    gender: Optional[str] = None
 
     @field_validator("fname", "lname")
     def name_must_be_alphabets(cls, v, field):
@@ -44,6 +46,52 @@ class LandlordCreate(BaseModel):
         return v
 
 
+class LandlordUpdate(BaseModel):
+    fname: Optional[str] = Field(None, min_length=1)
+    lname: Optional[str] = Field(None, min_length=1)
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    role_id: UUID = Field(..., alias="roleId")
+    # is_verified: Optional[bool] = Field(None, alias="isVerified")
+    gender: Optional[str] = None
+    password: Optional[str] = None
+
+    @field_validator("fname", "lname")
+    def name_must_be_alphabets(cls, v, field):
+        if v is not None and not v.isalpha():
+            raise ValueError(
+                f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets."
+            )
+        return v
+
+    @field_validator("phone")
+    def phone_must_be_valid(cls, v):
+        if v is not None and not re.fullmatch(r"^[9654]\d{7}$", v):
+            raise ValueError(
+                "Phone number must start with 9, 6, 5, or 4 and be exactly 8 digits long."
+            )
+        return v
+
+    @field_validator("password")
+    def password_strength(cls, v):
+        if v is not None:
+            if not v:
+                return None
+            if len(v) < 8:
+                raise ValueError("Password must be at least 8 characters long.")
+            if not re.search(r"[A-Z]", v):
+                raise ValueError("Password must include at least one uppercase letter.")
+            if not re.search(r"[a-z]", v):
+                raise ValueError("Password must include at least one lowercase letter.")
+            if not re.search(r"[0-9]", v):
+                raise ValueError("Password must include at least one number.")
+            if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+                raise ValueError(
+                    "Password must include at least one special character."
+                )
+        return v
+
+
 class LandlordOut(BaseModel):
     id: UUID
     fname: str
@@ -52,9 +100,11 @@ class LandlordOut(BaseModel):
     phone: str
     is_landlord: bool = Field(..., alias="isLandlord")
     landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+    role_id: Optional[UUID] = Field(None, alias="roleId")
     profile_pic: Optional[str] = Field(None, alias="profilePic")
     gender: Optional[str]
     is_active: bool = Field(..., alias="isActive")
+    is_verified: bool = Field(..., alias="isVerified")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
 
@@ -62,6 +112,17 @@ class LandlordOut(BaseModel):
         from_attributes = True
         populate_by_name = True
         alias_generator = None
+
+
+class LandlordResponse(BaseModel):
+    success: bool
+    message: str
+    items: LandlordOut
+
+    class Config:
+        from_attributes = True
+        alias_generator = None
+        populate_by_name = True
 
 
 class PaginatedLandlordResponse(BaseModel):
@@ -80,3 +141,8 @@ class PaginatedLandlordResponse(BaseModel):
 class VerifyLandlordRequest(BaseModel):
     user_id: UUID = Field(..., alias="userId")
     is_verified: bool = Field(..., alias="isVerified")
+
+
+class LandlordDeleteResponse(BaseModel):
+    success: bool
+    message: str

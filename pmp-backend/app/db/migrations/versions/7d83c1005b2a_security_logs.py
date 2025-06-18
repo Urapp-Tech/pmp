@@ -37,7 +37,9 @@ def upgrade() -> None:
         ),
         sa.Column("action", sa.String(length=100), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
+        sa.Column("module", sa.Text(), nullable=True),
         sa.Column("ip_address", sa.String(length=45), nullable=True),
+        sa.Column("user_agent", sa.Text(), nullable=True),
         sa.Column(
             "created_at",
             sa.TIMESTAMP(timezone=True),

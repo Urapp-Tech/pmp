@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, ForeignKey, Boolean, text
+from sqlalchemy import Column, String, ForeignKey, Boolean, text, TIMESTAMP
+from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, backref
 from app.db.database import Base
@@ -14,9 +15,9 @@ class Role(Base):
     desc = Column(String(255), nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
     landlord_id = Column(UUID(as_uuid=True), ForeignKey("landlords.id"), nullable=True)
-    # Relationships
-    # users = relationship("User", back_populates="role", cascade="all, delete")
-    # permissions = relationship("RolePermission", back_populates="role", cascade="all, delete")
+    created_at = Column(
+        TIMESTAMP(timezone=True), server_default=func.now(), nullable=False
+    )
 
 
 class RolePermission(Base):

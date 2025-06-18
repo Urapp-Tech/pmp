@@ -9,4 +9,5 @@ export interface Fields {
   userType: string;
   avatar: string;
   role: string;
+  gender: string;
 }

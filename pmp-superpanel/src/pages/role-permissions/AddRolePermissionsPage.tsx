@@ -61,7 +61,7 @@ const AddRolePermissionsPage = () => {
     setIsLoader(true);
     let obj = {
       name: data.name,
-      permissions: checkedIds,
+      data: checkedIds,
     };
     try {
       const response = await service.create(obj);
@@ -71,13 +71,13 @@ const AddRolePermissionsPage = () => {
       } else {
         setMainIsLoader(false);
         setIsLoader(false);
-        ToastHandler(response.data.message);
+        ToastHandler(response.data.detail);
         console.log('error: ', response);
       }
     } catch (error: Error | any) {
       setMainIsLoader(false);
       setIsLoader(false);
-      ToastHandler(error.response.data.message);
+      ToastHandler(error.response.data.detail);
       console.log('error: ', error);
     }
   };
@@ -111,9 +111,9 @@ const AddRolePermissionsPage = () => {
       const users = await service.permissionList();
       if (users.data.success) {
         setMainIsLoader(false);
-        const result = compilePermissions(users.data.data.list);
-        setList(result);
-        setTotal(users.data.data.total);
+        const result = users.data.items;
+        setList(users.data.items);
+        setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
         console.log('error: ', users.data.message);
@@ -133,7 +133,7 @@ const AddRolePermissionsPage = () => {
   const handleSelectAll = (isChecked: boolean) => {
     if (isChecked) {
       const allIds = list.flatMap((item: any) =>
-        item.child.map((child: any) => child.id)
+        item.data.map((child: any) => child.id)
       );
       setCheckedIds(allIds);
     } else {
@@ -142,8 +142,8 @@ const AddRolePermissionsPage = () => {
   };
 
   const isAllSelected = () => {
-    const allIds = list.flatMap((item: any) =>
-      item.child.map((child: any) => child.id)
+    const allIds = list?.flatMap((item: any) =>
+      item?.data?.map((child: any) => child.id)
     );
 
     return allIds.every((id: any) => checkedIds.includes(id));
@@ -179,7 +179,7 @@ const AddRolePermissionsPage = () => {
                     <Input
                       className="rounded-[20px] h-[60px] px-5 bg-earth-bg  text-secondary-bg mt-2 text-[14px] font-medium outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[0] focus-visible:ring-0"
                       id="name"
-                      placeholder="Manager"
+                      placeholder="Ex: Manager / User"
                       type="text"
                       {...register('name', {
                         required: 'Please enter role name',
@@ -214,7 +214,7 @@ const AddRolePermissionsPage = () => {
                   </div>
                 </div>
                 <div className="mt-2">
-                  {list.map((item: any, index: number) => (
+                  {list?.map((item: any, index: number) => (
                     <div className="mt-2" key={index}>
                       <FormLabel
                         htmlFor={item.name}
@@ -222,8 +222,8 @@ const AddRolePermissionsPage = () => {
                       >
                         {item.name}
                       </FormLabel>
-                      <div className="flex py-2">
-                        {item?.child?.map((child: any, i: number) => (
+                      <div className="flex py-2 gap-4">
+                        {item?.data?.map((child: any, i: number) => (
                           <div key={i} className="flex items-center">
                             <Checkbox
                               id={child.id}

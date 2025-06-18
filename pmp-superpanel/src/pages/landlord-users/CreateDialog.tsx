@@ -31,23 +31,15 @@ type Props = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   callback: (...args: any[]) => any;
-  formData: any;
 };
 
-const OfficeUserUpdateDialog = ({
+const OfficeUserCreateDialog = ({
   isOpen,
   setIsOpen,
   callback,
   isLoader,
-  formData,
 }: Props) => {
-  const form = useForm<Fields>({
-    defaultValues: {
-      password: '',
-      avatar: formData.avatar || '',
-      role: formData.role || '',
-    },
-  });
+  const form = useForm<Fields>();
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -77,11 +69,19 @@ const OfficeUserUpdateDialog = ({
   } = form;
 
   const onSubmit = async (data: Fields) => {
-    if (file) data.avatar = file;
-    data.userType = 'USER';
-    data.id = formData.id;
-    callback(data);
-    // console.log('s', data);
+    // if (file) data.avatar = file;
+    // data.userType = 'USER';
+    let obj = {
+      fname: data.firstName,
+      lname: data.lastName,
+      email: data.email,
+      password: data.password,
+      phone: data.phone,
+      gender: data.gender,
+      roleId: data.role,
+    };
+    callback(obj);
+    // console.log('s', obj);
   };
 
   const togglePasswordVisibility = () => {
@@ -91,17 +91,7 @@ const OfficeUserUpdateDialog = ({
   const fetchRoleLov = async () => {
     try {
       const roles = await service.lov();
-      if (roles.data.success) {
-        const lov = roles.data.data.map((el: any) => {
-          return {
-            name: el.name,
-            id: el.id,
-          };
-        });
-        setRoleLov(lov);
-      } else {
-        console.log('error: ', roles.data.message);
-      }
+      setRoleLov(roles.data);
     } catch (error: Error | unknown) {
       console.log('error: ', error);
     }
@@ -118,7 +108,7 @@ const OfficeUserUpdateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Update Admin User</DialogTitle>
+          <DialogTitle>Add New Landlord User</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -138,7 +128,6 @@ const OfficeUserUpdateDialog = ({
                       placeholder="john"
                       type="text"
                       {...register('firstName', {
-                        value: formData?.firstName,
                         required: 'Please enter your first name',
                       })}
                     />
@@ -160,9 +149,7 @@ const OfficeUserUpdateDialog = ({
                       id="lastName"
                       placeholder="doe"
                       type="text"
-                      {...register('lastName', {
-                        value: formData?.lastName,
-                      })}
+                      {...register('lastName')}
                     />
                     {/* {errors.lastName && (
                       <FormMessage>*{errors.lastName.message}</FormMessage>
@@ -182,7 +169,6 @@ const OfficeUserUpdateDialog = ({
                       placeholder="johndoe@gmail.com"
                       type="text"
                       {...register('email', {
-                        value: formData?.email,
                         required: 'Please enter your email',
                       })}
                     />
@@ -208,7 +194,12 @@ const OfficeUserUpdateDialog = ({
                         className="text-sm pr-10 mt-2"
                         {...register('password', {
                           required: 'Please enter your password.',
-                          value: '',
+                          pattern: {
+                            value:
+                              /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
+                            message:
+                              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+                          },
                         })}
                       />
                       <Button
@@ -234,7 +225,7 @@ const OfficeUserUpdateDialog = ({
               <div className="form-group w-full flex items-center justify-center gap-3 m-1">
                 <div className="w-full">
                   <FormLabel
-                    htmlFor="phone"
+                    htmlFor="roles"
                     className="text-sm font-medium my-2 block"
                   >
                     Roles
@@ -244,33 +235,56 @@ const OfficeUserUpdateDialog = ({
                     name="role"
                     label=""
                     items={roleLov}
-                    // value={formData.role}
                     placeholder="Choose an option"
                     rules={{ required: 'This field is required' }}
                   />
                 </div>
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel htmlFor="phone" className="text-sm font-medium">
-                      Phone
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="phone"
-                      placeholder="876543215"
-                      type="number"
-                      {...register('phone', {
-                        required: 'Please enter your phone',
-                        value: formData.phone,
-                      })}
-                    />
-                    {errors.phone && (
-                      <FormMessage>*{errors.phone.message}</FormMessage>
-                    )}
-                  </div>
-                </FormControl>
+                <div className="w-full">
+                  <FormLabel
+                    htmlFor="gender"
+                    className="text-sm font-medium my-2 block"
+                  >
+                    Gender
+                  </FormLabel>
+                  <SingleSelectDropDown
+                    control={control}
+                    name="gender"
+                    label=""
+                    items={[
+                      { id: 'male', name: 'Male' },
+                      { id: 'female', name: 'Female' },
+                      { id: 'other', name: 'Other' },
+                    ]}
+                    placeholder="Choose an option"
+                    // rules={{ required: 'This field is required' }}
+                  />
+                </div>
               </div>
               <FormControl className="m-1 w-full">
+                <div className="">
+                  <FormLabel htmlFor="phone" className="text-sm font-medium">
+                    Phone
+                  </FormLabel>
+                  <Input
+                    className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                    id="phone"
+                    placeholder="91111111"
+                    type="text"
+                    {...register('phone', {
+                      required: 'Please enter your phone',
+                      pattern: {
+                        value: /^[9654]\d{7}$/,
+                        message:
+                          'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
+                      },
+                    })}
+                  />
+                  {errors.phone && (
+                    <FormMessage>*{errors.phone.message}</FormMessage>
+                  )}
+                </div>
+              </FormControl>
+              {/* <FormControl className="m-1 w-full">
                 <div className="">
                   <FormLabel htmlFor="address" className="text-sm font-medium">
                     Address
@@ -280,14 +294,14 @@ const OfficeUserUpdateDialog = ({
                     id="address"
                     placeholder="Street 55"
                     type="text"
-                    {...register('address', { value: formData.address })}
+                    {...register('address')}
                   />
                   {errors.address && (
                     <FormMessage>*{errors.address.message}</FormMessage>
                   )}
                 </div>
-              </FormControl>
-              <div>
+              </FormControl> */}
+              {/* <div>
                 <div className="flex justify-between">
                   <FormLabel
                     htmlFor="address"
@@ -322,14 +336,14 @@ const OfficeUserUpdateDialog = ({
                     </div>
                   ) : null}
                 </div>
-              </div>
-              <DialogFooter className="mt-3">
+              </div> */}
+              <DialogFooter className="mt-6">
                 <Button
                   disabled={isLoader}
                   type="submit"
                   className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                 >
-                  {isLoader && <Loader2 className="animate-spin" />} Update
+                  {isLoader && <Loader2 className="animate-spin" />} Add
                 </Button>
               </DialogFooter>
             </div>
@@ -340,4 +354,4 @@ const OfficeUserUpdateDialog = ({
   );
 };
 
-export default OfficeUserUpdateDialog;
+export default OfficeUserCreateDialog;

@@ -39,6 +39,7 @@ class User(Base):
 
     landlord = relationship("Landlord", backref="users")
     role = relationship("Role", backref="users")
+    security_logs = relationship("SecurityLog", backref="users")
 
     # role = relationship("Role", back_populates="users")
     # landlord = relationship("Landlord", back_populates="landlords")

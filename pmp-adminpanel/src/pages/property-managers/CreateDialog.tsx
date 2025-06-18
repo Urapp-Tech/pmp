@@ -69,10 +69,21 @@ const OfficeUserCreateDialog = ({
   } = form;
 
   const onSubmit = async (data: Fields) => {
-    if (file) data.avatar = file;
-    data.userType = 'USER';
-    callback(data);
+    // if (file) data.avatar = file;
+    // data.userType = 'USER';
+    // callback(data);
     // console.log('s', data);
+    let obj: any = {
+      fname: data.firstName,
+      lname: data.lastName,
+      email: data.email,
+      password: data.password,
+      phone: data.phone,
+      gender: data.gender,
+      roleId: data.role,
+    };
+    if (file) obj.profilePic = file;
+    callback(obj);
   };
 
   const togglePasswordVisibility = () => {
@@ -82,17 +93,10 @@ const OfficeUserCreateDialog = ({
   const fetchRoleLov = async () => {
     try {
       const roles = await service.lov();
-      if (roles.data.success) {
-        const lov = roles.data.data.map((el: any) => {
-          return {
-            name: el.name,
-            id: el.id,
-          };
-        });
-        setRoleLov(lov);
-      } else {
-        console.log('error: ', roles.data.message);
-      }
+      const rolesData = roles.data.filter(
+        (el: any) => el.name !== 'Landlord' || el.name !== 'User'
+      );
+      setRoleLov(rolesData);
     } catch (error: Error | unknown) {
       console.log('error: ', error);
     }
@@ -195,6 +199,12 @@ const OfficeUserCreateDialog = ({
                         className="text-sm pr-10 mt-2"
                         {...register('password', {
                           required: 'Please enter your password.',
+                          pattern: {
+                            value:
+                              /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
+                            message:
+                              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+                          },
                         })}
                       />
                       <Button
@@ -234,40 +244,48 @@ const OfficeUserCreateDialog = ({
                     rules={{ required: 'This field is required' }}
                   />
                 </div>
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel htmlFor="phone" className="text-sm font-medium">
-                      Phone
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="phone"
-                      placeholder="876543215"
-                      type="number"
-                      {...register('phone', {
-                        required: 'Please enter your phone',
-                      })}
-                    />
-                    {errors.phone && (
-                      <FormMessage>*{errors.phone.message}</FormMessage>
-                    )}
-                  </div>
-                </FormControl>
+                <div className="w-full">
+                  <FormLabel
+                    htmlFor="gender"
+                    className="text-sm font-medium my-2 block"
+                  >
+                    Gender
+                  </FormLabel>
+                  <SingleSelectDropDown
+                    control={control}
+                    name="gender"
+                    label=""
+                    items={[
+                      { id: 'male', name: 'Male' },
+                      { id: 'female', name: 'Female' },
+                      { id: 'other', name: 'Other' },
+                    ]}
+                    placeholder="Choose an option"
+                    // rules={{ required: 'This field is required' }}
+                  />
+                </div>
               </div>
               <FormControl className="m-1 w-full">
                 <div className="">
-                  <FormLabel htmlFor="address" className="text-sm font-medium">
-                    Address
+                  <FormLabel htmlFor="phone" className="text-sm font-medium">
+                    Phone
                   </FormLabel>
                   <Input
                     className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                    id="address"
-                    placeholder="Street 55"
-                    type="text"
-                    {...register('address')}
+                    id="phone"
+                    placeholder="876543215"
+                    type="number"
+                    {...register('phone', {
+                      required: 'Please enter your phone',
+                      pattern: {
+                        value: /^[9654]\d{7}$/,
+                        message:
+                          'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
+                      },
+                    })}
                   />
-                  {errors.address && (
-                    <FormMessage>*{errors.address.message}</FormMessage>
+                  {errors.phone && (
+                    <FormMessage>*{errors.phone.message}</FormMessage>
                   )}
                 </div>
               </FormControl>

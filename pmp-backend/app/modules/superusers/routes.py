@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
-from app.db.database import SessionLocal
+from app.db.database import SessionLocal, get_db
 from app.modules.superusers.schemas import (
     UserLogin,
     UserCreate,
@@ -19,17 +19,9 @@ from app.modules.superusers.services import (
 router = APIRouter()
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 @router.post("/login", response_model=LoginResponse)
-def login(user: UserLogin, db: Session = Depends(get_db)):
-    return authenticate_user(db, user)
+def login(user: UserLogin, db: Session = Depends(get_db), request: Request = None):
+    return authenticate_user(db, user, request)
 
 
 @router.post("/refresh/token", response_model=TokenSchema)

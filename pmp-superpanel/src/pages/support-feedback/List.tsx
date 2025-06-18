@@ -46,7 +46,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import service from '@/services/adminapp/blogs';
+import service from '@/services/adminapp/support-tickets';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
 import OfficeUsersCreationDialog from './CreateDialog';
@@ -80,9 +80,12 @@ export type Users = {
 
 const Blogs = () => {
   const userDetails: any = getItem('USER');
+  console.log('userDetails', userDetails);
+
   const { toast } = useToast();
 
   const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('open');
   const [page, setPage] = useState(0);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
@@ -115,25 +118,27 @@ const Blogs = () => {
 
   const columns: ColumnDef<Users>[] = [
     {
-      accessorKey: 'title',
-      header: 'Title',
+      accessorKey: 'subject',
+      header: 'Subject',
       cell: ({ row }) => (
-        <div className="capitalize font-semibold">{row.getValue('title')}</div>
+        <div className="capitalize font-semibold">
+          {row.getValue('subject')}
+        </div>
       ),
     },
     {
-      accessorKey: 'description',
+      accessorKey: 'message',
       header: 'Description',
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('description')}</div>
+        <div className="capitalize">{row.getValue('message')}</div>
       ),
     },
     {
-      accessorKey: 'isActive',
+      accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
         <div className="capitalize bg-neptune-bg/30 text-center w-[50px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
-          {row.getValue('isActive') ? 'Active' : 'In-Active'}
+          {row.getValue('status')}
         </div>
       ),
     },
@@ -200,16 +205,23 @@ const Blogs = () => {
     }
   };
 
-  const fetchBlogs = async () => {
+  const fetchTickets = async () => {
     try {
-      const users = await service.list(search, page, pageSize);
-      if (users.data.success) {
+      const resp = await service.list(
+        userDetails?.id,
+        userDetails?.roleId,
+        search,
+        status,
+        page,
+        pageSize
+      );
+      if (resp.data.success) {
         setMainIsLoader(false);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
+        setList(resp.data.items);
+        setTotal(resp.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        console.log('error: ', resp.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
@@ -223,52 +235,59 @@ const Blogs = () => {
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      fetchBlogs();
+      fetchTickets();
     }
   };
 
   useEffect(() => {
-    fetchBlogs();
+    fetchTickets();
   }, []);
 
-  const deleteHandler = (data: any) => {
-    const userId = data.id;
-    setIsLoader(true);
-    service
-      .deleteBlog(userId)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          setDeleteOpen(false);
-          setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.filter((item: any) => item.id !== userId);
-          });
-          let newtotal = total;
-          setTotal((newtotal -= 1));
-          toast({
-            description: updateItem.data.message,
-            className: cn(
-              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-            ),
-            style: {
-              backgroundColor: '#FF5733',
-              color: 'white',
-            },
-          });
-        } else {
-          setIsLoader(false);
-        }
-      })
-      .catch((err: Error) => {
-        console.log('error: ', err);
-        setIsLoader(false);
-      });
-  };
+  // const deleteHandler = (data: any) => {
+  //   const userId = data.id;
+  //   setIsLoader(true);
+  //   service
+  //     .deleteBlog(userId)
+  //     .then((updateItem) => {
+  //       if (updateItem.data.success) {
+  //         setDeleteOpen(false);
+  //         setIsLoader(false);
+  //         setList((newArr: any) => {
+  //           return newArr.filter((item: any) => item.id !== userId);
+  //         });
+  //         let newtotal = total;
+  //         setTotal((newtotal -= 1));
+  //         toast({
+  //           description: updateItem.data.message,
+  //           className: cn(
+  //             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+  //           ),
+  //           style: {
+  //             backgroundColor: '#FF5733',
+  //             color: 'white',
+  //           },
+  //         });
+  //       } else {
+  //         setIsLoader(false);
+  //       }
+  //     })
+  //     .catch((err: Error) => {
+  //       console.log('error: ', err);
+  //       setIsLoader(false);
+  //     });
+  // };
 
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
-      const users = await service.list(search, newPage, pageSize);
+      const users = await service.list(
+        userDetails?.id,
+        userDetails?.roleId,
+        search,
+        status,
+        newPage,
+        pageSize
+      );
       if (users.data.success) {
         setPage(newPage);
         setList(users.data.data.list);
@@ -301,79 +320,79 @@ const Blogs = () => {
     },
   });
 
-  const createBlogHandler = (data: any) => {
-    setIsLoader(true);
-    const formData = new FormData();
-    formData.append('title', data.title);
-    formData.append('description', data.description);
-    if (data.images.length) {
-      data.images.forEach((image: any) => {
-        formData.append('images', image);
-      });
-    }
-    service
-      .create(data)
-      .then((item) => {
-        if (item.data.success) {
-          setIsOpen(false);
-          setIsLoader(false);
-          setList([item.data.data, ...list]);
-          let newtotal = total;
-          setTotal((newtotal += 1));
-        } else {
-          setIsLoader(false);
-          ToastHandler(item.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
-        setIsLoader(false);
-      });
-  };
+  // const createBlogHandler = (data: any) => {
+  //   setIsLoader(true);
+  //   const formData = new FormData();
+  //   formData.append('title', data.title);
+  //   formData.append('description', data.description);
+  //   if (data.images.length) {
+  //     data.images.forEach((image: any) => {
+  //       formData.append('images', image);
+  //     });
+  //   }
+  //   service
+  //     .create(data)
+  //     .then((item) => {
+  //       if (item.data.success) {
+  //         setIsOpen(false);
+  //         setIsLoader(false);
+  //         setList([item.data.data, ...list]);
+  //         let newtotal = total;
+  //         setTotal((newtotal += 1));
+  //       } else {
+  //         setIsLoader(false);
+  //         ToastHandler(item.data.message);
+  //       }
+  //     })
+  //     .catch((err: Error | any) => {
+  //       console.log('error: ', err);
+  //       ToastHandler(err?.response?.data?.message);
+  //       setIsLoader(false);
+  //     });
+  // };
 
-  const updateBlogHandler = (data: any) => {
-    setIsLoader(true);
-    const blogId = data.id;
-    const formData = new FormData();
-    formData.append('title', data.title);
-    formData.append('description', data.description);
-    formData.append('deletedPrevImages', data.deletedPrevImages);
-    if (data.images.length) {
-      data.images.forEach((image: any) => {
-        formData.append('images', image);
-      });
-    } else {
-      formData.append('images', '');
-    }
-    service
-      .update(blogId, formData)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          setEditOpen(false);
-          setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.map((item: any) => {
-              if (item.id === updateItem.data.data.id) {
-                item.title = updateItem.data.data.title;
-                item.description = updateItem.data.data.description;
-                item.images = updateItem.data.data.images;
-              }
-              return { ...item };
-            });
-          });
-          ToastHandler(updateItem.data.message);
-        } else {
-          setIsLoader(false);
-          ToastHandler(updateItem.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
-        setIsLoader(false);
-      });
-  };
+  // const updateBlogHandler = (data: any) => {
+  //   setIsLoader(true);
+  //   const blogId = data.id;
+  //   const formData = new FormData();
+  //   formData.append('title', data.title);
+  //   formData.append('description', data.description);
+  //   formData.append('deletedPrevImages', data.deletedPrevImages);
+  //   if (data.images.length) {
+  //     data.images.forEach((image: any) => {
+  //       formData.append('images', image);
+  //     });
+  //   } else {
+  //     formData.append('images', '');
+  //   }
+  //   service
+  //     .update(blogId, formData)
+  //     .then((updateItem) => {
+  //       if (updateItem.data.success) {
+  //         setEditOpen(false);
+  //         setIsLoader(false);
+  //         setList((newArr: any) => {
+  //           return newArr.map((item: any) => {
+  //             if (item.id === updateItem.data.data.id) {
+  //               item.title = updateItem.data.data.title;
+  //               item.description = updateItem.data.data.description;
+  //               item.images = updateItem.data.data.images;
+  //             }
+  //             return { ...item };
+  //           });
+  //         });
+  //         ToastHandler(updateItem.data.message);
+  //       } else {
+  //         setIsLoader(false);
+  //         ToastHandler(updateItem.data.message);
+  //       }
+  //     })
+  //     .catch((err: Error | any) => {
+  //       console.log('error: ', err);
+  //       ToastHandler(err?.response?.data?.message);
+  //       setIsLoader(false);
+  //     });
+  // };
 
   return (
     <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
@@ -394,13 +413,13 @@ const Blogs = () => {
                 className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
               />
               <DropdownMenu>
-                <Button
+                {/* <Button
                   onClick={() => setIsOpen(true)}
                   className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                   variant={'outline'}
                 >
                   + Add New
-                </Button>
+                </Button> */}
                 <DropdownMenuContent align="end">
                   {table
                     .getAllColumns()
@@ -499,7 +518,7 @@ const Blogs = () => {
           )}
         </div>
       </SidebarInset>
-      {isOpen && (
+      {/* {isOpen && (
         <OfficeUsersCreationDialog
           isLoader={isLoader}
           isOpen={isOpen}
@@ -525,7 +544,7 @@ const Blogs = () => {
           formData={editFormData}
           callback={deleteHandler}
         />
-      )}
+      )} */}
     </div>
   );
 };

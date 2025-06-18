@@ -46,7 +46,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import userService from '@/services/adminapp/users';
+import service from '@/services/adminapp/landlords';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
 import OfficeUsersCreationDialog from './CreateDialog';
@@ -278,8 +278,8 @@ const Users = () => {
   const deleteUserHandler = (data: any) => {
     const userId = data.id;
     setIsLoader(true);
-    userService
-      .deleteUser(userId)
+    service
+      .deleteService(userId)
       .then((updateItem) => {
         if (updateItem.data.success) {
           setDeleteOpen(false);
@@ -312,7 +312,7 @@ const Users = () => {
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
-      const users = await userService.list(search, newPage, pageSize);
+      const users = await usersService.list(search, newPage, pageSize);
       if (users.data.success) {
         setPage(newPage);
         setList(users.data.data.list);
@@ -345,29 +345,30 @@ const Users = () => {
     },
   });
 
-  const createEmployeeHandler = (data: any) => {
+  const createHandler = (data: any) => {
     console.log('dadad', data);
-
     setIsLoader(true);
-    const formData = new FormData();
-    formData.append('userType', data.userType);
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
-    formData.append('email', data.email);
-    formData.append('phone', data.phone);
-    formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
-    userService
-      .create(data)
+    // const formData = new FormData();
+    // formData.append('userType', data.userType);
+    // formData.append('firstName', data.firstName);
+    // formData.append('lastName', data.lastName);
+    // formData.append('email', data.email);
+    // formData.append('phone', data.phone);
+    // formData.append('password', data.password);
+    // formData.append('address', data.address);
+    // formData.append('role', data.role);
+    // if (data.avatar) formData.append('avatar', data.avatar);
+    data.isVerified = true;
+    service
+      .createService(data)
       .then((item) => {
         if (item.data.success) {
           setIsOpen(false);
           setIsLoader(false);
-          setList([item.data.data, ...list]);
+          setList([item.data.items, ...list]);
           let newtotal = total;
           setTotal((newtotal += 1));
+          ToastHandler(item.data.message);
         } else {
           setIsLoader(false);
           ToastHandler(item.data.message);
@@ -380,33 +381,33 @@ const Users = () => {
       });
   };
 
-  const updateEmployeeHandler = (data: any) => {
-    const formData = new FormData();
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
-    formData.append('email', data.email);
-    formData.append('username', data.email);
-    formData.append('phone', data.phone);
-    formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
+  const updateEmployeeHandler = (id: any, data: any) => {
+    // const formData = new FormData();
+    // formData.append('firstName', data.firstName);
+    // formData.append('lastName', data.lastName);
+    // formData.append('email', data.email);
+    // formData.append('username', data.email);
+    // formData.append('phone', data.phone);
+    // formData.append('password', data.password);
+    // formData.append('address', data.address);
+    // formData.append('role', data.role);
+    // if (data.avatar) formData.append('avatar', data.avatar);
     setIsLoader(true);
-    userService
-      .update(data.id, formData)
+    service
+      .updateService(id, data)
       .then((updateItem) => {
         if (updateItem.data.success) {
           setEditOpen(false);
           setIsLoader(false);
           setList((newArr: any) => {
             return newArr.map((item: any) => {
-              if (item.id === updateItem.data.data.id) {
-                item.firstName = updateItem.data.data.firstName;
-                item.lastName = updateItem.data.data.lastName;
-                item.email = updateItem.data.data.email;
-                item.phone = updateItem.data.data.phone;
-                item.address = updateItem.data.data.address;
-                item.avatar = updateItem.data.data.avatar;
+              if (item.id === updateItem.data.items.id) {
+                item.firstName = updateItem.data.items.firstName;
+                item.lastName = updateItem.data.items.lastName;
+                item.email = updateItem.data.items.email;
+                item.phone = updateItem.data.items.phone;
+                item.roleId = updateItem.data.items.roleId;
+                item.gender = updateItem.data.items.gender;
               }
               return { ...item };
             });
@@ -432,11 +433,11 @@ const Users = () => {
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              All Users
+              All Landlord Users
             </h2>
             <div className="flex gap-3 items-center">
               <Input
-                placeholder="Search users..."
+                placeholder="Search landlordusers..."
                 value={search}
                 onChange={handleChange}
                 onKeyPress={handleKeyPress}
@@ -553,7 +554,7 @@ const Users = () => {
           isLoader={isLoader}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          callback={createEmployeeHandler}
+          callback={createHandler}
         />
       )}
       {editOpen && (

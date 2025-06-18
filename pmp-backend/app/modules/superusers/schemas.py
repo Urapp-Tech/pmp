@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from uuid import UUID
 
@@ -20,8 +20,10 @@ class UserOut(BaseModel):
     id: UUID
     name: str
     email: EmailStr
-    # gender: str
+    role_id: UUID = Field(None, alias="roleId")
+    role_name: str = Field(None, alias="roleName")
     phone: Optional[str] = None
+    # gender: str
     # password: str
 
     access_token: Optional[str] = None

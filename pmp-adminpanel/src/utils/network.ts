@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BASE_URL, BASE_SYSTEM_URL } from '@/utils/constants';
+import { ADMIN_BASE_URL, BASE_URL, BASE_SYSTEM_URL } from '@/utils/constants';
 import { getItem, setItem } from '@/utils/storage';
 import { store } from '@/redux/store';
 import { logout } from '@/redux/features/authSlice';
@@ -105,8 +105,12 @@ networkInstance.interceptors.response.use(
   }
 );
 
-const post = <T = unknown>(endPoint: string, data: T) => {
-  return networkInstance.post(`${BASE_URL}${endPoint}`, data, {
+const post = <T = unknown>(endPoint: string, data: T, type?: any) => {
+  let baseUrl = ADMIN_BASE_URL;
+  if (type === 'super') {
+    baseUrl = BASE_URL;
+  }
+  return networkInstance.post(`${baseUrl}${endPoint}`, data, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: token(),
@@ -126,9 +130,9 @@ const patch = <T = unknown>(endPoint: string, data: T) => {
 const get = (endPoint: string, body?: unknown, type?: any) => {
   // console.log('token', token());
 
-  let baseUrl = BASE_URL;
-  if (type === 'system') {
-    baseUrl = BASE_SYSTEM_URL;
+  let baseUrl = ADMIN_BASE_URL;
+  if (type === 'super') {
+    baseUrl = BASE_URL;
   }
   return networkInstance.get(`${baseUrl}${endPoint}`, {
     headers: {

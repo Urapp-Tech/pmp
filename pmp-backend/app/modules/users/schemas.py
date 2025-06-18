@@ -17,7 +17,7 @@ class UserCreate(BaseModel):
     password: str
     phone: str
     gender: str = None
-    landlord_id: UUID = Field(None, alias="landlordId")
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
     role_id: UUID = Field(None, alias="roleId")
 
     @field_validator("fname", "lname")
@@ -64,6 +64,7 @@ class UserOut(BaseModel):
     profile_pic: Optional[str] = Field(None, alias="profilePic")
     gender: Optional[str]
     is_active: bool = Field(..., alias="isActive")
+    is_verified: bool = Field(..., alias="isVerified")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
 

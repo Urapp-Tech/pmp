@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 60
     jwt_refresh_token_expire_minutes: int = 60 * 24 * 7  # 7 days, for example
 
+    # S3 credentials
+    s3_access_id: str
+    s3_access_key: str
+    s3_region: str
+    s3_bucket: str
+
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.database}"

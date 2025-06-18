@@ -11,10 +11,10 @@ import Otp from './pages/auth/Otp';
 import AddRolePermissionsPage from '@/pages/role-permissions/AddRolePermissionsPage';
 import UpdateRolePermissionPage from '@/pages/role-permissions/UpdateRolePermissionPage';
 import PropertyManagers from '@/pages/property-management/List';
-import Users from './pages/users/List';
+import Users from './pages/landlord-users/List';
 import Invoices from './pages/subscriptions-management/List';
 import Receipts from './pages/security-logs/List';
-import UnverifiedUsers from './pages/users/UnverifiedList';
+import UnverifiedUsers from './pages/landlord-users/UnverifiedList';
 
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
 const RolePermissions = lazy(

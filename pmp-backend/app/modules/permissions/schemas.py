@@ -48,3 +48,10 @@ class PermissionOut(PermissionBase):
 
     class Config:
         from_attributes = True
+
+
+class PermissionListResponse(BaseModel):
+    success: bool
+    total: int
+    message: str
+    items: List[PermissionOut]
