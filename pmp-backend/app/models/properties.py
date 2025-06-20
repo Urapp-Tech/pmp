@@ -35,4 +35,4 @@ class Property(Base):
     # Relationships
     landlord = relationship("Landlord", backref="properties")
     property_units = relationship("PropertyUnit", back_populates="property", cascade="all, delete-orphan")
-    
+    units = relationship("PropertyUnit", back_populates="property", cascade="all, delete-orphan")

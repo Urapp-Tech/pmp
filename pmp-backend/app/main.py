@@ -11,12 +11,16 @@ from app.modules.properties.routes import router as property_router
 from app.utils.logger import  setup_global_logger, error_log, debug_log
 import logging
 from app.modules.supportTickets.routes import router as support_router
+from fastapi.staticfiles import StaticFiles
 
 # app = FastAPI()
 app = FastAPI(
     docs_url="/docs",  # disables Swagger UI (/docs)
     # openapi_url=None       # disables OpenAPI schema (/openapi.json)
 ) 
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 # Setup global logging
 setup_global_logger()
 # debug_log({"key": "value", "status": 200})

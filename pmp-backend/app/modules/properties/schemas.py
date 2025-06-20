@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import UUID4, BaseModel, Field
 from typing import Optional, List, Union
 from fastapi import UploadFile
 from uuid import UUID
@@ -20,8 +20,7 @@ class PropertyUnitBase(BaseModel):
     size: Optional[str] = Field(None, example="1200 sqft")
     rent: Optional[str] = Field(None, example="500 KD")
     description: Optional[str] = Field(None, example="Spacious with balcony")
-    pictures: Optional[List[Union[UploadFile, str]]] = None
-
+    pictures: Optional[List[Union[UploadFile, str]]] = Field(default_factory=list, example=["url1", "url2"])
     bedrooms: Optional[str] = Field(None, example="2")
     bathrooms: Optional[str] = Field(None, example="2")
     water_meter: Optional[str] = Field(None, example="WM123456")
@@ -29,18 +28,23 @@ class PropertyUnitBase(BaseModel):
     status: Optional[str] = Field(None, example="available")
 
 class PropertyUnitCreate(PropertyUnitBase):
-    pictures: Optional[List[Union[UploadFile, str]]] = None
-
+    id: Optional[UUID] = None
+    property_id: Optional[UUID] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     pass
 
 class PropertyUnitUpdate(PropertyUnitBase):
-    pictures: Optional[List[Union[UploadFile, str]]] = None
-
+    
+    id: Optional[UUID] = None
+    property_id: Optional[UUID] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     pass
 
 class PropertyUnitOut(PropertyUnitBase):
-    id: UUID
-    property_id: UUID
+    id: UUID4
+    property_id: UUID4
     created_at: datetime
     updated_at: datetime
 
@@ -59,7 +63,7 @@ class PropertyBase(BaseModel):
     address: Optional[str] = Field(None, example="Block 3, Street 4")
     address2: Optional[str] = Field(None, example="Near Mosque")
     description: Optional[str] = Field(None, example="Luxury residential building")
-    pictures: Optional[List[Union[UploadFile]]] = Field(default_factory=list, example=["url1", "url2"])
+    pictures: Optional[List[Union[UploadFile, str]]] = Field(default_factory=list, example=["url1", "url2"])
     property_type: Optional[str] = Field(None, example="Apartment")
     type: Optional[PropertyTypeEnum] = Field(None, example="residential")
     paci_no: Optional[str] = Field(None, example="123456")
@@ -71,24 +75,33 @@ class PropertyBase(BaseModel):
     latitude: Optional[str] = Field(None, example="29.3759")
     longitude: Optional[str] = Field(None, example="47.9774")
     status: Optional[str] = Field(None, example="active")
-    pictures: Optional[List[Union[UploadFile, str]]]
-    units: List[PropertyUnitCreate]
 
 class PropertyCreate(PropertyBase):
     landlord_id: UUID = Field(..., example="3fa85f64-5717-4562-b3fc-2c963f66afa6")
-    pictures: Optional[List[Union[UploadFile]]] = None
-    units: List[PropertyUnitCreate] = Field(default_factory=list)
+    units: Optional[List[PropertyUnitCreate]] = Field(default_factory=list)
 
 class PropertyUpdate(PropertyBase):
-    pictures: Optional[List[Union[UploadFile]]] = None
-    units: List[PropertyUnitUpdate] = Field(default_factory=list)
+    units: Optional[List[PropertyUnitCreate]] = Field(default_factory=list)
 
 class PropertyOut(PropertyBase):
-    id: UUID
-    landlord_id: UUID
-    property_units: List[PropertyUnitOut] = []
+    id: UUID4|str = Field(..., example="3fa85f64-5717-4562-b3fc-2c963f66afa6")
+    landlord_id: UUID4|str = Field(..., example="3fa85f64-5717-4562-b3fc-2c963f66afa6")
+    units: List[PropertyUnitOut] = Field(default_factory=list)  
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+class PaginatedPropertyOut(BaseModel):
+    success: bool
+    total: int
+    page: int
+    size: int
+    items: List[PropertyOut]
+
+class PaginatedPropertyUnitOut(BaseModel):
+    success: bool
+    total: int
+    page: int
+    size: int
+    items: List[PropertyUnitOut]

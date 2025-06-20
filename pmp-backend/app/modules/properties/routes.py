@@ -1,17 +1,21 @@
 import json
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, Query
 from uuid import UUID
+from pydantic import UUID4
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.modules.properties.schemas import (
     PropertyOut,
     PropertyCreate,
     PropertyUpdate,
+    PaginatedPropertyOut,
+    PaginatedPropertyUnitOut
 )
 from app.modules.properties.services import (
     create_property,
     update_property,
     get_property,
+    get_property_units,
     get_properties,
     delete_property
 )
@@ -48,7 +52,7 @@ async def create_property_endpoint(
     longitude: str = Form(...),
     status: str = Form(...),
     pictures: List[UploadFile] = File([]),
-    units_data: List[str] = Form(...),  # JSON strings for each unit
+    units_data:  Optional[List[str]] = Form(None),  # JSON strings for each unit
     unit_pictures: List[UploadFile] = File([]),
     db: Session = Depends(get_db),
 ):
@@ -56,7 +60,7 @@ async def create_property_endpoint(
     parsed_units = []
     unit_pic_index = 0
 
-    for unit_json in units_data:
+    for unit_json in units_data or []:
         unit = json.loads(unit_json)
         unit_pics_count = int(unit.get('pictures_count', 0))  # pass this from frontend
         unit['pictures'] = unit_pictures[unit_pic_index:unit_pic_index + unit_pics_count]
@@ -91,41 +95,52 @@ async def create_property_endpoint(
     body = PropertyCreate(**property_obj)
     return create_property(db=db, body=body)
 
-@router.put("/update/{property_id}", response_model=PropertyOut)
+@router.put("/update/{property_id}")
 def update_property_with_units(
     property_id: UUID, 
     property: PropertyUpdate, 
     db: Session = Depends(get_db)
 ):
-    """Update a property and its units"""
-    return update_property(db, str(property_id), property)
+    """
+    Update a property and its units:
+    - Updates existing property fields
+    - Handles unit addition, updates, and deletion
+    """
+    return update_property(property_id=str(property_id), db=db, body=property)
 
 
-@router.get("/{property_id}", response_model=PropertyOut)
+@router.get("/{property_id}")
 def get_property_by_id(
-    property_id: UUID, 
+    property_id: UUID4, 
     db: Session = Depends(get_db)
 ):
     """Get a property by ID with its units"""
-    return get_property(db, str(property_id))
+    return get_property(db, str(property_id))  # <-- this should be the service function
 
-
-@router.get("/", response_model=List[PropertyOut])
+@router.get("/")
 def get_all_properties(
-    landlord_id: Optional[UUID] = Query(None, description="Filter by landlord ID"),
-    skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Number of records to return"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    landlord_id: Optional[UUID4] = None,
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(20, ge=1, le=1000, description="Page size"),
+    search: Optional[str] = None,
 ):
-    """Get all properties with optional landlord filter and pagination"""
-    landlord_id_str = str(landlord_id) if landlord_id else None
-    return get_properties(db, landlord_id_str, skip, limit)
+    return get_properties(db, landlord_id, page, size, search)
 
+@router.get("/units/{property_id}")
+def get_all_property_units(
+    property_id: UUID4,  # required
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(20, ge=1, le=1000, description="Page size"),
+    search: Optional[str] = None,
+):
+    return get_property_units(db, property_id, page, size, search)
 
-@router.delete("/{property_id}")
+@router.post("/delete/{id}")
 def delete_property_by_id(
-    property_id: UUID, 
+    id: UUID, 
     db: Session = Depends(get_db)
 ):
     """Delete a property and all its units"""
-    return delete_property(db, str(property_id))
+    return delete_property(db, str(id))

@@ -2,10 +2,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from app.models.properties import Property as PropertyModel
 from app.models.property_units import PropertyUnit as PropertyUnitModel
-from app.modules.properties.schemas import PropertyCreate, PropertyUpdate
+from app.modules.properties.schemas import PropertyCreate, PropertyUpdate,PropertyOut
 from uuid import uuid4
 from fastapi import HTTPException, status, UploadFile
 from typing import Optional
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy.orm import joinedload
 from app.utils.uploader import save_uploaded_file, is_upload_file
 from app.utils.logger import error_log, debug_log
 
@@ -72,7 +74,10 @@ def create_property(db: Session, body: PropertyCreate):
 
         # Process units
         units = []
-        for unit_data in body.units:
+        unit_nos = set()
+        for unit_data in body.units or []:
+            if unit_data.unit_no in unit_nos:
+                raise HTTPException(status_code=400, detail=f"Duplicate unit number '{unit_data.unit_no}' in property units.")
             unit_picture_paths = []
             if unit_data.pictures:
                 for unit_pic in unit_data.pictures:
@@ -103,88 +108,95 @@ def create_property(db: Session, body: PropertyCreate):
         db.add_all(units)
         db.commit()
         db.refresh(property_data)
-        return property_data
+
+        property_data = db.query(PropertyModel).options(joinedload(PropertyModel.units)).filter_by(id=property_id).first()
+        property_dict = jsonable_encoder(property_data)
+        return {
+            "success": True,
+            "message": "Property created successfully.",
+            "items": property_dict,
+        }
 
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
-def update_property(db: Session, property_id: str, body: PropertyUpdate):
+def update_property(property_id: str, db: Session, body: PropertyUpdate):
     try:
-        # Get the property
-        property_data = (
-            db.query(PropertyModel)
-            .filter(PropertyModel.id == property_id)
-            .first()
-        )
-
+        property_data = db.query(PropertyModel).filter_by(id=property_id).first()
         if not property_data:
-            raise HTTPException(status_code=404, detail="Property not found")
+            raise HTTPException(status_code=404, detail="Property not found.")
 
-        # Save new property images if any
+        # Check duplicate name
+        duplicate = db.query(PropertyModel).filter(
+            PropertyModel.name == body.name,
+            PropertyModel.landlord_id == body.landlord_id,
+            PropertyModel.id != property_id
+        ).first()
+        if duplicate:
+            raise HTTPException(status_code=400, detail="Another property with this name already exists for this landlord.")
+
+        # Process property pictures
         picture_paths = []
-        if body.pictures:
-            for pic in body.pictures:
-                if isinstance(pic, UploadFile):
-                    saved_name = save_uploaded_file(pic, "uploads/properties")
-                    picture_paths.append(saved_name)
-                else:
-                    picture_paths.append(pic)  # existing filename
+        try:
+            if body.pictures:
+                for pic in body.pictures:
+                    if is_upload_file(pic):
+                        saved_name = save_uploaded_file(pic, "uploads/properties")
+                        picture_paths.append(saved_name)
+                    elif isinstance(pic, str):
+                        picture_paths.append(pic)
+                    else:
+                        raise HTTPException(status_code=400, detail="Invalid picture format.")
+        except Exception as e:
+            error_log(e, "Failed to process property pictures.")
+            raise HTTPException(status_code=500, detail="Error while saving property pictures.")
 
-        # Update property fields
-        property_data.name = body.name
-        property_data.city = body.city
-        property_data.governance = body.governance
-        property_data.address = body.address
-        property_data.address2 = body.address2
-        property_data.description = body.description
+        # Update main property fields
+        for attr in [
+            "landlord_id", "name", "city", "governance", "address", "address2", "description",
+            "property_type", "type", "paci_no", "property_no", "civil_no", "build_year",
+            "book_value", "estimate_value", "latitude", "longitude", "status"
+        ]:
+            setattr(property_data, attr, getattr(body, attr))
+
         property_data.pictures = picture_paths
-        property_data.property_type = body.property_type
-        property_data.type = body.type
-        property_data.paci_no = body.paci_no
-        property_data.property_no = body.property_no
-        property_data.civil_no = body.civil_no
-        property_data.build_year = body.build_year
-        property_data.book_value = body.book_value
-        property_data.estimate_value = body.estimate_value
-        property_data.latitude = body.latitude
-        property_data.longitude = body.longitude
-        property_data.status = body.status
 
-        # Mark existing units inactive
-        existing_units = db.query(PropertyUnitModel).filter(PropertyUnitModel.property_id == property_id).all()
-        existing_units_map = {unit.unit_no: unit for unit in existing_units}
-        for unit in existing_units:
-            unit.status = "inactive"
+        # Existing unit ids from DB
+        existing_units = {str(unit.id): unit for unit in db.query(PropertyUnitModel).filter_by(property_id=property_id).all()}
+        input_unit_ids = set()
 
-        new_units = []
         for unit_data in body.units:
+            unit_id = getattr(unit_data, 'id', None)
             unit_picture_paths = []
+
             if unit_data.pictures:
                 for pic in unit_data.pictures:
-                    if isinstance(pic, UploadFile):
-                        saved_pic = save_uploaded_file(pic, "uploads/units")
-                        unit_picture_paths.append(saved_pic)
-                    else:
+                    if is_upload_file(pic):
+                        saved = save_uploaded_file(pic, "uploads/units")
+                        unit_picture_paths.append(saved)
+                    elif isinstance(pic, str):
                         unit_picture_paths.append(pic)
 
-            if unit_data.unit_no in existing_units_map:
+            if unit_id and str(unit_id) in existing_units:
                 # Update existing unit
-                existing_unit = existing_units_map[unit_data.unit_no]
-                existing_unit.name = unit_data.name
-                existing_unit.unit_type = unit_data.unit_type
-                existing_unit.size = unit_data.size
-                existing_unit.rent = unit_data.rent
-                existing_unit.description = unit_data.description
-                existing_unit.pictures = unit_picture_paths
-                existing_unit.bedrooms = unit_data.bedrooms
-                existing_unit.bathrooms = unit_data.bathrooms
-                existing_unit.water_meter = unit_data.water_meter
-                existing_unit.electricity_meter = unit_data.electricity_meter
-                existing_unit.status = unit_data.status or "active"
+                unit = existing_units[str(unit_id)]
+                input_unit_ids.add(str(unit_id))
+                unit.name = unit_data.name
+                unit.unit_no = unit_data.unit_no
+                unit.unit_type = unit_data.unit_type
+                unit.size = unit_data.size
+                unit.rent = unit_data.rent
+                unit.description = unit_data.description
+                unit.pictures = unit_picture_paths
+                unit.bedrooms = unit_data.bedrooms
+                unit.bathrooms = unit_data.bathrooms
+                unit.water_meter = unit_data.water_meter
+                unit.electricity_meter = unit_data.electricity_meter
+                unit.status = unit_data.status
             else:
-                # Create new unit
+                # Add new unit
                 new_unit = PropertyUnitModel(
                     id=uuid4(),
                     property_id=property_id,
@@ -199,24 +211,32 @@ def update_property(db: Session, property_id: str, body: PropertyUpdate):
                     bathrooms=unit_data.bathrooms,
                     water_meter=unit_data.water_meter,
                     electricity_meter=unit_data.electricity_meter,
-                    status=unit_data.status or "active",
+                    status=unit_data.status,
                 )
-                new_units.append(new_unit)
+                db.add(new_unit)
 
-        db.add_all(new_units)
+        # Delete removed units
+        for unit_id in existing_units:
+            if unit_id not in input_unit_ids:
+                db.delete(existing_units[unit_id])
+
         db.commit()
         db.refresh(property_data)
-        return property_data
+
+        updated = db.query(PropertyModel).options(joinedload(PropertyModel.units)).filter_by(id=property_id).first()
+        return {
+            "success": True,
+            "message": "Property updated successfully.",
+            "items": jsonable_encoder(updated),
+        }
 
     except SQLAlchemyError as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Update failed: {str(e)}")
-
-
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 def get_property(db: Session, property_id: str):
     property_data = (
-        db.query(PropertyModel)
+        db.query(PropertyModel).options(joinedload(PropertyModel.units))
         .filter(PropertyModel.id == property_id)
         .first()
     )
@@ -227,17 +247,68 @@ def get_property(db: Session, property_id: str):
             detail="Property not found",
         )
     
-    return property_data
+    return {
+        "success": True,
+        "message": "Property retrieved successfully.",
+        "property": jsonable_encoder(property_data),
+    }
 
 
-def get_properties(db: Session, landlord_id: Optional[str] = None, skip: int = 0, limit: int = 100):
-    query = db.query(PropertyModel)
+def get_property_units(db: Session, property_id: str, page: int = 1, size: int = 20, search: Optional[str] = None):
+    units_query = db.query(PropertyUnitModel).filter(PropertyUnitModel.property_id == property_id)
+
+    if search:
+        search_term = f"%{search}%"
+        units_query = units_query.filter(
+            PropertyUnitModel.name.ilike(search_term) |
+            PropertyUnitModel.description.ilike(search_term)
+        )
+
+    total = units_query.count()
+    units = units_query.order_by(PropertyUnitModel.created_at.desc()).offset((page - 1) * size).limit(size).all()
+
+    if not units:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Property not found",
+        )
     
-    if landlord_id:
-        query = query.filter(PropertyModel.landlord_id == landlord_id)
-    
-    return query.offset(skip).limit(limit).all()
+    return {
+        "success": True,
+        "total": total,
+        "page": page,
+        "size": size,
+        "items": jsonable_encoder(units),
+    }
 
+
+
+
+def get_properties(
+        db: Session,landlord_id: Optional[str] = None, page: int = 1, size: int = 20, search: Optional[str] = None
+):
+    query = db.query(PropertyModel).options(joinedload(PropertyModel.units)).filter(PropertyModel.landlord_id == landlord_id)
+
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            PropertyModel.name.ilike(search_term) |
+            PropertyModel.address.ilike(search_term)
+        )
+
+    total = query.count()
+    #results =  query.order_by(PropertyModel.created_at.desc()).offset((page - 1) * size).limit(size).all()
+    properties = query.order_by(PropertyModel.created_at.desc()).offset((page - 1) * size).limit(size).all()
+
+    # Convert to list of PropertyOut
+    results = [PropertyOut.model_validate(p) for p in properties]
+    return {
+            "success": True,
+            "total": total,
+            "page": page,
+            "size": size,
+            "items": results,
+        }
 
 def delete_property(db: Session, property_id: str):
     try:
@@ -261,8 +332,7 @@ def delete_property(db: Session, property_id: str):
         # Delete the property
         db.delete(property_data)
         db.commit()
-        
-        return {"message": "Property deleted successfully"}
+        return {"success": True, "message": "Property deleted successfully"}
 
     except SQLAlchemyError as e:
         db.rollback()

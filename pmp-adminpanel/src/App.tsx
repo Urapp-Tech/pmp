@@ -40,14 +40,14 @@ function App() {
   //   console.warn = () => {};
   // }
 
-  useEffect(() => {
-    const intervalTime = dayjs.duration(5, 'minutes').asMilliseconds();
-    const idleTime = dayjs.duration(15, 'minutes').asMilliseconds();
-    monitorIdleTime(intervalTime, idleTime, () => {
-      localStorage.clear();
-      window.location.replace('/admin');
-    });
-  }, []);
+  // useEffect(() => {
+  //   const intervalTime = dayjs.duration(5, 'minutes').asMilliseconds();
+  //   const idleTime = dayjs.duration(15, 'minutes').asMilliseconds();
+  //   monitorIdleTime(intervalTime, idleTime, () => {
+  //     localStorage.clear();
+  //     window.location.replace('/admin');
+  //   });
+  // }, []);
 
   // useEffect(() => {
   //   if (systemConfig) return;

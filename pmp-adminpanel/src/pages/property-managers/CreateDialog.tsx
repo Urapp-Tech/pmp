@@ -41,6 +41,16 @@ const OfficeUserCreateDialog = ({
 }: Props) => {
   const form = useForm<Fields>();
 
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Displays a toast notification with the provided text.
+ * The notification is styled with a fixed position at the top-right corner,
+ * a specific background color, and a high z-index for visibility.
+ * 
+ * @param {string} text - The message to be displayed in the toast notification.
+ */
+
+/*******  d3311b49-b875-4c0f-a6d4-9e311a493f77  *******/
   const ToastHandler = (text: string) => {
     return toast({
       description: text,

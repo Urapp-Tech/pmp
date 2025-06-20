@@ -119,6 +119,14 @@ export const routeObjects: RouteObject[] = [
                   </Suspense>
                 ),
               },
+              {
+                path: 'edit/:id',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <UpdatePropertyPage />
+                  </Suspense>
+                ),
+              },
             ],
           },
           {

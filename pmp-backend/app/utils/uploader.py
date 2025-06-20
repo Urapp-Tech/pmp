@@ -33,4 +33,4 @@ def save_uploaded_file(file: UploadFile, upload_dir: str = "uploads") -> str:
     except Exception as e:
         raise RuntimeError(f"Failed to save file: {e}")
 
-    return new_filename
+    return file_path

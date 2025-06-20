@@ -143,8 +143,12 @@ const get = (endPoint: string, body?: unknown, type?: any) => {
   });
 };
 
-const postMultipart = <T = unknown>(endPoint: string, data: T) => {
-  return networkInstance.post(`${BASE_URL}${endPoint}`, data, {
+const postMultipart = <T = unknown>(endPoint: string, data: T,type?: any) => {
+  let baseUrl = ADMIN_BASE_URL;
+  if (type === 'super') {
+    baseUrl = BASE_URL;
+  }
+  return networkInstance.post(`${baseUrl}${endPoint}`, data, {
     headers: {
       'Content-Type': 'multipart/form-data',
       Authorization: token(),
