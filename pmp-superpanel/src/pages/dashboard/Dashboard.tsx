@@ -26,31 +26,31 @@ function Dashboard() {
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <Monitor /> Active Managers
+                <Monitor /> Active Landlords
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
-                  {data?.totalActiveCabins}
+                  {/* {data?.totalActiveCabins} */} 2
                 </span>
               </div>
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <MonitorCheck /> Active Tenants
+                <MonitorCheck /> Active Reporting Issues
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
-                  {data?.totalActiveAssignedCabins}
+                  {/* {data?.totalActiveAssignedCabins} */} 1
                 </span>
               </div>
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <Users /> Pending Invoices
+                <Users /> Active Properties
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
-                  {data?.totalActiveEmployees}
+                  {/* {data?.totalActiveEmployees} */} 3
                 </span>
               </div>
             </div>
