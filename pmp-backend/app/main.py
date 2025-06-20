@@ -26,7 +26,6 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 setup_global_logger()
 # debug_log({"key": "value", "status": 200})
 
-
 # error_log( "Division failed")
 # Middleware to log full errors with tracebacks
 @app.middleware("http")
