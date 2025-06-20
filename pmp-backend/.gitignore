@@ -23,6 +23,8 @@ pgdata/
 .DS_Store
 Thumbs.db
 .vscode/
+uploads/*
+logs/*
 .devcontainer/
 
 # Python packaging
