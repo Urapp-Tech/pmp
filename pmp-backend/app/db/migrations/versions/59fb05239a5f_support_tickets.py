@@ -1,7 +1,7 @@
 """support_tickets
 
 Revision ID: 59fb05239a5f
-Revises: 7d83c1005b2a
+Revises: 2dfb10025a57
 Create Date: 2025-06-17 11:29:34.614358
 
 """
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "59fb05239a5f"
-down_revision: Union[str, None] = "7d83c1005b2a"
+down_revision: Union[str, None] = "2dfb10025a57"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

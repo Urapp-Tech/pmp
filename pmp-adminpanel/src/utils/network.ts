@@ -4,8 +4,11 @@ import { getItem, setItem } from '@/utils/storage';
 import { store } from '@/redux/store';
 import { logout } from '@/redux/features/authSlice';
 
-const token = () => getItem<{ token: string }>('USER')?.token;
-const refreshToken = () => getItem<{ token: string }>('USER')?.token;
+const token = () => getItem<{ access_token: string }>('USER')?.access_token;
+const refreshToken = () =>
+  getItem<{ refresh_token: string }>('USER')?.refresh_token;
+
+console.log('toekn', token(), getItem('USER'));
 
 const networkInstance = axios.create();
 const refreshInstance = axios.create();
@@ -143,8 +146,12 @@ const get = (endPoint: string, body?: unknown, type?: any) => {
   });
 };
 
-const postMultipart = <T = unknown>(endPoint: string, data: T) => {
-  return networkInstance.post(`${BASE_URL}${endPoint}`, data, {
+const postMultipart = <T = unknown>(endPoint: string, data: T, type?: any) => {
+  let baseUrl = ADMIN_BASE_URL;
+  if (type === 'super') {
+    baseUrl = BASE_URL;
+  }
+  return networkInstance.post(`${baseUrl}${endPoint}`, data, {
     headers: {
       'Content-Type': 'multipart/form-data',
       Authorization: token(),

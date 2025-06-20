@@ -19,8 +19,16 @@ import Property from '@/pages/property/List';
 import TenantUsers from './pages/tenant-users/List';
 import Invoices from './pages/Invoices/List';
 import Receipts from './pages/receipts/List';
+import SupportMaintenance from './pages/support-maintenance/List';
+import RentalCollection from './pages/rental-collection/List';
+import TenantRental from './pages/tenant-rental/List';
 
-const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
+// const LandlordDashboard = lazy(
+//   () => import('@/pages/dashboard/LandlordDashboard')
+// );
+const RoleBasedDashboard = lazy(() => import('@/pages/dashboard/index'));
+const TenantDashboard = lazy(() => import('@/pages/dashboard/TenantDashboard'));
+
 const OfficeUsers = lazy(() => import('@/pages/property-managers/List'));
 const RolePermissions = lazy(
   () => import('@/pages/role-permissions/RolePermissions')
@@ -75,7 +83,7 @@ export const routeObjects: RouteObject[] = [
             path: 'dashboard',
             element: (
               <Suspense fallback={<div>Loading...</div>}>
-                <Dashboard />
+                <RoleBasedDashboard />
               </Suspense>
             ),
           },
@@ -172,72 +180,57 @@ export const routeObjects: RouteObject[] = [
               },
             ],
           },
-          // {
-          //   path: 'property-managers',
-          //   children: [
-          //     {
-          //       index: true,
-          //       element: <Navigate to="admin-users" replace />,
-          //     },
-          //     {
-          //       path: 'admin-users',
-          //       element: (
-          //         <Suspense fallback={<div>Loading...</div>}>
-          //           <OfficeUsers />
-          //         </Suspense>
-          //       ),
-          //     },
-          //     {
-          //       path: 'employees',
-          //       element: (
-          //         <Suspense fallback={<div>Loading...</div>}>
-          //           <Employees />
-          //         </Suspense>
-          //       ),
-          //     },
-          //     {
-          //       path: 'employees/history',
-          //       element: (
-          //         <Suspense fallback={<div>Loading...</div>}>
-          //           <EmployeeCabinHistory />
-          //         </Suspense>
-          //       ),
-          //     },
-          //   ],
-          // },
-          // {
-          //   path: 'property-managers',
-          //   children: [
-          //     {
-          //       index: true,
-          //       element: <Navigate to="admin-users" replace />,
-          //     },
-          //     {
-          //       path: 'admin-users',
-          //       element: (
-          //         <Suspense fallback={<div>Loading...</div>}>
-          //           <OfficeUsers />
-          //         </Suspense>
-          //       ),
-          //     },
-          //     {
-          //       path: 'employees',
-          //       element: (
-          //         <Suspense fallback={<div>Loading...</div>}>
-          //           <Employees />
-          //         </Suspense>
-          //       ),
-          //     },
-          //     {
-          //       path: 'employees/history',
-          //       element: (
-          //         <Suspense fallback={<div>Loading...</div>}>
-          //           <EmployeeCabinHistory />
-          //         </Suspense>
-          //       ),
-          //     },
-          //   ],
-          // },
+          {
+            path: 'support-maintenance',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <SupportMaintenance />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'rental-collection',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <RentalCollection />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'tenant-rental',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <TenantRental />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
           {
             path: 'role-permissions',
             children: [
@@ -266,23 +259,6 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <UpdateRolePermissionPage />
-                  </Suspense>
-                ),
-              },
-            ],
-          },
-          {
-            path: 'blogs',
-            children: [
-              {
-                index: true,
-                element: <Navigate to="list" replace />,
-              },
-              {
-                path: 'list',
-                element: (
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Blogs />
                   </Suspense>
                 ),
               },

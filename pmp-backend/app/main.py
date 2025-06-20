@@ -8,18 +8,20 @@ from app.modules.roles.routes import router as role_router
 from app.modules.securityLogs.routes import router as security_log_router
 from app.modules.landlords.routes import router as landlord_router
 from app.modules.properties.routes import router as property_router
-from app.utils.logger import  setup_global_logger, error_log, debug_log
+from app.utils.logger import setup_global_logger, error_log, debug_log
 import logging
 from app.modules.supportTickets.routes import router as support_router
+from app.modules.managers.routes import router as manager_router
 
 # app = FastAPI()
 app = FastAPI(
     docs_url="/docs",  # disables Swagger UI (/docs)
     # openapi_url=None       # disables OpenAPI schema (/openapi.json)
-) 
+)
 # Setup global logging
 setup_global_logger()
 # debug_log({"key": "value", "status": 200})
+
 
 # error_log( "Division failed")
 # Middleware to log full errors with tracebacks
@@ -30,11 +32,10 @@ async def log_exceptions_middleware(request: Request, call_next):
     except Exception as exc:
         logging.exception("Unhandled exception in request:")
         return JSONResponse(
-            status_code=500,
-            content={"detail": "Internal Server Error"}
+            status_code=500, content={"detail": "Internal Server Error"}
         )
 
-    
+
 app.include_router(superuser_router, prefix="/super-users", tags=["Super Users"])
 app.include_router(
     permission_router,
@@ -73,6 +74,12 @@ app.include_router(
     tags=["Admin - Support Tickets"],
 )
 
+app.include_router(
+    manager_router,
+    prefix="/admin/managers",
+    tags=["Admin - Managers"],
+)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -84,6 +91,8 @@ app.add_middleware(
     allow_methods=["*"],  # or ["GET", "POST", "PUT", "DELETE"]
     allow_headers=["*"],  # or ["Authorization", "Content-Type"]
 )
+
+
 @app.get("/test-error")
 def test_error():
     return 1 / 0

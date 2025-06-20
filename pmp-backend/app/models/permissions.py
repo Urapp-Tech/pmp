@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from app.db.database import Base
 from sqlalchemy.orm import relationship, backref
 
+
 class Permission(Base):
     __tablename__ = "permissions"
 
@@ -17,3 +18,7 @@ class Permission(Base):
     permission_type = Column(String(255), nullable=False)
     show_on_menu = Column(Boolean, nullable=False, default=False)
     is_active = Column(Boolean, nullable=False, default=True)
+
+    roles = relationship(
+        "Role", secondary="role_permissions", back_populates="permissions"
+    )

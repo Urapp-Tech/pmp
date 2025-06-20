@@ -19,8 +19,12 @@ import { cn } from '@/lib/utils';
 import { useLocation, useNavigate } from 'react-router';
 
 const UpdateRolePermissionPage = () => {
-  const form = useForm<Fields>();
   const { state } = useLocation();
+  const form = useForm<Fields>({
+    defaultValues: {
+      name: state?.name || '',
+    },
+  });
   const navigate = useNavigate();
 
   const [page, setPage] = useState(0);
@@ -54,13 +58,20 @@ const UpdateRolePermissionPage = () => {
   };
 
   const onSubmit = async (data: Fields) => {
+    console.log('data', data, state);
+
     if (checkedIds?.length <= 0) {
       ToastHandler('Please select atleast one permission');
       return;
     }
     setIsLoader(true);
     let obj = {
-      name: data.name,
+      name:
+        state?.name === 'User' ||
+        state?.name === 'Manager' ||
+        state?.name === 'Landlord'
+          ? state?.name
+          : data.name,
       data: checkedIds,
     };
     console.log(obj);

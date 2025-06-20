@@ -22,8 +22,10 @@ export function MainSidebar({
 }: React.ComponentProps<typeof Sidebar>) {
   const authState: any = useSelector((state: any) => state.authState);
   const appState: any = useSelector((state: any) => state.appState);
-  const shop: any = getItem('SHOP_TENANT');
-  const { logo, media } = appState;
+  const userRoles: any = getItem('USER');
+  console.log('userRoles', userRoles);
+
+  // const { logo, media } = appState;
   // console.log('authState', appState);
 
   const data = {
@@ -135,12 +137,12 @@ export function MainSidebar({
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter className="my-3">
+      {/* <SidebarFooter className="my-3">
         <FooterNavUser
           media={shop ? shop?.media : media ? media : {}}
           user={data.user}
         />
-      </SidebarFooter>
+      </SidebarFooter> */}
       <SidebarRail />
     </Sidebar>
   );

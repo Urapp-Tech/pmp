@@ -303,7 +303,11 @@ const Receipts = () => {
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
-      const users = await securityService.getSecurityLogs();
+      const users = await securityService.getSecurityLogs(
+        search,
+        newPage,
+        pageSize
+      );
       if (users.data.success) {
         setPage(newPage);
         setList(users.data.data.list);
