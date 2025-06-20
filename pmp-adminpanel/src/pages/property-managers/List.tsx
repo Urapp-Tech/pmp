@@ -22,6 +22,7 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  UserRoundCheck,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { Checkbox } from '@/components/ui/checkbox';
@@ -53,12 +54,15 @@ import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/helper';
+import AssignUserDialog from './AssignedUserDialog';
+import { usePermission } from '@/utils/hasPermission';
+import { PERMISSIONS } from '@/utils/constants';
 
 export type Users = {
   id: string; // UUID
   tenant: string; // UUID representing the tenant ID
-  firstName: string;
-  lastName: string;
+  fname: string;
+  lname: string;
   username: string; // Email is being used as a username
   email: string; // Email address of the user
   password: string; // Encrypted password (bcrypt hash)
@@ -81,13 +85,14 @@ export type Users = {
 const PropertyManagers = () => {
   const userDetails: any = getItem('USER');
   const { toast } = useToast();
+  const { can } = usePermission();
 
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
-  const [editFormData, setEditFormData] = useState();
+  const [editFormData, setEditFormData] = useState<any>();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -98,6 +103,7 @@ const PropertyManagers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -115,21 +121,21 @@ const PropertyManagers = () => {
 
   const columns: ColumnDef<Users>[] = [
     {
-      accessorKey: 'firstName',
+      accessorKey: 'fname',
       header: 'Name',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           <Avatar>
             <AvatarImage
               src={row.original.avatar || ''}
-              alt={row.getValue('firstName') || '@fallback'}
+              alt={row.getValue('fname') || '@fallback'}
             />
             <AvatarFallback>
-              {getInitials(row.getValue('firstName'))}
+              {getInitials(row.getValue('fname'))}
             </AvatarFallback>
           </Avatar>
           <div className="capitalize font-semibold">
-            {row.getValue('firstName')}
+            {row.getValue('fname')} {row.original?.lname}
           </div>
         </div>
       ),
@@ -168,13 +174,49 @@ const PropertyManagers = () => {
       ),
     },
     {
-      accessorKey: 'address',
-      header: 'Address',
-      cell: ({ row }) => (
-        <div className="capitalize">
-          {row.getValue('address') ? row.getValue('address') : '---'}
-        </div>
-      ),
+      accessorKey: 'assignedUsers',
+      header: 'Assigned Users',
+      cell: ({ row }) => {
+        const users = row.getValue('assignedUsers') as {
+          id: string;
+          name: string;
+          profilePic?: string | null;
+        }[];
+
+        if (!users || users.length === 0) {
+          return (
+            <span className="text-sm text-muted-foreground">
+              Not assigned yet
+            </span>
+          );
+        }
+
+        const visibleUsers = users.slice(0, 3);
+        const remainingCount = users.length > 3 ? users.length - 3 : 0;
+
+        return (
+          <div className="flex items-center space-x-1">
+            <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+              {visibleUsers.map((user, index) => (
+                <Avatar key={user.id + index}>
+                  <AvatarImage
+                    src={user.profilePic ?? ''}
+                    alt={`@user-${index}`}
+                  />
+                  <AvatarFallback>
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+              {remainingCount > 0 && (
+                <div className="w-8 h-8 rounded-full bg-muted text-sm flex items-center justify-center font-medium border border-border">
+                  +{remainingCount}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      },
     },
     {
       id: 'actions',
@@ -184,20 +226,33 @@ const PropertyManagers = () => {
         const { id } = row.original;
         return (
           <div className="flex justify-center items-center">
-            <div>
-              <Pencil
-                className="text-lunar-bg cursor-pointer"
-                onClick={() => handleActionMenu('edit', id)}
-                size={20}
-              />
-            </div>
-            <div className="pl-3">
-              <Trash2
-                className="text-lunar-bg cursor-pointer"
-                size={20}
-                onClick={() => handleActionMenu('delete', id)}
-              />
-            </div>
+            {can(PERMISSIONS.MANAGER.UPDATE) && (
+              <>
+                <div>
+                  <UserRoundCheck
+                    className="text-lunar-bg cursor-pointer"
+                    onClick={() => handleActionMenu('assign', id)}
+                    size={20}
+                  />
+                </div>
+                <div className="pl-3">
+                  <Pencil
+                    className="text-lunar-bg cursor-pointer"
+                    onClick={() => handleActionMenu('edit', id)}
+                    size={20}
+                  />
+                </div>
+              </>
+            )}
+            {can(PERMISSIONS.MANAGER.DELETE) && (
+              <div className="pl-3">
+                <Trash2
+                  className="text-lunar-bg cursor-pointer"
+                  size={20}
+                  onClick={() => handleActionMenu('delete', id)}
+                />
+              </div>
+            )}
           </div>
           // <DropdownMenu>
           //   <DropdownMenuTrigger asChild>
@@ -237,15 +292,25 @@ const PropertyManagers = () => {
       setEditFormData(editData);
       setDeleteOpen(true);
     }
+    if (type === 'assign') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setIsAssignOpen(true);
+    }
   };
 
   const fetchUsers = async () => {
     try {
-      const users = await usersService.list(search, page, pageSize);
+      const users = await usersService.managerslist(
+        userDetails?.landlordId,
+        search,
+        page,
+        pageSize
+      );
       if (users.data.success) {
         setMainIsLoader(false);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
+        setList(users.data.items);
+        setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
         console.log('error: ', users.data.message);
@@ -307,7 +372,12 @@ const PropertyManagers = () => {
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
-      const users = await userService.list(search, newPage, pageSize);
+      const users = await userService.managerslist(
+        userDetails?.landlordId,
+        search,
+        newPage,
+        pageSize
+      );
       if (users.data.success) {
         setPage(newPage);
         setList(users.data.data.list);
@@ -341,26 +411,26 @@ const PropertyManagers = () => {
   });
 
   const createEmployeeHandler = (data: any) => {
-    console.log('dadad', data);
+    // console.log('dadad', data, userDetails?.landlordId);
 
     setIsLoader(true);
     const formData = new FormData();
-    formData.append('userType', data.userType);
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
+    formData.append('fname', data.fname);
+    formData.append('lname', data.lname);
     formData.append('email', data.email);
     formData.append('phone', data.phone);
+    formData.append('gender', data.gender);
     formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
+    formData.append('roleId', data.roleId);
+    formData.append('landlordId', userDetails?.landlordId);
+    if (data.profilePic) formData.append('profilePic', data.profilePic);
     userService
-      .create(data)
+      .create(formData)
       .then((item) => {
         if (item.data.success) {
           setIsOpen(false);
           setIsLoader(false);
-          setList([item.data.data, ...list]);
+          setList([item.data.items, ...list]);
           let newtotal = total;
           setTotal((newtotal += 1));
         } else {
@@ -419,6 +489,64 @@ const PropertyManagers = () => {
       });
   };
 
+  const onAssignUsers = (userIds: string[]) => {
+    let obj = {
+      managerUserId: editFormData?.id,
+      assignUsers: userIds,
+    };
+    // console.log('obj', obj);
+
+    userService
+      .assignUsers(obj)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          const updatedAssignments = updateItem.data.items.map((item: any) => ({
+            id: item.assignUser.id,
+            name: `${item.assignUser.fname} ${item.assignUser.lname}`.trim(),
+            profilePic: item.assignUser.profilePic,
+          }));
+
+          // Extract newly assigned user IDs
+          const newAssignedUserIds = updatedAssignments.map((u: any) => u.id);
+
+          // Update ALL managers
+          setList((prev: any[]) =>
+            prev.map((manager) => {
+              // If current manager, replace with updated assignments
+              if (manager.id === editFormData?.id) {
+                return {
+                  ...manager,
+                  assignedUsers: updatedAssignments,
+                };
+              }
+
+              // Remove any users who are now assigned to the new manager
+              const filteredUsers = manager.assignedUsers?.filter(
+                (u: any) => !newAssignedUserIds.includes(u.id)
+              );
+
+              return {
+                ...manager,
+                assignedUsers: filteredUsers,
+              };
+            })
+          );
+
+          setIsAssignOpen(false);
+          setIsLoader(false);
+          ToastHandler(updateItem.data.message);
+        } else {
+          setIsLoader(false);
+          ToastHandler(updateItem.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        console.log('error: ', err);
+        ToastHandler(err?.response?.data?.message || 'Something went wrong');
+        setIsLoader(false);
+      });
+  };
+
   return (
     <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
       <TopBar title="Admin Users" />
@@ -438,13 +566,15 @@ const PropertyManagers = () => {
                 className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
               />
               <DropdownMenu>
-                <Button
-                  onClick={() => setIsOpen(true)}
-                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
-                  variant={'outline'}
-                >
-                  + Add New
-                </Button>
+                {can(PERMISSIONS.MANAGER.CREATE) && (
+                  <Button
+                    onClick={() => setIsOpen(true)}
+                    className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                    variant={'outline'}
+                  >
+                    + Add New
+                  </Button>
+                )}
                 <DropdownMenuContent align="end">
                   {table
                     .getAllColumns()
@@ -568,6 +698,17 @@ const PropertyManagers = () => {
           title={'User'}
           formData={editFormData}
           callback={deleteUserHandler}
+        />
+      )}
+      {isAssignOpen && (
+        <AssignUserDialog
+          isLoader={isLoader}
+          isOpen={isAssignOpen}
+          setIsOpen={setIsAssignOpen}
+          assignedUsers={
+            editFormData?.assignedUsers?.map((u: any) => u.id) || []
+          }
+          onAssignUsers={(userIds) => onAssignUsers(userIds)}
         />
       )}
     </div>

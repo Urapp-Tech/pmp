@@ -2,6 +2,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from uuid import UUID
+from app.modules.permissions.schemas import ChildPermissionOutForLoggedIn
 
 
 class RolePermissionItem(BaseModel):
@@ -72,3 +73,14 @@ class RoleLOV(BaseModel):
 class RoleDeleteResponse(BaseModel):
     success: bool
     message: str
+
+
+class RoleOutForUserLoggedIn(BaseModel):
+    id: UUID
+    name: str
+    permissions: List[ChildPermissionOutForLoggedIn] = []
+
+    class Config:
+        from_attributes = True
+        alias_generator = None
+        populate_by_name = True

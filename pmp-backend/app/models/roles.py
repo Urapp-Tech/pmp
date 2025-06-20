@@ -19,6 +19,20 @@ class Role(Base):
         TIMESTAMP(timezone=True), server_default=func.now(), nullable=False
     )
 
+    role_permissions = relationship(
+        "RolePermission", back_populates="role", lazy="joined"
+    )
+
+    # ✅ add this relationship
+    permissions = relationship(
+        "Permission",
+        secondary="role_permissions",
+        primaryjoin="Role.id == RolePermission.role_id",
+        secondaryjoin="Permission.id == RolePermission.permission_id",
+        viewonly=True,
+        lazy="joined",
+    )
+
 
 class RolePermission(Base):
     __tablename__ = "role_permissions"
@@ -26,11 +40,11 @@ class RolePermission(Base):
     id = Column(
         UUID(as_uuid=True), primary_key=True, server_default=text("uuid_generate_v4()")
     )
-    role = Column(UUID(as_uuid=True), ForeignKey("roles.id"), nullable=False)
-    permission = Column(
+    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"), nullable=False)
+    permission_id = Column(
         UUID(as_uuid=True), ForeignKey("permissions.id"), nullable=False
     )
     is_active = Column(Boolean, default=True)
-    # Relationships
-    # role = relationship("Role", back_populates="permissions")
-    # permission = relationship("Permission", back_populates="roles")  # assumes Permission model defines `roles = relationship("RolePermission", ...)`
+
+    role = relationship("Role", back_populates="role_permissions")
+    permission_obj = relationship("Permission", lazy="joined")

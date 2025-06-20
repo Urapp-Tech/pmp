@@ -6,6 +6,8 @@ import { Navigate, Outlet } from 'react-router-dom';
 
 function AppLayout() {
   const authState: any = useSelector((state: any) => state.authState);
+  console.log('authstate', authState);
+
   if (!authState.user) {
     return <Navigate to="/admin/auth" />;
   }

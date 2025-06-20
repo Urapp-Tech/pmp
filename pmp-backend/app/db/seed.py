@@ -63,7 +63,21 @@ def seed_roles_permissions_users():
             print("ℹ️ Super Admin role already exists.")
 
         # 2. Seed Permissions
-        modules = ["Landlord", "Manager", "User"]
+        modules = [
+            "Landlord",
+            "Manager",
+            "User",
+            "Property",
+            "Invoice",
+            "Receipts",
+            "Financial Reports",
+            "Bank Settlement",
+            "Maintaince Request",
+            "Plan Flexibity",
+            "Rental Collection",
+            "Tenant Rental",
+            "Roles",
+        ]
         actions = ["create", "view", "update", "delete"]
 
         for module in modules:

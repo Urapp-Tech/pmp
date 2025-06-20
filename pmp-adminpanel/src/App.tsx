@@ -7,7 +7,7 @@ import duration from 'dayjs/plugin/duration';
 import monitorIdleTime from './utils/idle';
 import systemConfigService from '@/services/adminapp/admin';
 import { useDispatch } from 'react-redux';
-import { setSystemConfig } from './redux/features/authSlice';
+import { login, setSystemConfig } from './redux/features/authSlice';
 import { getItem } from './utils/storage';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -31,6 +31,13 @@ function App() {
       },
     });
   };
+
+  // useEffect(() => {
+  //   const user: any = getItem('USER');
+  //   if (user) {
+  //     dispatch(login(user)); // your redux action
+  //   }
+  // }, []);
   // if (
   //   process.env.NODE_ENV === 'production' ||
   //   process.env.NODE_ENV === 'staging'

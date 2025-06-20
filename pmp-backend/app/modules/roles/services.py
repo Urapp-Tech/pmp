@@ -13,7 +13,7 @@ from uuid import UUID
 
 
 def get_roles(db: Session, page: int = 1, size: int = 20, search: Optional[str] = None):
-    query = db.query(Role).filter(Role.name != "Super Admin")
+    query = db.query(Role).filter(Role.is_active == True, Role.name != "Super Admin")
 
     if search:
         search_term = f"%{search.strip()}%"
@@ -39,9 +39,9 @@ def get_roles(db: Session, page: int = 1, size: int = 20, search: Optional[str] 
 
         active_permission_ids = (
             db.query(Permission.id)
-            .join(RolePermission, RolePermission.permission == Permission.id)
+            .join(RolePermission, RolePermission.permission_id == Permission.id)
             .filter(
-                RolePermission.role == role.id,
+                RolePermission.role_id == role.id,
                 RolePermission.is_active == True,
                 Permission.is_active == True,
             )
@@ -98,7 +98,7 @@ def create_role(db: Session, body: RoleCreate):
         # Create RolePermission entries
         new_permissions = [
             RolePermission(
-                id=uuid.uuid4(), role=role.id, permission=perm_id, is_active=True
+                id=uuid.uuid4(), role_id=role.id, permission_id=perm_id, is_active=True
             )
             for perm_id in body.data
         ]
@@ -141,7 +141,7 @@ def update_role(db: Session, role_id: str, body: RoleUpdate):
         role.name = body.name
         # role.desc = body.desc
 
-        db.query(RolePermission).filter(RolePermission.role == role.id).update(
+        db.query(RolePermission).filter(RolePermission.role_id == role.id).update(
             {RolePermission.is_active: False}
         )
 
@@ -149,8 +149,8 @@ def update_role(db: Session, role_id: str, body: RoleUpdate):
             existing_permission = (
                 db.query(RolePermission)
                 .filter(
-                    RolePermission.role == role.id,
-                    RolePermission.permission == prem_id,
+                    RolePermission.role_id == role.id,
+                    RolePermission.permission_id == prem_id,
                 )
                 .first()
             )
@@ -159,7 +159,10 @@ def update_role(db: Session, role_id: str, body: RoleUpdate):
                 existing_permission.is_active = True
             else:
                 new_permission = RolePermission(
-                    id=uuid.uuid4(), role=role.id, permission=prem_id, is_active=True
+                    id=uuid.uuid4(),
+                    role_id=role.id,
+                    permission_id=prem_id,
+                    is_active=True,
                 )
                 db.add(new_permission)
 
@@ -167,7 +170,15 @@ def update_role(db: Session, role_id: str, body: RoleUpdate):
         db.refresh(role)
 
         return {
-            "role": role,
+            "role": {
+                "id": role.id,
+                "name": role.name,
+                "desc": getattr(role, "desc", None),
+                "isActive": role.is_active,
+                "permissions": [
+                    rp.permission_id for rp in role.role_permissions if rp.is_active
+                ],
+            },
             "message": "Role has been updated",
             "success": True,
         }

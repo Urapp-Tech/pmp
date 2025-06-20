@@ -8,7 +8,7 @@ from fastapi import (
     File,
     HTTPException,
 )
-from typing import Optional
+from typing import Optional, List
 from pydantic import EmailStr, ValidationError
 from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
@@ -16,17 +16,21 @@ from uuid import UUID
 from app.modules.users.schemas import (
     UserLogin,
     UserCreate,
-    UserOut,
+    UserResponseOut,
+    UserLOV,
     LoginResponse,
     TokenSchema,
     TokenRefreshRequest,
-    PaginatedUserResponse,
+    PaginatedManagerUserResponse,
+    PaginatedTenantUserResponse,
 )
 from app.modules.users.services import (
     create_user,
-    get_users,
     authenticate_user,
     refresh_access_token,
+    get_users_by_role,
+    get_manager_users_by_role,
+    get_users_lov_by_landlord,
 )
 
 
@@ -38,8 +42,8 @@ def parse_user_create(
     password: str = Form(...),
     phone: str = Form(...),
     gender: Optional[str] = Form(None),
-    landlord_id: Optional[UUID] = Form(None),
-    role_id: UUID = Form(...),
+    landlordId: Optional[UUID] = Form(None),
+    roleId: UUID = Form(...),
     profile_pic: UploadFile = File(None),
 ):
     try:
@@ -50,8 +54,8 @@ def parse_user_create(
             password=password,
             phone=phone,
             gender=gender,
-            landlordId=landlord_id,
-            roleId=role_id,
+            landlordId=landlordId,
+            roleId=roleId,
         )
         return {"user_data": user_data, "profile_pic": profile_pic}
     except ValidationError as e:
@@ -83,21 +87,59 @@ def refresh_token(request: TokenRefreshRequest):
     return refresh_access_token(request.refresh_token)
 
 
-@router.post("/create", response_model=UserOut, summary="Create a new user")
+@router.post("/create", response_model=UserResponseOut, summary="Create a new user")
 def create(parsed: dict = Depends(parse_user_create), db: Session = Depends(get_db)):
     return create_user(db, parsed["user_data"], parsed["profile_pic"])
 
 
-# @router.get("/list", response_model=list[UserOut])
-# def read(db: Session = Depends(get_db)):
-#     return get_users(db)
+# @router.get("/list/{landlord_id}", response_model=PaginatedUserResponse)
+# def read_users(
+#     page: int = Query(1, ge=1),
+#     size: int = Query(10, ge=1),
+#     search: Optional[str] = Query(None),
+#     db: Session = Depends(get_db),
+# ):
+#     return get_users(db=db, page=page, size=size, search=search)
 
 
-@router.get("/list", response_model=PaginatedUserResponse)
-def read_users(
+@router.get("/manager-list/{landlord_id}", response_model=PaginatedManagerUserResponse)
+def get_managers_users(
+    landlord_id: UUID,
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    return get_users(db=db, page=page, size=size, search=search)
+    return get_manager_users_by_role(
+        db=db,
+        landlord_id=landlord_id,
+        role_name="Manager",
+        page=page,
+        size=size,
+        search=search,
+    )
+
+
+@router.get("/user-list/{user_id}", response_model=PaginatedTenantUserResponse)
+def get_tenant_users(
+    # landlord_id: UUID,
+    user_id: UUID,
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
+    return get_users_by_role(
+        db=db,
+        # landlord_id=landlord_id,
+        # role_name="User",
+        user_id=user_id,
+        page=page,
+        size=size,
+        search=search,
+    )
+
+
+@router.get("/lov/{landlord_id}", response_model=List[UserLOV])
+def user_lov(landlord_id: UUID, db: Session = Depends(get_db)):
+    return get_users_lov_by_landlord(landlord_id, db)

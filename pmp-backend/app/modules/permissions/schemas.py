@@ -42,6 +42,16 @@ class ChildPermissionOut(BaseModel):
         from_attributes = True
 
 
+class ChildPermissionOutForLoggedIn(BaseModel):
+    id: UUID
+    name: str
+    action: Optional[str] = None
+    show_on_menu: bool
+
+    class Config:
+        from_attributes = True
+
+
 class PermissionOut(PermissionBase):
     id: UUID
     data: List[ChildPermissionOut] = []

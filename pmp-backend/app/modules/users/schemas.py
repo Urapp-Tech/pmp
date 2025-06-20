@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
+from app.modules.roles.schemas import RoleOutForUserLoggedIn
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
@@ -74,6 +75,69 @@ class UserOut(BaseModel):
         alias_generator = None
 
 
+class AssignedUser(BaseModel):
+    id: UUID
+    name: str
+    profilePic: Optional[str] = None
+
+
+class ManagerUserOut(BaseModel):
+    id: UUID
+    fname: str
+    lname: str
+    email: EmailStr
+    phone: str
+    is_landlord: bool = Field(..., alias="isLandlord")
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+    role_id: Optional[UUID] = Field(None, alias="roleId")
+    role_name: Optional[str] = Field(None, alias="roleName")
+    profile_pic: Optional[str] = Field(None, alias="profilePic")
+    gender: Optional[str]
+    is_active: bool = Field(..., alias="isActive")
+    is_verified: bool = Field(..., alias="isVerified")
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+    assignedUsers: Optional[list[AssignedUser]] = None
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+        alias_generator = None
+
+
+class TenantUserOut(BaseModel):
+    id: UUID
+    fname: str
+    lname: str
+    email: EmailStr
+    phone: str
+    is_landlord: bool = Field(..., alias="isLandlord")
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+    role_id: Optional[UUID] = Field(None, alias="roleId")
+    role_name: Optional[str] = Field(None, alias="roleName")
+    profile_pic: Optional[str] = Field(None, alias="profilePic")
+    gender: Optional[str]
+    is_active: bool = Field(..., alias="isActive")
+    is_verified: bool = Field(..., alias="isVerified")
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+    assignedManager: Optional[AssignedUser] = None
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+        alias_generator = None
+
+
+class UserResponseOut(BaseModel):
+    items: UserOut
+    message: str
+    success: bool
+
+    class Config:
+        from_attributes = True
+
+
 class UserLoggedInOut(BaseModel):
     id: UUID
     fname: str
@@ -83,8 +147,9 @@ class UserLoggedInOut(BaseModel):
     gender: Optional[str]
     is_landlord: bool = Field(..., alias="isLandlord")
     landlord_id: Optional[UUID] = Field(None, alias="landlordId")
-    role_id: Optional[UUID] = Field(None, alias="roleId")
-    role_name: Optional[str] = Field(None, alias="roleName")
+    # role_id: Optional[UUID] = Field(None, alias="roleId")
+    # role_name: Optional[str] = Field(None, alias="roleName")
+    role: Optional[RoleOutForUserLoggedIn]
     profile_pic: Optional[str] = Field(None, alias="profilePic")
     is_active: bool = Field(..., alias="isActive")
     is_verified: bool = Field(..., alias="isVerified")
@@ -99,17 +164,35 @@ class UserLoggedInOut(BaseModel):
         alias_generator = None
 
 
-class PaginatedUserResponse(BaseModel):
+class PaginatedManagerUserResponse(BaseModel):
     success: bool
     total: int
     page: int
     size: int
-    items: list[UserOut]
+    items: list[ManagerUserOut]
 
     class Config:
         from_attributes = True
         alias_generator = None
         populate_by_name = True
+
+
+class PaginatedTenantUserResponse(BaseModel):
+    success: bool
+    total: int
+    page: int
+    size: int
+    items: list[TenantUserOut]
+
+    class Config:
+        from_attributes = True
+        alias_generator = None
+        populate_by_name = True
+
+
+class UserLOV(BaseModel):
+    id: UUID
+    name: str
 
 
 class LoginResponse(BaseModel):

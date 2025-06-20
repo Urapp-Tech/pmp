@@ -82,7 +82,6 @@ const OfficeUserCreateDialog = ({
     // if (file) data.avatar = file;
     // data.userType = 'USER';
     // callback(data);
-    // console.log('s', data);
     let obj: any = {
       fname: data.firstName,
       lname: data.lastName,
@@ -93,6 +92,7 @@ const OfficeUserCreateDialog = ({
       roleId: data.role,
     };
     if (file) obj.profilePic = file;
+    console.log('s', data);
     callback(obj);
   };
 
@@ -104,7 +104,7 @@ const OfficeUserCreateDialog = ({
     try {
       const roles = await service.lov();
       const rolesData = roles.data.filter(
-        (el: any) => el.name !== 'Landlord' || el.name !== 'User'
+        (el: any) => el.name !== 'Landlord' && el.name !== 'User'
       );
       setRoleLov(rolesData);
     } catch (error: Error | unknown) {

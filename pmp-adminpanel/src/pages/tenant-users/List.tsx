@@ -53,12 +53,14 @@ import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/helper';
+import { usePermission } from '@/utils/hasPermission';
+import { PERMISSIONS } from '@/utils/constants';
 
 export type Users = {
   id: string; // UUID
   tenant: string; // UUID representing the tenant ID
-  firstName: string;
-  lastName: string;
+  fname: string;
+  lname: string;
   username: string; // Email is being used as a username
   email: string; // Email address of the user
   password: string; // Encrypted password (bcrypt hash)
@@ -81,9 +83,10 @@ export type Users = {
 const TenantUsers = () => {
   const userDetails: any = getItem('USER');
   const { toast } = useToast();
+  const { can } = usePermission();
 
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
@@ -115,21 +118,21 @@ const TenantUsers = () => {
 
   const columns: ColumnDef<Users>[] = [
     {
-      accessorKey: 'firstName',
+      accessorKey: 'fname',
       header: 'Name',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           <Avatar>
             <AvatarImage
               src={row.original.avatar || ''}
-              alt={row.getValue('firstName') || '@fallback'}
+              alt={row.getValue('fname') || '@fallback'}
             />
             <AvatarFallback>
-              {getInitials(row.getValue('firstName'))}
+              {getInitials(row.getValue('fname'))}
             </AvatarFallback>
           </Avatar>
           <div className="capitalize font-semibold">
-            {row.getValue('firstName')}
+            {row.getValue('fname')} {row.original?.lname}
           </div>
         </div>
       ),
@@ -168,13 +171,38 @@ const TenantUsers = () => {
       ),
     },
     {
-      accessorKey: 'address',
-      header: 'Address',
-      cell: ({ row }) => (
-        <div className="capitalize">
-          {row.getValue('address') ? row.getValue('address') : '---'}
-        </div>
-      ),
+      accessorKey: 'assignedManager',
+      header: 'Assigned Manager',
+      cell: ({ row }) => {
+        const managerUser = row.getValue('assignedManager') as {
+          id: string;
+          name: string;
+          profilePic?: string | null;
+        } | null;
+
+        if (!managerUser) {
+          return (
+            <span className="text-sm text-muted-foreground">
+              Not assigned yet
+            </span>
+          );
+        }
+
+        return (
+          <div className="flex items-center space-x-2">
+            <Avatar>
+              <AvatarImage
+                src={managerUser.profilePic ?? ''}
+                alt={`@manager-user`}
+              />
+              <AvatarFallback>
+                {managerUser.name?.charAt(0).toUpperCase() || 'M'}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium">{managerUser.name}</span>
+          </div>
+        );
+      },
     },
     {
       id: 'actions',
@@ -184,43 +212,25 @@ const TenantUsers = () => {
         const { id } = row.original;
         return (
           <div className="flex justify-center items-center">
-            <div>
-              <Pencil
-                className="text-lunar-bg cursor-pointer"
-                onClick={() => handleActionMenu('edit', id)}
-                size={20}
-              />
-            </div>
-            <div className="pl-3">
-              <Trash2
-                className="text-lunar-bg cursor-pointer"
-                size={20}
-                onClick={() => handleActionMenu('delete', id)}
-              />
-            </div>
+            {can(PERMISSIONS.USER.UPDATE) && (
+              <div>
+                <Pencil
+                  className="text-lunar-bg cursor-pointer"
+                  onClick={() => handleActionMenu('edit', id)}
+                  size={20}
+                />
+              </div>
+            )}
+            {can(PERMISSIONS.USER.DELETE) && (
+              <div className="pl-3">
+                <Trash2
+                  className="text-lunar-bg cursor-pointer"
+                  size={20}
+                  onClick={() => handleActionMenu('delete', id)}
+                />
+              </div>
+            )}
           </div>
-          // <DropdownMenu>
-          //   <DropdownMenuTrigger asChild>
-          //     <Button variant="ghost" className="h-8 w-8 p-0">
-          //       <span className="sr-only">Open menu</span>
-          //       <MoreHorizontal />
-          //     </Button>
-          //   </DropdownMenuTrigger>
-          //   <DropdownMenuContent align="end">
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('edit', id)}
-          //     >
-          //       Edit
-          //     </DropdownMenuItem>
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('delete', id)}
-          //     >
-          //       Delete
-          //     </DropdownMenuItem>
-          //   </DropdownMenuContent>
-          // </DropdownMenu>
         );
       },
     },
@@ -241,11 +251,16 @@ const TenantUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const users = await usersService.list(search, page, pageSize);
+      const users = await usersService.userslist(
+        userDetails?.id,
+        search,
+        page,
+        pageSize
+      );
       if (users.data.success) {
         setMainIsLoader(false);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
+        setList(users.data.items);
+        setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
         console.log('error: ', users.data.message);
@@ -307,11 +322,16 @@ const TenantUsers = () => {
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
-      const users = await userService.list(search, newPage, pageSize);
+      const users = await userService.userslist(
+        userDetails?.id,
+        search,
+        newPage,
+        pageSize
+      );
       if (users.data.success) {
         setPage(newPage);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
+        setList(users.data.items);
+        setTotal(users.data.total);
       } else {
         ToastHandler(users.data.message);
         console.log('error: ', users.data.message);
@@ -345,22 +365,22 @@ const TenantUsers = () => {
 
     setIsLoader(true);
     const formData = new FormData();
-    formData.append('userType', data.userType);
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
+    formData.append('fname', data.fname);
+    formData.append('lname', data.lname);
     formData.append('email', data.email);
     formData.append('phone', data.phone);
+    formData.append('gender', data.gender);
     formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
+    formData.append('roleId', data.roleId);
+    formData.append('landlordId', userDetails?.landlordId);
+    if (data.profilePic) formData.append('profilePic', data.profilePic);
     userService
-      .create(data)
+      .create(formData)
       .then((item) => {
         if (item.data.success) {
           setIsOpen(false);
           setIsLoader(false);
-          setList([item.data.data, ...list]);
+          setList([item.data.items, ...list]);
           let newtotal = total;
           setTotal((newtotal += 1));
         } else {
@@ -370,7 +390,7 @@ const TenantUsers = () => {
       })
       .catch((err: Error | any) => {
         console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
+        ToastHandler(err?.response?.data?.detail[0]?.msg);
         setIsLoader(false);
       });
   };
@@ -438,13 +458,15 @@ const TenantUsers = () => {
                 className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
               />
               <DropdownMenu>
-                <Button
-                  onClick={() => setIsOpen(true)}
-                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
-                  variant={'outline'}
-                >
-                  + Add New
-                </Button>
+                {can(PERMISSIONS.USER.CREATE) && (
+                  <Button
+                    onClick={() => setIsOpen(true)}
+                    className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                    variant={'outline'}
+                  >
+                    + Add New
+                  </Button>
+                )}
                 <DropdownMenuContent align="end">
                   {table
                     .getAllColumns()

@@ -4,8 +4,11 @@ import { getItem, setItem } from '@/utils/storage';
 import { store } from '@/redux/store';
 import { logout } from '@/redux/features/authSlice';
 
-const token = () => getItem<{ token: string }>('USER')?.token;
-const refreshToken = () => getItem<{ token: string }>('USER')?.token;
+const token = () => getItem<{ access_token: string }>('USER')?.access_token;
+const refreshToken = () =>
+  getItem<{ refresh_token: string }>('USER')?.refresh_token;
+
+console.log('toekn', token(), getItem('USER'));
 
 const networkInstance = axios.create();
 const refreshInstance = axios.create();
