@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -13,6 +14,7 @@ import logging
 from app.modules.supportTickets.routes import router as support_router
 from fastapi.staticfiles import StaticFiles
 from app.modules.managers.routes import router as manager_router
+from app.utils.uploader import get_file_base_url
 
 # app = FastAPI()
 app = FastAPI(
@@ -20,7 +22,10 @@ app = FastAPI(
     # openapi_url=None       # disables OpenAPI schema (/openapi.json)
 )
 
-# app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# 📁 Ensure 'uploads' directory exists
+os.makedirs("uploads", exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Setup global logging
 setup_global_logger()
@@ -97,6 +102,11 @@ app.add_middleware(
 )
 
 
-@app.get("/test-error")
-def test_error():
-    return 1 / 0
+@app.get("/assests/url")
+def get_assets_url():
+    return {"assets_url": get_file_base_url()}
+
+
+# @app.get("/assests/url")
+# def test_error():
+#     return 1 / 0E

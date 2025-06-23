@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     s3_access_key: str
     s3_region: str
     s3_bucket: str
-
+    s3_bucket_storage: bool
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.database}"
