@@ -18,13 +18,14 @@ from app.modules.managers.routes import router as manager_router
 app = FastAPI(
     docs_url="/docs",  # disables Swagger UI (/docs)
     # openapi_url=None       # disables OpenAPI schema (/openapi.json)
-) 
+)
 
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Setup global logging
 setup_global_logger()
 # debug_log({"key": "value", "status": 200})
+
 
 # error_log( "Division failed")
 # Middleware to log full errors with tracebacks

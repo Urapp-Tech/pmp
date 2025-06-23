@@ -6,6 +6,7 @@ from app.models.managers import Manager
 from typing import Optional, List
 
 # import uuid
+import uuid
 from uuid import UUID
 from app.utils.s3_uploader import upload_file_to_s3
 from sqlalchemy import or_
@@ -121,7 +122,7 @@ def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile 
         profile_pic_url = upload_file_to_s3(profile_pic, folder="profile_pics")
 
     user = User(
-        id=UUID,
+        id=uuid.uuid4(),
         fname=landlord_data.fname,
         lname=landlord_data.lname,
         email=landlord_data.email,

@@ -32,7 +32,7 @@ class RolePermissionOut(BaseModel):
 class RoleOut(BaseModel):
     id: UUID
     name: str
-    desc: Optional[str]
+    desc: Optional[str] = None
     is_active: bool = Field(..., alias="isActive")
     permissions: List[UUID] = []
 

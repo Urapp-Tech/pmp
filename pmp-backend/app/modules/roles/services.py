@@ -85,7 +85,7 @@ def create_role(db: Session, body: RoleCreate):
         role = Role(
             id=uuid.uuid4(),
             name=body.name,
-            # desc=body.desc,
+            desc=None,
             is_active=True,
         )
         db.add(role)
@@ -110,7 +110,12 @@ def create_role(db: Session, body: RoleCreate):
         return {
             "success": True,
             "message": "Role created successfully",
-            "role": role,
+            "role": RoleOut(
+                id=role.id,
+                name=role.name,
+                is_active=role.is_active,
+                permissions=[rp.permission_id for rp in new_permissions],
+            ),
         }
 
     except SQLAlchemyError as e:
