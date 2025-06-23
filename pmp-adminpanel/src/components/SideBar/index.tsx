@@ -160,6 +160,7 @@ export function MainSidebar({
             className="max-w-full w-full h-full object-contain"
           /> */}
         </div>
+        <div className="text-white">{userRoles?.role?.name} Panel</div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
