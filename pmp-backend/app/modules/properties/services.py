@@ -281,9 +281,6 @@ def get_property_units(db: Session, property_id: str, page: int = 1, size: int =
         "items": jsonable_encoder(units),
     }
 
-
-
-
 def get_properties(
         db: Session,landlord_id: Optional[str] = None, page: int = 1, size: int = 20, search: Optional[str] = None
 ):

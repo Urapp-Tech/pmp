@@ -1,3 +1,4 @@
+import uuid
 from fastapi import HTTPException, status, Request, UploadFile
 from sqlalchemy.orm import Session, joinedload, load_only
 from app.models.users import User
@@ -7,7 +8,7 @@ from typing import Optional, List
 
 # import uuid
 from uuid import UUID
-from app.utils.s3_uploader import upload_file_to_s3
+from app.utils.uploader import  save_uploaded_file, is_upload_file
 from sqlalchemy import or_
 from app.modules.securityLogs.services import log_security_event
 from app.modules.securityLogs.schemas import SecurityLogCreate
@@ -117,11 +118,11 @@ def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile 
     hashed_pwd = hash_password(landlord_data.password)
 
     profile_pic_url = None
-    if profile_pic:
-        profile_pic_url = upload_file_to_s3(profile_pic, folder="profile_pics")
+    if is_upload_file(profile_pic):
+        profile_pic_url = save_uploaded_file(profile_pic, folder="profile_pics")
 
     user = User(
-        id=UUID,
+        id=uuid.uuid4(),
         fname=landlord_data.fname,
         lname=landlord_data.lname,
         email=landlord_data.email,
