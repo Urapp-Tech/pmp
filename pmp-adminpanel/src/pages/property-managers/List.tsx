@@ -54,9 +54,9 @@ import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/helper';
-import AssignUserDialog from './AssignedUserDialog';
+import AssignUserDialog from './AssignedUnitDialog';
 import { usePermission } from '@/utils/hasPermission';
-import { PERMISSIONS } from '@/utils/constants';
+import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
 
 export type Users = {
   id: string; // UUID
@@ -72,7 +72,7 @@ export type Users = {
   city: string | null; // City information, nullable
   zipCode: string | null; // Zip code, nullable
   role: string | null; // User role, nullable
-  avatar: string | null; // Avatar URL or path, nullable
+  profilePic: string | null; // Avatar URL or path, nullable
   address: string; // Address of the user
   userType: 'USER' | 'ADMIN'; // Enum type to restrict values
   isActive: boolean; // Active status of the user
@@ -127,7 +127,7 @@ const PropertyManagers = () => {
         <div className="flex items-center gap-3">
           <Avatar>
             <AvatarImage
-              src={row.original.avatar || ''}
+              src={`${ASSET_BASE_URL}${row.original.profilePic}` || ''}
               alt={row.getValue('fname') || '@fallback'}
             />
             <AvatarFallback>
@@ -174,13 +174,12 @@ const PropertyManagers = () => {
       ),
     },
     {
-      accessorKey: 'assignedUsers',
-      header: 'Assigned Users',
+      accessorKey: 'assignedUnits',
+      header: 'Assigned Property Units',
       cell: ({ row }) => {
-        const users = row.getValue('assignedUsers') as {
+        const users = row.getValue('assignedUnits') as {
           id: string;
           name: string;
-          profilePic?: string | null;
         }[];
 
         if (!users || users.length === 0) {
@@ -194,20 +193,42 @@ const PropertyManagers = () => {
         const visibleUsers = users.slice(0, 3);
         const remainingCount = users.length > 3 ? users.length - 3 : 0;
 
+        const colors = [
+          'bg-red-500',
+          'bg-green-500',
+          'bg-blue-500',
+          'bg-yellow-500',
+          'bg-purple-500',
+          'bg-pink-500',
+          'bg-orange-500',
+          'bg-teal-500',
+          'bg-rose-500',
+          'bg-indigo-500',
+        ];
+
+        const getColorClass = (id: string) => {
+          let hash = 0;
+          for (let i = 0; i < id.length; i++) {
+            hash = id.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          return colors[Math.abs(hash) % colors.length];
+        };
+
         return (
           <div className="flex items-center space-x-1">
             <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
-              {visibleUsers.map((user, index) => (
-                <Avatar key={user.id + index}>
-                  <AvatarImage
-                    src={user.profilePic ?? ''}
-                    alt={`@user-${index}`}
-                  />
-                  <AvatarFallback>
-                    {user.name?.charAt(0).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
+              {visibleUsers.map((user, index) => {
+                const bgColor = getColorClass(user.id);
+                const initial = user.name?.charAt(0).toUpperCase() || 'U';
+                return (
+                  <Avatar key={user.id + index}>
+                    <AvatarImage src={user.name ?? ''} alt={`@user-${index}`} />
+                    <AvatarFallback className={`text-white ${bgColor}`}>
+                      {initial}
+                    </AvatarFallback>
+                  </Avatar>
+                );
+              })}
               {remainingCount > 0 && (
                 <div className="w-8 h-8 rounded-full bg-muted text-sm flex items-center justify-center font-medium border border-border">
                   +{remainingCount}
@@ -421,7 +442,7 @@ const PropertyManagers = () => {
     formData.append('phone', data.phone);
     formData.append('gender', data.gender);
     formData.append('password', data.password);
-    formData.append('roleId', data.roleId);
+    formData.append('roleType', data.roleType);
     formData.append('landlordId', userDetails?.landlordId);
     if (data.profilePic) formData.append('profilePic', data.profilePic);
     userService
@@ -489,21 +510,20 @@ const PropertyManagers = () => {
       });
   };
 
-  const onAssignUsers = (userIds: string[]) => {
+  const onAssignUnits = (unitIds: string[]) => {
     let obj = {
       managerUserId: editFormData?.id,
-      assignUsers: userIds,
+      assignUnits: unitIds,
     };
     // console.log('obj', obj);
 
     userService
-      .assignUsers(obj)
+      .assignUnits(obj)
       .then((updateItem) => {
         if (updateItem.data.success) {
           const updatedAssignments = updateItem.data.items.map((item: any) => ({
-            id: item.assignUser.id,
-            name: `${item.assignUser.fname} ${item.assignUser.lname}`.trim(),
-            profilePic: item.assignUser.profilePic,
+            id: item.assign_property_unit.id,
+            name: item.assign_property_unit.name,
           }));
 
           // Extract newly assigned user IDs
@@ -516,18 +536,18 @@ const PropertyManagers = () => {
               if (manager.id === editFormData?.id) {
                 return {
                   ...manager,
-                  assignedUsers: updatedAssignments,
+                  assignedUnits: updatedAssignments,
                 };
               }
 
               // Remove any users who are now assigned to the new manager
-              const filteredUsers = manager.assignedUsers?.filter(
+              const filteredUnits = manager.assignedUnits?.filter(
                 (u: any) => !newAssignedUserIds.includes(u.id)
               );
 
               return {
                 ...manager,
-                assignedUsers: filteredUsers,
+                assignedUnits: filteredUnits,
               };
             })
           );
@@ -705,10 +725,10 @@ const PropertyManagers = () => {
           isLoader={isLoader}
           isOpen={isAssignOpen}
           setIsOpen={setIsAssignOpen}
-          assignedUsers={
-            editFormData?.assignedUsers?.map((u: any) => u.id) || []
+          assignedUnits={
+            editFormData?.assignedUnits?.map((u: any) => u.id) || []
           }
-          onAssignUsers={(userIds) => onAssignUsers(userIds)}
+          onAssignUnits={(unitIds) => onAssignUnits(unitIds)}
         />
       )}
     </div>

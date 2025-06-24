@@ -21,25 +21,36 @@ class AssignUserOut(BaseModel):
         return super().model_validate(data)
 
 
+class PropertyUnitOut(BaseModel):
+    id: UUID
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
 class ManagerAssignCreate(BaseModel):
-    manager_user_id: UUID = Field(None, alias="managerUserId")
-    assign_users: List[UUID] = Field(None, alias="assignUsers")
+    manager_user_id: UUID = Field(..., alias="managerUserId")
+    assign_units: List[UUID] = Field(..., alias="assignUnits")
 
 
-class ManagerOut(BaseModel):
+class ManagerUnitOut(BaseModel):
     id: UUID
     manager_user_id: UUID = Field(None, alias="managerUserId")
-    assign_user: AssignUserOut = Field(..., alias="assignUser")
+    assign_property_unit: PropertyUnitOut
     is_active: bool = Field(..., alias="isActive")
     created_at: datetime = Field(..., alias="createdAt")
 
     class Config:
         from_attributes = True
         populate_by_name = True
-        alias_generator = None
 
 
 class ManagerAssignResponse(BaseModel):
     message: str
     success: bool
-    items: List[ManagerOut]
+    items: List[ManagerUnitOut]
+    # available_units: Optional[List[PropertyUnitOut]] = []
+
+    class Config:
+        from_attributes = True

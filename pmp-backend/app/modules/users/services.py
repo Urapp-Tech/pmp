@@ -1,15 +1,17 @@
-import uuid
 from fastapi import HTTPException, status, Request, UploadFile
 from sqlalchemy.orm import Session, joinedload, load_only
 from app.models.users import User
 from app.models.roles import Role, RolePermission
 from app.models.managers import Manager
+from app.models.property_units import PropertyUnit
 from typing import Optional, List
 
 # import uuid
 import uuid
 from uuid import UUID
-from app.utils.uploader import  save_uploaded_file, is_upload_file
+
+# from app.utils.s3_uploader import upload_file_to_s3
+from app.utils.uploader import is_upload_file, save_uploaded_file
 from sqlalchemy import or_
 from app.modules.securityLogs.services import log_security_event
 from app.modules.securityLogs.schemas import SecurityLogCreate
@@ -105,22 +107,32 @@ def refresh_access_token(refresh_token: str) -> TokenSchema:
 
 def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile = None):
 
-    print("Creating user with data:", landlord_data)
+    print("Creating user with data:", landlord_data, profile_pic)
 
     allowed_roles = ["User", "Manager"]
 
-    role = db.query(Role).filter(Role.id == landlord_data.role_id).first()
-    if not role:
-        raise ValueError("Provided role_id is invalid.")
+    if landlord_data.role_type:
+        role = db.query(Role).filter(Role.name == landlord_data.role_type).first()
+        if not role:
+            raise HTTPException(status_code=400, detail="Role is invalid")
 
     if role.name not in allowed_roles:
-        raise ValueError("Only 'User' and 'Manager' roles are allowed.")
+        raise HTTPException(
+            status_code=400, detail="Only 'User' and 'Manager' roles are allowed."
+        )
 
     hashed_pwd = hash_password(landlord_data.password)
 
-    profile_pic_url = None
-    if is_upload_file(profile_pic):
-        profile_pic_url = save_uploaded_file(profile_pic, folder="profile_pics")
+    try:
+        profile_pic_url = None
+        if is_upload_file(profile_pic):
+            profile_pic_url = save_uploaded_file(
+                profile_pic, upload_dir="uploads/profile_pics"
+            )
+    except Exception as e:
+        db.rollback()
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Failed: {str(e)}")
 
     user = User(
         id=uuid.uuid4(),
@@ -144,7 +156,7 @@ def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile 
     return {
         "success": True,
         "message": "User created successfully",
-        "items": user,
+        "items": UserOut.model_validate(user),
     }
 
 
@@ -186,101 +198,101 @@ def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile 
 #     }
 
 
-def get_manager_users_by_role(
-    db: Session,
-    landlord_id: UUID,
-    role_name: str,
-    page: int = 1,
-    size: int = 10,
-    search: Optional[str] = None,
-):
+# def get_manager_users_by_role(
+#     db: Session,
+#     landlord_id: UUID,
+#     role_name: str,
+#     page: int = 1,
+#     size: int = 10,
+#     search: Optional[str] = None,
+# ):
 
-    query = (
-        db.query(User)
-        .join(Role)
-        .options(joinedload(User.role))
-        .filter(
-            User.is_active == True,
-            User.is_landlord == False,
-            User.landlord_id == landlord_id,
-            Role.name == role_name,
-        )
-    )
+#     query = (
+#         db.query(User)
+#         .join(Role)
+#         .options(joinedload(User.role))
+#         .filter(
+#             User.is_active == True,
+#             User.is_landlord == False,
+#             User.landlord_id == landlord_id,
+#             Role.name == role_name,
+#         )
+#     )
 
-    if search:
-        search_term = f"%{search.strip()}%"
-        query = query.filter(
-            or_(
-                User.fname.ilike(search_term),
-                User.lname.ilike(search_term),
-                User.email.ilike(search_term),
-            )
-        )
+#     if search:
+#         search_term = f"%{search.strip()}%"
+#         query = query.filter(
+#             or_(
+#                 User.fname.ilike(search_term),
+#                 User.lname.ilike(search_term),
+#                 User.email.ilike(search_term),
+#             )
+#         )
 
-    total = query.count()
+#     total = query.count()
 
-    users = query.offset((page - 1) * size).limit(size).all()
+#     users = query.offset((page - 1) * size).limit(size).all()
 
-    seen_ids = set()
-    result = []
+#     seen_ids = set()
+#     result = []
 
-    for u in users:
-        if u.id in seen_ids:
-            continue
-        seen_ids.add(u.id)
+#     for u in users:
+#         if u.id in seen_ids:
+#             continue
+#         seen_ids.add(u.id)
 
-        user_dict = UserOut.model_validate(u).model_dump(by_alias=True)
-        user_dict["createdAt"] = u.created_at.isoformat() if u.created_at else None
-        user_dict["updatedAt"] = u.updated_at.isoformat() if u.updated_at else None
-        user_dict["roleId"] = str(u.role_id)
-        user_dict["roleName"] = u.role.name if u.role else None
+#         user_dict = UserOut.model_validate(u).model_dump(by_alias=True)
+#         user_dict["createdAt"] = u.created_at.isoformat() if u.created_at else None
+#         user_dict["updatedAt"] = u.updated_at.isoformat() if u.updated_at else None
+#         user_dict["roleId"] = str(u.role_id)
+#         user_dict["roleName"] = u.role.name if u.role else None
 
-        # Extra field only for manager list
-        if role_name == "Manager":
-            assigned_users = (
-                db.query(User)
-                .join(Manager, Manager.assign_user == User.id)
-                .filter(Manager.manager_user_id == u.id, Manager.is_active == True)
-                .options(load_only(User.id, User.fname, User.lname, User.profile_pic))
-                .all()
-            )
+#         # Extra field only for manager list
+#         if role_name == "Manager":
+#             assigned_users = (
+#                 db.query(User)
+#                 .join(Manager, Manager.assign_user == User.id)
+#                 .filter(Manager.manager_user_id == u.id, Manager.is_active == True)
+#                 .options(load_only(User.id, User.fname, User.lname, User.profile_pic))
+#                 .all()
+#             )
 
-            user_dict["assignedUsers"] = [
-                {
-                    "id": str(au.id),
-                    "name": f"{au.fname} {au.lname}",
-                    "profilePic": au.profile_pic,
-                }
-                for au in assigned_users
-            ]
+#             user_dict["assignedUsers"] = [
+#                 {
+#                     "id": str(au.id),
+#                     "name": f"{au.fname} {au.lname}",
+#                     "profilePic": au.profile_pic,
+#                 }
+#                 for au in assigned_users
+#             ]
 
-        # Extra field only for user list
-        elif role_name == "User":
-            assigned_manager = (
-                db.query(User)
-                .join(Manager, Manager.manager_user_id == User.id)
-                .filter(Manager.assign_user == u.id, Manager.is_active == True)
-                .first()
-            )
-            user_dict["assignedManager"] = (
-                {
-                    "id": str(assigned_manager.id),
-                    "name": f"{assigned_manager.fname} {assigned_manager.lname}",
-                    "profilePic": assigned_manager.profile_pic,
-                }
-                if assigned_manager
-                else None
-            )
+#         # Extra field only for user list
+#         elif role_name == "User":
+#             assigned_manager = (
+#                 db.query(User)
+#                 .join(Manager, Manager.manager_user_id == User.id)
+#                 .filter(Manager.assign_user == u.id, Manager.is_active == True)
+#                 .first()
+#             )
+#             user_dict["assignedManager"] = (
+#                 {
+#                     "id": str(assigned_manager.id),
+#                     "name": f"{assigned_manager.fname} {assigned_manager.lname}",
+#                     "profilePic": assigned_manager.profile_pic,
+#                 }
+#                 if assigned_manager
+#                 else None
+#             )
 
-        result.append(user_dict)
+#         result.append(user_dict)
 
-    return {
-        "success": True,
-        "total": total,
-        "page": page,
-        "size": size,
-        "items": result,
-    }
+#     return {
+#         "success": True,
+#         "total": total,
+#         "page": page,
+#         "size": size,
+#         "items": result,
+#     }
 
 
 # def get_users_by_role(
@@ -418,6 +430,103 @@ def get_manager_users_by_role(
 #     }
 
 
+def get_assigned_units_managers(
+    db: Session,
+    landlord_id: UUID,
+    role_name: str,
+    page: int = 1,
+    size: int = 10,
+    search: Optional[str] = None,
+):
+    query = (
+        db.query(User)
+        .join(Role)
+        .options(joinedload(User.role))
+        .filter(
+            User.is_active == True,
+            User.is_landlord == False,
+            User.landlord_id == landlord_id,
+            Role.name == role_name,
+        )
+    )
+
+    if search:
+        search_term = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                User.fname.ilike(search_term),
+                User.lname.ilike(search_term),
+                User.email.ilike(search_term),
+            )
+        )
+
+    total = query.count()
+
+    users = query.offset((page - 1) * size).limit(size).all()
+
+    seen_ids = set()
+    result = []
+
+    for u in users:
+        if u.id in seen_ids:
+            continue
+        seen_ids.add(u.id)
+
+        user_dict = UserOut.model_validate(u).model_dump(by_alias=True)
+        user_dict["createdAt"] = u.created_at.isoformat() if u.created_at else None
+        user_dict["updatedAt"] = u.updated_at.isoformat() if u.updated_at else None
+        user_dict["roleId"] = str(u.role_id)
+        user_dict["roleName"] = u.role.name if u.role else None
+
+        # ✅ Assigned units for manager
+        if role_name == "Manager":
+            assigned_units = (
+                db.query(PropertyUnit.id, PropertyUnit.name)
+                .join(Manager, Manager.assign_property_unit == PropertyUnit.id)
+                .filter(
+                    Manager.manager_user_id == u.id,
+                    Manager.is_active == True,
+                )
+                .all()
+            )
+
+            user_dict["assignedUnits"] = [
+                {
+                    "id": str(unit.id),
+                    "name": unit.name,
+                }
+                for unit in assigned_units
+            ]
+
+        # Optional: keep this for regular users
+        elif role_name == "User":
+            assigned_manager = (
+                db.query(User)
+                .join(Manager, Manager.manager_user_id == User.id)
+                .filter(Manager.assign_user == u.id, Manager.is_active == True)
+                .first()
+            )
+            user_dict["assignedManager"] = (
+                {
+                    "id": str(assigned_manager.id),
+                    "name": f"{assigned_manager.fname} {assigned_manager.lname}",
+                    "profilePic": assigned_manager.profile_pic,
+                }
+                if assigned_manager
+                else None
+            )
+
+        result.append(user_dict)
+
+    return {
+        "success": True,
+        "total": total,
+        "page": page,
+        "size": size,
+        "items": result,
+    }
+
+
 def get_users_by_role(
     db: Session,
     user_id: UUID,
@@ -509,23 +618,6 @@ def get_users_by_role(
         user_dict["updatedAt"] = u.updated_at.isoformat() if u.updated_at else None
         user_dict["roleId"] = str(u.role_id)
         user_dict["roleName"] = u.role.name if u.role else None
-
-        # Assigned Manager
-        assigned_manager = (
-            db.query(User)
-            .join(Manager, Manager.manager_user_id == User.id)
-            .filter(Manager.assign_user == u.id, Manager.is_active == True)
-            .first()
-        )
-        user_dict["assignedManager"] = (
-            {
-                "id": str(assigned_manager.id),
-                "name": f"{assigned_manager.fname} {assigned_manager.lname}",
-                "profilePic": assigned_manager.profile_pic,
-            }
-            if assigned_manager
-            else None
-        )
 
         result.append(user_dict)
 

@@ -31,9 +31,9 @@ def upgrade():
             nullable=False,
         ),
         sa.Column(
-            "assign_user",
+            "assign_property_unit",
             sa.UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            sa.ForeignKey("property_units.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(

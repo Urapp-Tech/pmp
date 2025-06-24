@@ -14,6 +14,8 @@ import logging
 from app.modules.supportTickets.routes import router as support_router
 from fastapi.staticfiles import StaticFiles
 from app.modules.managers.routes import router as manager_router
+from app.modules.propertyUnits.routes import router as property_units_router
+from app.modules.tenants.routes import router as tenants_router
 from app.utils.uploader import get_file_base_url
 
 # app = FastAPI()
@@ -87,6 +89,18 @@ app.include_router(
     manager_router,
     prefix="/admin/managers",
     tags=["Admin - Managers"],
+)
+
+app.include_router(
+    property_units_router,
+    prefix="/admin/property-units",
+    tags=["Admin - Property Units"],
+)
+
+app.include_router(
+    tenants_router,
+    prefix="/admin/tenants",
+    tags=["Admin - Tenants"],
 )
 
 
