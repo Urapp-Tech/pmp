@@ -46,11 +46,11 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import userService from '@/services/adminapp/users';
+import service from '@/services/adminapp/invoice';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
-import OfficeUsersCreationDialog from './CreateDialog';
-import OfficeUserUpdateDialog from './UpdateDialog';
+import InvoiceCreateDialog from './CreateDialog';
+import InvoiceUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/helper';
 

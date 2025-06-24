@@ -19,6 +19,7 @@ export const OPERATON_REPORT_PREFIX = 'operation-report';
 export const PROPERTY_PREFIX = 'properties';
 export const SUB_USER_PREFIX = 'sub-user';
 export const ROLE_PREFIX = 'roles';
+export const INVOICE_PREFIX = 'invoices';
 export const BLOG_PREFIX = 'blog';
 
 export const imageAllowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];

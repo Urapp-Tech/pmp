@@ -47,6 +47,9 @@ def upgrade() -> None:
         sa.Column("bedrooms", sa.String(length=255), nullable=True),
         sa.Column("bathrooms", sa.String(length=255), nullable=True),
         sa.Column("rent", sa.String(length=255), nullable=True),
+        sa.Column("account_name", sa.String(length=255), nullable=True),
+        sa.Column("account_no", sa.String(length=255), nullable=True),
+        sa.Column("bank_name", sa.String(length=255), nullable=True),
         sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
     )

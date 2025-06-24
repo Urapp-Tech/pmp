@@ -34,13 +34,13 @@ def upgrade() -> None:
             server_default=sa.text("uuid_generate_v4()"),
         ),
         sa.Column(
-            "role",
+            "role_id",
             postgresql.UUID(as_uuid=True),
             sa.ForeignKey("roles.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "permission",
+            "permission_id",
             postgresql.UUID(as_uuid=True),
             sa.ForeignKey("permissions.id", ondelete="CASCADE"),
             nullable=False,

@@ -9,6 +9,7 @@ from app.modules.roles.routes import router as role_router
 from app.modules.securityLogs.routes import router as security_log_router
 from app.modules.landlords.routes import router as landlord_router
 from app.modules.properties.routes import router as property_router
+from app.modules.invoices.routes import router as invoice_router
 from app.utils.logger import setup_global_logger, error_log, debug_log
 import logging
 from app.modules.supportTickets.routes import router as support_router
@@ -81,7 +82,11 @@ app.include_router(
     prefix="/admin/support-tickets",
     tags=["Admin - Support Tickets"],
 )
-
+app.include_router(
+    invoice_router,
+    prefix="/admin/invoices",
+    tags=["Admin - Invoices"],
+)
 app.include_router(
     manager_router,
     prefix="/admin/managers",

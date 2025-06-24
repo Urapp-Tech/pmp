@@ -24,7 +24,7 @@ import DragDropFile from '@/components/DragDropImgFile';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
-import service from '@/services/adminapp/role-permissions';
+import service from '@/services/adminapp/invoice';
 
 type Props = {
   isLoader: boolean;
@@ -34,7 +34,7 @@ type Props = {
   formData: any;
 };
 
-const OfficeUserUpdateDialog = ({
+const InvoiceUpdateDialog = ({
   isOpen,
   setIsOpen,
   callback,
@@ -340,4 +340,4 @@ const OfficeUserUpdateDialog = ({
   );
 };
 
-export default OfficeUserUpdateDialog;
+export default InvoiceUpdateDialog;

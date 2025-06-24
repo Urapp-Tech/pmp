@@ -24,6 +24,9 @@ class PropertyUnitBase(BaseModel):
     bedrooms: Optional[str] = Field(None, example="2")
     bathrooms: Optional[str] = Field(None, example="2")
     water_meter: Optional[str] = Field(None, example="WM123456")
+    account_name: Optional[str] = Field(None, example="WM123456")
+    account_no: Optional[str] = Field(None, example="WM123456")
+    bank_name: Optional[str] = Field(None, example="WM123456")
     electricity_meter: Optional[str] = Field(None, example="EM123456")
     status: Optional[str] = Field(None, example="available")
 
@@ -77,7 +80,7 @@ class PropertyBase(BaseModel):
     status: Optional[str] = Field(None, example="active")
 
 class PropertyCreate(PropertyBase):
-    landlord_id: UUID = Field(..., example="3fa85f64-5717-4562-b3fc-2c963f66afa6")
+    landlord_id: UUID = Field(..., example="e8c31774-b165-43f6-9a51-a6cf3a6e57f9")
     units: Optional[List[PropertyUnitCreate]] = Field(default_factory=list)
 
 class PropertyUpdate(PropertyBase):
@@ -85,7 +88,7 @@ class PropertyUpdate(PropertyBase):
 
 class PropertyOut(PropertyBase):
     id: UUID4|str = Field(..., example="3fa85f64-5717-4562-b3fc-2c963f66afa6")
-    landlord_id: UUID4|str = Field(..., example="3fa85f64-5717-4562-b3fc-2c963f66afa6")
+    landlord_id: UUID4|str = Field(..., example="e8c31774-b165-43f6-9a51-a6cf3a6e57f9")
     units: List[PropertyUnitOut] = Field(default_factory=list)  
     created_at: datetime
     updated_at: datetime

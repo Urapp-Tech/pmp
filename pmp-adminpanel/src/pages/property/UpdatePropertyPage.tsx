@@ -54,30 +54,28 @@ const UpdatePropertyPage = () => {
     },
   });
 
-  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting }, control } = form;
+  const { register,watch, handleSubmit, reset, setValue, formState: { errors, isSubmitting }, control } = form;
   const { fields, append, remove } = useFieldArray({ control, name: 'units' });
 
   useEffect(() => {
     setMainIsLoader(true);
-    if (!id) return;
+    if (!id) {
+  toast({ description: 'Invalid property ID' });
+  navigate('/admin/property/list');
+  return;
+}
+
     const fetchProperty = async () => {
       try {
         const res = await service.getPropertyId(id);
         const property = res.data.property;
 
-// Property Pictures
-setPropertyPicturesPreview(
-  (property.pictures || []).map((pic: string) =>
-    pic.startsWith('http') ? pic : `${baseUrl}${pic}`
-  )
-);
+// ✅ Set raw image paths for form submission
+setPropertyPicturesPreview(property.pictures || []);
 
-// Unit Pictures
 const previews: Record<number, (File | string)[]> = {};
 property.units.forEach((u: any, i: number) => {
-  previews[i] = (u.pictures || []).map((pic: string) =>
-    pic.startsWith('http') ? pic : `${baseUrl}${pic}`
-  );
+  previews[i] = u.pictures || [];
 });
 setUnitPicturesPreview(previews);
 
@@ -100,39 +98,63 @@ setUnitPicturesPreview(previews);
     fetchProperty();
   }, [id]);
 
-  const onSubmit = async (data: Fields) => {
-    const formData = new FormData();
+const onSubmit = async (data: Fields) => {
+  const formData = new FormData();
 
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'pictures') {
-        (value as File[]).forEach((file) => formData.append('pictures', file));
-      } else if (key !== 'units') {
-        formData.append(key, value as string);
-      }
-    });
-
-    data.units.forEach((unit, index) => {
-      const { pictures, ...unitData } = unit;
-      const files = pictures as File[];
-      unitData.pictures_count = files.length;
-      formData.append('units_data', JSON.stringify(unitData));
-      files.forEach((file) => formData.append('unit_pictures', file));
-    });
-
-    formData.append('removed_unit_ids', JSON.stringify(removedUnitIds));
-
-    try {
-      const response = await service.update(id!, formData);
-      if (response.data.success) {
-        toast({ description: 'Property updated successfully' });
-        navigate('/admin/property/list');
-      } else {
-        toast({ description: response.data.message });
-      }
-    } catch (err) {
-      toast({ description: 'Failed to update property' });
+  // ✅ Append regular fields
+  Object.entries(data).forEach(([key, value]) => {
+    if (key !== 'pictures' && key !== 'units') {
+      formData.append(key, value as string);
     }
-  };
+  });
+
+  // ✅ Property Pictures
+  const newPropertyPictures = propertyPicturesPreview.filter(p => p instanceof File);
+  const existingPropertyPictures = propertyPicturesPreview.filter(p => typeof p === 'string');
+
+  newPropertyPictures.forEach(file => formData.append('pictures', file));
+  formData.append('existing_pictures', JSON.stringify(existingPropertyPictures));
+
+  // ✅ Units processing
+  const existingUnitPicturesMap: Record<number, string[]> = {};
+
+  data.units.forEach((unit, index) => {
+    const unitData = { ...unit };
+    delete unitData.pictures;
+
+    const previews = unitPicturesPreview[index] || [];
+    const newFiles = previews.filter(p => p instanceof File);
+    const existingPaths = previews.filter(p => typeof p === 'string');
+
+    unitData.pictures_count = newFiles.length;
+
+    formData.append('units_data', JSON.stringify(unitData));
+    existingUnitPicturesMap[index] = existingPaths;
+
+    newFiles.forEach(file => formData.append('unit_pictures', file));
+  });
+
+  // ✅ Append both JSONs
+  formData.append('existing_unit_pictures', JSON.stringify(existingUnitPicturesMap));
+  formData.append('removed_unit_ids', JSON.stringify(removedUnitIds));
+
+  try {
+    const response = await service.update(id!, formData);
+    if (response.data.success) {
+      toast({ description: 'Property updated successfully!' });
+      navigate('/admin/property/list');
+    } else {
+      toast({ description: response.data.message });
+    }
+  } catch (error: any) {
+    toast({
+      description: error?.response?.data?.message || 'Update failed.',
+    });
+  }
+};
+
+
+
 
 // Inside your component
 const handleCSVUpload = (event) => {
@@ -155,6 +177,9 @@ const handleCSVUpload = (event) => {
         bathrooms: row.bathrooms || '',
         water_meter: row.water_meter || '',
         electricity_meter: row.electricity_meter || '',
+        bank_name:row.bank_name || '',
+        account_no: row.account_no || '',
+        account_name:row.account_name || '',
         pictures: [], // CSV can't provide actual images
       }));
 
@@ -264,20 +289,31 @@ const handleCSVUpload = (event) => {
             <FormControl className="mb-6">
               <div>
               <FormLabel className="text-sm font-semibold">Property Pictures</FormLabel>
+
 <Input
-  // name='pictures'
   type="file"
   multiple
   {...form.register('pictures')}
   onChange={(e) => {
-    const files = Array.from(e.target.files || []);
-    setPropertyPicturesPreview(files);
+   const files = Array.from(e.target.files || []);
+  
+  // ✅ Fix: Properly merge existing and new files
+  setPropertyPicturesPreview(prev => [...prev, ...files]);
+  
+  // ✅ Fix: Set form value correctly
+  const currentFiles = form.getValues('pictures') || [];
+  form.setValue('pictures', [...currentFiles, ...files]);
+    
   }}
 />
 
+
 <div className="flex flex-wrap gap-3 mt-3">
 {propertyPicturesPreview.map((file, index) => {
-  const imageUrl = file instanceof File ? URL.createObjectURL(file) : file;
+  const imageUrl =
+  typeof file === 'string'
+    ? file.startsWith('http') ? file : `${baseUrl}${file}`
+    : URL.createObjectURL(file);
   return (
     <div key={index} className="relative w-[80px] h-[80px]">
       <img
@@ -321,7 +357,7 @@ const handleCSVUpload = (event) => {
   />
   <p className="text-xs text-gray-500 mt-1">
     CSV should include columns: name, unit_no, unit_type, size, rent, status,
-    description, bedrooms, bathrooms, water_meter, electricity_meter
+    description, bedrooms, bathrooms, water_meter, electricity_meter, bank_name, account_no, account_name 
   </p>
 </div>
 <div>
@@ -354,7 +390,7 @@ const handleCSVUpload = (event) => {
                 {[
                   'name', 'unit_no', 'unit_type', 'size', 'rent',
                   'status', 'description', 'bedrooms', 'bathrooms',
-                  'water_meter', 'electricity_meter',
+                  'water_meter', 'electricity_meter', 'bank_name', 'account_no', 'account_name',
                 ].map((unitField) => (
                   <FormControl key={unitField} className="m-1 w-full">
                     <div>
@@ -409,27 +445,33 @@ const handleCSVUpload = (event) => {
                 <FormControl className="">
                   <div>
                   <FormLabel className="text-sm font-semibold">Unit Pictures</FormLabel>
-                  <Input
-            type="file"
-            multiple
-            // name={`units.${index}.pictures`}
-            {...register(`units.${index}.pictures`)}
-            className="rounded-[20px] bg-earth-bg"
-            onChange={(e) => {
-              const files = Array.from(e.target.files || []);
-          
-              // Set preview state
-              setUnitPicturesPreview(prev => ({
-                ...prev,
-                [index]: files,
-              }));
-          
-            }}
-          />
-          {/* {console.log("Unit Pictures:",watch(`units.${index}.pictures`))} */}
+                 
+<Input
+  type="file"
+  multiple
+  {...register(`units.${index}.pictures`)}
+  className="rounded-[20px] bg-earth-bg"
+  onChange={(e) => {
+    const files = Array.from(e.target.files || []);
+  
+  // ✅ Fix: Update preview state
+  setUnitPicturesPreview(prev => ({
+    ...prev,
+    [index]: [...(prev[index] || []), ...files]
+  }));
+  
+  // ✅ Fix: Update form value
+  const currentFiles = form.getValues(`units.${index}.pictures`) || [];
+  form.setValue(`units.${index}.pictures`, [...currentFiles, ...files]);
+  }}
+/>
+          {console.log("Unit Pictures:",watch(`units.${index}.pictures`))}
           <div className="flex flex-wrap gap-3 mt-3">
            {unitPicturesPreview[index]?.map((file, picIndex) => {
-  const imageUrl = file instanceof File ? URL.createObjectURL(file) : file;
+  const imageUrl =
+  typeof file === 'string'
+    ? file.startsWith('http') ? file : `${baseUrl}${file}`
+    : URL.createObjectURL(file);
   return (
     <div key={picIndex} className="relative w-[80px] h-[80px]">
       <img
@@ -482,60 +524,6 @@ const handleCSVUpload = (event) => {
 </div>
 </div>
 
-{/* <div>
-  <Accordion
-      type="single"
-      collapsible
-      className="w-full"
-      defaultValue="item-1"
-    >
-      <AccordionItem value="item-1">
-        <AccordionTrigger>Product Information</AccordionTrigger>
-        <AccordionContent className="flex flex-col gap-4 text-balance">
-          <p>
-            Our flagship product combines cutting-edge technology with sleek
-            design. Built with premium materials, it offers unparalleled
-            performance and reliability.
-          </p>
-          <p>
-            Key features include advanced processing capabilities, and an
-            intuitive user interface designed for both beginners and experts.
-          </p>
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="item-2">
-        <AccordionTrigger>Shipping Details</AccordionTrigger>
-        <AccordionContent className="flex flex-col gap-4 text-balance">
-          <p>
-            We offer worldwide shipping through trusted courier partners.
-            Standard delivery takes 3-5 business days, while express shipping
-            ensures delivery within 1-2 business days.
-          </p>
-          <p>
-            All orders are carefully packaged and fully insured. Track your
-            shipment in real-time through our dedicated tracking portal.
-          </p>
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="item-3">
-        <AccordionTrigger>Return Policy</AccordionTrigger>
-        <AccordionContent className="flex flex-col gap-4 text-balance">
-          <p>
-            We stand behind our products with a comprehensive 30-day return
-            policy. If you&apos;re not completely satisfied, simply return the
-            item in its original condition.
-          </p>
-          <p>
-            Our hassle-free return process includes free return shipping and
-            full refunds processed within 48 hours of receiving the returned
-            item.
-          </p>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-</div> */}
-
-
 <Button
   type="button"
 className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2xl shadow-sm border border-gray-200 hover:text-white"
@@ -552,6 +540,9 @@ className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2
     bathrooms: '',
     water_meter: '',
     electricity_meter: '',
+    bank_name: '',
+    account_no: '',
+    account_name: '',
     pictures: [],
   });
   setUnitPicturesPreview((prev) => ({

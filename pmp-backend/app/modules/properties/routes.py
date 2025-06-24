@@ -1,6 +1,7 @@
 import json
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, Query
 from uuid import UUID
+from h11 import Request
 from pydantic import UUID4
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -94,19 +95,109 @@ async def create_property_endpoint(
     # Validate with PropertyCreate schema
     body = PropertyCreate(**property_obj)
     return create_property(db=db, body=body)
+@router.post("/update/{property_id}")
+async def update_property_endpoint(
+    property_id: UUID,
+    landlord_id: UUID = Form(...),
+    name: str = Form(...),
+    city: str = Form(...),
+    governance: str = Form(...),
+    address: str = Form(...),
+    address2: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    property_type: str = Form(...),
+    type: str = Form(...),
+    paci_no: str = Form(...),
+    property_no: str = Form(...),
+    civil_no: str = Form(...),
+    build_year: str = Form(...),
+    book_value: str = Form(...),
+    estimate_value: str = Form(...),
+    latitude: str = Form(...),
+    longitude: str = Form(...),
+    status: str = Form(...),
 
-@router.put("/update/{property_id}")
-def update_property_with_units(
-    property_id: UUID, 
-    property: PropertyUpdate, 
-    db: Session = Depends(get_db)
-):
-    """
-    Update a property and its units:
-    - Updates existing property fields
-    - Handles unit addition, updates, and deletion
-    """
-    return update_property(property_id=str(property_id), db=db, body=property)
+    pictures: List[UploadFile] = File(default=[]),
+    existing_pictures: Optional[str] = Form("[]"),
+
+    units_data: Optional[List[str]] = Form(None),
+    unit_pictures: List[UploadFile] = File(default=[]),
+    existing_unit_pictures: Optional[str] = Form("{}"),
+
+    removed_unit_ids: Optional[str] = Form("[]"),
+
+    db: Session = Depends(get_db),
+):# ✅ Parse existing property picture strings
+    try:
+        existing_property_pictures = json.loads(existing_pictures or "[]")
+        if not isinstance(existing_property_pictures, list):
+            raise HTTPException(status_code=400, detail="Invalid format for existing_pictures")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid format for existing_pictures")
+
+    # ✅ Just merge existing + new property pictures (no saving here)
+    all_property_pictures = existing_property_pictures + pictures  # mix of str and UploadFile
+
+
+    # ✅ Parse and combine unit pictures (no saving)
+    try:
+        existing_unit_pic_map = json.loads(existing_unit_pictures or "{}")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid format for existing_unit_pictures")
+
+    parsed_units = []
+    unit_pic_index = 0
+
+    for idx, unit_json in enumerate(units_data or []):
+        try:
+            unit = json.loads(unit_json)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid unit format")
+
+        count = int(unit.get("pictures_count", 0))
+        new_files = unit_pictures[unit_pic_index:unit_pic_index + count]
+        unit_pic_index += count
+
+        existing_paths = existing_unit_pic_map.get(str(idx), [])
+        combined_pics = existing_paths + new_files  # still mixed: str + UploadFile
+
+        unit["pictures"] = combined_pics
+        parsed_units.append(unit)
+
+    # ✅ Build body dict to forward to update logic
+    body = {
+        "landlord_id": landlord_id,
+        "name": name,
+        "city": city,
+        "governance": governance,
+        "address": address,
+        "address2": address2,
+        "description": description,
+        "property_type": property_type,
+        "type": type,
+        "paci_no": paci_no,
+        "property_no": property_no,
+        "civil_no": civil_no,
+        "build_year": build_year,
+        "book_value": book_value,
+        "estimate_value": estimate_value,
+        "latitude": latitude,
+        "longitude": longitude,
+        "status": status,
+        "pictures": all_property_pictures,
+        "removed_unit_ids": json.loads(removed_unit_ids or "[]"),
+        "units": parsed_units,
+    }
+
+# Call the main update function
+# return update_property(property_id=str(property_id), db=db, body=body)
+
+    # return body
+    # ✅ Validate
+    # body = PropertyUpdate(**property_obj)
+
+    # ✅ Update
+    return update_property(property_id=property_id, db=db, body=body)
 
 
 @router.get("/{property_id}")

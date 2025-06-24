@@ -55,6 +55,9 @@ const form = useForm<Fields>({
         bathrooms: '',
         water_meter: '',
         electricity_meter: '',
+        bank_name: '',
+        account_no: '',
+        account_name: '',
         pictures: [],
       },
     ],
@@ -179,6 +182,9 @@ const handleCSVUpload = (event) => {
         bathrooms: row.bathrooms || '',
         water_meter: row.water_meter || '',
         electricity_meter: row.electricity_meter || '',
+        bank_name:row.bank_name || '',
+        account_no: row.account_no || '',
+        account_name:row.account_name || '',
         pictures: [], // images can't be uploaded via CSV
       }));
 
@@ -341,7 +347,7 @@ setUnitPicturesPreview(previewMap);
   />
   <p className="text-xs text-gray-500 mt-1">
     CSV should include columns: name, unit_no, unit_type, size, rent, status,
-    description, bedrooms, bathrooms, water_meter, electricity_meter
+    description, bedrooms, bathrooms, water_meter, electricity_meter, bank_name, account_no, account_name
   </p>
 </div>
 <Accordion
@@ -369,7 +375,7 @@ setUnitPicturesPreview(previewMap);
       {[
         'name', 'unit_no', 'unit_type', 'size', 'rent',
         'status', 'description', 'bedrooms', 'bathrooms',
-        'water_meter', 'electricity_meter',
+        'water_meter', 'electricity_meter', 'bank_name', 'account_no', 'account_name',
       ].map((unitField) => (
         <FormControl key={unitField} className="m-1 w-full">
           <div>
@@ -505,6 +511,9 @@ className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2
     bathrooms: '',
     water_meter: '',
     electricity_meter: '',
+    bank_name: '',
+    account_no: '',
+    account_name: '',
     pictures: [],
   });
   setUnitPicturesPreview((prev) => ({
