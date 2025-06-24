@@ -43,8 +43,8 @@ const Lov = (id: string) => {
   return network.get(`${USER_PREFIX}/lov/${id}`, {});
 };
 
-const assignUsers = (data: any) => {
-  return network.post(`managers/assign`, data);
+const assignUnits = (data: any) => {
+  return network.post(`managers/assign-units`, data);
 };
 
 export default {
@@ -54,5 +54,5 @@ export default {
   update,
   deleteUser,
   Lov,
-  assignUsers,
+  assignUnits,
 };

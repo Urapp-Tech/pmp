@@ -8,7 +8,7 @@ from fastapi import (
     File,
     HTTPException,
 )
-from typing import Optional, List
+from typing import Optional, List, Union
 from pydantic import EmailStr, ValidationError
 from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
@@ -29,7 +29,8 @@ from app.modules.users.services import (
     authenticate_user,
     refresh_access_token,
     get_users_by_role,
-    get_manager_users_by_role,
+    # get_manager_users_by_role,
+    get_assigned_units_managers,
     get_users_lov_by_landlord,
 )
 
@@ -43,9 +44,14 @@ def parse_user_create(
     phone: str = Form(...),
     gender: Optional[str] = Form(None),
     landlordId: Optional[UUID] = Form(None),
-    roleId: UUID = Form(...),
-    profile_pic: UploadFile = File(None),
+    roleType: str = Form(...),
+    profilePic: Union[UploadFile, str] = File(None),
 ):
+
+    if isinstance(profilePic, str) and profilePic == "":
+        profilePic = None
+
+    print("profile_pic", profilePic)
     try:
         user_data = UserCreate(
             fname=fname,
@@ -55,9 +61,9 @@ def parse_user_create(
             phone=phone,
             gender=gender,
             landlordId=landlordId,
-            roleId=roleId,
+            roleType=roleType,
         )
-        return {"user_data": user_data, "profile_pic": profile_pic}
+        return {"user_data": user_data, "profile_pic": profilePic}
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=e.errors())
 
@@ -110,7 +116,7 @@ def get_managers_users(
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    return get_manager_users_by_role(
+    return get_assigned_units_managers(
         db=db,
         landlord_id=landlord_id,
         role_name="Manager",

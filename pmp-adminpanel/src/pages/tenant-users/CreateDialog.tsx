@@ -79,7 +79,7 @@ const OfficeUserCreateDialog = ({
       roleId: data.role,
     };
     if (file) obj.profilePic = file;
-    console.log('s', data);
+    // console.log('s', obj);
     callback(obj);
   };
 
@@ -110,7 +110,7 @@ const OfficeUserCreateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Add New Admin User</DialogTitle>
+          <DialogTitle>Add New Tenant User</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -224,9 +224,36 @@ const OfficeUserCreateDialog = ({
                 </FormControl>
                 {/* </div> */}
               </div>
-              <div className="form-group w-full flex items-center justify-center gap-3 m-1">
+              <div className="form-group w-full flex items-center justify-center gap-5 m-1">
                 <div className="w-full">
-                  <FormLabel
+                  <FormControl className="m-1 w-full">
+                    <div className="">
+                      <FormLabel
+                        htmlFor="phone"
+                        className="text-sm font-medium"
+                      >
+                        Phone
+                      </FormLabel>
+                      <Input
+                        className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                        id="phone"
+                        placeholder="876543215"
+                        type="number"
+                        {...register('phone', {
+                          required: 'Please enter your phone',
+                          pattern: {
+                            value: /^[9654]\d{7}$/,
+                            message:
+                              'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
+                          },
+                        })}
+                      />
+                      {errors.phone && (
+                        <FormMessage>*{errors.phone.message}</FormMessage>
+                      )}
+                    </div>
+                  </FormControl>
+                  {/* <FormLabel
                     htmlFor="roles"
                     className="text-sm font-medium my-2 block"
                   >
@@ -239,7 +266,7 @@ const OfficeUserCreateDialog = ({
                     items={roleLov}
                     placeholder="Choose an option"
                     rules={{ required: 'This field is required' }}
-                  />
+                  /> */}
                 </div>
                 <div className="w-full">
                   <FormLabel
@@ -262,30 +289,6 @@ const OfficeUserCreateDialog = ({
                   />
                 </div>
               </div>
-              <FormControl className="m-1 w-full">
-                <div className="">
-                  <FormLabel htmlFor="phone" className="text-sm font-medium">
-                    Phone
-                  </FormLabel>
-                  <Input
-                    className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                    id="phone"
-                    placeholder="876543215"
-                    type="number"
-                    {...register('phone', {
-                      required: 'Please enter your phone',
-                      pattern: {
-                        value: /^[9654]\d{7}$/,
-                        message:
-                          'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
-                      },
-                    })}
-                  />
-                  {errors.phone && (
-                    <FormMessage>*{errors.phone.message}</FormMessage>
-                  )}
-                </div>
-              </FormControl>
               <div>
                 <div className="flex justify-between">
                   <FormLabel

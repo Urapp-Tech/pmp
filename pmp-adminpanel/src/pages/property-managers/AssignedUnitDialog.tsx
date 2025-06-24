@@ -11,42 +11,57 @@ import { toast } from '@/hooks/use-toast';
 import { MultiSelectDropDown } from '@/components/DropDown/MultiSelectDropDown';
 import { useForm } from 'react-hook-form';
 import { cn } from '@/lib/utils';
-import service from '@/services/adminapp/users';
+import service from '@/services/adminapp/property';
 import { getItem } from '@/utils/storage';
 import { Loader2 } from 'lucide-react';
+import { MultiSelectGroupedDropDown } from '@/components/DropDown/MultiSelectGroupedDropDown';
 
-type User = { id: string; name: string; isAlreadyAssigned?: boolean };
+type Lov = { id: string; name: string };
+type GroupedOption = {
+  label: string; // building name
+  options: { id: string; name: string }[]; // units
+};
 
 type Props = {
   isLoader: boolean;
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
-  assignedUsers: string[]; // Array of selected userIds (UUID)
-  onAssignUsers: (userIds: string[], force?: boolean) => void;
+  assignedUnits: string[]; // Array of selected userIds (UUID)
+  onAssignUnits: (userIds: string[], force?: boolean) => void;
 };
 
 const AssignUserDialog = ({
   isLoader,
   isOpen,
   setIsOpen,
-  assignedUsers,
-  onAssignUsers,
+  assignedUnits,
+  onAssignUnits,
 }: Props) => {
   const userDetails: any = getItem('USER');
   const { control, handleSubmit, reset, setValue } = useForm<{
-    assignedUsers: string[];
+    assignedUnits: string[];
   }>();
-  const [userList, setUserList] = useState<User[]>([]);
+  const [unitList, setUnitList] = useState<GroupedOption[]>([]);
 
-  const fetchUsersLOV = async () => {
+  const fetchUnitsLOV = async () => {
     try {
       const res = await service.Lov(userDetails?.landlordId);
-      const list: User[] = res.data;
-      setUserList(list);
-      setValue('assignedUsers', assignedUsers);
+      // console.log('raw response', res);
+      const groupedUnits = res.data.map(
+        (building: { name: string; items: Lov[] }) => ({
+          label: building.name,
+          options: building.items.map((unit) => ({
+            id: unit.id,
+            name: unit.name,
+          })),
+        })
+      );
+
+      setUnitList(groupedUnits);
+      setValue('assignedUnits', assignedUnits);
     } catch (error) {
       toast({
-        description: 'Failed to load users',
+        description: 'Failed to load units',
         className: cn(
           'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
         ),
@@ -59,12 +74,12 @@ const AssignUserDialog = ({
   };
 
   useEffect(() => {
-    if (isOpen) fetchUsersLOV();
+    if (isOpen) fetchUnitsLOV();
     else reset();
   }, [isOpen]);
 
-  const onSubmit = (data: { assignedUsers: string[] }) => {
-    onAssignUsers(data.assignedUsers);
+  const onSubmit = (data: { assignedUnits: string[] }) => {
+    onAssignUnits(data.assignedUnits);
     // setIsOpen(false);
   };
 
@@ -75,17 +90,25 @@ const AssignUserDialog = ({
           <DialogTitle>Assign Users</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <MultiSelectDropDown
+          <MultiSelectGroupedDropDown
             control={control}
-            name="assignedUsers"
-            label="Select Users"
-            items={userList.map((u) => ({
+            name="assignedUnits"
+            label="Select Property Units"
+            items={unitList}
+            placeholder="Choose units"
+            rules={{ required: 'Please select at least one unit' }}
+          />
+          {/* <MultiSelectDropDown
+            control={control}
+            name="assignedUnits"
+            label="Select Units"
+            items={unitList.map((u) => ({
               id: u.id,
               name: u.name,
             }))}
-            placeholder="Choose users"
+            placeholder="Choose units"
             rules={{ required: 'Please select at least one user' }}
-          />
+          /> */}
           <DialogFooter className="mt-4">
             <Button
               disabled={isLoader}

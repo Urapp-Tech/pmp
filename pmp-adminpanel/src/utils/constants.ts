@@ -7,6 +7,8 @@ export const ADMIN_BASE_URL =
   import.meta.env.VITE_ADMIN_BASE_URL || `${HOST}/api/v1/admin/`;
 export const BASE_SYSTEM_URL =
   import.meta.env.VITE_SYSTEM_BASE_URL || `${HOST}/api/v1/system/config/`;
+export const ASSET_BASE_URL =
+  import.meta.env.VITE_ASSETS_BASE_URL || `http://localhost:8000/`;
 export const BACKOFFICE_PREFIX = 'office-user';
 export const USER_PREFIX = 'users';
 export const EMPLOYEE_PREFIX = 'employee';
@@ -17,6 +19,7 @@ export const OPERATON_CAT_PREFIX = 'operation-category';
 export const OPERATON_CAT_ITEM_PREFIX = 'operation-category-item';
 export const OPERATON_REPORT_PREFIX = 'operation-report';
 export const PROPERTY_PREFIX = 'properties';
+export const PROPERTY_UNIT_PREFIX = 'property-units';
 export const SUB_USER_PREFIX = 'sub-user';
 export const ROLE_PREFIX = 'roles';
 export const INVOICE_PREFIX = 'invoices';

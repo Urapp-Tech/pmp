@@ -54,7 +54,7 @@ import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/helper';
 import { usePermission } from '@/utils/hasPermission';
-import { PERMISSIONS } from '@/utils/constants';
+import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
 
 export type Users = {
   id: string; // UUID
@@ -70,7 +70,7 @@ export type Users = {
   city: string | null; // City information, nullable
   zipCode: string | null; // Zip code, nullable
   role: string | null; // User role, nullable
-  avatar: string | null; // Avatar URL or path, nullable
+  profilePic: string | null; // Avatar URL or path, nullable
   address: string; // Address of the user
   userType: 'USER' | 'ADMIN'; // Enum type to restrict values
   isActive: boolean; // Active status of the user
@@ -120,22 +120,24 @@ const TenantUsers = () => {
     {
       accessorKey: 'fname',
       header: 'Name',
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage
-              src={row.original.avatar || ''}
-              alt={row.getValue('fname') || '@fallback'}
-            />
-            <AvatarFallback>
-              {getInitials(row.getValue('fname'))}
-            </AvatarFallback>
-          </Avatar>
-          <div className="capitalize font-semibold">
-            {row.getValue('fname')} {row.original?.lname}
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarImage
+                src={`${ASSET_BASE_URL}${row.original.profilePic}` || ''}
+                alt={row.getValue('fname') || '@fallback'}
+              />
+              <AvatarFallback>
+                {getInitials(row.getValue('fname'))}
+              </AvatarFallback>
+            </Avatar>
+            <div className="capitalize font-semibold">
+              {row.getValue('fname')} {row.original?.lname}
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       accessorKey: 'email',
@@ -170,40 +172,40 @@ const TenantUsers = () => {
         </div>
       ),
     },
-    {
-      accessorKey: 'assignedManager',
-      header: 'Assigned Manager',
-      cell: ({ row }) => {
-        const managerUser = row.getValue('assignedManager') as {
-          id: string;
-          name: string;
-          profilePic?: string | null;
-        } | null;
+    // {
+    //   accessorKey: 'assignedManager',
+    //   header: 'Assigned Manager',
+    //   cell: ({ row }) => {
+    //     const managerUser = row.getValue('assignedManager') as {
+    //       id: string;
+    //       name: string;
+    //       profilePic?: string | null;
+    //     } | null;
 
-        if (!managerUser) {
-          return (
-            <span className="text-sm text-muted-foreground">
-              Not assigned yet
-            </span>
-          );
-        }
+    //     if (!managerUser) {
+    //       return (
+    //         <span className="text-sm text-muted-foreground">
+    //           Not assigned yet
+    //         </span>
+    //       );
+    //     }
 
-        return (
-          <div className="flex items-center space-x-2">
-            <Avatar>
-              <AvatarImage
-                src={managerUser.profilePic ?? ''}
-                alt={`@manager-user`}
-              />
-              <AvatarFallback>
-                {managerUser.name?.charAt(0).toUpperCase() || 'M'}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium">{managerUser.name}</span>
-          </div>
-        );
-      },
-    },
+    //     return (
+    //       <div className="flex items-center space-x-2">
+    //         <Avatar>
+    //           <AvatarImage
+    //             src={managerUser.profilePic ?? ''}
+    //             alt={`@manager-user`}
+    //           />
+    //           <AvatarFallback>
+    //             {managerUser.name?.charAt(0).toUpperCase() || 'M'}
+    //           </AvatarFallback>
+    //         </Avatar>
+    //         <span className="text-sm font-medium">{managerUser.name}</span>
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       id: 'actions',
       enableHiding: false,
@@ -371,7 +373,7 @@ const TenantUsers = () => {
     formData.append('phone', data.phone);
     formData.append('gender', data.gender);
     formData.append('password', data.password);
-    formData.append('roleId', data.roleId);
+    formData.append('roleType', 'User');
     formData.append('landlordId', userDetails?.landlordId);
     if (data.profilePic) formData.append('profilePic', data.profilePic);
     userService

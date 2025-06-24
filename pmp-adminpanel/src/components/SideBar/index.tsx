@@ -69,13 +69,13 @@ export function MainSidebar({
         },
       ],
     },
-    {
-      title: 'Landlord User Roles',
-      url: '/admin/role-permissions',
-      icon: assets.images.rolePermissionsSidebarIcon,
-      permission: PERMISSIONS.ROLE.VIEW,
-      items: [],
-    },
+    // {
+    //   title: 'Landlord User Roles',
+    //   url: '/admin/role-permissions',
+    //   icon: assets.images.rolePermissionsSidebarIcon,
+    //   permission: PERMISSIONS.ROLE.VIEW,
+    //   items: [],
+    // },
     {
       title: 'Plan Flexibility',
       url: '/admin/feedback',

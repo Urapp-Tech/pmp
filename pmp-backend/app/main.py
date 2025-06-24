@@ -15,13 +15,15 @@ import logging
 from app.modules.supportTickets.routes import router as support_router
 from fastapi.staticfiles import StaticFiles
 from app.modules.managers.routes import router as manager_router
+from app.modules.propertyUnits.routes import router as property_units_router
+from app.modules.tenants.routes import router as tenants_router
 from app.utils.uploader import get_file_base_url
 
 # app = FastAPI()
 app = FastAPI(
     docs_url="/docs",  # disables Swagger UI (/docs)
     # openapi_url=None       # disables OpenAPI schema (/openapi.json)
-) 
+)
 
 # 📁 Ensure 'uploads' directory exists
 os.makedirs("uploads", exist_ok=True)
@@ -31,6 +33,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 # Setup global logging
 setup_global_logger()
 # debug_log({"key": "value", "status": 200})
+
 
 # error_log( "Division failed")
 # Middleware to log full errors with tracebacks
@@ -93,6 +96,18 @@ app.include_router(
     tags=["Admin - Managers"],
 )
 
+app.include_router(
+    property_units_router,
+    prefix="/admin/property-units",
+    tags=["Admin - Property Units"],
+)
+
+app.include_router(
+    tenants_router,
+    prefix="/admin/tenants",
+    tags=["Admin - Tenants"],
+)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -105,10 +120,10 @@ app.add_middleware(
     allow_headers=["*"],  # or ["Authorization", "Content-Type"]
 )
 
+
 @app.get("/assests/url")
 def get_assets_url():
     return {"assets_url": get_file_base_url()}
-
 
 
 # @app.get("/assests/url")

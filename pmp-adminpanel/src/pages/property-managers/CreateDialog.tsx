@@ -41,16 +41,16 @@ const OfficeUserCreateDialog = ({
 }: Props) => {
   const form = useForm<Fields>();
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * Displays a toast notification with the provided text.
- * The notification is styled with a fixed position at the top-right corner,
- * a specific background color, and a high z-index for visibility.
- * 
- * @param {string} text - The message to be displayed in the toast notification.
- */
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Displays a toast notification with the provided text.
+   * The notification is styled with a fixed position at the top-right corner,
+   * a specific background color, and a high z-index for visibility.
+   *
+   * @param {string} text - The message to be displayed in the toast notification.
+   */
 
-/*******  d3311b49-b875-4c0f-a6d4-9e311a493f77  *******/
+  /*******  d3311b49-b875-4c0f-a6d4-9e311a493f77  *******/
   const ToastHandler = (text: string) => {
     return toast({
       description: text,
@@ -89,10 +89,10 @@ const OfficeUserCreateDialog = ({
       password: data.password,
       phone: data.phone,
       gender: data.gender,
-      roleId: data.role,
+      roleType: 'Manager',
     };
     if (file) obj.profilePic = file;
-    console.log('s', data);
+    // console.log('s', data);
     callback(obj);
   };
 
@@ -123,7 +123,7 @@ const OfficeUserCreateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Add New Admin User</DialogTitle>
+          <DialogTitle>Add New Manager User</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -239,7 +239,34 @@ const OfficeUserCreateDialog = ({
               </div>
               <div className="form-group w-full flex items-center justify-center gap-3 m-1">
                 <div className="w-full">
-                  <FormLabel
+                  <FormControl className="m-1 w-full">
+                    <div className="">
+                      <FormLabel
+                        htmlFor="phone"
+                        className="text-sm font-medium"
+                      >
+                        Phone
+                      </FormLabel>
+                      <Input
+                        className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                        id="phone"
+                        placeholder="876543215"
+                        type="number"
+                        {...register('phone', {
+                          required: 'Please enter your phone',
+                          pattern: {
+                            value: /^[9654]\d{7}$/,
+                            message:
+                              'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
+                          },
+                        })}
+                      />
+                      {errors.phone && (
+                        <FormMessage>*{errors.phone.message}</FormMessage>
+                      )}
+                    </div>
+                  </FormControl>
+                  {/* <FormLabel
                     htmlFor="phone"
                     className="text-sm font-medium my-2 block"
                   >
@@ -252,7 +279,7 @@ const OfficeUserCreateDialog = ({
                     items={roleLov}
                     placeholder="Choose an option"
                     rules={{ required: 'This field is required' }}
-                  />
+                  /> */}
                 </div>
                 <div className="w-full">
                   <FormLabel
@@ -275,30 +302,6 @@ const OfficeUserCreateDialog = ({
                   />
                 </div>
               </div>
-              <FormControl className="m-1 w-full">
-                <div className="">
-                  <FormLabel htmlFor="phone" className="text-sm font-medium">
-                    Phone
-                  </FormLabel>
-                  <Input
-                    className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                    id="phone"
-                    placeholder="876543215"
-                    type="number"
-                    {...register('phone', {
-                      required: 'Please enter your phone',
-                      pattern: {
-                        value: /^[9654]\d{7}$/,
-                        message:
-                          'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
-                      },
-                    })}
-                  />
-                  {errors.phone && (
-                    <FormMessage>*{errors.phone.message}</FormMessage>
-                  )}
-                </div>
-              </FormControl>
               <div>
                 <div className="flex justify-between">
                   <FormLabel

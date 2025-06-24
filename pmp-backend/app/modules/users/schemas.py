@@ -1,9 +1,10 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from app.modules.roles.schemas import RoleOutForUserLoggedIn
-from typing import Optional
+from typing import Optional, List, Union
 from uuid import UUID
 from datetime import datetime
 import re
+from fastapi import UploadFile
 
 
 class UserLogin(BaseModel):
@@ -19,7 +20,10 @@ class UserCreate(BaseModel):
     phone: str
     gender: str = None
     landlord_id: Optional[UUID] = Field(None, alias="landlordId")
-    role_id: UUID = Field(None, alias="roleId")
+    role_type: str = Field(None, alias="roleType")
+
+    class Config:
+        populate_by_name = True
 
     @field_validator("fname", "lname")
     def name_must_be_alphabets(cls, v, field):
@@ -50,6 +54,14 @@ class UserCreate(BaseModel):
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
             raise ValueError("Password must include at least one special character.")
         return v
+
+
+class AssignedUnit(BaseModel):
+    id: UUID
+    name: str
+
+    class Config:
+        from_attributes = True
 
 
 class UserOut(BaseModel):
@@ -97,7 +109,9 @@ class ManagerUserOut(BaseModel):
     is_verified: bool = Field(..., alias="isVerified")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
-    assignedUsers: Optional[list[AssignedUser]] = None
+    assigned_units: Optional[List[AssignedUnit]] = Field(
+        default=None, alias="assignedUnits"
+    )
 
     class Config:
         from_attributes = True
@@ -121,7 +135,6 @@ class TenantUserOut(BaseModel):
     is_verified: bool = Field(..., alias="isVerified")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
-    assignedManager: Optional[AssignedUser] = None
 
     class Config:
         from_attributes = True
@@ -169,11 +182,10 @@ class PaginatedManagerUserResponse(BaseModel):
     total: int
     page: int
     size: int
-    items: list[ManagerUserOut]
+    items: List[ManagerUserOut]
 
     class Config:
         from_attributes = True
-        alias_generator = None
         populate_by_name = True
 
 

@@ -1,8 +1,8 @@
-import { PROPERTY_PREFIX } from '@/utils/constants';
+import { PROPERTY_PREFIX, PROPERTY_UNIT_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
 import { getItem } from '@/utils/storage';
 
- const landlord: any = getItem('USER');
+const landlord: any = getItem('USER');
 const list = (search: string, page: number, size: number) => {
   return network.get(`${PROPERTY_PREFIX}/`, {
     landlord_id: landlord?.landlordId || '',
@@ -15,7 +15,12 @@ const list = (search: string, page: number, size: number) => {
 const create = (data: any) => {
   return network.postMultipart(`${PROPERTY_PREFIX}/create`, data);
 };
-const getUnitsByPropertyId = (propertyId: string, search: string, page: number, size: number) => {
+const getUnitsByPropertyId = (
+  propertyId: string,
+  search: string,
+  page: number,
+  size: number
+) => {
   return network.get(`${PROPERTY_PREFIX}/units/${propertyId}`, {
     property_id: propertyId,
     search: '' + search,
@@ -37,6 +42,10 @@ const deleteProperty = (id: string) => {
   return network.post(`${PROPERTY_PREFIX}/delete/${id}`, {});
 };
 
+const Lov = (userId: string) => {
+  return network.get(`${PROPERTY_UNIT_PREFIX}/lov/${userId}`, {});
+};
+
 export default {
   list,
   getUnitsByPropertyId,
@@ -44,4 +53,5 @@ export default {
   create,
   update,
   deleteProperty,
+  Lov,
 };
