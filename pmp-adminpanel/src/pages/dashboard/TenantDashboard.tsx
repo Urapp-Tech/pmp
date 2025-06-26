@@ -67,19 +67,20 @@
 // tenant dashboard
 import { SidebarInset } from '@/components/ui/sidebar';
 import { TopBar } from '@/components/TopBar';
+import { getItem } from '@/utils/storage';
 
 function Dashboard() {
   const tenant = {
     fullName: 'Test User',
     email: 'test@user.com',
     gender: 'male',
-    property: 'Sunset Apartments',
-    unit: 'Unit 12B',
-    address: '123 Main Street, Karachi, Pakistan',
-    rentPrice: 'PKR 45,000/month',
-    contractDuration: 'Jan 2024 - Dec 2024',
+    property: '',
+    unit: '',
+    address: '',
+    rentPrice: '',
+    contractDuration: '',
   };
-
+  const userDetails: any = getItem('USER');
   return (
     <div className="bg-white p-4 rounded-[20px] mt-5">
       <SidebarInset>
@@ -92,13 +93,14 @@ function Dashboard() {
                 Personal Information
               </h2>
               <p className="py-[2px]">
-                <strong>Full Name:</strong> {tenant.fullName}
+                <strong>Full Name:</strong> {userDetails?.fname}{' '}
+                {userDetails?.lname}
               </p>
               <p>
-                <strong>Email:</strong> {tenant.email}
+                <strong>Email:</strong> {userDetails?.email}
               </p>
               <p>
-                <strong>Gender:</strong> {tenant.gender}
+                <strong>Gender:</strong> {userDetails?.gender}
               </p>
             </div>
 

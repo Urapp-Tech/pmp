@@ -6,16 +6,36 @@ import {
   Users,
   DollarSign,
   Plus,
+  User,
 } from 'lucide-react';
+import { getItem } from '@/utils/storage';
+import dashboardService from '@/services/adminapp/admin';
+import { useEffect, useState } from 'react';
 
 function ManagerDashboard() {
+  const [data, setData] = useState<any>();
+  const userDetails: any = getItem('USER');
+
+  useEffect(() => {
+    const fetchActivity = async () => {
+      const activity = await dashboardService.managerActivity(
+        userDetails?.landlordId,
+        userDetails?.id
+      );
+      // if (activity.data.success) {
+      setData(activity.data.data);
+      // }
+    };
+    fetchActivity();
+  }, []);
+
   const manager = {
     name: 'Sarah Khan',
-    propertiesManaged: 1,
-    totalUnits: 24,
-    occupiedUnits: 2,
-    vacantUnits: 22,
-    tenants: 2,
+    propertiesManaged: 0,
+    totalUnits: 0,
+    occupiedUnits: 0,
+    vacantUnits: 0,
+    tenants: 0,
     totalCollected: 'PKR 0',
     pendingPayments: 'PKR 0',
   };
@@ -32,7 +52,7 @@ function ManagerDashboard() {
                 <Building2 className="inline mr-2" />
                 Properties Managed
               </h2>
-              <p className="text-3xl font-bold">{manager.propertiesManaged}</p>
+              <p className="text-3xl font-bold">{data?.properties_managed}</p>
             </div>
 
             <div className="rounded-xl bg-muted/50 p-4">
@@ -41,13 +61,13 @@ function ManagerDashboard() {
                 Units Overview
               </h2>
               <p>
-                Occupied: <strong>{manager.occupiedUnits}</strong>
+                Occupied: <strong>{data?.units?.occupied}</strong>
               </p>
               <p>
-                Vacant: <strong>{manager.vacantUnits}</strong>
+                Vacant: <strong>{data?.units?.available}</strong>
               </p>
               <p>
-                Total Units: <strong>{manager.totalUnits}</strong>
+                Total Units: <strong>{data?.units?.total}</strong>
               </p>
             </div>
 
@@ -56,7 +76,7 @@ function ManagerDashboard() {
                 <Users className="inline mr-2" />
                 Tenants Assigned
               </h2>
-              <p className="text-3xl font-bold">{manager.tenants}</p>
+              <p className="text-3xl font-bold">{data?.tenants_assigned}</p>
             </div>
           </div>
 
@@ -76,14 +96,16 @@ function ManagerDashboard() {
 
             <div className="rounded-xl bg-muted/50 p-4">
               <h2 className="text-lg font-semibold mb-2">
-                <Plus className="inline mr-2" />
-                Quick Actions
+                <User className="inline mr-2" />
+                Manager Info
               </h2>
-              <ul className="list-disc ml-6 mt-2">
-                <li>Add New Property</li>
-                <li>Update Unit Info</li>
-                <li>Track Rent Payments</li>
-                <li>Manage Tenant Assignments</li>
+              <ul className="list-disc ml-6 mt-2 capitalize">
+                <li>
+                  Name : {userDetails?.fname} {userDetails?.lname}
+                </li>
+                <li>Gender : {userDetails?.gender}</li>
+                <li>Phone : {userDetails?.phone}</li>
+                <li>Email : {userDetails?.email}</li>
               </ul>
             </div>
           </div>

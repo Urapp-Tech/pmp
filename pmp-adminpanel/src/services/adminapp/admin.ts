@@ -11,7 +11,24 @@ const systemConfig = (domain: string) => {
   return network.get(`get/${domain}`, {}, 'system');
 };
 
+const activity = (landlordId: string) => {
+  return network.get(`dashboard/landlord-activity/${landlordId}`, {}, 'super');
+};
+
+const managerActivity = (landlordId: string, managerUserId: string) => {
+  return network.get(
+    `dashboard/manager/stats`,
+    {
+      landlord_id: landlordId,
+      user_id: managerUserId,
+    },
+    'super'
+  );
+};
+
 export default {
   loginService,
   systemConfig,
+  activity,
+  managerActivity,
 };

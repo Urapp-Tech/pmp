@@ -9,7 +9,7 @@ function AppLayout() {
   console.log('authstate', authState);
 
   if (!authState.user) {
-    return <Navigate to="/admin/auth" />;
+    return <Navigate to="/admin-panel/auth" />;
   }
 
   return (

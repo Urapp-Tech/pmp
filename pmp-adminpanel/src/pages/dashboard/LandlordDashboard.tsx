@@ -1,12 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { TopBar } from '@/components/TopBar';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+// import { Input } from '@/components/ui/input';
+import dashboardService from '@/services/adminapp/admin';
 import { Building2, Users, FileWarning, Wrench } from 'lucide-react';
+import { getItem } from '@/utils/storage';
 
 function LandlordDashboard() {
-  const [search, setSearch] = useState('');
+  const [data, setData] = useState<any>();
+  const userDetails: any = getItem('USER');
+
+  useEffect(() => {
+    const fetchActivity = async () => {
+      const activity = await dashboardService.activity(userDetails?.landlordId);
+      // if (activity.data.success) {
+      setData(activity.data);
+      // }
+    };
+    fetchActivity();
+  }, []);
 
   return (
     <div className="bg-white p-2 rounded-[20px] mt-5">
@@ -34,7 +47,7 @@ function LandlordDashboard() {
                 <Building2 /> Total Properties
               </Label>
               <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                0
+                {data?.total_properties}
               </div>
             </div>
 
@@ -43,7 +56,7 @@ function LandlordDashboard() {
                 <Users /> Active Tenants
               </Label>
               <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                0
+                {data?.active_tenant_users}
               </div>
             </div>
 
@@ -52,7 +65,7 @@ function LandlordDashboard() {
                 <FileWarning /> Pending Invoices
               </Label>
               <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                0
+                {data?.pending_invoices}
               </div>
             </div>
 
@@ -61,7 +74,7 @@ function LandlordDashboard() {
                 <Wrench /> Unresolved Tickets
               </Label>
               <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                0
+                {data?.unresolved_tickets}
               </div>
             </div>
           </div>

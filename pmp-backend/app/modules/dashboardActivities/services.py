@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from uuid import UUID
@@ -5,8 +6,9 @@ from app.models.landlords import Landlord
 from app.models.users import User
 from app.models.properties import Property
 from app.models.roles import Role
-from app.models.invoices import Invoice
-from app.models.properties import Property
+from app.models.managers import Manager
+from app.models.invoices import Invoice, InvoiceStatus
+from app.models.property_units import PropertyUnit
 from app.models.support_tickets import SupportTicketStatus, SupportTicket
 
 
@@ -69,7 +71,6 @@ def get_landlord_activity_summary(db: Session, landlord_id: UUID):
         .filter(
             User.landlord_id == landlord_id,
             User.role_id == user_role_id,
-            User.is_verified == True,
             User.is_active == True,
         )
         .count()
@@ -80,7 +81,7 @@ def get_landlord_activity_summary(db: Session, landlord_id: UUID):
         db.query(Invoice)
         .filter(
             Invoice.landlord_id == landlord_id,
-            Invoice.status == InvoiceStatus.PENDING,
+            Invoice.status == InvoiceStatus.un_paid,
         )
         .count()
     )
@@ -91,7 +92,7 @@ def get_landlord_activity_summary(db: Session, landlord_id: UUID):
         .filter(
             SupportTicket.receiver_id == landlord_id,
             SupportTicket.status.in_(
-                [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS]
+                [SupportTicketStatus.open, SupportTicketStatus.in_progress]
             ),
         )
         .count()
@@ -103,4 +104,81 @@ def get_landlord_activity_summary(db: Session, landlord_id: UUID):
         "active_tenant_users": active_tenants,
         "pending_invoices": pending_invoices,
         "unresolved_tickets": unresolved_tickets,
+    }
+
+
+def get_manager_stats(db: Session, landlord_id: UUID, user_id: UUID) -> dict:
+    # 1. Validate Manager Role
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or user.role.name != "Manager":
+        raise HTTPException(status_code=403, detail="User is not a manager")
+
+    # 2. Validate landlord link
+    if str(user.landlord_id) != str(landlord_id):
+        raise HTTPException(
+            status_code=403, detail="Manager does not belong to this landlord"
+        )
+
+    # 3. Get all assigned unit IDs from manager table
+    manager_units = (
+        db.query(Manager.assign_property_unit)
+        .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
+        .distinct()
+        .all()
+    )
+    assigned_unit_ids = [
+        row.assign_property_unit for row in manager_units if row.assign_property_unit
+    ]
+
+    if not assigned_unit_ids:
+        return {
+            "success": True,
+            "message": "Manager has no assigned units",
+            "data": {
+                "properties_managed": 0,
+                "units": {
+                    "total": 0,
+                    "available": 0,
+                    "occupied": 0,
+                },
+                "tenants_assigned": 0,
+            },
+        }
+
+    # 4. Get units data
+    units = db.query(PropertyUnit).filter(PropertyUnit.id.in_(assigned_unit_ids)).all()
+
+    total_unit_count = len(units)
+    available_unit_count = sum(1 for unit in units if unit.status == "available")
+    occupied_unit_count = sum(1 for unit in units if unit.status == "occupied")
+
+    # 5. Count unique properties from those units
+    unique_property_ids = set(unit.property_id for unit in units)
+    properties_managed_count = len(unique_property_ids)
+
+    # 6. Count tenant users assigned to these units
+    tenants_count = (
+        db.query(User)
+        .filter(
+            User.role.has(name="User"),
+            User.unit_id.in_(assigned_unit_ids),
+            User.is_active == True,
+            User.landlord_id == landlord_id,
+        )
+        .count()
+    )
+
+    # 7. Return data
+    return {
+        "success": True,
+        "message": "Manager stats fetched successfully",
+        "data": {
+            "properties_managed": properties_managed_count,
+            "units": {
+                "total": total_unit_count,
+                "available": available_unit_count,
+                "occupied": occupied_unit_count,
+            },
+            "tenants_assigned": tenants_count,
+        },
     }
