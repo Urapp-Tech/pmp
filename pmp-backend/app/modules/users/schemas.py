@@ -56,6 +56,56 @@ class UserCreate(BaseModel):
         return v
 
 
+class UserUpdate(BaseModel):
+    fname: Optional[str] = Field(
+        None, min_length=1, description="First name (only alphabets)"
+    )
+    lname: Optional[str] = Field(
+        None, min_length=1, description="Last name (only alphabets)"
+    )
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    phone: Optional[str] = None
+    gender: Optional[str] = None
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+    role_type: Optional[str] = Field(None, alias="roleType")
+
+    class Config:
+        populate_by_name = True
+
+    @field_validator("fname", "lname")
+    def name_must_be_alphabets(cls, v, field):
+        if v is not None and not v.isalpha():
+            raise ValueError(
+                f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets."
+            )
+        return v
+
+    @field_validator("phone")
+    def phone_must_be_valid(cls, v):
+        if v is not None and not re.fullmatch(r"^[9654]\d{7}$", v):
+            raise ValueError(
+                "Phone number must start with 9, 6, 5, or 4 and be exactly 8 digits long."
+            )
+        return v
+
+    @field_validator("password")
+    def password_strength(cls, v):
+        if not v:
+            return v
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must include at least one uppercase letter.")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must include at least one lowercase letter.")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password must include at least one number.")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+            raise ValueError("Password must include at least one special character.")
+        return v
+
+
 class AssignedUnit(BaseModel):
     id: UUID
     name: str

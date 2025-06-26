@@ -19,7 +19,7 @@ import assets from '@/assets/images';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Fields } from '@/interfaces/blog.interface';
+import { Fields } from '@/interfaces/support-tickets.interface';
 import { cn } from '@/lib/utils';
 import { Loader2, X } from 'lucide-react';
 import { useState } from 'react';

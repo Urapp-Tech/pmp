@@ -16,12 +16,15 @@ import UpdatePropertyPage from '@/pages/property/UpdatePropertyPage';
 import UpdateRolePermissionPage from '@/pages/role-permissions/UpdateRolePermissionPage';
 import PropertyManagers from '@/pages/property-managers/List';
 import Property from '@/pages/property/List';
-import TenantUsers from './pages/tenant-users/List';
+import TenantUsers from './pages/tenant-users/users-list/List';
 import Invoices from './pages/Invoices/List';
 import Receipts from './pages/receipts/List';
 import SupportMaintenance from './pages/support-maintenance/List';
 import RentalCollection from './pages/rental-collection/List';
 import TenantRental from './pages/tenant-rental/List';
+import ContractRequest from './pages/tenant-users/contracts-request/List';
+import ApprovedContracts from './pages/tenant-users/approved-contracts/List';
+import ReportedTicketsList from './pages/support-maintenance/ReportedList';
 
 // const LandlordDashboard = lazy(
 //   () => import('@/pages/dashboard/LandlordDashboard')
@@ -152,6 +155,22 @@ export const routeObjects: RouteObject[] = [
                   </Suspense>
                 ),
               },
+              {
+                path: 'pending',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ContractRequest />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'approved',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ApprovedContracts />
+                  </Suspense>
+                ),
+              },
             ],
           },
           {
@@ -200,6 +219,14 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <SupportMaintenance />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'tenant-tickets',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ReportedTicketsList />
                   </Suspense>
                 ),
               },

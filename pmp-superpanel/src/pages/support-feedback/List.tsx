@@ -16,10 +16,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import {
-  ArrowUpDown,
+  Airplay,
   Loader2,
   // ChevronDown,
-  MoreHorizontal,
+  FileText,
   Pencil,
   Trash2,
 } from 'lucide-react';
@@ -52,7 +52,9 @@ import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
 import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/utils/helper';
+import { getInitials, handleErrorMessage } from '@/utils/helper';
+import { ASSET_BASE_URL } from '@/utils/constants';
+import StatusChangeDialog from './StatusDialog';
 
 export type Users = {
   id: string; // UUID
@@ -75,7 +77,7 @@ export type Users = {
   isDeleted: boolean; // Soft delete status
   createdAt: string; // ISO date string for creation timestamp
   updatedAt: string; // ISO date string for update timestamp
-  status: 'Active' | 'InActive';
+  status: 'open' | 'in_progress' | 'rsolved' | 'closed';
 };
 
 const Blogs = () => {
@@ -85,7 +87,7 @@ const Blogs = () => {
   const { toast } = useToast();
 
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('open');
+  const [status, setStatus] = useState('');
   const [page, setPage] = useState(0);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
@@ -101,6 +103,7 @@ const Blogs = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -137,33 +140,99 @@ const Blogs = () => {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[50px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
+        <div className="capitalize bg-neptune-bg/30 text-center w-[80px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
           {row.getValue('status')}
         </div>
       ),
+    },
+    {
+      accessorKey: 'images',
+      header: 'Attachments',
+      cell: ({ row }) => {
+        const images = row.getValue('images') as string[] | null;
+
+        if (!images || images.length === 0) {
+          return <span className="text-gray-400 text-xs">No files</span>;
+        }
+
+        return (
+          <div className="flex gap-2 flex-wrap">
+            {images.map((url, idx) => {
+              const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+              const isPDF = /\.pdf$/i.test(url);
+              const isDoc = /\.(docx?|txt)$/i.test(url);
+
+              return (
+                <a
+                  key={idx}
+                  href={ASSET_BASE_URL + url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-12 h-12 border border-gray-200 rounded overflow-hidden items-center justify-center"
+                  title={url.split('/').pop()}
+                >
+                  {isImage ? (
+                    <img
+                      src={ASSET_BASE_URL + url}
+                      alt={`attachment-${idx}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : isPDF ? (
+                    <FileText
+                      className="text-lunar-bg cursor-pointer"
+                      size={50}
+                    />
+                  ) : isDoc ? (
+                    <FileText
+                      className="text-lunar-bg cursor-pointer"
+                      size={20}
+                    />
+                  ) : (
+                    <span className="text-xs text-gray-500">File</span>
+                  )}
+                </a>
+              );
+            })}
+          </div>
+        );
+      },
     },
     {
       id: 'actions',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
-        const { id } = row.original;
+        const { id, status } = row.original;
+        console.log('status', status);
+
         return (
           <div className="flex justify-center items-center">
-            <div>
-              <Pencil
-                className="text-lunar-bg cursor-pointer"
-                onClick={() => handleActionMenu('edit', id)}
-                size={20}
-              />
-            </div>
-            <div className="pl-3">
-              <Trash2
-                className="text-lunar-bg cursor-pointer"
-                size={20}
-                onClick={() => handleActionMenu('delete', id)}
-              />
-            </div>
+            {status === 'closed' ? null : (
+              <>
+                <div className="pr-6">
+                  <Airplay
+                    className="text-lunar-bg cursor-pointer"
+                    size={20}
+                    onClick={() => handleActionMenu('status', id)}
+                  />
+                </div>
+
+                <div>
+                  <Pencil
+                    className="text-lunar-bg cursor-pointer"
+                    onClick={() => handleActionMenu('edit', id)}
+                    size={20}
+                  />
+                </div>
+                <div className="pl-3">
+                  <Trash2
+                    className="text-lunar-bg cursor-pointer"
+                    size={20}
+                    onClick={() => handleActionMenu('delete', id)}
+                  />
+                </div>
+              </>
+            )}
           </div>
           // <DropdownMenu>
           //   <DropdownMenuTrigger asChild>
@@ -193,6 +262,11 @@ const Blogs = () => {
   ];
 
   const handleActionMenu = (type: string, actionId: string) => {
+    if (type === 'status') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setStatusOpen(true);
+    }
     if (type === 'edit') {
       const editData = list.find((item: any) => item.id === actionId);
       setEditFormData(editData);
@@ -210,6 +284,7 @@ const Blogs = () => {
       const resp = await service.list(
         userDetails?.id,
         userDetails?.roleId,
+        'Super Admin',
         search,
         status,
         page,
@@ -277,12 +352,42 @@ const Blogs = () => {
   //     });
   // };
 
+  const statusChangeHandler = (data: any) => {
+    setIsLoader(true);
+    service
+      .statusChange(data)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setStatusOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.map((item: any) => {
+              if (item.id === updateItem.data.ticket_id) {
+                item.status = updateItem.data.new_status;
+              }
+              return { ...item };
+            });
+          });
+          ToastHandler(updateItem.data.message);
+        } else {
+          setIsLoader(false);
+          ToastHandler(updateItem.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setIsLoader(false);
+      });
+  };
+
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
       const users = await service.list(
         userDetails?.id,
         userDetails?.roleId,
+        'Super Admin',
         search,
         status,
         newPage,
@@ -518,6 +623,15 @@ const Blogs = () => {
           )}
         </div>
       </SidebarInset>
+      {statusOpen && (
+        <StatusChangeDialog
+          isLoader={isLoader}
+          isOpen={statusOpen}
+          setIsOpen={setStatusOpen}
+          callback={statusChangeHandler}
+          formData={editFormData}
+        />
+      )}
       {/* {isOpen && (
         <OfficeUsersCreationDialog
           isLoader={isLoader}

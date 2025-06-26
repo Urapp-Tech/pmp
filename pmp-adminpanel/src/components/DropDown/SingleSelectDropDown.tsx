@@ -55,24 +55,3 @@ export const SingleSelectDropDown = ({
     />
   );
 };
-// <div className="select-field w-full my-2">
-//   <Select onValueChange={onChange} value={value}>
-//     <SelectTrigger className="w-full ring-0 focus:ring-0 focus:border-none">
-//       <SelectValue placeholder={placeHolder} />
-//     </SelectTrigger>
-//     <SelectContent className="overflow-auto max-h-[250px] bg-mars-bg select-contents">
-//       <SelectGroup>
-//         <SelectLabel>{label}</SelectLabel>
-//         {items?.map((el: any, index: number) => {
-//           return (
-//             <SelectItem key={index} value={el.id}>
-//               {el.name}
-//             </SelectItem>
-//           );
-//         })}
-//       </SelectGroup>
-//     </SelectContent>
-//   </Select>
-// </div>
-//   );
-// };

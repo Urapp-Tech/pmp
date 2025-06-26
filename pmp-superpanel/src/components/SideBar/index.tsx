@@ -89,7 +89,7 @@ export function MainSidebar({
         items: [],
       },
       {
-        title: 'Support and Feedback',
+        title: 'Support Tickets',
         url: '/super-admin/support-and-feedback',
         icon: assets.images.pagesSidebarIcon,
         items: [],

@@ -1,5 +1,14 @@
 import json
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
+    Query,
+)
 from uuid import UUID
 from h11 import Request
 from pydantic import UUID4
@@ -10,7 +19,7 @@ from app.modules.properties.schemas import (
     PropertyCreate,
     PropertyUpdate,
     PaginatedPropertyOut,
-    PaginatedPropertyUnitOut
+    PaginatedPropertyUnitOut,
 )
 from app.modules.properties.services import (
     create_property,
@@ -18,7 +27,7 @@ from app.modules.properties.services import (
     get_property,
     get_property_units,
     get_properties,
-    delete_property
+    delete_property,
 )
 from typing import Optional, List
 
@@ -26,11 +35,12 @@ router = APIRouter()
 
 # @router.post("/create", response_model=PropertyOut, status_code=status.HTTP_201_CREATED)
 # def create_property_with_units(
-#     property: PropertyCreate, 
+#     property: PropertyCreate,
 #     db: Session = Depends(get_db)
 # ):
 #     """Create a new property with its units"""
 #     return create_property(db, property)
+
 
 @router.post("/create")
 async def create_property_endpoint(
@@ -53,7 +63,7 @@ async def create_property_endpoint(
     longitude: str = Form(...),
     status: str = Form(...),
     pictures: List[UploadFile] = File([]),
-    units_data:  Optional[List[str]] = Form(None),  # JSON strings for each unit
+    units_data: Optional[List[str]] = Form(None),  # JSON strings for each unit
     unit_pictures: List[UploadFile] = File([]),
     db: Session = Depends(get_db),
 ):
@@ -63,8 +73,10 @@ async def create_property_endpoint(
 
     for unit_json in units_data or []:
         unit = json.loads(unit_json)
-        unit_pics_count = int(unit.get('pictures_count', 0))  # pass this from frontend
-        unit['pictures'] = unit_pictures[unit_pic_index:unit_pic_index + unit_pics_count]
+        unit_pics_count = int(unit.get("pictures_count", 0))  # pass this from frontend
+        unit["pictures"] = unit_pictures[
+            unit_pic_index : unit_pic_index + unit_pics_count
+        ]
         parsed_units.append(unit)
         unit_pic_index += unit_pics_count
 
@@ -89,7 +101,7 @@ async def create_property_endpoint(
         "latitude": latitude,
         "longitude": longitude,
         "status": status,
-        "units": parsed_units
+        "units": parsed_units,
     }
 
     # Validate with PropertyCreate schema
@@ -201,22 +213,22 @@ async def update_property_endpoint(
 
 
 @router.get("/{property_id}")
-def get_property_by_id(
-    property_id: UUID4, 
-    db: Session = Depends(get_db)
-):
+def get_property_by_id(property_id: UUID4, db: Session = Depends(get_db)):
     """Get a property by ID with its units"""
     return get_property(db, str(property_id))  # <-- this should be the service function
+
 
 @router.get("/")
 def get_all_properties(
     db: Session = Depends(get_db),
-    landlord_id: Optional[UUID4] = None,
+    user_id: Optional[UUID4] = None,
+    role_id: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=1000, description="Page size"),
     search: Optional[str] = None,
 ):
-    return get_properties(db, landlord_id, page, size, search)
+    return get_properties(db, user_id, role_id, page, size, search)
+
 
 @router.get("/units/{property_id}")
 def get_all_property_units(
@@ -228,10 +240,8 @@ def get_all_property_units(
 ):
     return get_property_units(db, property_id, page, size, search)
 
+
 @router.post("/delete/{id}")
-def delete_property_by_id(
-    id: UUID, 
-    db: Session = Depends(get_db)
-):
+def delete_property_by_id(id: UUID, db: Session = Depends(get_db)):
     """Delete a property and all its units"""
     return delete_property(db, str(id))

@@ -2,8 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Eye,Pencil, Trash2 } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Loader2, Eye, Pencil, Trash2 } from 'lucide-react';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { TopBar } from '@/components/TopBar';
 import { Paginator } from '@/components/Paginator';
@@ -12,10 +19,14 @@ import propertyService from '@/services/adminapp/property';
 import DeleteDialog from '@/components/DeletePopup';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { usePermission } from '@/utils/hasPermission';
+import { PERMISSIONS } from '@/utils/constants';
+import { getItem } from '@/utils/storage';
 
 const PropertyList = () => {
-  
+  const userDetails: any = getItem('USER');
   const navigate = useNavigate();
+  const { can } = usePermission();
   const { toast } = useToast();
   const [search, setSearchKey] = useState('');
   const [page, setPage] = useState(1);
@@ -29,11 +40,19 @@ const PropertyList = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editFormData, setEditFormData] = useState();
 
+  const [units, setUnits] = useState([]);
+
   const fetchList = async () => {
     setIsLoader(true);
 
     try {
-      const res = await propertyService.list(search, page, pageSize);
+      const res = await propertyService.list(
+        userDetails?.id,
+        userDetails?.role?.name,
+        search,
+        page,
+        pageSize
+      );
       if (res.data && res.data.items) {
         setList(res.data.items);
         setTotal(res.data.total);
@@ -46,9 +65,9 @@ const PropertyList = () => {
     }
   };
 
-useEffect(() => {
-  fetchList();
-}, [page]);
+  useEffect(() => {
+    fetchList();
+  }, [page]);
 
   const handleSearchKey = (e) => {
     setSearchKey(e.target.value);
@@ -59,58 +78,59 @@ useEffect(() => {
     fetchList();
   };
 
-  const openUnitsModal = (property) => {
+  const openUnitsModal = (property, units) => {
     setSelectedProperty(property);
     setUnitModalOpen(true);
+    setUnits(units);
   };
 
   const deleteHandler = async (id) => {
     setDeleteOpen(false);
     setIsLoader(true); // Start loader before request
     try {
-       const response = await propertyService.deleteProperty(id.id);
+      const response = await propertyService.deleteProperty(id.id);
 
       if (response.data.success) {
-          fetchList();
-          toast({
-            description: response.data.message,
-            className: cn(
-              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-            ),
-            style: {
-              backgroundColor: '#5CB85C',
-              color: 'white',
-            },
-          });
-        } else {
-          setIsLoader(false);
-        }
+        fetchList();
+        toast({
+          description: response.data.message,
+          className: cn(
+            'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+          ),
+          style: {
+            backgroundColor: '#5CB85C',
+            color: 'white',
+          },
+        });
+      } else {
+        setIsLoader(false);
+      }
     } catch (error) {
       toast({
-      description: 'Failed to delete property.',
-      className: cn(
-        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-      ),
-      style: {
-        backgroundColor: '#D9534F',
-        color: 'white',
-      },
-    });
+        description: 'Failed to delete property.',
+        className: cn(
+          'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+        ),
+        style: {
+          backgroundColor: '#D9534F',
+          color: 'white',
+        },
+      });
     } finally {
-    setIsLoader(false); // Always stop loader
-    setDeleteOpen(false); // Ensure modal closes even on error
-  }
+      setIsLoader(false); // Always stop loader
+      setDeleteOpen(false); // Ensure modal closes even on error
+    }
   };
-const handleActionMenu = (action, item) => {
-  const id = item.id;
-  setEditFormData(item);
-  if (action === 'edit') {
-    navigate(`/admin/property/edit/${id}`);
-  } else if (action === 'delete') {
-    setSelectedProperty(id);
-    setDeleteOpen(true);
-  }
-};
+  const handleActionMenu = (action, item) => {
+    const id = item.id;
+    setEditFormData(item);
+    if (action === 'edit') {
+      navigate(`/admin/property/edit/${id}`);
+    } else if (action === 'delete') {
+      setSelectedProperty(id);
+      setDeleteOpen(true);
+    }
+  };
   return (
     <div className="bg-white p-2 rounded-[20px] shadow-2xl mt-5">
       <TopBar title="Property List" />
@@ -118,22 +138,23 @@ const handleActionMenu = (action, item) => {
         <div className="flex justify-between items-center py-4">
           <h2 className="text-xl font-semibold text-tertiary-bg">Properties</h2>
           <div className="flex gap-3 items-center">
-          <Input
-            placeholder="Search properties..."
-            value={search}
-            onKeyUp={handleSearchKey}
-            className="w-[300px] rounded-full bg-mars-bg/50"
-          />
-          <Button
-                            onClick={() => navigate('/admin/property/add')}
-                            className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
-                            variant={'outline'}
-                          >
-                            + Add New
-                          </Button>
-                          </div>
+            <Input
+              placeholder="Search properties..."
+              value={search}
+              onKeyUp={handleSearchKey}
+              className="w-[300px] rounded-full bg-mars-bg/50"
+            />
+            {can(PERMISSIONS.PROPERTY.CREATE) && (
+              <Button
+                onClick={() => navigate('/admin/property/add')}
+                className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                variant={'outline'}
+              >
+                + Add New
+              </Button>
+            )}
+          </div>
         </div>
-        
 
         <div className="rounded-md border">
           {mainIsLoader ? (
@@ -148,7 +169,7 @@ const handleActionMenu = (action, item) => {
                   <TableHead>Address</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Units</TableHead>
-                  <TableHead className='text-center'>Actions</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -158,30 +179,42 @@ const handleActionMenu = (action, item) => {
                       <TableCell>{item.name}</TableCell>
                       <TableCell>{item.address}</TableCell>
                       <TableCell>{item.status}</TableCell>
-                      <TableCell><div className=" flex">
-                          <span className="bg-blue-500 mt-3 text-center text-white w-[18px] h-[18px] rounded-[30px] text-[10px] leading-normal font-semibold  py-[1px]">{item.units.length}</span>
-                          <Eye
-                          className="pl-3 cursor-pointer text-blue-500 w-[40px] h-[40px]"
-                          onClick={() => openUnitsModal(item.id)}
-                        /></div> </TableCell>
                       <TableCell>
-                         <div className="flex justify-center items-center">
-                         
-                         <div className="pl-3">
-                                      <Pencil
-                                        className="text-lunar-bg cursor-pointer"
-                                        onClick={() => handleActionMenu('edit', item)}
-                                        size={20}
-                                      />
-                                    </div>
-                                    <div className="pl-3">
-                                      <Trash2
-                                        className="text-lunar-bg cursor-pointer"
-                                        size={20}
-                                        onClick={() => handleActionMenu('delete', item)}
-                                      />
-                                    </div>
+                        <div className=" flex">
+                          <span className="bg-blue-500 mt-3 text-center text-white w-[18px] h-[18px] rounded-[30px] text-[10px] leading-normal font-semibold  py-[1px]">
+                            {item.units.length}
+                          </span>
+                          <Eye
+                            className="pl-3 cursor-pointer text-blue-500 w-[40px] h-[40px]"
+                            onClick={() => openUnitsModal(item.id, item.units)}
+                          />
+                        </div>{' '}
+                      </TableCell>
+                      <TableCell>
+                        {!can(PERMISSIONS.PROPERTY.UPDATE) &&
+                          !can(PERMISSIONS.PROPERTY.UPDATE) && (
+                            <div className="text-center">Restricted</div>
+                          )}
+                        <div className="flex justify-center items-center">
+                          {can(PERMISSIONS.PROPERTY.UPDATE) && (
+                            <div className="pl-3">
+                              <Pencil
+                                className="text-lunar-bg cursor-pointer"
+                                onClick={() => handleActionMenu('edit', item)}
+                                size={20}
+                              />
                             </div>
+                          )}
+                          {can(PERMISSIONS.PROPERTY.DELETE) && (
+                            <div className="pl-3">
+                              <Trash2
+                                className="text-lunar-bg cursor-pointer"
+                                size={20}
+                                onClick={() => handleActionMenu('delete', item)}
+                              />
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -213,18 +246,19 @@ const handleActionMenu = (action, item) => {
           open={unitModalOpen}
           setOpen={setUnitModalOpen}
           property={selectedProperty}
+          units={units}
         />
       )}
       {deleteOpen && (
-          <DeleteDialog
-            isOpen={deleteOpen}
-            setIsOpen={setDeleteOpen}
-            title={'Property'}
-            isLoader={isLoader} 
-            formData={editFormData}     
-            callback={deleteHandler}  
-                  />
-            )}
+        <DeleteDialog
+          isOpen={deleteOpen}
+          setIsOpen={setDeleteOpen}
+          title={'Property'}
+          isLoader={isLoader}
+          formData={editFormData}
+          callback={deleteHandler}
+        />
+      )}
     </div>
   );
 };

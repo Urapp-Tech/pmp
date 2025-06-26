@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 // import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Fields } from '@/interfaces/back-office-user.interface';
+import { Fields } from '@/interfaces/users.interface';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
 import service from '@/services/adminapp/role-permissions';
+import { ASSET_BASE_URL } from '@/utils/constants';
 
 type Props = {
   isLoader: boolean;
@@ -44,8 +45,12 @@ const OfficeUserUpdateDialog = ({
   const form = useForm<Fields>({
     defaultValues: {
       password: '',
-      avatar: formData.avatar || '',
-      role: formData.role || '',
+      profilePic: formData.profilePic || '',
+      fname: formData.fname || '',
+      lname: formData.lname || '',
+      email: formData.email || '',
+      gender: formData.gender || '',
+      phone: formData.phone || '',
     },
   });
 
@@ -66,7 +71,6 @@ const OfficeUserUpdateDialog = ({
   const [file, setFile] = useState<any>(null);
   const [selectedImg, setSelectedImg] = useState<any>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [roleLov, setRoleLov] = useState([]);
 
   const {
     register,
@@ -77,39 +81,24 @@ const OfficeUserUpdateDialog = ({
   } = form;
 
   const onSubmit = async (data: Fields) => {
-    if (file) data.avatar = file;
-    data.userType = 'USER';
-    data.id = formData.id;
-    callback(data);
-    // console.log('s', data);
+    let obj: any = {
+      id: formData.id,
+      fname: data.fname,
+      lname: data.lname,
+      email: data.email,
+      password: data.password,
+      phone: data.phone,
+      gender: data.gender,
+      roleType: 'Manager',
+    };
+    if (file) obj.profilePic = file;
+    callback(obj);
+    console.log('UPDATEs', obj);
   };
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
-
-  const fetchRoleLov = async () => {
-    try {
-      const roles = await service.lov();
-      if (roles.data.success) {
-        const lov = roles.data.data.map((el: any) => {
-          return {
-            name: el.name,
-            id: el.id,
-          };
-        });
-        setRoleLov(lov);
-      } else {
-        console.log('error: ', roles.data.message);
-      }
-    } catch (error: Error | unknown) {
-      console.log('error: ', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchRoleLov();
-  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -118,7 +107,7 @@ const OfficeUserUpdateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Update Admin User</DialogTitle>
+          <DialogTitle>Update Manager User</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -126,47 +115,38 @@ const OfficeUserUpdateDialog = ({
               <div className="form-group w-full flex gap-3">
                 <FormControl className="m-1 w-full">
                   <div className="">
-                    <FormLabel
-                      htmlFor="firstName"
-                      className="text-sm font-medium"
-                    >
+                    <FormLabel htmlFor="fname" className="text-sm font-medium">
                       First Name
                     </FormLabel>
                     <Input
                       className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="firstName"
+                      id="fname"
                       placeholder="john"
                       type="text"
-                      {...register('firstName', {
-                        value: formData?.firstName,
+                      {...register('fname', {
                         required: 'Please enter your first name',
                       })}
                     />
-                    {errors.firstName && (
-                      <FormMessage>*{errors.firstName.message}</FormMessage>
+                    {errors.fname && (
+                      <FormMessage>*{errors.fname.message}</FormMessage>
                     )}
                   </div>
                 </FormControl>
                 <FormControl className="m-1 w-full">
                   <div className="">
-                    <FormLabel
-                      htmlFor="lastName"
-                      className="text-sm font-medium"
-                    >
+                    <FormLabel htmlFor="lname" className="text-sm font-medium">
                       Last Name
                     </FormLabel>
                     <Input
                       className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="lastName"
+                      id="lname"
                       placeholder="doe"
                       type="text"
-                      {...register('lastName', {
-                        value: formData?.lastName,
-                      })}
+                      {...register('lname')}
                     />
-                    {/* {errors.lastName && (
-                      <FormMessage>*{errors.lastName.message}</FormMessage>
-                    )} */}
+                    {/* {errors.lname && (
+                        <FormMessage>*{errors.lname.message}</FormMessage>
+                      )} */}
                   </div>
                 </FormControl>
               </div>
@@ -182,7 +162,6 @@ const OfficeUserUpdateDialog = ({
                       placeholder="johndoe@gmail.com"
                       type="text"
                       {...register('email', {
-                        value: formData?.email,
                         required: 'Please enter your email',
                       })}
                     />
@@ -207,8 +186,13 @@ const OfficeUserUpdateDialog = ({
                         type={passwordVisible ? 'text' : 'password'}
                         className="text-sm pr-10 mt-2"
                         {...register('password', {
-                          required: 'Please enter your password.',
-                          value: '',
+                          // required: 'Please enter your password.',
+                          pattern: {
+                            value:
+                              /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
+                            message:
+                              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+                          },
                         })}
                       />
                       <Button
@@ -233,60 +217,55 @@ const OfficeUserUpdateDialog = ({
               </div>
               <div className="form-group w-full flex items-center justify-center gap-3 m-1">
                 <div className="w-full">
+                  <FormControl className="m-1 w-full">
+                    <div className="">
+                      <FormLabel
+                        htmlFor="phone"
+                        className="text-sm font-medium"
+                      >
+                        Phone
+                      </FormLabel>
+                      <Input
+                        className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                        id="phone"
+                        placeholder="876543215"
+                        type="number"
+                        {...register('phone', {
+                          required: 'Please enter your phone',
+                          pattern: {
+                            value: /^[9654]\d{7}$/,
+                            message:
+                              'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
+                          },
+                        })}
+                      />
+                      {errors.phone && (
+                        <FormMessage>*{errors.phone.message}</FormMessage>
+                      )}
+                    </div>
+                  </FormControl>
+                </div>
+                <div className="w-full">
                   <FormLabel
-                    htmlFor="phone"
+                    htmlFor="gender"
                     className="text-sm font-medium my-2 block"
                   >
-                    Roles
+                    Gender
                   </FormLabel>
                   <SingleSelectDropDown
                     control={control}
-                    name="role"
+                    name="gender"
                     label=""
-                    items={roleLov}
-                    // value={formData.role}
+                    items={[
+                      { id: 'male', name: 'Male' },
+                      { id: 'female', name: 'Female' },
+                      { id: 'other', name: 'Other' },
+                    ]}
                     placeholder="Choose an option"
-                    rules={{ required: 'This field is required' }}
+                    // rules={{ required: 'This field is required' }}
                   />
                 </div>
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel htmlFor="phone" className="text-sm font-medium">
-                      Phone
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="phone"
-                      placeholder="876543215"
-                      type="number"
-                      {...register('phone', {
-                        required: 'Please enter your phone',
-                        value: formData.phone,
-                      })}
-                    />
-                    {errors.phone && (
-                      <FormMessage>*{errors.phone.message}</FormMessage>
-                    )}
-                  </div>
-                </FormControl>
               </div>
-              <FormControl className="m-1 w-full">
-                <div className="">
-                  <FormLabel htmlFor="address" className="text-sm font-medium">
-                    Address
-                  </FormLabel>
-                  <Input
-                    className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                    id="address"
-                    placeholder="Street 55"
-                    type="text"
-                    {...register('address', { value: formData.address })}
-                  />
-                  {errors.address && (
-                    <FormMessage>*{errors.address.message}</FormMessage>
-                  )}
-                </div>
-              </FormControl>
               <div>
                 <div className="flex justify-between">
                   <FormLabel
@@ -309,15 +288,15 @@ const OfficeUserUpdateDialog = ({
                       <img
                         className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
                         src={selectedImg}
-                        alt="Shop Logo"
+                        alt="profilePic"
                       />
                     </div>
-                  ) : getValues('avatar') ? (
+                  ) : getValues('profilePic') ? (
                     <div className="col-span-6 flex items-center justify-center  xl:justify-center 2xl:justify-start">
                       <img
                         className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                        src={getValues('avatar')}
-                        alt="Shop Logo"
+                        src={`${ASSET_BASE_URL}${getValues('profilePic')}`}
+                        alt="profilePic"
                       />
                     </div>
                   ) : null}

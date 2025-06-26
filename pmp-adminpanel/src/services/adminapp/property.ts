@@ -1,11 +1,16 @@
 import { PROPERTY_PREFIX, PROPERTY_UNIT_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
-import { getItem } from '@/utils/storage';
 
-const landlord: any = getItem('USER');
-const list = (search: string, page: number, size: number) => {
+const list = (
+  userId: string,
+  roleId: string,
+  search: string,
+  page: number,
+  size: number
+) => {
   return network.get(`${PROPERTY_PREFIX}/`, {
-    landlord_id: landlord?.landlordId || '',
+    user_id: userId,
+    role_id: roleId,
     search: '' + search,
     page,
     size,
@@ -46,6 +51,10 @@ const Lov = (userId: string) => {
   return network.get(`${PROPERTY_UNIT_PREFIX}/lov/${userId}`, {});
 };
 
+const availableLov = (landlordId: string) => {
+  return network.get(`${PROPERTY_UNIT_PREFIX}/available-lov/${landlordId}`, {});
+};
+
 export default {
   list,
   getUnitsByPropertyId,
@@ -54,4 +63,5 @@ export default {
   update,
   deleteProperty,
   Lov,
+  availableLov,
 };

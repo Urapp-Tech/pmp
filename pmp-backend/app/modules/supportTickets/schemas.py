@@ -1,6 +1,7 @@
-from pydantic import BaseModel, UUID4, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from enum import Enum
-from typing import List
+from uuid import UUID
+from typing import List, Optional
 from datetime import datetime
 
 
@@ -12,19 +13,37 @@ class SupportTicketStatus(str, Enum):
 
 
 class SupportTicketCreate(BaseModel):
-    sender_id: UUID4
-    sender_role_id: UUID4
+    sender_id: UUID = Field(..., alias="senderId")
+    sender_role_id: UUID = Field(..., alias="senderRoleId")
     subject: str
     message: str
 
 
-class SupportTicketOut(SupportTicketCreate):
-    id: UUID4
+class SupportTicketUpdate(BaseModel):
+    subject: Optional[str]
+    message: Optional[str]
+
+
+class SupportTicketOut(BaseModel):
+    id: UUID
     status: SupportTicketStatus
-    receiver_id: UUID4
-    receiver_role_id: UUID4
-    created_at: datetime
-    updated_at: datetime
+    subject: str
+    message: str
+    sender_id: UUID = Field(..., alias="senderId")
+    sender_role_id: UUID = Field(..., alias="senderRoleId")
+    receiver_id: UUID = Field(..., alias="receiverId")
+    receiver_role_id: UUID = Field(..., alias="receiverRoleId")
+    images: Optional[List[str]]
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+
+class SupportTicketResponse(BaseModel):
+    items: SupportTicketOut
+    message: str = "Support ticket created successfully"
+    success: bool = True
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -38,3 +57,8 @@ class PaginatedSupportTicketResponse(BaseModel):
     items: List[SupportTicketOut]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SupportTicketStatusUpdate(BaseModel):
+    ticket_id: UUID = Field(..., alias="ticketId")
+    status: SupportTicketStatus

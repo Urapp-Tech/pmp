@@ -26,6 +26,8 @@ export const INVOICE_PREFIX = 'invoices';
 export const TANENT_PREFIX = 'tenants';
 export const BLOG_PREFIX = 'blog';
 export const INVOICE_ITEM_PREFIX = 'invoice-items';
+export const TENANTS_PREFIX = 'tenants';
+
 export const imageAllowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
 export const PERMISSIONS = {
@@ -82,6 +84,12 @@ export const PERMISSIONS = {
     CREATE: 'Create User Management',
     UPDATE: 'Update User Management',
     DELETE: 'Delete User Management',
+  },
+  USER_CONTRACT: {
+    VIEW: 'View Tenant Contract Management',
+    CREATE: 'Create Tenant Contract Management',
+    UPDATE: 'Update Tenant Contract Management',
+    DELETE: 'Delete Tenant Contract Management',
   },
   MANAGER: {
     VIEW: 'View Manager Management',

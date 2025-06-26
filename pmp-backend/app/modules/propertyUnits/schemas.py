@@ -2,12 +2,13 @@
 
 from pydantic import BaseModel
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 
 
 class PropertyUnitLOV(BaseModel):
     id: UUID
     name: str
+    rent: Optional[str]
 
     class Config:
         from_attributes = True

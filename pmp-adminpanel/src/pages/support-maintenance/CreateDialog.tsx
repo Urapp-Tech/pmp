@@ -19,12 +19,13 @@ import assets from '@/assets/images';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Fields } from '@/interfaces/blog.interface';
+import { Fields } from '@/interfaces/support-tickets.interface';
 import { cn } from '@/lib/utils';
 import { Loader2, X } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
+import { getItem } from '@/utils/storage';
 
 type Props = {
   isLoader: boolean;
@@ -40,7 +41,7 @@ const BlogsCreateDialog = ({
   isLoader,
 }: Props) => {
   const form = useForm<Fields>();
-
+  const userDetails: any = getItem('USER');
   const ToastHandler = (text: string) => {
     return toast({
       description: text,
@@ -67,40 +68,49 @@ const BlogsCreateDialog = ({
   } = form;
 
   const onSubmit = async (data: Fields) => {
-    // callback(data);
-    console.log('data', data);
+    let obj: any = {
+      senderId:
+        userDetails?.role?.name === 'Landlord'
+          ? userDetails?.landlordId
+          : userDetails?.id,
+      senderRoleId: userDetails?.role?.id,
+      subject: data.subject,
+      message: data.message,
+    };
+    if (data?.images?.length > 0) obj.images = data.images;
+    console.log('data', obj);
+    callback(obj);
   };
-
-  // const droppedFile = e.dataTransfer.files[0];
-  //   if (droppedFile) {
-  //     const fileType = droppedFile.type;
-  //     if (imageAllowedTypes.includes(fileType)) {
-  //       setFile(droppedFile);
-  //       const reader = new FileReader();
-  //       reader.onload = () => {
-  //         setImg(reader.result as string);
-  //       };
-  //       reader.readAsDataURL(droppedFile);
-  //     } else {
-  //       setIsNotify('Only .png, .jpg, and .jpeg files are allowed');
-  //     }
-  //   }
 
   const handleFileChange = async (onChange: any, event: any) => {
     const selectedFiles = Array.from(event.target.files || []); // Files from input
-    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'application/pdf',
+      'application/msword', // .doc
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+      'application/vnd.ms-excel', // .xls
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    ];
 
     const validFiles: File[] = [];
     const fileReaders = selectedFiles.map((file: any) => {
       return new Promise<string | null>((resolve) => {
-        if (allowedImageTypes.includes(file.type)) {
+        if (allowedTypes.includes(file.type)) {
           validFiles.push(file);
 
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
+          if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          } else {
+            // For docs, show a generic icon or filename
+            resolve(file.name);
+          }
         } else {
-          ToastHandler('Only .jpeg, .jpg, .png images are allowed');
+          ToastHandler('Only images or supported document types allowed.');
           resolve(null);
         }
       });
@@ -166,15 +176,15 @@ const BlogsCreateDialog = ({
                         </FormLabel>
                         <Input
                           className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                          id="title"
+                          id="subject"
                           placeholder="Rent listing issues"
                           type="text"
-                          {...register('title', {
+                          {...register('subject', {
                             required: 'Please enter your title name',
                           })}
                         />
-                        {errors.title && (
-                          <FormMessage>*{errors.title.message}</FormMessage>
+                        {errors.subject && (
+                          <FormMessage>*{errors.subject.message}</FormMessage>
                         )}
                       </div>
                     </FormControl>
@@ -183,16 +193,16 @@ const BlogsCreateDialog = ({
                     <FormControl className="m-1 w-full">
                       <div className="">
                         <FormLabel
-                          htmlFor="description"
+                          htmlFor="message"
                           className="text-sm font-medium"
                         >
                           Description
                         </FormLabel>
                         <Textarea
                           className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                          id="description"
+                          id="message"
                           placeholder="Type your report here."
-                          {...register('description')}
+                          {...register('message')}
                         />
                       </div>
                     </FormControl>
@@ -200,10 +210,10 @@ const BlogsCreateDialog = ({
                   <div>
                     <div className="flex justify-between">
                       <FormLabel
-                        htmlFor="address"
+                        htmlFor="images"
                         className="text-sm font-medium my-3"
                       >
-                        Upload Images
+                        Upload Docs / Images
                         <span className="text-xs font-normal">
                           {' '}
                           ( Images should be in JPG, JPEG, or PNG format )
@@ -223,7 +233,7 @@ const BlogsCreateDialog = ({
                               <>
                                 <div className="w-full flex h-[50px] items-center">
                                   <input
-                                    accept="image/jpeg,image/png,image/jpg"
+                                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
                                     style={{ display: 'none' }}
                                     id="raised-button-files"
                                     type="file"
@@ -291,41 +301,33 @@ const BlogsCreateDialog = ({
                   >
                     Images
                   </Label>
-                  {selectedPlanImages?.length > 0 ? (
-                    <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
-                      {selectedPlanImages?.map((file: any, index: number) => (
-                        <div
-                          key={index}
-                          className="ShowFileItem p-1 flex items-center relative"
-                        >
-                          <X
-                            size={20}
-                            className="absolute top-1 right-[-1px] cursor-pointer text-white bg-red-500 rounded-full p-1"
-                            onClick={() => handleRemoveFile(index, onChange)}
+                  {selectedPlanImages?.map((file: any, index: number) => (
+                    <div
+                      key={index}
+                      className="ShowFileItem p-1 flex items-center relative"
+                    >
+                      <X
+                        size={20}
+                        className="absolute top-1 right-[-1px] cursor-pointer text-white bg-red-500 rounded-full p-1"
+                        onClick={() => handleRemoveFile(index, onChange)}
+                      />
+                      <div
+                        className={`p-4 border-dashed border-0 flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]`}
+                      >
+                        {file.startsWith('data:image') ? (
+                          <img
+                            src={file}
+                            alt="preview"
+                            className="w-[88px] h-[88px] object-contain"
                           />
-                          <div
-                            className={`p-4 border-dashed border-0 flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]
-                            border-blue-500 bg-blue-50'
-                            }`}
-                          >
-                            <div className="flex flex-col items-center justify-center text-center">
-                              <div className="w-[88px] h-[88px]">
-                                <img
-                                  src={file}
-                                  alt="image"
-                                  className="w-full h-full object-contain"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                        ) : (
+                          <span className="text-xs text-center break-all">
+                            {file}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  ) : (
-                    <div className="flex justify-center items-center text-sm w-full h-[300px]">
-                      Images not uploaded yet.
-                    </div>
-                  )}
+                  ))}
                 </div>
               )}
             />

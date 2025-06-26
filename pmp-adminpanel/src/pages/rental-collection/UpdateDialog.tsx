@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 // import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Fields } from '@/interfaces/blog.interface';
+import { Fields } from '@/interfaces/support-tickets.interface';
 import { Eye, EyeOff, FileDown, Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';

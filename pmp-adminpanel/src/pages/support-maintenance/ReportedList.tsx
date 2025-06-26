@@ -19,10 +19,9 @@ import {
   ArrowUpDown,
   Loader2,
   // ChevronDown,
-  MoreHorizontal,
+  Airplay,
   Pencil,
   Trash2,
-  UserRoundCheck,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { Checkbox } from '@/components/ui/checkbox';
@@ -47,22 +46,23 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import userService from '@/services/adminapp/users';
+import service from '@/services/adminapp/support-maintenance';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
 import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials, handleErrorMessage } from '@/utils/helper';
-import AssignUserDialog from './AssignedUnitDialog';
 import { usePermission } from '@/utils/hasPermission';
-import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
+import { PERMISSIONS } from '@/utils/constants';
+import SupportTicketUpdateDialog from './UpdateDialog';
+import StatusChangeDialog from './StatusDialog';
 
 export type Users = {
   id: string; // UUID
   tenant: string; // UUID representing the tenant ID
-  fname: string;
-  lname: string;
+  first_name: string;
+  last_name: string;
   username: string; // Email is being used as a username
   email: string; // Email address of the user
   password: string; // Encrypted password (bcrypt hash)
@@ -72,27 +72,30 @@ export type Users = {
   city: string | null; // City information, nullable
   zipCode: string | null; // Zip code, nullable
   role: string | null; // User role, nullable
-  profilePic: string | null; // Avatar URL or path, nullable
+  avatar: string | null; // Avatar URL or path, nullable
   address: string; // Address of the user
   userType: 'USER' | 'ADMIN'; // Enum type to restrict values
   isActive: boolean; // Active status of the user
   isDeleted: boolean; // Soft delete status
   createdAt: string; // ISO date string for creation timestamp
   updatedAt: string; // ISO date string for update timestamp
-  status: 'Active' | 'InActive';
+  status: 'open' | 'in_progress' | 'rsolved' | 'closed';
 };
 
-const PropertyManagers = () => {
+const ReportedTicketsList = () => {
   const userDetails: any = getItem('USER');
+  console.log('userDetails', userDetails);
+
   const { toast } = useToast();
   const { can } = usePermission();
 
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState('');
+  const [page, setPage] = useState(0);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
-  const [editFormData, setEditFormData] = useState<any>();
+  const [editFormData, setEditFormData] = useState();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -103,7 +106,7 @@ const PropertyManagers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -121,151 +124,72 @@ const PropertyManagers = () => {
 
   const columns: ColumnDef<Users>[] = [
     {
-      accessorKey: 'fname',
-      header: 'Name',
+      accessorKey: 'subject',
+      header: 'Subject',
       cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage
-              src={`${ASSET_BASE_URL}${row.original.profilePic}` || ''}
-              alt={row.getValue('fname') || '@fallback'}
-            />
-            <AvatarFallback>
-              {getInitials(row.getValue('fname'))}
-            </AvatarFallback>
-          </Avatar>
-          <div className="capitalize font-semibold">
-            {row.getValue('fname')} {row.original?.lname}
-          </div>
+        <div className="capitalize font-semibold">
+          {row.getValue('subject')}
         </div>
       ),
     },
     {
-      accessorKey: 'email',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Email
-            <ArrowUpDown />
-          </Button>
-        );
+      accessorKey: 'message',
+      header: 'Description',
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue('message')}</div>
+      ),
+    },
+    {
+      accessorKey: 'first_name',
+      header: 'Reporter Name',
+      cell: ({ row }) => {
+        const { first_name, last_name } = row.original;
+        return <div className="capitalize">{first_name + ' ' + last_name}</div>;
       },
+    },
+    {
+      accessorKey: 'role_name',
+      header: 'Role',
       cell: ({ row }) => (
-        <div className="lowercase">{row.getValue('email')}</div>
+        <div className="capitalize">{row.getValue('role_name')}</div>
       ),
     },
     {
-      accessorKey: 'phone',
-      header: 'Phone',
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('phone')}</div>
-      ),
-    },
-    {
-      accessorKey: 'isActive',
+      accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
         <div className="capitalize bg-neptune-bg/30 text-center w-[50px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
-          {row.getValue('isActive') ? 'Active' : 'In-Active'}
+          {row.getValue('status')}
         </div>
       ),
-    },
-    {
-      accessorKey: 'assignedUnits',
-      header: 'Assigned Property Units',
-      cell: ({ row }) => {
-        const users = row.getValue('assignedUnits') as {
-          id: string;
-          name: string;
-        }[];
-
-        if (!users || users.length === 0) {
-          return (
-            <span className="text-sm text-muted-foreground">
-              Not assigned yet
-            </span>
-          );
-        }
-
-        const visibleUsers = users.slice(0, 3);
-        const remainingCount = users.length > 3 ? users.length - 3 : 0;
-
-        const colors = [
-          'bg-red-500',
-          'bg-green-500',
-          'bg-blue-500',
-          'bg-yellow-500',
-          'bg-purple-500',
-          'bg-pink-500',
-          'bg-orange-500',
-          'bg-teal-500',
-          'bg-rose-500',
-          'bg-indigo-500',
-        ];
-
-        const getColorClass = (id: string) => {
-          let hash = 0;
-          for (let i = 0; i < id.length; i++) {
-            hash = id.charCodeAt(i) + ((hash << 5) - hash);
-          }
-          return colors[Math.abs(hash) % colors.length];
-        };
-
-        return (
-          <div className="flex items-center space-x-1">
-            <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
-              {visibleUsers.map((user, index) => {
-                const bgColor = getColorClass(user.id);
-                const initial = user.name?.charAt(0).toUpperCase() || 'U';
-                return (
-                  <Avatar key={user.id + index}>
-                    <AvatarImage src={user.name ?? ''} alt={`@user-${index}`} />
-                    <AvatarFallback className={`text-white ${bgColor}`}>
-                      {initial}
-                    </AvatarFallback>
-                  </Avatar>
-                );
-              })}
-              {remainingCount > 0 && (
-                <div className="w-8 h-8 rounded-full bg-muted text-sm flex items-center justify-center font-medium border border-border">
-                  +{remainingCount}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      },
     },
     {
       id: 'actions',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
-        const { id } = row.original;
-        return (
+        const { id, status } = row.original;
+        return status === 'closed' ? null : (
           <div className="flex justify-center items-center">
-            {can(PERMISSIONS.MANAGER.UPDATE) && (
-              <>
-                <div>
-                  <UserRoundCheck
-                    className="text-lunar-bg cursor-pointer"
-                    onClick={() => handleActionMenu('assign', id)}
-                    size={20}
-                  />
-                </div>
-                <div className="pl-3">
-                  <Pencil
-                    className="text-lunar-bg cursor-pointer"
-                    onClick={() => handleActionMenu('edit', id)}
-                    size={20}
-                  />
-                </div>
-              </>
+            {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
+              <div className="pr-6">
+                <Airplay
+                  className="text-lunar-bg cursor-pointer"
+                  size={20}
+                  onClick={() => handleActionMenu('status', id)}
+                />
+              </div>
             )}
-            {can(PERMISSIONS.MANAGER.DELETE) && (
+            {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
+              <div>
+                <Pencil
+                  className="text-lunar-bg cursor-pointer"
+                  onClick={() => handleActionMenu('edit', id)}
+                  size={20}
+                />
+              </div>
+            )}
+            {can(PERMISSIONS.MAINTENANCE_REQUEST.DELETE) && (
               <div className="pl-3">
                 <Trash2
                   className="text-lunar-bg cursor-pointer"
@@ -303,6 +227,12 @@ const PropertyManagers = () => {
   ];
 
   const handleActionMenu = (type: string, actionId: string) => {
+    // console.log('actionId', actionId, type);
+    if (type === 'status') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setStatusOpen(true);
+    }
     if (type === 'edit') {
       const editData = list.find((item: any) => item.id === actionId);
       setEditFormData(editData);
@@ -313,28 +243,24 @@ const PropertyManagers = () => {
       setEditFormData(editData);
       setDeleteOpen(true);
     }
-    if (type === 'assign') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setIsAssignOpen(true);
-    }
   };
 
-  const fetchUsers = async () => {
+  const fetchTickets = async () => {
     try {
-      const users = await usersService.managerslist(
+      const resp = await service.landlordReportedList(
         userDetails?.landlordId,
         search,
+        status,
         page,
         pageSize
       );
-      if (users.data.success) {
+      if (resp.data.success) {
         setMainIsLoader(false);
-        setList(users.data.items);
-        setTotal(users.data.total);
+        setList(resp.data.items);
+        setTotal(resp.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        console.log('error: ', resp.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
@@ -348,54 +274,56 @@ const PropertyManagers = () => {
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      fetchUsers();
+      fetchTickets();
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchTickets();
   }, []);
 
-  const deleteUserHandler = (data: any) => {
-    const userId = data.id;
-    setIsLoader(true);
-    userService
-      .deleteUser(userId)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          setDeleteOpen(false);
-          setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.filter((item: any) => item.id !== userId);
-          });
-          let newtotal = total;
-          setTotal((newtotal -= 1));
-          toast({
-            description: updateItem.data.message,
-            className: cn(
-              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-            ),
-            style: {
-              backgroundColor: '#FF5733',
-              color: 'white',
-            },
-          });
-        } else {
-          setIsLoader(false);
-        }
-      })
-      .catch((err: Error) => {
-        console.log('error: ', err);
-        setIsLoader(false);
-      });
-  };
+  // const deleteHandler = (data: any) => {
+  //   const userId = data.id;
+  //   setIsLoader(true);
+  //   service
+  //     .deleteBlog(userId)
+  //     .then((updateItem) => {
+  //       if (updateItem.data.success) {
+  //         setDeleteOpen(false);
+  //         setIsLoader(false);
+  //         setList((newArr: any) => {
+  //           return newArr.filter((item: any) => item.id !== userId);
+  //         });
+  //         let newtotal = total;
+  //         setTotal((newtotal -= 1));
+  //         toast({
+  //           description: updateItem.data.message,
+  //           className: cn(
+  //             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+  //           ),
+  //           style: {
+  //             backgroundColor: '#FF5733',
+  //             color: 'white',
+  //           },
+  //         });
+  //       } else {
+  //         setIsLoader(false);
+  //       }
+  //     })
+  //     .catch((err: Error) => {
+  //       console.log('error: ', err);
+  //       setIsLoader(false);
+  //     });
+  // };
 
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
-      const users = await userService.managerslist(
-        userDetails?.landlordId,
+      const users = await service.list(
+        userDetails?.id,
+        userDetails?.roleId,
         search,
+        status,
         newPage,
         pageSize
       );
@@ -431,21 +359,19 @@ const PropertyManagers = () => {
     },
   });
 
-  const createEmployeeHandler = (data: any) => {
-    // console.log('dadad', data, userDetails?.landlordId);
-
+  const createHandler = (data: any) => {
     setIsLoader(true);
     const formData = new FormData();
-    formData.append('fname', data.fname);
-    formData.append('lname', data.lname);
-    formData.append('email', data.email);
-    formData.append('phone', data.phone);
-    formData.append('gender', data.gender);
-    formData.append('password', data.password);
-    formData.append('roleType', data.roleType);
-    formData.append('landlordId', userDetails?.landlordId);
-    if (data.profilePic) formData.append('profilePic', data.profilePic);
-    userService
+    formData.append('subject', data.subject);
+    formData.append('message', data.message);
+    formData.append('senderId', data.senderId);
+    formData.append('senderRoleId', data.senderRoleId);
+    if (data?.images && data?.images?.length) {
+      data.images.forEach((image: any) => {
+        formData.append('images', image);
+      });
+    }
+    service
       .create(formData)
       .then((item) => {
         if (item.data.success) {
@@ -460,27 +386,27 @@ const PropertyManagers = () => {
         }
       })
       .catch((err: Error | any) => {
-        // console.log('error: ', err);
         const error = handleErrorMessage(err);
         ToastHandler(error);
         setIsLoader(false);
       });
   };
 
-  const updateEmployeeHandler = (data: any) => {
-    const formData = new FormData();
-    formData.append('fname', data.fname);
-    formData.append('lname', data.lname);
-    formData.append('email', data.email);
-    formData.append('phone', data.phone);
-    formData.append('gender', data.gender);
-    formData.append('password', data.password);
-    formData.append('roleType', data.roleType);
-    formData.append('landlordId', userDetails?.landlordId);
-    if (data.profilePic) formData.append('profilePic', data.profilePic);
+  const updateHandler = (data: any) => {
     setIsLoader(true);
-    userService
-      .update(data.id, formData)
+    const supportId = data.id;
+    const formData = new FormData();
+    formData.append('subject', data.subject);
+    formData.append('message', data.message);
+    formData.append('senderId', data.senderId);
+    formData.append('senderRoleId', data.senderRoleId);
+    if (data?.images && data?.images?.length) {
+      data.images.forEach((image: any) => {
+        formData.append('new_images', image);
+      });
+    }
+    service
+      .update(supportId, formData)
       .then((updateItem) => {
         if (updateItem.data.success) {
           setEditOpen(false);
@@ -488,12 +414,9 @@ const PropertyManagers = () => {
           setList((newArr: any) => {
             return newArr.map((item: any) => {
               if (item.id === updateItem.data.items.id) {
-                item.fname = updateItem.data.items.fname;
-                item.lname = updateItem.data.items.lname;
-                item.email = updateItem.data.items.email;
-                item.phone = updateItem.data.items.phone;
-                item.gender = updateItem.data.items.gender;
-                item.profilePic = updateItem.data.items.profilePic;
+                item.subject = updateItem.data.items.subject;
+                item.message = updateItem.data.items.message;
+                item.images = updateItem.data.items.images;
               }
               return { ...item };
             });
@@ -511,50 +434,22 @@ const PropertyManagers = () => {
       });
   };
 
-  const onAssignUnits = (unitIds: string[]) => {
-    let obj = {
-      managerUserId: editFormData?.id,
-      assignUnits: unitIds,
-    };
-    // console.log('obj', obj);
-
-    userService
-      .assignUnits(obj)
-      .then((updateItem) => {
+  const statusChangeHandler = (data: any) => {
+    setIsLoader(true);
+    service
+      .statusChange(data)
+      .then((updateItem: any) => {
         if (updateItem.data.success) {
-          const updatedAssignments = updateItem.data.items.map((item: any) => ({
-            id: item.assign_property_unit.id,
-            name: item.assign_property_unit.name,
-          }));
-
-          // Extract newly assigned user IDs
-          const newAssignedUserIds = updatedAssignments.map((u: any) => u.id);
-
-          // Update ALL managers
-          setList((prev: any[]) =>
-            prev.map((manager) => {
-              // If current manager, replace with updated assignments
-              if (manager.id === editFormData?.id) {
-                return {
-                  ...manager,
-                  assignedUnits: updatedAssignments,
-                };
-              }
-
-              // Remove any users who are now assigned to the new manager
-              const filteredUnits = manager.assignedUnits?.filter(
-                (u: any) => !newAssignedUserIds.includes(u.id)
-              );
-
-              return {
-                ...manager,
-                assignedUnits: filteredUnits,
-              };
-            })
-          );
-
-          setIsAssignOpen(false);
+          setStatusOpen(false);
           setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.map((item: any) => {
+              if (item.id === updateItem.data.ticket_id) {
+                item.status = updateItem.data.new_status;
+              }
+              return { ...item };
+            });
+          });
           ToastHandler(updateItem.data.message);
         } else {
           setIsLoader(false);
@@ -562,32 +457,32 @@ const PropertyManagers = () => {
         }
       })
       .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message || 'Something went wrong');
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
         setIsLoader(false);
       });
   };
 
   return (
     <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Admin Users" />
+      <TopBar title="Maintenance & Dispute Request" />
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Property Managers
+              Maintenance Reported Request
             </h2>
             <div className="flex gap-3 items-center">
               <Input
-                placeholder="Search managers..."
+                placeholder="Search Request..."
                 value={search}
                 onChange={handleChange}
                 onKeyPress={handleKeyPress}
                 className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
               />
               <DropdownMenu>
-                {can(PERMISSIONS.MANAGER.CREATE) && (
+                {/* {can(PERMISSIONS.MAINTENANCE_REQUEST.CREATE) && (
                   <Button
                     onClick={() => setIsOpen(true)}
                     className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
@@ -595,7 +490,7 @@ const PropertyManagers = () => {
                   >
                     + Add New
                   </Button>
-                )}
+                )} */}
                 <DropdownMenuContent align="end">
                   {table
                     .getAllColumns()
@@ -699,41 +594,40 @@ const PropertyManagers = () => {
           isLoader={isLoader}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          callback={createEmployeeHandler}
+          callback={createHandler}
         />
       )}
       {editOpen && (
-        <OfficeUserUpdateDialog
+        <SupportTicketUpdateDialog
           isLoader={isLoader}
           isOpen={editOpen}
           setIsOpen={setEditOpen}
           formData={editFormData}
-          callback={updateEmployeeHandler}
+          callback={updateHandler}
         />
       )}
+      {statusOpen && (
+        <StatusChangeDialog
+          isLoader={isLoader}
+          isOpen={editOpen}
+          setIsOpen={setEditOpen}
+          formData={editFormData}
+          callback={statusChangeHandler}
+        />
+      )}
+      {/* 
       {deleteOpen && (
         <DeleteDialog
           isLoader={isLoader}
           isOpen={deleteOpen}
           setIsOpen={setDeleteOpen}
-          title={'User'}
+          title={'Blog'}
           formData={editFormData}
-          callback={deleteUserHandler}
+          callback={deleteHandler}
         />
-      )}
-      {isAssignOpen && (
-        <AssignUserDialog
-          isLoader={isLoader}
-          isOpen={isAssignOpen}
-          setIsOpen={setIsAssignOpen}
-          assignedUnits={
-            editFormData?.assignedUnits?.map((u: any) => u.id) || []
-          }
-          onAssignUnits={(unitIds) => onAssignUnits(unitIds)}
-        />
-      )}
+      )} */}
     </div>
   );
 };
 
-export default PropertyManagers;
+export default ReportedTicketsList;

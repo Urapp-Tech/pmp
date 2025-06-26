@@ -31,6 +31,8 @@ export function MainSidebar({
 
   const rolePermissions = userRoles?.role?.permissions || [];
 
+  const userRole = userRoles?.role?.name;
+
   const navItems = [
     {
       title: 'Dashboard',
@@ -47,11 +49,27 @@ export function MainSidebar({
       items: [],
     },
     {
-      title: 'Tenant Users',
+      title: 'Tenant',
       url: '/admin/tenant-users',
       icon: assets.images.adminUsersSidebarIcon,
       permission: PERMISSIONS.USER.VIEW,
-      items: [],
+      items: [
+        {
+          title: 'Users List',
+          url: '/admin/tenant-users/list',
+          permission: PERMISSIONS.USER.VIEW,
+        },
+        {
+          title: 'Contracts Request',
+          url: '/admin/tenant-users/pending',
+          permission: PERMISSIONS.USER_CONTRACT.VIEW,
+        },
+        {
+          title: 'Approved Contracts',
+          url: '/admin/tenant-users/approved',
+          permission: PERMISSIONS.USER_CONTRACT.VIEW,
+        },
+      ],
     },
     {
       title: 'Properties',
@@ -62,10 +80,13 @@ export function MainSidebar({
         {
           title: 'Create Property',
           url: '/admin/property/add',
+          role: ['Landlord'],
+          // permission: PERMISSIONS.PROPERTY.CREATE,
         },
         {
           title: 'List Properties',
           url: '/admin/property/list',
+          permission: PERMISSIONS.PROPERTY.VIEW,
         },
       ],
     },
@@ -84,11 +105,24 @@ export function MainSidebar({
       items: [],
     },
     {
-      title: 'Maintenance and Dispute Requests',
+      title: 'Maintenance Requests',
       url: '/admin/support-maintenance',
       icon: assets.images.notificationSidebarIcon,
       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
-      items: [],
+      items: [
+        {
+          title: 'Created List',
+          url: '/admin/support-maintenance/list',
+          // role: 'Landlord',
+          permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
+        },
+        {
+          title: 'Reported Tickets',
+          url: '/admin/support-maintenance/tenant-tickets',
+          permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
+          role: ['Landlord', 'Manager'],
+        },
+      ],
     },
     {
       title: 'Bank and Settlement Tracking',
@@ -134,10 +168,115 @@ export function MainSidebar({
     },
   ];
 
-  const filteredNavItems = navItems.filter(
-    (item) =>
-      !item.permission || hasPermission(rolePermissions, item.permission)
-  );
+  // parent oriented
+  // const filteredNavItems = navItems.filter(
+  //   (item) =>
+  //     !item.permission || hasPermission(rolePermissions, item.permission)
+  // );
+
+  // parent and their items oriented
+  // const filteredNavItems = navItems
+  //   .map((item) => {
+  //     // Filter sub-items if they exist and have permission field
+  //     const hasSubItems = Array.isArray(item.items) && item.items.length > 0;
+
+  //     const filteredItems = hasSubItems
+  //       ? item.items.filter(
+  //           (subItem: any) =>
+  //             !subItem.permission ||
+  //             hasPermission(rolePermissions, subItem.permission)
+  //         )
+  //       : item.items; // keep empty [] or undefined as-is
+
+  //     return {
+  //       ...item,
+  //       items: filteredItems,
+  //     };
+  //   })
+  //   .filter((item) => {
+  //     const hasPermissionForItem =
+  //       !item.permission || hasPermission(rolePermissions, item.permission);
+
+  //     // ⚠️ Keep items with no sub-items OR with valid sub-items
+  //     const subItemsValid =
+  //       !Array.isArray(item.items) || item.items.length >= 0;
+
+  //     return hasPermissionForItem && subItemsValid;
+  //   });
+
+  // parent and their items oriented with role and permissions
+  // const filteredNavItems = navItems
+  //   .map((item) => {
+  //     const hasSubItems = Array.isArray(item.items) && item.items.length > 0;
+
+  //     const filteredItems = hasSubItems
+  //       ? item.items.filter((subItem: any) => {
+  //           // 🎯 Check permission OR role
+  //           const hasPermissionAccess =
+  //             !subItem.permission ||
+  //             hasPermission(rolePermissions, subItem.permission);
+  //           const hasRoleAccess = !subItem.role || subItem.role === userRole;
+
+  //           return hasPermissionAccess && hasRoleAccess;
+  //         })
+  //       : item.items;
+
+  //     return {
+  //       ...item,
+  //       items: filteredItems,
+  //     };
+  //   })
+  //   .filter((item: any) => {
+  //     const hasPermissionAccess =
+  //       !item.permission || hasPermission(rolePermissions, item.permission);
+  //     const hasRoleAccess = !item.role || item.role === userRole;
+
+  //     const hasVisibleSubItems =
+  //       !Array.isArray(item.items) || item.items.length >= 0;
+
+  //     return hasPermissionAccess && hasRoleAccess && hasVisibleSubItems;
+  //   });
+
+  const filteredNavItems = navItems
+    .map((item) => {
+      const hasSubItems = Array.isArray(item.items) && item.items.length > 0;
+
+      const filteredItems = hasSubItems
+        ? item.items.filter((subItem: any) => {
+            const hasPermissionAccess =
+              !subItem.permission ||
+              hasPermission(rolePermissions, subItem.permission);
+
+            const hasRoleAccess =
+              !subItem.role ||
+              (Array.isArray(subItem.role)
+                ? subItem.role.includes(userRole)
+                : subItem.role === userRole);
+
+            return hasPermissionAccess && hasRoleAccess;
+          })
+        : item.items;
+
+      return {
+        ...item,
+        items: filteredItems,
+      };
+    })
+    .filter((item: any) => {
+      const hasPermissionAccess =
+        !item.permission || hasPermission(rolePermissions, item.permission);
+
+      const hasRoleAccess =
+        !item.role ||
+        (Array.isArray(item.role)
+          ? item.role.includes(userRole)
+          : item.role === userRole);
+
+      const hasVisibleSubItems =
+        !Array.isArray(item.items) || item.items.length >= 0;
+
+      return hasPermissionAccess && hasRoleAccess && hasVisibleSubItems;
+    });
 
   const data = {
     user: {

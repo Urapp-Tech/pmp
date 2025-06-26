@@ -52,9 +52,10 @@ import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
 import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/utils/helper';
+import { getInitials, handleErrorMessage } from '@/utils/helper';
 import { usePermission } from '@/utils/hasPermission';
 import { PERMISSIONS } from '@/utils/constants';
+import SupportTicketUpdateDialog from './UpdateDialog';
 
 export type Users = {
   id: string; // UUID
@@ -77,7 +78,7 @@ export type Users = {
   isDeleted: boolean; // Soft delete status
   createdAt: string; // ISO date string for creation timestamp
   updatedAt: string; // ISO date string for update timestamp
-  status: 'Active' | 'InActive';
+  status: 'open' | 'in_progress' | 'rsolved' | 'closed';
 };
 
 const SupportMaintenance = () => {
@@ -88,7 +89,7 @@ const SupportMaintenance = () => {
   const { can } = usePermission();
 
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('open');
+  const [status, setStatus] = useState('');
   const [page, setPage] = useState(0);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
@@ -104,6 +105,7 @@ const SupportMaintenance = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -150,8 +152,8 @@ const SupportMaintenance = () => {
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
-        const { id } = row.original;
-        return (
+        const { id, status } = row.original;
+        return status === 'closed' ? null : (
           <div className="flex justify-center items-center">
             {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
               <div>
@@ -200,6 +202,8 @@ const SupportMaintenance = () => {
   ];
 
   const handleActionMenu = (type: string, actionId: string) => {
+    console.log('actionId', actionId, type);
+
     if (type === 'edit') {
       const editData = list.find((item: any) => item.id === actionId);
       setEditFormData(editData);
@@ -215,8 +219,10 @@ const SupportMaintenance = () => {
   const fetchTickets = async () => {
     try {
       const resp = await service.list(
-        userDetails?.id,
-        userDetails?.roleId,
+        userDetails?.role?.name === 'Landlord'
+          ? userDetails?.landlordId
+          : userDetails?.id,
+        userDetails?.role?.id,
         search,
         status,
         page,
@@ -330,20 +336,22 @@ const SupportMaintenance = () => {
   const createHandler = (data: any) => {
     setIsLoader(true);
     const formData = new FormData();
-    formData.append('title', data.title);
-    formData.append('description', data.description);
-    if (data.images.length) {
+    formData.append('subject', data.subject);
+    formData.append('message', data.message);
+    formData.append('senderId', data.senderId);
+    formData.append('senderRoleId', data.senderRoleId);
+    if (data?.images && data?.images?.length) {
       data.images.forEach((image: any) => {
         formData.append('images', image);
       });
     }
     service
-      .create(data)
+      .create(formData)
       .then((item) => {
         if (item.data.success) {
           setIsOpen(false);
           setIsLoader(false);
-          setList([item.data.data, ...list]);
+          setList([item.data.items, ...list]);
           let newtotal = total;
           setTotal((newtotal += 1));
         } else {
@@ -352,54 +360,53 @@ const SupportMaintenance = () => {
         }
       })
       .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
         setIsLoader(false);
       });
   };
 
-  // const updateBlogHandler = (data: any) => {
-  //   setIsLoader(true);
-  //   const blogId = data.id;
-  //   const formData = new FormData();
-  //   formData.append('title', data.title);
-  //   formData.append('description', data.description);
-  //   formData.append('deletedPrevImages', data.deletedPrevImages);
-  //   if (data.images.length) {
-  //     data.images.forEach((image: any) => {
-  //       formData.append('images', image);
-  //     });
-  //   } else {
-  //     formData.append('images', '');
-  //   }
-  //   service
-  //     .update(blogId, formData)
-  //     .then((updateItem) => {
-  //       if (updateItem.data.success) {
-  //         setEditOpen(false);
-  //         setIsLoader(false);
-  //         setList((newArr: any) => {
-  //           return newArr.map((item: any) => {
-  //             if (item.id === updateItem.data.data.id) {
-  //               item.title = updateItem.data.data.title;
-  //               item.description = updateItem.data.data.description;
-  //               item.images = updateItem.data.data.images;
-  //             }
-  //             return { ...item };
-  //           });
-  //         });
-  //         ToastHandler(updateItem.data.message);
-  //       } else {
-  //         setIsLoader(false);
-  //         ToastHandler(updateItem.data.message);
-  //       }
-  //     })
-  //     .catch((err: Error | any) => {
-  //       console.log('error: ', err);
-  //       ToastHandler(err?.response?.data?.message);
-  //       setIsLoader(false);
-  //     });
-  // };
+  const updateHandler = (data: any) => {
+    setIsLoader(true);
+    const supportId = data.id;
+    const formData = new FormData();
+    formData.append('subject', data.subject);
+    formData.append('message', data.message);
+    formData.append('senderId', data.senderId);
+    formData.append('senderRoleId', data.senderRoleId);
+    if (data?.images && data?.images?.length) {
+      data.images.forEach((image: any) => {
+        formData.append('new_images', image);
+      });
+    }
+    service
+      .update(supportId, formData)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setEditOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.map((item: any) => {
+              if (item.id === updateItem.data.items.id) {
+                item.subject = updateItem.data.items.subject;
+                item.message = updateItem.data.items.message;
+                item.images = updateItem.data.items.images;
+              }
+              return { ...item };
+            });
+          });
+          ToastHandler(updateItem.data.message);
+        } else {
+          setIsLoader(false);
+          ToastHandler(updateItem.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setIsLoader(false);
+      });
+  };
 
   return (
     <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
@@ -409,7 +416,7 @@ const SupportMaintenance = () => {
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Maintenance and Dispute Request
+              Maintenance Request
             </h2>
             <div className="flex gap-3 items-center">
               <Input
@@ -535,16 +542,25 @@ const SupportMaintenance = () => {
           callback={createHandler}
         />
       )}
-      {/* 
       {editOpen && (
-        <OfficeUserUpdateDialog
+        <SupportTicketUpdateDialog
           isLoader={isLoader}
           isOpen={editOpen}
           setIsOpen={setEditOpen}
           formData={editFormData}
-          callback={updateBlogHandler}
+          callback={updateHandler}
         />
       )}
+      {statusOpen && (
+        <SupportTicketUpdateDialog
+          isLoader={isLoader}
+          isOpen={editOpen}
+          setIsOpen={setEditOpen}
+          formData={editFormData}
+          callback={updateHandler}
+        />
+      )}
+      {/* 
       {deleteOpen && (
         <DeleteDialog
           isLoader={isLoader}
