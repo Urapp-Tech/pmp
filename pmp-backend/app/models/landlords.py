@@ -28,14 +28,13 @@ class Landlord(Base):
         TIMESTAMP(timezone=True), server_default="now()", nullable=False
     )
 
-
     # properties = relationship("Property", ...)
-    invoices = relationship(
-            "Invoice", 
-            back_populates="landlord",
-            passive_deletes=True,
-            cascade="all, delete-orphan"
-        )
+    # invoices = relationship(
+    #         "Invoice",
+    #         back_populates="landlord",
+    #         passive_deletes=True,
+    #         cascade="all, delete-orphan"
+    #     )
 
     # user = relationship("User", back_populates="landlord")
     # Relationships
