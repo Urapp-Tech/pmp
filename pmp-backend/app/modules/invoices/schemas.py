@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 from pydantic import BaseModel, UUID4, Field
 from datetime import datetime
 
@@ -17,7 +17,7 @@ class InvoiceBase(BaseModel):
     tenant_id: Optional[UUID4] = None
 
     invoice_no: Optional[str] = None
-    total_amount: Optional[str] = None
+    total_amount: Union[str, float, None] = None
     paid_amount: Optional[str] = None
     discount_amount: Optional[str] = None
     due_amount: Optional[str] = None
@@ -28,7 +28,7 @@ class InvoiceBase(BaseModel):
     due_date: Optional[str] = None
     description: Optional[str] = None
     payment_method: Optional[str] = None
-    qty: Optional[str] = None
+    qty: Union[str, float, None] = None
     created_by: Optional[str] = "machine"
     updated_by: Optional[UUID4] = None
 
@@ -43,7 +43,7 @@ class InvoiceUpdate(InvoiceBase):
 
 class InvoiceRead(InvoiceBase):
     id: UUID4
-    invoice_items: Optional[List[InvoiceItemBase]]
+    invoice_items: Optional[List[InvoiceItemBase]] = []  # ✅ default empty list
     created_at: datetime
     updated_at: datetime
 

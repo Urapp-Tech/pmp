@@ -17,6 +17,7 @@ type Props = {
   label: string;
   placeholder?: string;
   rules?: object;
+  disabled?: boolean;
 };
 
 export const SingleSelectDropDown = ({
@@ -24,6 +25,8 @@ export const SingleSelectDropDown = ({
   name,
   items,
   label,
+  disabled,
+
   placeholder = 'Select an option',
   rules,
 }: Props) => {
@@ -42,7 +45,7 @@ export const SingleSelectDropDown = ({
               <SelectGroup>
                 <SelectLabel>{label}</SelectLabel>
                 {items?.map((el) => (
-                  <SelectItem key={el.id} value={el.id}>
+                  <SelectItem disabled={disabled} key={el.id} value={el.id}>
                     {el.name}
                   </SelectItem>
                 ))}

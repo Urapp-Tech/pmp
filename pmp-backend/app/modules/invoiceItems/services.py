@@ -54,7 +54,7 @@ def create_invoice_item(db: Session, data: InvoiceItemCreate):
         invoice_id=data.invoice_id,
         amount=data.amount,
         currency=data.currency,
-        status=data.status,
+        status=data.status or "pending",
         payment_date=data.payment_date,
         payment_method=data.payment_method,
         description=data.description,

@@ -25,10 +25,11 @@ import TenantRental from './pages/tenant-rental/List';
 import ContractRequest from './pages/tenant-users/contracts-request/List';
 import ApprovedContracts from './pages/tenant-users/approved-contracts/List';
 import ReportedTicketsList from './pages/support-maintenance/ReportedList';
-
+import InvoiceReport from './pages/reports/InvoiceReport';
 // const LandlordDashboard = lazy(
 //   () => import('@/pages/dashboard/LandlordDashboard')
 // );
+
 const RoleBasedDashboard = lazy(() => import('@/pages/dashboard/index'));
 const TenantDashboard = lazy(() => import('@/pages/dashboard/TenantDashboard'));
 
@@ -202,6 +203,23 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <Receipts />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'reports',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="invoices" replace />,
+              },
+              {
+                path: 'invoices',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <InvoiceReport />
                   </Suspense>
                 ),
               },

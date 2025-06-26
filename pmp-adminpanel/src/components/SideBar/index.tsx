@@ -132,13 +132,6 @@ export function MainSidebar({
       items: [],
     },
     {
-      title: 'Financial Reports',
-      url: '/admin/pages',
-      icon: assets.images.pagesSidebarIcon,
-      permission: PERMISSIONS.FINANCIAL_REPORT.VIEW,
-      items: [],
-    },
-    {
       title: 'Receipts',
       url: '/admin/receipts',
       icon: assets.images.pagesSidebarIcon,
@@ -153,19 +146,26 @@ export function MainSidebar({
       items: [],
     },
     {
-      title: 'Rental Collection',
-      url: '/admin/rental-collection',
-      icon: assets.images.rolePermissionsSidebarIcon,
-      permission: PERMISSIONS.RENTAL_COLLECTION.VIEW,
+      title: 'Financial Reports',
+      url: '/admin/reports/invoices',
+      icon: assets.images.pagesSidebarIcon,
+      permission: PERMISSIONS.FINANCIAL_REPORT.VIEW,
       items: [],
     },
-    {
-      title: 'My Rents',
-      url: '/admin/tenant-rental',
-      icon: assets.images.rolePermissionsSidebarIcon,
-      permission: PERMISSIONS.TENANT_RENTAL.VIEW,
-      items: [],
-    },
+    // {
+    //   title: 'Rental Collection',
+    //   url: '/admin/rental-collection',
+    //   icon: assets.images.rolePermissionsSidebarIcon,
+    //   permission: PERMISSIONS.RENTAL_COLLECTION.VIEW,
+    //   items: [],
+    // },
+    // {
+    //   title: 'My Rents',
+    //   url: '/admin/tenant-rental',
+    //   icon: assets.images.rolePermissionsSidebarIcon,
+    //   permission: PERMISSIONS.TENANT_RENTAL.VIEW,
+    //   items: [],
+    // },
   ];
 
   // parent oriented

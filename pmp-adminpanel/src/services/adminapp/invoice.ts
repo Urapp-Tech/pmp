@@ -1,21 +1,21 @@
-import { INVOICE_PREFIX,TANENT_PREFIX, INVOICE_ITEM_PREFIX } from '@/utils/constants';
+import { INVOICE_PREFIX,TENANTS_PREFIX, INVOICE_ITEM_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
 import { getItem } from '@/utils/storage';
 
- const landlord: any = getItem('USER');
+ const userDetails: any = getItem('USER');
 const list = ( search: string, page: number, size: number,landlord_id?: string) => {
   return network.get(`${INVOICE_PREFIX}/`, {
-    //  params: {
- landlord_id: landlord?.landlordId || '',
+//  landlord_id: landlord?.landlordId || '',
+      user_id: userDetails?.id || '',
+      role_id:  userDetails?.role?.name || '',
     search: '' + search,
       page,
       size,
-    // },
   });
 };
 
 const create = (data: any) => {
-  data.landlord_id = landlord?.landlordId || '';
+  data.landlord_id = userDetails?.landlordId || '';
   return network.post(`${INVOICE_PREFIX}/create`, data);
 };
 
@@ -33,8 +33,8 @@ const deleteMethod = (id: string) => {
 
 
 const get_all_tanents = (id?: string) => {
-  const landlordId = id || landlord?.landlordId || '';
-  return network.get(`${TANENT_PREFIX}/by-landlord/${landlordId}`);
+  const landlordId = id || userDetails?.landlordId || '';
+  return network.get(`${TENANTS_PREFIX}/by-landlord/${landlordId}`);
 };
 
 
@@ -60,9 +60,6 @@ const getInvoiceItemById = (id: string) => {
   return network.get(`${INVOICE_ITEM_PREFIX}/${id}/`);
 };
 
-const getReport = (data: any) => {
-  return network.post(`${INVOICE_PREFIX}/report/`, data);
-};
 const approveRejectInvoiceItem = (
   id: string,
   action: 'approved' | 'rejected',
@@ -70,7 +67,7 @@ const approveRejectInvoiceItem = (
 ) => {
   const finalPayload = {
     ...payload,
-    user_id: landlord?.id || '',
+    user_id: userDetails?.id || '',
   };
 
   return network.post(`${INVOICE_ITEM_PREFIX}/${id}/${action}`, finalPayload);
