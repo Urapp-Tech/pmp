@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from app.modules.managers.routes import router as manager_router
 from app.modules.propertyUnits.routes import router as property_units_router
 from app.modules.tenants.routes import router as tenants_router
+from app.modules.dashboardActivities.routes import router as dashboard_activity_router
 from app.utils.uploader import get_file_base_url
 
 # app = FastAPI()
@@ -101,6 +102,12 @@ app.include_router(
     tenants_router,
     prefix="/admin/tenants",
     tags=["Admin - Tenants"],
+)
+
+app.include_router(
+    dashboard_activity_router,
+    prefix="/super-users/dashboard",
+    tags=["Super Admin - Dashboard"],
 )
 
 
