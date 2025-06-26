@@ -13,6 +13,6 @@ export interface InvoiceFields {
   due_date: string;
   description: string;
   payment_method: 'cash' | 'bank' | 'online' | string;
-  qty: string;
+  qty: number;
   invoice_items: any[];
 }

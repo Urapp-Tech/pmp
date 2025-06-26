@@ -8,8 +8,19 @@ import 'jspdf-autotable';
 import { TopBar } from '@/components/TopBar';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
-import invoiceService from '@/services/adminapp/invoice';
+import reportsService from '@/services/adminapp/reports';
 
+/**
+ * InvoiceReport
+ *
+ * A React component that generates an invoice report based on the date range and
+ * status filter selected by the user. The component fetches the report data from
+ * the server and displays it in a table. The user can also download the report as
+ * a PDF file.
+ *
+ * @param {object} props Component props
+ * @returns {React.ReactElement} The rendered component
+ */
 const InvoiceReport = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -28,16 +39,17 @@ const InvoiceReport = () => {
   setIsLoading(true);
   try {
     const payload = {
+      
       from_date: fromDate,
       to_date: toDate,
       status: statusFilter, // optional
     };
 
-    const res = await invoiceService.getReport(payload);
+    const res = await reportsService.getReport(payload);
     if (res?.data?.success) {
       const data = res.data.items;
       setReportList(data);
-      const total = data.reduce((sum, inv) => sum + (inv.paid_amount || 0), 0);
+  const total = data.reduce((sum, inv) => sum + Math.floor(Number(inv.total_amount) || 0), 0);
       setTotalPaid(total);
     } else {
       toast({ description: res.data.message || 'Failed to fetch report' });
@@ -58,10 +70,10 @@ const InvoiceReport = () => {
       body: reportList.map((inv) => [
         inv.invoice_no,
         inv.payment_date || inv.invoice_date,
-        `₹ ${inv.paid_amount}`,
+        ` ${inv.paid_amount}`,
       ]),
     });
-    doc.text(`Total Collection: ₹ ${totalPaid}`, 14, doc.lastAutoTable.finalY + 10);
+    doc.text(`Total Collection:  ${totalPaid}`, 14, doc.lastAutoTable.finalY + 10);
     doc.save('invoice_report.pdf');
   };
 
@@ -91,8 +103,8 @@ const InvoiceReport = () => {
           >
             <option value="">All Status</option>
             <option value="paid">Paid</option>
-            <option value="pending">Pending</option>
-            <option value="partial">Partial</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="overdue">Overdue</option>
           </select>
           <Button onClick={fetchReport}>Generate</Button>
           {reportList.length > 0 && (
@@ -119,18 +131,26 @@ const InvoiceReport = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reportList.map((inv) => (
-                    <TableRow key={inv.id}>
-                      <TableCell>{inv.invoice_no}</TableCell>
-                      <TableCell>{inv.payment_date || inv.invoice_date}</TableCell>
-                      <TableCell>₹ {inv.paid_amount}</TableCell>
-                      <TableCell>{inv.status}</TableCell>
+                  {reportList.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-4 text-gray-500">
+                        No invoices found for selected filter.
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    reportList.map((inv) => (
+                      <TableRow key={inv.id}>
+                        <TableCell>{inv.invoice_no}</TableCell>
+                        <TableCell>{inv.invoice_date || inv.invoice_date}</TableCell>
+                        <TableCell> {inv.total_amount || 0}</TableCell>
+                        <TableCell>{inv.status}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
               <div className="text-right mt-4 font-semibold text-lg">
-                Total Collection: ₹ {totalPaid}
+                Total Collection:  {totalPaid}
               </div>
             </>
           )}

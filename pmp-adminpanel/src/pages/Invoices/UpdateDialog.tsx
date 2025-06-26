@@ -53,14 +53,19 @@ const InvoiceUpdateDialog = ({
         setContracts(res.data.items);
         const mapped = res.data.items.map((t: any) => ({
           id: t.id,
-          name: t.contract_number,
+          name: t.contractNumber,
         }));
         setTenants(mapped);
       }
     };
     fetchTenants();
   }, []);
-
+// useEffect(() => {
+//         const selectedTenant:any = contracts.find((t:any) => t.id === form.watch('tenant_id'));
+//         if (selectedTenant) {
+//           setValue('contract_number', selectedTenant.contractNumber);
+//         }
+//   },[form.watch('tenant_id')])
   const onSubmit = (data: InvoiceFields) => {
     callback({ ...data, id: formData.id });
   };
@@ -78,21 +83,16 @@ const InvoiceUpdateDialog = ({
               <div className="form-group w-full flex ">
                 <FormControl className="m-1 w-full">
                   <div>
-                    <FormLabel>Contract No</FormLabel>
+                    <FormLabel>Contract No  </FormLabel>
+                     {/* <Input {...register('contract_number', { required: 'Required' })} /> */}
                     <SingleSelectDropDown
                       name="tenant_id"
                       items={tenants}
                       control={control}
-                      value={form.watch('tenant_id') || ''}
-                      onChange={(val) => {
-                        setValue('tenant_id', val, { shouldValidate: true });
-                        const selectedTenant = contracts.find(t => t.id === val);
-                        if (selectedTenant) {
-                          setValue('total_amount', selectedTenant.rent_price);
-                          setValue('qty', selectedTenant.month);
-                          setValue('due_date', selectedTenant.rentPayDay);
-                        }
-                      }}
+                      disabled={true}
+
+                      label='Contract No'
+
                       placeholder="Select Contract No"
                     />
                   </div>

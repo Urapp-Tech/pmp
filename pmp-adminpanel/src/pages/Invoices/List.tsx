@@ -35,11 +35,12 @@ import InvoiceItemModal from './InvoiceItemModal';
 import { InvoiceFields } from '@/interfaces/invoice.interface';
 import InvoiceItemActionDialog from './InvoiceItemActionDialog';
 
-import {  usePermission } from '@/utils/hasPermission';
+import {  hasPermission, usePermission } from '@/utils/hasPermission';
 import { PERMISSIONS } from '@/utils/constants';
 import InvoiceItemCreateDialog from './InvoiceItemCreateDialog';
 
 const Invoices = () => {
+  
   const { toast } = useToast();
 
   const [search, setSearch] = useState('');
@@ -161,8 +162,8 @@ const refreshData = () => {
 const columns = React.useMemo<ColumnDef<InvoiceFields>[]>(() => [
   { accessorKey: 'invoice_no', header: 'Invoice' },
   { accessorKey: 'total_amount', header: 'Total' },
-  { accessorKey: 'paid_amount', header: 'Paid' },
-  { accessorKey: 'payment_date', header: 'Payment Date' },
+  // { accessorKey: 'paid_amount', header: 'Paid' },
+  // { accessorKey: 'payment_date', header: 'Payment Date' },
   { accessorKey: 'due_date', header: 'Due' },
   { accessorKey: 'status', header: 'Status' },
   { accessorKey: 'invoice_date', header: 'Invoice Date' },
@@ -194,6 +195,9 @@ const columns = React.useMemo<ColumnDef<InvoiceFields>[]>(() => [
 
           {/* Add Icon (if permission allowed) */}
           {can(PERMISSIONS.INVOICE.UPDATE) && !hasPending  && (
+            <>
+            {console.log(hasPending)}
+           
             <Plus
               className="cursor-pointer text-green-600 w-[20px] h-[20px]"
               onClick={() => {
@@ -202,7 +206,7 @@ const columns = React.useMemo<ColumnDef<InvoiceFields>[]>(() => [
     setSelectedInvoiceItemId(null); // null for new item
     setShowCreateItemModal(true); // ✅ Correct modal trigger
   }}
-            />
+            /> </>
           )}
         </div>
       );

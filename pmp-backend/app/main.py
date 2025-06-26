@@ -20,8 +20,8 @@ from app.modules.tenants.routes import router as tenants_router
 from app.modules.invoiceItems.routes import router as invoice_item_router
 from app.utils.uploader import get_file_base_url
 from app.modules.dashboardActivities.routes import router as dashboard_activity_router
+from app.modules.reports.routes import router as report_router
 
-# app = FastAPI()
 app = FastAPI(
     docs_url="/docs",  # disables Swagger UI (/docs)
     # openapi_url=None       # disables OpenAPI schema (/openapi.json)
@@ -119,6 +119,11 @@ app.include_router(
     dashboard_activity_router,
     prefix="/super-users/dashboard",
     tags=["Super Admin - Dashboard"],
+)
+app.include_router(
+    report_router,
+    prefix="/admin/reports",
+    tags=["Admin - Reports"],
 )
 
 app.add_middleware(

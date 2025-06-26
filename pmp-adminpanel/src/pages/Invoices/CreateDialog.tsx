@@ -39,7 +39,11 @@ const InvoiceCreateDialog = ({
 
   const [contracts, setContracts] = useState<[]>([]);
 
-
+const cycleMap: Record<string, number> = {
+  monthly: 1,
+  quarterly: 3,
+  yearly: 12,
+};
 
 /**
  * Handles the form submission for creating an invoice.
@@ -58,11 +62,11 @@ const InvoiceCreateDialog = ({
      const fetchTenants = async () => {
       const res = await service.get_all_tanents();
       if (res?.data?.success) {
-        // console.log('res', res);
+        console.log('res', res);
         setContracts(res.data.items);
         const mapped = res.data.items.map((t: any) => ({
           id: t.id,
-          name: t.contract_number,
+          name: t.contractNumber,
         }));
         setTenants(mapped);
       }
@@ -70,6 +74,24 @@ const InvoiceCreateDialog = ({
 
     fetchTenants();
   }, []);
+
+  useEffect(() => {
+        const selectedTenant:any = contracts.find((t:any) => t.id === form.watch('tenant_id'));
+        form.setValue('total_amount', selectedTenant?.rentPrice, { shouldValidate: true });
+        const cycleRaw = selectedTenant?.paymentCycle || 'monthly';
+        const cycle = cycleRaw.toLowerCase(); 
+        const cycleMonths = cycleMap[cycle] || 1; 
+        form.setValue('qty', cycleMonths, { shouldValidate: true });
+        const rentPayDay = selectedTenant?.rentPayDay || 1; // fallback to 1st of month
+        const nextDate = new Date();
+        nextDate.setMonth(nextDate.getMonth() + cycleMonths);
+        nextDate.setDate(rentPayDay);
+        const formattedDate = nextDate.toISOString().slice(0, 10); // "2025-09-05"
+        form.setValue('due_date', formattedDate, { shouldValidate: true });
+  },[form.watch('tenant_id')])
+
+  // console.log("tenants", tenants);
+  
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -87,29 +109,19 @@ const InvoiceCreateDialog = ({
 
         <FormControl className="m-1 w-full">
                   <div>
-            <FormLabel>Tenant Name</FormLabel>
+            <FormLabel>Contract Number</FormLabel>
            <SingleSelectDropDown
-      name="tenant_id"
-      items={tenants}
-      control={control}
-      value={form.watch('tenant_id') || ''} 
-      onChange={(val) => {
-        form.setValue('tenant_id', val, { shouldValidate: true });
-        const selectedTenant = contracts.find(t => t.id === val);
-        form.setValue('total_amount', selectedTenant?.rent_price, { shouldValidate: true });
-        form.setValue('qty', selectedTenant?.month, { shouldValidate: true });
-        form.setValue('due_date', selectedTenant?.rentPayDay, { shouldValidate: true });
-        form.setValue('due_date', selectedTenant?.rentPayDay, { shouldValidate: true });
-      }}
-      placeholder="Select Tenant"
-    />
+                      name="tenant_id"
+                      items={tenants}
+                      control={control}
+                      // value={form.watch('tenant_id') || ''} 
+                      placeholder="Select Contract Number" label={'Contract Number'}    />
           </div>
         </FormControl>
-        {form.watch('tenant_id') }
         <FormControl className="m-1 w-full">
           <div>
             <FormLabel>Total Amount</FormLabel>
-            <Input {...register('total_amount', { required: 'Required' })} />
+            <Input readOnly  {...register('total_amount', { required: 'Required' })} />
           </div>
         </FormControl>
       </div>
@@ -143,16 +155,15 @@ const InvoiceCreateDialog = ({
           <div>
             <FormLabel>Payment Method</FormLabel>
             <SingleSelectDropDown
-              control={control}
-              name="payment_method"
-              items={[
-                { name: 'Cash', id: 'cash' },
-                { name: 'Bank', id: 'bank' },
-                { name: 'Online', id: 'online' },
-              ]}
-              placeholder="Select Method"
-              rules={{ required: 'Required' }}
-            />
+                      control={control}
+                      name="payment_method"
+                      items={[
+                        { name: 'Cash', id: 'cash' },
+                        { name: 'Bank', id: 'bank' },
+                        { name: 'Online', id: 'online' },
+                      ]}
+                      placeholder="Select Method"
+                      rules={{ required: 'Required' }} label={'Payment Method'}            />
           </div>
         </FormControl>
       
@@ -163,15 +174,15 @@ const InvoiceCreateDialog = ({
         
           <FormControl className="m-1 w-full">
           <div>
-            <FormLabel>Quantity</FormLabel>
-            <Input {...register('qty')} />
+            <FormLabel>Month Qty</FormLabel>
+            <Input type="number" readOnly {...register('qty')} />
           </div>
         </FormControl>
 
         <FormControl className="m-1 w-full">
           <div>
             <FormLabel>Due Date</FormLabel>
-            <Input type="date" {...register('due_date')} />
+            <Input type="date" readOnly {...register('due_date')} />
           </div>
         </FormControl>
         
