@@ -10,8 +10,11 @@ const loginService = (userData: { email: string; password: string }) => {
 const systemConfig = (domain: string) => {
   return network.get(`get/${domain}`, {}, 'system');
 };
-
+const activity = () => {
+  return network.get(`dashboard/activity-summary`, {}, 'super');
+};
 export default {
   loginService,
   systemConfig,
+  activity,
 };

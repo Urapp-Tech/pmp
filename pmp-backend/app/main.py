@@ -19,6 +19,7 @@ from app.modules.propertyUnits.routes import router as property_units_router
 from app.modules.tenants.routes import router as tenants_router
 from app.modules.invoiceItems.routes import router as invoice_item_router
 from app.utils.uploader import get_file_base_url
+from app.modules.dashboardActivities.routes import router as dashboard_activity_router
 
 # app = FastAPI()
 app = FastAPI(
@@ -114,7 +115,11 @@ app.include_router(
     prefix="/admin/tenants",
     tags=["Admin - Tenants"],
 )
-
+app.include_router(
+    dashboard_activity_router,
+    prefix="/super-users/dashboard",
+    tags=["Super Admin - Dashboard"],
+)
 
 app.add_middleware(
     CORSMiddleware,

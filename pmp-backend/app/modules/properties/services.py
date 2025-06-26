@@ -337,46 +337,6 @@ def get_property_units(
     }
 
 
-# def get_properties(
-#     db: Session,
-#     landlord_id: Optional[str] = None,
-#     page: int = 1,
-#     size: int = 20,
-#     search: Optional[str] = None,
-# ):
-#     query = (
-#         db.query(PropertyModel)
-#         .options(joinedload(PropertyModel.units))
-#         .filter(PropertyModel.landlord_id == landlord_id)
-#     )
-
-#     if search:
-#         search_term = f"%{search}%"
-#         query = query.filter(
-#             PropertyModel.name.ilike(search_term)
-#             | PropertyModel.address.ilike(search_term)
-#         )
-
-#     total = query.count()
-#     # results =  query.order_by(PropertyModel.created_at.desc()).offset((page - 1) * size).limit(size).all()
-#     properties = (
-#         query.order_by(PropertyModel.created_at.desc())
-#         .offset((page - 1) * size)
-#         .limit(size)
-#         .all()
-#     )
-
-#     # Convert to list of PropertyOut
-#     results = [PropertyOut.model_validate(p) for p in properties]
-#     return {
-#         "success": True,
-#         "total": total,
-#         "page": page,
-#         "size": size,
-#         "items": results,
-#     }
-
-
 def get_properties(
     db: Session,
     user_id: Optional[str] = None,
@@ -385,7 +345,7 @@ def get_properties(
     size: int = 20,
     search: Optional[str] = None,
 ):
-    # Super Admin: fetch all
+   # Super Admin: fetch all
     if role_id == "Super Admin":
         query = db.query(PropertyModel).options(selectinload(PropertyModel.units))
 
@@ -413,7 +373,6 @@ def get_properties(
             "size": size,
             "items": results,
         }
-
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.landlord_id:
         return {
@@ -494,6 +453,7 @@ def get_properties(
         "size": size,
         "items": results,
     }
+
 
 
 def delete_property(db: Session, property_id: str):

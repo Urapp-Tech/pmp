@@ -18,5 +18,6 @@ export const OPERATON_CAT_ITEM_PREFIX = 'operation-category-item';
 export const OPERATON_REPORT_PREFIX = 'operation-report';
 export const ROLE_PREFIX = 'roles';
 export const BLOG_PREFIX = 'blog';
-
+export const PROPERTY_PREFIX = 'properties';
 export const imageAllowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+export const PROPERTY_UNIT_PREFIX = 'property-units';

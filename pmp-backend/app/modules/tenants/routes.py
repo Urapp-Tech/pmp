@@ -21,7 +21,6 @@ from app.modules.tenants.schemas import (
 from app.modules.tenants.services import (
     create_contract_for_user,
     approve_contract_unit,
-    list_contracts_by_approval,
     select_list_contracts_by_landlord,
     list_contracts_by_landlord,
 )

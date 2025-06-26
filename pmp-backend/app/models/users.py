@@ -37,7 +37,7 @@ class User(Base):
         TIMESTAMP(timezone=True), server_default="now()", nullable=False
     )
 
-    # landlord = relationship("Landlord", backref="users")
+    landlord = relationship("Landlord", backref="users")
     role = relationship("Role", backref="users")
     security_logs = relationship("SecurityLog", back_populates="user")
     # invoice_items = relationship("InvoiceItem", back_populates="updated_user", passive_deletes=True)

@@ -1,7 +1,7 @@
 """invoices
 
 Revision ID: b4f10c41a3c1
-Revises: 6678535c7459
+Revises: 04a398215b59
 Create Date: 2025-06-24 07:52:48.197594
 
 """
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = 'b4f10c41a3c1'
-down_revision: Union[str, None] = '6678535c7459'
+down_revision: Union[str, None] = '04a398215b59'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

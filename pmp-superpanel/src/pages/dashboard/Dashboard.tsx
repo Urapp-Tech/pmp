@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { TopBar } from '@/components/TopBar';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { Label } from '@/components/ui/label';
-import dashboardService from '@/services/adminapp/dashboard';
+import dashboardService from '@/services/adminapp/admin';
 import { MonitorCheck, Monitor, Users } from 'lucide-react';
 
 function Dashboard() {
@@ -11,9 +11,9 @@ function Dashboard() {
   useEffect(() => {
     const fetchActivity = async () => {
       const activity = await dashboardService.activity();
-      if (activity.data.success) {
-        setData(activity.data.data);
-      }
+      // if (activity.data.success) {
+      setData(activity.data);
+      // }
     };
     fetchActivity();
   }, []);
@@ -30,7 +30,7 @@ function Dashboard() {
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
-                  {/* {data?.totalActiveCabins} */} 2
+                  {data?.active_landlords}
                 </span>
               </div>
             </div>
@@ -40,7 +40,7 @@ function Dashboard() {
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
-                  {/* {data?.totalActiveAssignedCabins} */} 1
+                  {data?.active_tickets}
                 </span>
               </div>
             </div>
@@ -50,7 +50,7 @@ function Dashboard() {
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
-                  {/* {data?.totalActiveEmployees} */} 3
+                  {data?.active_properties}
                 </span>
               </div>
             </div>
