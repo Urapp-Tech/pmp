@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
+from pydantic import UUID4
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import Optional
@@ -14,15 +15,15 @@ from app.modules.invoices.services import (
     delete_invoice
 )
 
-router = APIRouter(prefix="/invoices", tags=["Invoices"])
+router = APIRouter()
 
 
 @router.get("/", response_model=PaginatedInvoiceResponse)
 def list_invoices(
-    landlord_id: Optional[UUID] = Query(None),
+    landlord_id: Optional[UUID4] = None,
     search: Optional[str] = Query(""),
-    page: int = 1,
-    size: int = 10,
+    page: int = Query(1, ge=1),  # 👈 Only allow page 1 or greater
+    size: int = Query(10, ge=1), # 👈 prevent size=0 or negative
     db: Session = Depends(get_db),
 ):
     skip = (page - 1) * size
@@ -46,7 +47,7 @@ def create(invoice: InvoiceCreate, db: Session = Depends(get_db)):
         }
 
 @router.get("/{invoice_id}", response_model=InvoiceResponse)
-def read(invoice_id: UUID, db: Session = Depends(get_db)):
+def read(invoice_id: UUID4, db: Session = Depends(get_db)):
     invoice = get_invoice(db, invoice_id)
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
@@ -58,7 +59,7 @@ def read(invoice_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.post("/update/{invoice_id}", response_model=InvoiceResponse)
-def update(invoice_id: UUID, invoice_data: InvoiceUpdate, db: Session = Depends(get_db)):
+def update(invoice_id: UUID4, invoice_data: InvoiceUpdate, db: Session = Depends(get_db)):
     invoice = update_invoice(db, invoice_id, invoice_data)
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
@@ -70,7 +71,7 @@ def update(invoice_id: UUID, invoice_data: InvoiceUpdate, db: Session = Depends(
 
 
 @router.post("/delete/{invoice_id}", response_model=InvoiceResponse)
-def delete(invoice_id: UUID, db: Session = Depends(get_db)):
+def delete(invoice_id: UUID4, db: Session = Depends(get_db)):
     if not delete_invoice(db, invoice_id):
         raise HTTPException(status_code=404, detail="Invoice not found")
     return {

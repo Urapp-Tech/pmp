@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from uuid import uuid4
 
+
 from app.db.database import Base  # Adjust import as needed
 
 
@@ -35,5 +36,7 @@ class Invoice(Base):
     # Relationships (optional, if models exist)
     landlord = relationship("Landlord", back_populates="invoices", passive_deletes=True)
     tenant = relationship("Tenant", back_populates="invoices", passive_deletes=True)
-    updated_user = relationship("User", back_populates="invoice_items", foreign_keys=[updated_by])
+    # updated_user = relationship("User", back_populates="invoice_items", foreign_keys=[updated_by])
     items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
+    invoice_items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
+    

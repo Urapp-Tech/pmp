@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Query
+from pydantic import UUID4
 from sqlalchemy.orm import Session
 from app.modules.tenants.schemas import (
     ContractCreate,
@@ -10,6 +11,7 @@ from app.modules.tenants.services import (
     create_contracts_for_user,
     approve_contract_unit,
     list_contracts_by_approval,
+    select_list_contracts_by_landlord,
 )
 from app.db.database import get_db
 from typing import List, Optional
@@ -62,3 +64,10 @@ def get_pending_contracts(
     return list_contracts_by_approval(
         db, is_approved=False, page=page, size=size, search=search
     )
+
+@router.get("/by-landlord/{landlord_id}")
+def get_contracts_by_landlord(
+    landlord_id: UUID4,
+    db: Session = Depends(get_db),
+):
+    return select_list_contracts_by_landlord(db, landlord_id)

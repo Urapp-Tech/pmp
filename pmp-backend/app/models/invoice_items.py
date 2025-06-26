@@ -27,4 +27,4 @@ class InvoiceItem(Base):
 
     # Relationships
     invoice = relationship("Invoice", back_populates="items", passive_deletes=True)
-    updated_user = relationship("User", back_populates="invoice_items", foreign_keys=[updated_by])
+    # updated_user = relationship("User", back_populates="invoice_items", foreign_keys=[updated_by])

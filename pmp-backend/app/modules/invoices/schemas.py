@@ -2,12 +2,21 @@ from typing import Optional, List
 from pydantic import BaseModel, UUID4, Field
 from datetime import datetime
 
+class InvoiceItemBase(BaseModel):
+    amount: Optional[str]
+    currency: Optional[str]
+    status: Optional[str]
+    payment_date: Optional[str]
+    payment_method: Optional[str]
+    file: Optional[str]
+    description: Optional[str]
+    remarks: Optional[str]
 
 class InvoiceBase(BaseModel):
     landlord_id: UUID4|str = Field(..., example="e8c31774-b165-43f6-9a51-a6cf3a6e57f9")
     tenant_id: Optional[UUID4] = None
 
-    # invoice_no: Optional[str] = None
+    invoice_no: Optional[str] = None
     total_amount: Optional[str] = None
     paid_amount: Optional[str] = None
     discount_amount: Optional[str] = None
@@ -34,6 +43,7 @@ class InvoiceUpdate(InvoiceBase):
 
 class InvoiceRead(InvoiceBase):
     id: UUID4
+    invoice_items: Optional[List[InvoiceItemBase]]
     created_at: datetime
     updated_at: datetime
 

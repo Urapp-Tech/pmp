@@ -1,322 +1,203 @@
 import {
   Dialog,
   DialogContent,
-  //   DialogTrigger,
-  DialogFooter,
-  //   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
+  FormField,
+  FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-// import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Fields } from '@/interfaces/back-office-user.interface';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import DragDropFile from '@/components/DragDropImgFile';
-import { cn } from '@/lib/utils';
-import { toast } from '@/hooks/use-toast';
-import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
-import service from '@/services/adminapp/role-permissions';
+import { useState } from 'react';
+import { format } from 'date-fns';
+import invoiceService from '@/services/adminapp/invoice';
 
-type Props = {
-  isLoader: boolean;
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  callback: (...args: any[]) => any;
-};
-
-const OfficeUserCreateDialog = ({
+const InvoiceItemCreateDialog = ({
   isOpen,
   setIsOpen,
-  callback,
-  isLoader,
-}: Props) => {
-  const form = useForm<Fields>();
-
-  const ToastHandler = (text: string) => {
-    return toast({
-      description: text,
-      className: cn(
-        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
-      ),
-      style: {
-        backgroundColor: '#FF5733',
-        color: 'white',
-        zIndex: 9999,
-      },
-    });
-  };
-
-  const [file, setFile] = useState<any>(null);
-  const [selectedImg, setSelectedImg] = useState<any>(null);
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [roleLov, setRoleLov] = useState([]);
+  invoiceId,
+  onCreated,
+}: {
+  isOpen: boolean;
+  setIsOpen: (val: boolean) => void;
+  invoiceId: string;
+  onCreated: () => void;
+}) => {
+  const [file, setFile] = useState<File | null>(null);
+  const form = useForm({
+    defaultValues: {
+      amount: '',
+      payment_method: '',
+      currency: '$',
+      payment_date: format(new Date(), 'yyyy-MM-dd'),
+      description: '',
+      remarks: '',
+    },
+  });
 
   const {
     register,
     handleSubmit,
-    getValues,
-    control,
     formState: { errors },
+    reset,
   } = form;
 
-  const onSubmit = async (data: Fields) => {
-    if (file) data.avatar = file;
-    data.userType = 'USER';
-    callback(data);
-    // console.log('s', data);
-  };
+  const onSubmit = async (data: any) => {
+    if (!invoiceId) return;
+    const formData = new FormData();
+    formData.append('invoice_id', invoiceId);
+    formData.append('amount', data.amount);
+    formData.append('payment_method', data.payment_method);
+    formData.append('currency', data.currency);
+    formData.append('payment_date', data.payment_date);
+    formData.append('description', data.description);
+    formData.append('remarks', data.remarks);
+    formData.append('status', 'pending');
+    if (file) formData.append('file', file);
 
-  const togglePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
-  };
-
-  const fetchRoleLov = async () => {
     try {
-      const roles = await service.lov();
-      if (roles.data.success) {
-        const lov = roles.data.data.map((el: any) => {
-          return {
-            name: el.name,
-            id: el.id,
-          };
-        });
-        setRoleLov(lov);
-      } else {
-        console.log('error: ', roles.data.message);
+      const res = await invoiceService.createInvoiceItem(formData);
+      if (res?.data?.success) {
+        onCreated();
+        reset();
+        setFile(null);
+        setIsOpen(false);
       }
-    } catch (error: Error | unknown) {
-      console.log('error: ', error);
+    } catch (err) {
+      console.error('Error creating invoice item', err);
     }
   };
 
-  useEffect(() => {
-    fetchRoleLov();
-  }, []);
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent
-        className="sm:max-w-[600px] cs-dialog-box"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add New Admin User</DialogTitle>
+          <DialogTitle>Create Invoice Item</DialogTitle>
         </DialogHeader>
+
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="custom-form-section">
-              <div className="form-group w-full flex gap-3">
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel
-                      htmlFor="firstName"
-                      className="text-sm font-medium"
-                    >
-                      First Name
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="firstName"
-                      placeholder="john"
-                      type="text"
-                      {...register('firstName', {
-                        required: 'Please enter your first name',
-                      })}
-                    />
-                    {errors.firstName && (
-                      <FormMessage>*{errors.firstName.message}</FormMessage>
-                    )}
-                  </div>
-                </FormControl>
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel
-                      htmlFor="lastName"
-                      className="text-sm font-medium"
-                    >
-                      Last Name
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="lastName"
-                      placeholder="doe"
-                      type="text"
-                      {...register('lastName')}
-                    />
-                    {/* {errors.lastName && (
-                      <FormMessage>*{errors.lastName.message}</FormMessage>
-                    )} */}
-                  </div>
-                </FormControl>
-              </div>
-              <div className="form-group w-full flex gap-3">
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel htmlFor="email" className="text-sm font-medium">
-                      Eamil
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="email"
-                      placeholder="johndoe@gmail.com"
-                      type="text"
-                      {...register('email', {
-                        required: 'Please enter your email',
-                      })}
-                    />
-                    {errors.email && (
-                      <FormMessage>*{errors.email.message}</FormMessage>
-                    )}
-                  </div>
-                </FormControl>
-                {/* <div className="form-group w-full"> */}
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel
-                      htmlFor="password"
-                      className="text-sm font-medium"
-                    >
-                      Password
-                    </FormLabel>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        placeholder="********"
-                        type={passwordVisible ? 'text' : 'password'}
-                        className="text-sm pr-10 mt-2"
-                        {...register('password', {
-                          required: 'Please enter your password.',
-                        })}
-                      />
-                      <Button
-                        variant="ghost"
-                        type="button"
-                        className="bg-transparent absolute inset-y-0 right-0 flex items-center pr-3 mt-[11px]"
-                        onClick={togglePasswordVisibility}
-                      >
-                        {passwordVisible ? (
-                          <EyeOff color="black" />
-                        ) : (
-                          <Eye color="black" />
-                        )}
-                      </Button>
-                      {errors.password && (
-                        <FormMessage>*{errors.password.message}</FormMessage>
-                      )}
-                    </div>
-                  </div>
-                </FormControl>
-                {/* </div> */}
-              </div>
-              <div className="form-group w-full flex items-center justify-center gap-3 m-1">
-                <div className="w-full">
-                  <FormLabel
-                    htmlFor="phone"
-                    className="text-sm font-medium my-2 block"
-                  >
-                    Roles
-                  </FormLabel>
-                  <SingleSelectDropDown
-                    control={control}
-                    name="role"
-                    label=""
-                    items={roleLov}
-                    placeholder="Choose an option"
-                    rules={{ required: 'This field is required' }}
-                  />
-                </div>
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel htmlFor="phone" className="text-sm font-medium">
-                      Phone
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="phone"
-                      placeholder="876543215"
-                      type="number"
-                      {...register('phone', {
-                        required: 'Please enter your phone',
-                      })}
-                    />
-                    {errors.phone && (
-                      <FormMessage>*{errors.phone.message}</FormMessage>
-                    )}
-                  </div>
-                </FormControl>
-              </div>
-              <FormControl className="m-1 w-full">
-                <div className="">
-                  <FormLabel htmlFor="address" className="text-sm font-medium">
-                    Address
-                  </FormLabel>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormControl className="w-full">
+                <div>
+                  <FormLabel className="text-sm font-medium">Amount</FormLabel>
                   <Input
-                    className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                    id="address"
-                    placeholder="Street 55"
-                    type="text"
-                    {...register('address')}
+                    type="number"
+                    placeholder="200"
+                    {...register('amount', {
+                      required: 'Amount is required',
+                    })}
+                    className="mt-2 text-sm"
                   />
-                  {errors.address && (
-                    <FormMessage>*{errors.address.message}</FormMessage>
+                  {errors.amount && (
+                    <FormMessage>*{errors.amount.message}</FormMessage>
                   )}
                 </div>
               </FormControl>
-              <div>
-                <div className="flex justify-between">
-                  <FormLabel
-                    htmlFor="address"
-                    className="text-sm font-medium my-3"
-                  >
-                    Upload Avatar
-                  </FormLabel>
+
+              <FormControl className="w-full">
+                <div>
+                  <FormLabel className="text-sm font-medium">Currency</FormLabel>
+                  <Input
+                    placeholder="$"
+                    {...register('currency')}
+                    className="mt-2 text-sm"
+                  />
                 </div>
-                <div className="grid grid-cols-12 items-center">
-                  <div className="col-span-5 mb-1">
-                    <DragDropFile
-                      setFile={setFile}
-                      setImg={setSelectedImg}
-                      setIsNotify={ToastHandler}
-                    />
-                  </div>
-                  {selectedImg ? (
-                    <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
-                      <img
-                        className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                        src={selectedImg}
-                        alt="Shop Logo"
-                      />
-                    </div>
-                  ) : getValues('avatar') ? (
-                    <div className="col-span-6 flex items-center justify-center  xl:justify-center 2xl:justify-start">
-                      <img
-                        className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                        src={getValues('avatar')}
-                        alt="Shop Logo"
-                      />
-                    </div>
-                  ) : null}
+              </FormControl>
+
+              <FormControl className="w-full">
+                <div>
+                  <FormLabel className="text-sm font-medium">Payment Method</FormLabel>
+                  <Input
+                    placeholder="Cash / Bank"
+                    {...register('payment_method', {
+                      required: 'Payment method is required',
+                    })}
+                    className="mt-2 text-sm"
+                  />
+                  {errors.payment_method && (
+                    <FormMessage>*{errors.payment_method.message}</FormMessage>
+                  )}
                 </div>
-              </div>
-              <DialogFooter className="mt-3">
-                <Button
-                  disabled={isLoader}
-                  type="submit"
-                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
-                >
-                  {isLoader && <Loader2 className="animate-spin" />} Add
-                </Button>
-              </DialogFooter>
+              </FormControl>
+
+              <FormControl className="w-full">
+                <div>
+                  <FormLabel className="text-sm font-medium">Payment Date</FormLabel>
+                  <Input
+                    type="date"
+                    {...register('payment_date', {
+                      required: 'Payment date is required',
+                    })}
+                    className="mt-2 text-sm"
+                  />
+                  {errors.payment_date && (
+                    <FormMessage>*{errors.payment_date.message}</FormMessage>
+                  )}
+                </div>
+              </FormControl>
             </div>
+
+            <FormControl className="w-full">
+              <div>
+                <FormLabel className="text-sm font-medium">Description</FormLabel>
+                <Textarea
+                  placeholder="Description of payment..."
+                  {...register('description')}
+                  className="mt-2 text-sm"
+                />
+              </div>
+            </FormControl>
+
+            <FormControl className="w-full">
+              <div>
+                <FormLabel className="text-sm font-medium">Remarks</FormLabel>
+                <Textarea
+                  placeholder="Remarks (optional)"
+                  {...register('remarks')}
+                  className="mt-2 text-sm"
+                />
+              </div>
+            </FormControl>
+
+            <FormControl className="w-full">
+              <div>
+                <FormLabel className="text-sm font-medium">Attachment (optional)</FormLabel>
+                <Input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) setFile(e.target.files[0]);
+                  }}
+                  className="mt-2 text-sm"
+                />
+              </div>
+            </FormControl>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsOpen(false);
+                  reset();
+                  setFile(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Submit</Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
@@ -324,4 +205,4 @@ const OfficeUserCreateDialog = ({
   );
 };
 
-export default OfficeUserCreateDialog;
+export default InvoiceItemCreateDialog;

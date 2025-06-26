@@ -49,3 +49,12 @@ class Tenant(Base):
     is_approved = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", backref="tenants")
+    property_unit = relationship("PropertyUnit", backref="tenants")
+    invoices = relationship(
+        "Invoice",
+        back_populates="tenant",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )

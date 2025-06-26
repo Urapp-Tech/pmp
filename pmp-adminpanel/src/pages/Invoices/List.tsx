@@ -1,8 +1,6 @@
 import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { SidebarInset } from '@/components/ui/sidebar';
-
-import usersService from '@/services/adminapp/users';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -15,26 +13,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  ArrowUpDown,
-  Loader2,
-  // ChevronDown,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-} from 'lucide-react';
+import { ArrowUpDown, Loader2, Pencil, Trash2,Plus,Eye  } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-// import { Checkbox } from '@/components/ui/checkbox';
 import DeleteDialog from '@/components/DeletePopup';
 import { Paginator } from '@/components/Paginator';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  //   DropdownMenuLabel,
-  //   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -46,528 +28,368 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import service from '@/services/adminapp/invoice';
-import { getItem } from '@/utils/storage';
-import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
+import invoiceService from '@/services/adminapp/invoice';
 import InvoiceCreateDialog from './CreateDialog';
 import InvoiceUpdateDialog from './UpdateDialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/utils/helper';
+import InvoiceItemModal from './InvoiceItemModal';
+import { InvoiceFields } from '@/interfaces/invoice.interface';
+import InvoiceItemActionDialog from './InvoiceItemActionDialog';
 
-export type Users = {
-  id: string; // UUID
-  tenant: string; // UUID representing the tenant ID
-  firstName: string;
-  lastName: string;
-  username: string; // Email is being used as a username
-  email: string; // Email address of the user
-  password: string; // Encrypted password (bcrypt hash)
-  phone: string; // Phone number of the user
-  country: string | null; // Country information, nullable
-  state: string | null; // State information, nullable
-  city: string | null; // City information, nullable
-  zipCode: string | null; // Zip code, nullable
-  role: string | null; // User role, nullable
-  avatar: string | null; // Avatar URL or path, nullable
-  address: string; // Address of the user
-  userType: 'USER' | 'ADMIN'; // Enum type to restrict values
-  isActive: boolean; // Active status of the user
-  isDeleted: boolean; // Soft delete status
-  createdAt: string; // ISO date string for creation timestamp
-  updatedAt: string; // ISO date string for update timestamp
-  status: 'Active' | 'InActive';
-};
+import {  usePermission } from '@/utils/hasPermission';
+import { PERMISSIONS } from '@/utils/constants';
+import InvoiceItemCreateDialog from './InvoiceItemCreateDialog';
 
 const Invoices = () => {
-  const userDetails: any = getItem('USER');
   const { toast } = useToast();
 
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
-  const [pageSize] = React.useState(10);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
-  const [list, setList] = useState<any>([]);
-  const [editFormData, setEditFormData] = useState();
+
+  const [list, setList] = useState<InvoiceFields[]>([]);
+  const [editFormData, setEditFormData] = useState<InvoiceFields | null>(null);
+const [showItemsModal, setShowItemsModal] = useState(false);
+const [actionDialogOpen, setActionDialogOpen] = useState(false);
+const [actionType, setActionType] = useState<'approved' | 'rejected'>('approved');
+const [selectedItem, setSelectedItem] = useState(null);
+const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-
+const [amount, setAmount] = useState(0);
+const [selectedInvoiceItemId, setSelectedInvoiceItemId] = useState(0);
+ const [editDialogOpen, setEditDialogOpen] = useState(false);
+const { can } = usePermission();
   const [isLoader, setIsLoader] = useState(false);
   const [mainIsLoader, setMainIsLoader] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-
-  const ToastHandler = (text: string) => {
-    return toast({
-      description: text,
-      className: cn(
-        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
-      ),
-      style: {
-        backgroundColor: '#FF5733',
-        color: 'white',
-        zIndex: 9999,
-      },
-    });
-  };
-
-  const columns: ColumnDef<Users>[] = [
-    {
-      accessorKey: 'firstName',
-      header: 'Name',
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage
-              src={row.original.avatar || ''}
-              alt={row.getValue('firstName') || '@fallback'}
-            />
-            <AvatarFallback>
-              {getInitials(row.getValue('firstName'))}
-            </AvatarFallback>
-          </Avatar>
-          <div className="capitalize font-semibold">
-            {row.getValue('firstName')}
-          </div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'email',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Email
-            <ArrowUpDown />
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
-        <div className="lowercase">{row.getValue('email')}</div>
-      ),
-    },
-    {
-      accessorKey: 'phone',
-      header: 'Phone',
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('phone')}</div>
-      ),
-    },
-    {
-      accessorKey: 'isActive',
-      header: 'Status',
-      cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[50px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
-          {row.getValue('isActive') ? 'Active' : 'In-Active'}
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'address',
-      header: 'Address',
-      cell: ({ row }) => (
-        <div className="capitalize">
-          {row.getValue('address') ? row.getValue('address') : '---'}
-        </div>
-      ),
-    },
-    {
-      id: 'actions',
-      enableHiding: false,
-      cell: ({ row }) => {
-        // const payment = row.original;
-        const { id } = row.original;
-        return (
-          <div className="flex justify-center items-center">
-            <div>
-              <Pencil
-                className="text-lunar-bg cursor-pointer"
-                onClick={() => handleActionMenu('edit', id)}
-                size={20}
-              />
-            </div>
-            <div className="pl-3">
-              <Trash2
-                className="text-lunar-bg cursor-pointer"
-                size={20}
-                onClick={() => handleActionMenu('delete', id)}
-              />
-            </div>
-          </div>
-          // <DropdownMenu>
-          //   <DropdownMenuTrigger asChild>
-          //     <Button variant="ghost" className="h-8 w-8 p-0">
-          //       <span className="sr-only">Open menu</span>
-          //       <MoreHorizontal />
-          //     </Button>
-          //   </DropdownMenuTrigger>
-          //   <DropdownMenuContent align="end">
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('edit', id)}
-          //     >
-          //       Edit
-          //     </DropdownMenuItem>
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('delete', id)}
-          //     >
-          //       Delete
-          //     </DropdownMenuItem>
-          //   </DropdownMenuContent>
-          // </DropdownMenu>
-        );
-      },
-    },
-  ];
-
-  const handleActionMenu = (type: string, actionId: string) => {
-    if (type === 'edit') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setEditOpen(true);
+const [invoiceItems, setInvoiceItems] = useState<any[]>([]);
+const [invoiceItemTotal, setInvoiceItemTotal] = useState(0);
+const [invoiceItemPage, setInvoiceItemPage] = useState(1);
+const [invoiceItemSize] = useState(5); // same as ITEMS_PER_PAGE
+const [showCreateItemModal, setShowCreateItemModal] = useState(false);
+const fetchInvoiceItems = async (invoiceId: string, page = 1) => {
+try {
+    const res = await invoiceService.getInvoiceItems(invoiceId, page, invoiceItemSize);
+    if (res?.data?.success) {
+      setInvoiceItems(res.data.items);
+      setInvoiceItemTotal(res.data.total);
+      setInvoiceItemPage(res.data.page);
     }
-    if (type === 'delete') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setDeleteOpen(true);
-    }
-  };
+  } catch (error) {
+    console.error('Failed to fetch invoice items:', error);
+  }
+};
 
-  const fetchUsers = async () => {
+const refreshData = () => {
+  if (selectedInvoiceId) {
+    fetchInvoiceItems(selectedInvoiceId, invoiceItemPage); // add current page
+  }
+};
+  const ToastHandler = (msg: string) =>
+    toast({ description: msg, className: cn('top-0 right-0 fixed z-[9999]'), style: { backgroundColor: '#FF5733', color: 'white' } });
+
+  // 🔃 Fetch list with filters & pagination
+  const fetchList = async (keySearch = search, pageNo = page) => {
+    setMainIsLoader(true);
     try {
-      const users = await usersService.list(search, page, pageSize);
-      if (users.data.success) {
-        setMainIsLoader(false);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
-      } else {
-        setMainIsLoader(false);
-        console.log('error: ', users.data.message);
-      }
-    } catch (error: Error | unknown) {
+      const resp = await invoiceService.list(keySearch, pageNo, pageSize);
+      if (resp.data.success) {
+        setList(resp.data.items);
+        setTotal(resp.data.total);
+      } else ToastHandler(resp.data.message);
+    } catch (err) {
+      console.error(err);
+      ToastHandler('Failed to fetch invoices');
+    } finally {
       setMainIsLoader(false);
-      console.log('error: ', error);
     }
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value);
+  useEffect(() => { fetchList(); }, []);
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+     fetchList(search, 1);
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      fetchUsers();
-    }
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchList(search, newPage);
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const handleAction = (type: 'edit' | 'delete', inv: InvoiceFields) => {
+    setEditFormData(inv);
+    type === 'edit' ? setEditOpen(true) : setDeleteOpen(true);
+  };
 
-  const deleteUserHandler = (data: any) => {
-    const userId = data.id;
+  const createHandler = async (data: InvoiceFields) => {
+    // data.landlord_id =  userDetails?.landlordId;
     setIsLoader(true);
-    userService
-      .deleteUser(userId)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          setDeleteOpen(false);
-          setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.filter((item: any) => item.id !== userId);
-          });
-          let newtotal = total;
-          setTotal((newtotal -= 1));
-          toast({
-            description: updateItem.data.message,
-            className: cn(
-              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-            ),
-            style: {
-              backgroundColor: '#FF5733',
-              color: 'white',
-            },
-          });
-        } else {
-          setIsLoader(false);
-        }
-      })
-      .catch((err: Error) => {
-        console.log('error: ', err);
-        setIsLoader(false);
-      });
+    const resp = await invoiceService.create(data);
+    setIsLoader(false);
+    if (resp.data.success) {
+      setCreateOpen(false);
+      fetchList();
+    } else ToastHandler(resp.data.message);
   };
 
-  const handlePageChange = async (newPage: any) => {
-    table.setPageIndex(newPage);
-    try {
-      const users = await userService.list(search, newPage, pageSize);
-      if (users.data.success) {
-        setPage(newPage);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
-      } else {
-        ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
-      }
-    } catch (error: Error | unknown) {
-      console.log('error: ', error);
-    }
-  };
-
-  const table = useReactTable({
-    data: list ? list : [],
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  });
-
-  const createEmployeeHandler = (data: any) => {
-    console.log('dadad', data);
-
+  const updateHandler = async (data: InvoiceFields) => {
     setIsLoader(true);
-    const formData = new FormData();
-    formData.append('userType', data.userType);
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
-    formData.append('email', data.email);
-    formData.append('phone', data.phone);
-    formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
-    userService
-      .create(data)
-      .then((item) => {
-        if (item.data.success) {
-          setIsOpen(false);
-          setIsLoader(false);
-          setList([item.data.data, ...list]);
-          let newtotal = total;
-          setTotal((newtotal += 1));
-        } else {
-          setIsLoader(false);
-          ToastHandler(item.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
-        setIsLoader(false);
-      });
+    const resp = await invoiceService.update(data.id!, data);
+    setIsLoader(false);
+    if (resp.data.success) {
+      setEditOpen(false);
+      fetchList();
+    } else ToastHandler(resp.data.message);
   };
 
-  const updateEmployeeHandler = (data: any) => {
-    const formData = new FormData();
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
-    formData.append('email', data.email);
-    formData.append('username', data.email);
-    formData.append('phone', data.phone);
-    formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
+  const deleteHandler = async () => {
+    if (!editFormData) return;
     setIsLoader(true);
-    userService
-      .update(data.id, formData)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          setEditOpen(false);
-          setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.map((item: any) => {
-              if (item.id === updateItem.data.data.id) {
-                item.firstName = updateItem.data.data.firstName;
-                item.lastName = updateItem.data.data.lastName;
-                item.email = updateItem.data.data.email;
-                item.phone = updateItem.data.data.phone;
-                item.address = updateItem.data.data.address;
-                item.avatar = updateItem.data.data.avatar;
-              }
-              return { ...item };
-            });
-          });
-          ToastHandler(updateItem.data.message);
-        } else {
-          setIsLoader(false);
-          ToastHandler(updateItem.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
-        setIsLoader(false);
-      });
+    const resp = await invoiceService.deleteMethod(editFormData.id!);
+    setIsLoader(false);
+    if (resp.data.success) {
+      setDeleteOpen(false);
+      fetchList();
+    } else ToastHandler(resp.data.message);
   };
 
-  return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Invoices" />
-      <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        {/* admin content page height */}
-        <div className="w-full">
-          <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Invoices
-            </h2>
-            <div className="flex gap-3 items-center">
-              <Input
-                placeholder="Search invoices..."
-                value={search}
-                onChange={handleChange}
-                onKeyPress={handleKeyPress}
-                className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
-              />
-              <DropdownMenu>
-                <Button
-                  onClick={() => setIsOpen(true)}
-                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
-                  variant={'outline'}
-                >
-                  + Add New
-                </Button>
-                <DropdownMenuContent align="end">
-                  {table
-                    .getAllColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => {
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onCheckedChange={(value) =>
-                            column.toggleVisibility(!!value)
-                          }
-                        >
-                          {column.id}
-                        </DropdownMenuCheckboxItem>
-                      );
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-          <div className="rounded-md border">
-            {mainIsLoader ? (
-              <div className="flex justify-center items-center h-[50px]">
-                <Loader2 className="animate-spin" />
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead key={header.id}>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody className="bg-earth-bg">
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </div>
-          {list?.length ? (
-            <div className="flex items-center justify-center space-x-2 pt-4">
-              <div className="flex-1 text-sm text-muted-foreground">
-                {/* {total} total - Page {page + 1} of {Math.ceil(total / pageSize)} */}
-              </div>
-              <div className="my-5 flex justify-center w-full">
-                <Paginator
-                  pageSize={pageSize}
-                  currentPage={page}
-                  totalPages={total}
-                  onPageChange={(pageNumber) => handlePageChange(pageNumber)}
-                  showPreviousNext
-                />
-              </div>
-            </div>
-          ) : (
-            ''
+const columns = React.useMemo<ColumnDef<InvoiceFields>[]>(() => [
+  { accessorKey: 'invoice_no', header: 'Invoice' },
+  { accessorKey: 'total_amount', header: 'Total' },
+  { accessorKey: 'paid_amount', header: 'Paid' },
+  { accessorKey: 'payment_date', header: 'Payment Date' },
+  { accessorKey: 'due_date', header: 'Due' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'invoice_date', header: 'Invoice Date' },
+
+  // 🧾 Payment Items Cell
+  {
+    id: 'Submitted',
+    header: 'Payment',
+    cell: ({ row }) => {
+      const invoiceItems = row.original.invoice_items || [];
+      const id = row.original.id;
+      const hasPending = invoiceItems.some(item => item.status === 'pending');
+      return (
+        <div className="flex gap-2 items-center">
+          {/* Count Badge */}
+          <span className="bg-blue-500 text-center text-white w-[12px] h-[14px] rounded-full text-[8px] leading-normal font-semibold py-[1px]">
+            {invoiceItems.length}
+          </span>
+
+          {/* View Icon */}
+          <Eye
+            className="cursor-pointer text-blue-500 w-[20px] h-[20px]"
+            onClick={async () => {
+              setSelectedInvoiceId(id);
+              await fetchInvoiceItems(id);
+              setShowItemsModal(true);
+            }}
+          />
+
+          {/* Add Icon (if permission allowed) */}
+          {can(PERMISSIONS.INVOICE.UPDATE) && !hasPending  && (
+            <Plus
+              className="cursor-pointer text-green-600 w-[20px] h-[20px]"
+              onClick={() => {
+    setSelectedInvoiceId(id);
+    setAmount(row.original.total_amount);
+    setSelectedInvoiceItemId(null); // null for new item
+    setShowCreateItemModal(true); // ✅ Correct modal trigger
+  }}
+            />
           )}
         </div>
+      );
+    },
+  },
+
+  // ✏️🗑️ Actions Column (Edit/Delete)
+  (can(PERMISSIONS.INVOICE.UPDATE) || can(PERMISSIONS.INVOICE.DELETE)) && {
+    id: 'actions',
+    header: 'Actions',
+    cell: ({ row }) => {
+      const inv = row.original;
+
+      return (
+        <div className="flex gap-2">
+          {can(PERMISSIONS.INVOICE.UPDATE) && (
+            <Pencil
+              className="cursor-pointer text-blue-500"
+              onClick={() => handleAction('edit', inv)}
+            />
+          )}
+          {can(PERMISSIONS.INVOICE.DELETE) && (
+            <Trash2
+              className="cursor-pointer text-red-500"
+              onClick={() => handleAction('delete', inv)}
+            />
+          )}
+        </div>
+      );
+    },
+  },
+].filter(Boolean), []);
+
+
+
+  const table = useReactTable({
+    data: list,
+    columns,
+    state: { sorting, columnFilters, columnVisibility, rowSelection },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
+  return (
+    <div className="bg-white p-4 rounded-lg shadow mt-5">
+      <TopBar title="Invoices" />
+      <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
+        <div className="flex justify-between items-center py-4">
+          <div className="flex items-center gap-3">
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onKeyUp={handleSearch}
+              className="w-[300px]"
+            />
+            {/* <Button onClick={() => fetchList(search,0)}>🔍</Button> */}
+          </div>
+          <Button onClick={() => setCreateOpen(true)}>+ Add Invoice</Button>
+        </div>
+        <div className="overflow-x-auto border rounded">
+          {mainIsLoader ? (
+            <div className="flex justify-center py-10"><Loader2 className="animate-spin" /></div>
+          ) : (
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map(hg => (
+                  <TableRow key={hg.id}>
+                    {hg.headers.map(h => (
+                      <TableHead key={h.id}>
+                        {h.isPlaceholder ? null : (
+                          <div className="flex items-center">
+                            {flexRender(h.column.columnDef.header, h.getContext())}
+                            {h.column.getCanSort() && (
+                              <ArrowUpDown className="ml-1 h-4 w-4" />
+                            )}
+                          </div>
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.length ? (
+                  table.getRowModel().rows.map(row => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map(cell => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="text-center py-10">
+                      No invoices found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+        <Paginator pageSize={pageSize} currentPage={page} totalPages={Math.ceil(total / pageSize)} onPageChange={handlePageChange} showPreviousNext />
       </SidebarInset>
-      {isOpen && (
-        <OfficeUsersCreationDialog
-          isLoader={isLoader}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          callback={createEmployeeHandler}
-        />
-      )}
-      {editOpen && (
-        <OfficeUserUpdateDialog
+
+      {/* Dialogs */}
+      <InvoiceCreateDialog
+        isLoader={isLoader}
+        isOpen={createOpen}
+        setIsOpen={setCreateOpen}
+        callback={createHandler}
+      />
+      {editFormData && (
+        <InvoiceUpdateDialog
           isLoader={isLoader}
           isOpen={editOpen}
           setIsOpen={setEditOpen}
           formData={editFormData}
-          callback={updateEmployeeHandler}
+          callback={updateHandler}
         />
       )}
-      {deleteOpen && (
+      <InvoiceItemCreateDialog
+  isOpen={showCreateItemModal}
+    setIsOpen={setShowCreateItemModal}
+    invoiceId={selectedInvoiceId}
+    invoiceItemId={selectedInvoiceItemId ?? undefined}
+  amount={amount}
+  onComplete={async () => {
+    if (selectedInvoiceId) {
+      await fetchInvoiceItems(selectedInvoiceId);
+    }
+  }}
+  
+/>
+<InvoiceItemModal
+  invoiceId={selectedInvoiceId}
+  setSelectedInvoiceItemId={setSelectedInvoiceItemId}
+  setShowCreateItemModal={setShowCreateItemModal}
+  setActionType={setActionType}
+  setSelectedItem={setSelectedItem}
+  setActionDialogOpen={setActionDialogOpen}
+  isOpen={showItemsModal}
+  setIsOpen={setShowItemsModal}
+
+/>
+
+<InvoiceItemActionDialog
+  isOpen={actionDialogOpen}
+  setIsOpen={setActionDialogOpen}
+  actionType={actionType}
+  item={selectedItem}
+  onAction={async (id, remarks, action) => {
+  try {
+    const res = await invoiceService.approveRejectInvoiceItem(id, action, {
+      remarks,
+    });
+
+    if (res?.data?.success) {
+      ToastHandler(`${action.toUpperCase()} successful`);
+      refreshData();
+      setShowItemsModal(false); // ✅ Close only on success
+    } else {
+      ToastHandler(res.data.message || 'Failed to update status');
+    }
+  } catch (err) {
+    ToastHandler('Action failed');
+  }
+}}
+/>
+
+      {editFormData && (
         <DeleteDialog
           isLoader={isLoader}
           isOpen={deleteOpen}
           setIsOpen={setDeleteOpen}
-          title={'User'}
+          title="Invoice"
           formData={editFormData}
-          callback={deleteUserHandler}
+          callback={deleteHandler}
         />
       )}
     </div>

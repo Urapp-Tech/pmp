@@ -23,8 +23,9 @@ export const PROPERTY_UNIT_PREFIX = 'property-units';
 export const SUB_USER_PREFIX = 'sub-user';
 export const ROLE_PREFIX = 'roles';
 export const INVOICE_PREFIX = 'invoices';
+export const TANENT_PREFIX = 'tenants';
 export const BLOG_PREFIX = 'blog';
-
+export const INVOICE_ITEM_PREFIX = 'invoice-items';
 export const imageAllowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
 export const PERMISSIONS = {

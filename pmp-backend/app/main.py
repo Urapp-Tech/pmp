@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from app.modules.managers.routes import router as manager_router
 from app.modules.propertyUnits.routes import router as property_units_router
 from app.modules.tenants.routes import router as tenants_router
+from app.modules.invoiceItems.routes import router as invoice_item_router
 from app.utils.uploader import get_file_base_url
 
 # app = FastAPI()
@@ -89,6 +90,12 @@ app.include_router(
     invoice_router,
     prefix="/admin/invoices",
     tags=["Admin - Invoices"],
+)
+
+app.include_router(
+    invoice_item_router,
+    prefix="/admin/invoice-items",
+    tags=["Admin - Invoice Items"],
 )
 app.include_router(
     manager_router,

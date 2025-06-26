@@ -1,9 +1,8 @@
+from pydantic import UUID4
 from sqlalchemy.orm import Session
-from uuid import UUID
-
 from app.models.invoices import Invoice
 from app.modules.invoices.schemas import InvoiceCreate, InvoiceUpdate
-
+from sqlalchemy.orm import joinedload
 
 def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
     invoice = Invoice(**invoice_data.dict())
@@ -19,13 +18,9 @@ def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
     return invoice
 
 
-def get_invoice(db: Session, invoice_id: UUID) -> Invoice | None:
+def get_invoice(db: Session, invoice_id: UUID4) -> Invoice | None:
     return db.query(Invoice).filter(Invoice.id == invoice_id).first()
 
-
-from sqlalchemy.orm import Session
-from uuid import UUID
-from app.models.invoices import Invoice
 
 
 def get_all_invoices(
@@ -33,10 +28,10 @@ def get_all_invoices(
     skip: int = 0,
     limit: int = 10,
     page: int = 1,
-    landlord_id: UUID | None = None,
+    landlord_id: UUID4 | None = None,
     search: str = "",
 ) -> dict:
-    query = db.query(Invoice).filter(Invoice.landlord_id == landlord_id)
+    query = db.query(Invoice).options(joinedload(Invoice.items)).filter(Invoice.landlord_id == landlord_id)
 
     if search:
         query = query.filter(Invoice.invoice_no.ilike(f"%{search.lower()}%"))
@@ -55,7 +50,7 @@ def get_all_invoices(
 
 
 
-def update_invoice(db: Session, invoice_id: UUID, update_data: InvoiceUpdate) -> Invoice | None:
+def update_invoice(db: Session, invoice_id: UUID4, update_data: InvoiceUpdate) -> Invoice | None:
     invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
     if not invoice:
         return None
@@ -68,7 +63,7 @@ def update_invoice(db: Session, invoice_id: UUID, update_data: InvoiceUpdate) ->
     return invoice
 
 
-def delete_invoice(db: Session, invoice_id: UUID) -> bool:
+def delete_invoice(db: Session, invoice_id: UUID4) -> bool:
     invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
     if not invoice:
         return False
