@@ -124,6 +124,7 @@ app.include_router(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://propertymanagement.urapptech.com",
         "http://localhost:3005",
         "http://localhost:3006",
     ],  # or ["*"] for development only
