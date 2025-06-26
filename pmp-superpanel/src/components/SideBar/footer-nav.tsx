@@ -39,7 +39,7 @@ export function FooterNavUser({
     email: string;
     avatar: string;
   };
-  media: any;
+  media?: any;
 }) {
   const { isMobile } = useSidebar();
   const dispatch = useDispatch();
@@ -78,7 +78,7 @@ export function FooterNavUser({
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem>
+      {/* <SidebarMenuItem>
         <SidebarMenuButton tooltip="setting">
           <img src={assets.images.settingSidebarIcon} />
           <NavLink
@@ -90,7 +90,7 @@ export function FooterNavUser({
             <span className="text-mars-bg font-medium ">Setting</span>
           </NavLink>
         </SidebarMenuButton>
-      </SidebarMenuItem>
+      </SidebarMenuItem> */}
       <SidebarMenuItem onClick={() => handleLogout()}>
         <SidebarMenuButton onClick={() => handleLogout()} tooltip="logout">
           <img src={assets.images.logoutSidebarIcon} />

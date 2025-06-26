@@ -137,12 +137,12 @@ export function MainSidebar({
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
-      {/* <SidebarFooter className="my-3">
+      <SidebarFooter className="my-3">
         <FooterNavUser
-          media={shop ? shop?.media : media ? media : {}}
+          // media={shop ? shop?.media : media ? media : {}}
           user={data.user}
         />
-      </SidebarFooter> */}
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
