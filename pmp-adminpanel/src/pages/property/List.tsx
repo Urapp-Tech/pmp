@@ -69,22 +69,22 @@ const PropertyList = () => {
     fetchList();
   }, [page]);
 
-  const handleSearchKey = (e) => {
+  const handleSearchKey = (e: any) => {
     setSearchKey(e.target.value);
     fetchList();
   };
-  const handlePageChange = (p) => {
+  const handlePageChange = (p: any) => {
     setPage(p);
     fetchList();
   };
 
-  const openUnitsModal = (property, units) => {
+  const openUnitsModal = (property: any, units: any) => {
     setSelectedProperty(property);
     setUnitModalOpen(true);
     setUnits(units);
   };
 
-  const deleteHandler = async (id) => {
+  const deleteHandler = async (id: any) => {
     setDeleteOpen(false);
     setIsLoader(true); // Start loader before request
     try {
@@ -121,7 +121,7 @@ const PropertyList = () => {
       setDeleteOpen(false); // Ensure modal closes even on error
     }
   };
-  const handleActionMenu = (action, item) => {
+  const handleActionMenu = (action: any, item: any) => {
     const id = item.id;
     setEditFormData(item);
     if (action === 'edit') {
@@ -174,7 +174,7 @@ const PropertyList = () => {
               </TableHeader>
               <TableBody>
                 {list.length > 0 ? (
-                  list.map((item) => (
+                  list.map((item: any) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
                       <TableCell>{item.address}</TableCell>
@@ -186,7 +186,9 @@ const PropertyList = () => {
                           </span>
                           <Eye
                             className="pl-3 cursor-pointer text-blue-500 w-[40px] h-[40px]"
-                            onClick={() => openUnitsModal(item.id, item.units)}
+                            onClick={() =>
+                              openUnitsModal(item?.id, item?.units)
+                            }
                           />
                         </div>{' '}
                       </TableCell>

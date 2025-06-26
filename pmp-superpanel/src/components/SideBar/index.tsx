@@ -70,12 +70,12 @@ export function MainSidebar({
         icon: assets.images.usersSidebarIcon,
         items: [],
       },
-      {
-        title: 'Subscription Management',
-        url: '/super-admin/subscription-management',
-        icon: assets.images.rolePermissionsSidebarIcon,
-        items: [],
-      },
+      // {
+      //   title: 'Subscription Management',
+      //   url: '/super-admin/subscription-management',
+      //   icon: assets.images.rolePermissionsSidebarIcon,
+      //   items: [],
+      // },
       {
         title: 'Security and Logs',
         url: '/super-admin/security-and-logs',

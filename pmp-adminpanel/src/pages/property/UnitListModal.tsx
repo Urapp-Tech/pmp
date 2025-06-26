@@ -53,7 +53,7 @@ const UnitListModal = ({ open, setOpen, property, units }: any) => {
             </TableHeader>
             <TableBody>
               {units.length > 0 ? (
-                units.map((unit) => (
+                units.map((unit: any) => (
                   <TableRow key={unit.id}>
                     <TableCell>{unit.unit_no}</TableCell>
                     <TableCell>{unit.floor || '-'}</TableCell>

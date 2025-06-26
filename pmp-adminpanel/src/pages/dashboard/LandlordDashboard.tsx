@@ -16,15 +16,15 @@ function LandlordDashboard() {
           {/* Search Bar */}
           <div className="w-full max-w-md">
             <Label htmlFor="propertySearch" className="text-lg font-medium">
-              Search Property
+              Activities
             </Label>
-            <Input
+            {/* <Input
               id="propertySearch"
               placeholder="Enter property name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="mt-1"
-            />
+            /> */}
           </div>
 
           {/* Stats Cards */}
@@ -34,7 +34,7 @@ function LandlordDashboard() {
                 <Building2 /> Total Properties
               </Label>
               <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                1
+                0
               </div>
             </div>
 
@@ -43,7 +43,7 @@ function LandlordDashboard() {
                 <Users /> Active Tenants
               </Label>
               <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                3
+                0
               </div>
             </div>
 
@@ -52,7 +52,7 @@ function LandlordDashboard() {
                 <FileWarning /> Pending Invoices
               </Label>
               <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                2
+                0
               </div>
             </div>
 
@@ -61,7 +61,7 @@ function LandlordDashboard() {
                 <Wrench /> Unresolved Tickets
               </Label>
               <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                1
+                0
               </div>
             </div>
           </div>

@@ -129,25 +129,26 @@ const EmployeeAssignDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="">
+            {/* <div className="">
               <Controller
                 name="cabin"
                 control={control}
                 defaultValue=""
                 rules={{ required: 'Option is required' }}
-                render={({ field, fieldState }: any) => (
-                  <div>
-                    <SingleSelectDropDown
-                      label="Cabins"
-                      placeHolder="Select an option"
-                      items={formData?.items ?? []}
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                    {fieldState.error && (
-                      <FormMessage>*{fieldState.error.message}</FormMessage>
-                    )}
-                  </div>
+                render={({ field?, fieldState }: any) => (
+                  // <div>
+                  //   <SingleSelectDropDown
+                  //     label="Cabins"
+                  //     // placeHolder="Select an option"
+                  //     items={formData?.items ?? []}
+                  //     value={field.value}
+                  //     onChange={field.onChange}
+                  //   />
+                  //   {fieldState.error && (
+                  //     <FormMessage>*{fieldState.error.message}</FormMessage>
+                  //   )}
+                  // </div>
+                  <></>
                 )}
               />
               <DialogFooter className="mt-3">
@@ -155,7 +156,7 @@ const EmployeeAssignDialog = ({
                   {isLoader && <Loader2 className="animate-spin" />} Assign
                 </Button>
               </DialogFooter>
-            </div>
+            </div> */}
           </form>
         </Form>
       </DialogContent>
