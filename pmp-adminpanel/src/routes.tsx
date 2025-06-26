@@ -40,7 +40,7 @@ const Blogs = lazy(() => import('@/pages/blogs/Blogs'));
 
 export const routeObjects: RouteObject[] = [
   {
-    path: '/admin',
+    path: '/admin-panel',
     element: <LayoutOutlet />,
     children: [
       {
