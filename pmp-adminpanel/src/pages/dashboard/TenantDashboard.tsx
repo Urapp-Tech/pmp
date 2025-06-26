@@ -104,7 +104,7 @@ function Dashboard() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-muted/50 p-4">
+            {/* <div className="rounded-xl bg-muted/50 p-4">
               <h2 className="text-lg font-semibold mb-2 underline underline-offset-3">
                 Rental Details
               </h2>
@@ -123,7 +123,7 @@ function Dashboard() {
               <p className="py-[2px]">
                 <strong>Contract Duration:</strong> {tenant.contractDuration}
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </SidebarInset>
