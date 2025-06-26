@@ -41,16 +41,6 @@ const OfficeUserCreateDialog = ({
 }: Props) => {
   const form = useForm<Fields>();
 
-  /*************  ✨ Windsurf Command ⭐  *************/
-  /**
-   * Displays a toast notification with the provided text.
-   * The notification is styled with a fixed position at the top-right corner,
-   * a specific background color, and a high z-index for visibility.
-   *
-   * @param {string} text - The message to be displayed in the toast notification.
-   */
-
-  /*******  d3311b49-b875-4c0f-a6d4-9e311a493f77  *******/
   const ToastHandler = (text: string) => {
     return toast({
       description: text,
@@ -85,10 +75,10 @@ const OfficeUserCreateDialog = ({
       password: data.password,
       phone: data.phone,
       gender: data.gender,
-      roleType: 'Manager',
+      roleType: 'User',
     };
     if (file) obj.profilePic = file;
-    // console.log('s', data);
+    // console.log('s', obj);
     callback(obj);
   };
 
@@ -103,7 +93,7 @@ const OfficeUserCreateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Add New Manager User</DialogTitle>
+          <DialogTitle>Add New Tenant User</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -211,7 +201,7 @@ const OfficeUserCreateDialog = ({
                 </FormControl>
                 {/* </div> */}
               </div>
-              <div className="form-group w-full flex items-center justify-center gap-3 m-1">
+              <div className="form-group w-full flex items-center justify-center gap-5 m-1">
                 <div className="w-full">
                   <FormControl className="m-1 w-full">
                     <div className="">
@@ -240,6 +230,20 @@ const OfficeUserCreateDialog = ({
                       )}
                     </div>
                   </FormControl>
+                  {/* <FormLabel
+                    htmlFor="roles"
+                    className="text-sm font-medium my-2 block"
+                  >
+                    Roles
+                  </FormLabel>
+                  <SingleSelectDropDown
+                    control={control}
+                    name="role"
+                    label=""
+                    items={roleLov}
+                    placeholder="Choose an option"
+                    rules={{ required: 'This field is required' }}
+                  /> */}
                 </div>
                 <div className="w-full">
                   <FormLabel
@@ -258,7 +262,7 @@ const OfficeUserCreateDialog = ({
                       { id: 'other', name: 'Other' },
                     ]}
                     placeholder="Choose an option"
-                    // rules={{ required: 'This field is required' }}
+                    rules={{ required: 'This field is required' }}
                   />
                 </div>
               </div>

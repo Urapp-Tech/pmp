@@ -1,4 +1,4 @@
-import { SUB_USER_PREFIX, USER_PREFIX } from '@/utils/constants';
+import { USER_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
 
 const managerslist = (
@@ -32,11 +32,11 @@ const create = (data: any) => {
 };
 
 const update = (id: string, data: any) => {
-  return network.postMultipart(`${SUB_USER_PREFIX}/update/${id}`, data);
+  return network.postMultipart(`${USER_PREFIX}/update/${id}`, data);
 };
 
 const deleteUser = (id: string) => {
-  return network.post(`${SUB_USER_PREFIX}/delete/${id}`, {});
+  return network.post(`${USER_PREFIX}/delete/${id}`, {});
 };
 
 const Lov = (id: string) => {

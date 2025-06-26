@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { SidebarInset } from '@/components/ui/sidebar';
 
 import usersService from '@/services/adminapp/users';
+import service from '@/services/adminapp/contracts';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -18,11 +19,10 @@ import {
 import {
   ArrowUpDown,
   Loader2,
-  // ChevronDown,
-  MoreHorizontal,
+  CircleCheck,
+  CircleX,
   Pencil,
   Trash2,
-  UserRoundCheck,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { Checkbox } from '@/components/ui/checkbox';
@@ -50,13 +50,13 @@ import { cn } from '@/lib/utils';
 import userService from '@/services/adminapp/users';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
-import OfficeUsersCreationDialog from './CreateDialog';
+// import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials, handleErrorMessage } from '@/utils/helper';
-import AssignUserDialog from './AssignedUnitDialog';
+import { getInitials } from '@/utils/helper';
 import { usePermission } from '@/utils/hasPermission';
 import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
+import dayjs from 'dayjs';
 
 export type Users = {
   id: string; // UUID
@@ -80,9 +80,13 @@ export type Users = {
   createdAt: string; // ISO date string for creation timestamp
   updatedAt: string; // ISO date string for update timestamp
   status: 'Active' | 'InActive';
+  userDetail: any;
+  unitDetail: any;
+  propertyUnitId?: any;
+  userId?: any;
 };
 
-const PropertyManagers = () => {
+const ApprovedContracts = () => {
   const userDetails: any = getItem('USER');
   const { toast } = useToast();
   const { can } = usePermission();
@@ -92,7 +96,7 @@ const PropertyManagers = () => {
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
-  const [editFormData, setEditFormData] = useState<any>();
+  const [editFormData, setEditFormData] = useState();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -103,7 +107,6 @@ const PropertyManagers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [isAssignOpen, setIsAssignOpen] = useState(false);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -121,123 +124,74 @@ const PropertyManagers = () => {
 
   const columns: ColumnDef<Users>[] = [
     {
-      accessorKey: 'fname',
+      accessorKey: 'userDetail.fname',
       header: 'Name',
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage
-              src={`${ASSET_BASE_URL}${row.original.profilePic}` || ''}
-              alt={row.getValue('fname') || '@fallback'}
-            />
-            <AvatarFallback>
-              {getInitials(row.getValue('fname'))}
-            </AvatarFallback>
-          </Avatar>
-          <div className="capitalize font-semibold">
-            {row.getValue('fname')} {row.original?.lname}
-          </div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'email',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Email
-            <ArrowUpDown />
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
-        <div className="lowercase">{row.getValue('email')}</div>
-      ),
-    },
-    {
-      accessorKey: 'phone',
-      header: 'Phone',
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('phone')}</div>
-      ),
-    },
-    {
-      accessorKey: 'isActive',
-      header: 'Status',
-      cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[50px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
-          {row.getValue('isActive') ? 'Active' : 'In-Active'}
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'assignedUnits',
-      header: 'Assigned Property Units',
       cell: ({ row }) => {
-        const users = row.getValue('assignedUnits') as {
-          id: string;
-          name: string;
-        }[];
-
-        if (!users || users.length === 0) {
-          return (
-            <span className="text-sm text-muted-foreground">
-              Not assigned yet
-            </span>
-          );
-        }
-
-        const visibleUsers = users.slice(0, 3);
-        const remainingCount = users.length > 3 ? users.length - 3 : 0;
-
-        const colors = [
-          'bg-red-500',
-          'bg-green-500',
-          'bg-blue-500',
-          'bg-yellow-500',
-          'bg-purple-500',
-          'bg-pink-500',
-          'bg-orange-500',
-          'bg-teal-500',
-          'bg-rose-500',
-          'bg-indigo-500',
-        ];
-
-        const getColorClass = (id: string) => {
-          let hash = 0;
-          for (let i = 0; i < id.length; i++) {
-            hash = id.charCodeAt(i) + ((hash << 5) - hash);
-          }
-          return colors[Math.abs(hash) % colors.length];
-        };
-
+        const user = row.original.userDetail;
         return (
-          <div className="flex items-center space-x-1">
-            <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
-              {visibleUsers.map((user, index) => {
-                const bgColor = getColorClass(user.id);
-                const initial = user.name?.charAt(0).toUpperCase() || 'U';
-                return (
-                  <Avatar key={user.id + index}>
-                    <AvatarImage src={user.name ?? ''} alt={`@user-${index}`} />
-                    <AvatarFallback className={`text-white ${bgColor}`}>
-                      {initial}
-                    </AvatarFallback>
-                  </Avatar>
-                );
-              })}
-              {remainingCount > 0 && (
-                <div className="w-8 h-8 rounded-full bg-muted text-sm flex items-center justify-center font-medium border border-border">
-                  +{remainingCount}
-                </div>
-              )}
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarImage
+                src={`${ASSET_BASE_URL}${user?.profile_pic}` || ''}
+                alt={getInitials(user?.fname || '@fallback')}
+              />
+              <AvatarFallback>{getInitials(user?.fname || '')}</AvatarFallback>
+            </Avatar>
+            <div className="capitalize font-semibold">
+              {user?.fname} {user?.lname}
             </div>
           </div>
         );
       },
+    },
+    {
+      accessorKey: 'unitDetail.name',
+      header: 'Unit Name',
+      cell: ({ row }) => {
+        const unit = row.original.unitDetail;
+        return <div className="capitalize">{unit?.name}</div>;
+      },
+    },
+    {
+      accessorKey: 'contractNumber',
+      header: 'Contract Number',
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue('contractNumber')}</div>
+      ),
+    },
+    {
+      accessorKey: 'contractStart',
+      header: 'Contract Start',
+      cell: ({ row }) => (
+        <div className="capitalize">
+          {dayjs(row.getValue('contractStart')).format('YYYY-MM-DD')}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'contractEnd',
+      header: 'Contract End',
+      cell: ({ row }) => (
+        <div className="capitalize">
+          {dayjs(row.getValue('contractEnd')).format('YYYY-MM-DD')}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'leavingDate',
+      header: 'Leaving Date',
+      cell: ({ row }) => (
+        <div className="capitalize">
+          {dayjs(row.getValue('leavingDate')).format('YYYY-MM-DD')}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'tenantType',
+      header: 'Tenant Type',
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue('tenantType')}</div>
+      ),
     },
     {
       id: 'actions',
@@ -247,25 +201,16 @@ const PropertyManagers = () => {
         const { id } = row.original;
         return (
           <div className="flex justify-center items-center">
-            {can(PERMISSIONS.MANAGER.UPDATE) && (
-              <>
-                <div>
-                  <UserRoundCheck
-                    className="text-lunar-bg cursor-pointer"
-                    onClick={() => handleActionMenu('assign', id)}
-                    size={20}
-                  />
-                </div>
-                <div className="pl-3">
-                  <Pencil
-                    className="text-lunar-bg cursor-pointer"
-                    onClick={() => handleActionMenu('edit', id)}
-                    size={20}
-                  />
-                </div>
-              </>
+            {can(PERMISSIONS.USER_CONTRACT.UPDATE) && (
+              <div>
+                <Pencil
+                  className="text-lunar-bg cursor-pointer"
+                  onClick={() => handleActionMenu('edit', id)}
+                  size={20}
+                />
+              </div>
             )}
-            {can(PERMISSIONS.MANAGER.DELETE) && (
+            {can(PERMISSIONS.USER_CONTRACT.DELETE) && (
               <div className="pl-3">
                 <Trash2
                   className="text-lunar-bg cursor-pointer"
@@ -275,34 +220,12 @@ const PropertyManagers = () => {
               </div>
             )}
           </div>
-          // <DropdownMenu>
-          //   <DropdownMenuTrigger asChild>
-          //     <Button variant="ghost" className="h-8 w-8 p-0">
-          //       <span className="sr-only">Open menu</span>
-          //       <MoreHorizontal />
-          //     </Button>
-          //   </DropdownMenuTrigger>
-          //   <DropdownMenuContent align="end">
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('edit', id)}
-          //     >
-          //       Edit
-          //     </DropdownMenuItem>
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('delete', id)}
-          //     >
-          //       Delete
-          //     </DropdownMenuItem>
-          //   </DropdownMenuContent>
-          // </DropdownMenu>
         );
       },
     },
   ];
 
-  const handleActionMenu = (type: string, actionId: string) => {
+  const handleActionMenu = async (type: string, actionId: string) => {
     if (type === 'edit') {
       const editData = list.find((item: any) => item.id === actionId);
       setEditFormData(editData);
@@ -311,18 +234,13 @@ const PropertyManagers = () => {
     if (type === 'delete') {
       const editData = list.find((item: any) => item.id === actionId);
       setEditFormData(editData);
-      setDeleteOpen(true);
-    }
-    if (type === 'assign') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setIsAssignOpen(true);
+      setEditOpen(true);
     }
   };
 
-  const fetchUsers = async () => {
+  const fetchList = async () => {
     try {
-      const users = await usersService.managerslist(
+      const users = await service.approvedList(
         userDetails?.landlordId,
         search,
         page,
@@ -348,12 +266,12 @@ const PropertyManagers = () => {
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      fetchUsers();
+      fetchList();
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchList();
   }, []);
 
   const deleteUserHandler = (data: any) => {
@@ -393,7 +311,7 @@ const PropertyManagers = () => {
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
-      const users = await userService.managerslist(
+      const users = await service.approvedList(
         userDetails?.landlordId,
         search,
         newPage,
@@ -401,8 +319,8 @@ const PropertyManagers = () => {
       );
       if (users.data.success) {
         setPage(newPage);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
+        setList(users.data.items);
+        setTotal(users.data.total);
       } else {
         ToastHandler(users.data.message);
         console.log('error: ', users.data.message);
@@ -431,53 +349,52 @@ const PropertyManagers = () => {
     },
   });
 
-  const createEmployeeHandler = (data: any) => {
-    // console.log('dadad', data, userDetails?.landlordId);
+  // const createEmployeeHandler = (data: any) => {
+  //   console.log('dadad', data);
 
-    setIsLoader(true);
-    const formData = new FormData();
-    formData.append('fname', data.fname);
-    formData.append('lname', data.lname);
-    formData.append('email', data.email);
-    formData.append('phone', data.phone);
-    formData.append('gender', data.gender);
-    formData.append('password', data.password);
-    formData.append('roleType', data.roleType);
-    formData.append('landlordId', userDetails?.landlordId);
-    if (data.profilePic) formData.append('profilePic', data.profilePic);
-    userService
-      .create(formData)
-      .then((item) => {
-        if (item.data.success) {
-          setIsOpen(false);
-          setIsLoader(false);
-          setList([item.data.items, ...list]);
-          let newtotal = total;
-          setTotal((newtotal += 1));
-        } else {
-          setIsLoader(false);
-          ToastHandler(item.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        // console.log('error: ', err);
-        const error = handleErrorMessage(err);
-        ToastHandler(error);
-        setIsLoader(false);
-      });
-  };
+  //   setIsLoader(true);
+  //   const formData = new FormData();
+  //   formData.append('fname', data.fname);
+  //   formData.append('lname', data.lname);
+  //   formData.append('email', data.email);
+  //   formData.append('phone', data.phone);
+  //   formData.append('gender', data.gender);
+  //   formData.append('password', data.password);
+  //   formData.append('roleType', 'User');
+  //   formData.append('landlordId', userDetails?.landlordId);
+  //   if (data.profilePic) formData.append('profilePic', data.profilePic);
+  //   userService
+  //     .create(formData)
+  //     .then((item) => {
+  //       if (item.data.success) {
+  //         setIsOpen(false);
+  //         setIsLoader(false);
+  //         setList([item.data.items, ...list]);
+  //         let newtotal = total;
+  //         setTotal((newtotal += 1));
+  //       } else {
+  //         setIsLoader(false);
+  //         ToastHandler(item.data.message);
+  //       }
+  //     })
+  //     .catch((err: Error | any) => {
+  //       console.log('error: ', err);
+  //       ToastHandler(err?.response?.data?.detail[0]?.msg);
+  //       setIsLoader(false);
+  //     });
+  // };
 
   const updateEmployeeHandler = (data: any) => {
     const formData = new FormData();
-    formData.append('fname', data.fname);
-    formData.append('lname', data.lname);
+    formData.append('firstName', data.firstName);
+    formData.append('lastName', data.lastName);
     formData.append('email', data.email);
+    formData.append('username', data.email);
     formData.append('phone', data.phone);
-    formData.append('gender', data.gender);
     formData.append('password', data.password);
-    formData.append('roleType', data.roleType);
-    formData.append('landlordId', userDetails?.landlordId);
-    if (data.profilePic) formData.append('profilePic', data.profilePic);
+    formData.append('address', data.address);
+    formData.append('role', data.role);
+    if (data.avatar) formData.append('avatar', data.avatar);
     setIsLoader(true);
     userService
       .update(data.id, formData)
@@ -487,13 +404,13 @@ const PropertyManagers = () => {
           setIsLoader(false);
           setList((newArr: any) => {
             return newArr.map((item: any) => {
-              if (item.id === updateItem.data.items.id) {
-                item.fname = updateItem.data.items.fname;
-                item.lname = updateItem.data.items.lname;
-                item.email = updateItem.data.items.email;
-                item.phone = updateItem.data.items.phone;
-                item.gender = updateItem.data.items.gender;
-                item.profilePic = updateItem.data.items.profilePic;
+              if (item.id === updateItem.data.data.id) {
+                item.firstName = updateItem.data.data.firstName;
+                item.lastName = updateItem.data.data.lastName;
+                item.email = updateItem.data.data.email;
+                item.phone = updateItem.data.data.phone;
+                item.address = updateItem.data.data.address;
+                item.avatar = updateItem.data.data.avatar;
               }
               return { ...item };
             });
@@ -505,89 +422,32 @@ const PropertyManagers = () => {
         }
       })
       .catch((err: Error | any) => {
-        const error = handleErrorMessage(err);
-        ToastHandler(error);
-        setIsLoader(false);
-      });
-  };
-
-  const onAssignUnits = (unitIds: string[]) => {
-    let obj = {
-      managerUserId: editFormData?.id,
-      assignUnits: unitIds,
-    };
-    // console.log('obj', obj);
-
-    userService
-      .assignUnits(obj)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          const updatedAssignments = updateItem.data.items.map((item: any) => ({
-            id: item.assign_property_unit.id,
-            name: item.assign_property_unit.name,
-          }));
-
-          // Extract newly assigned user IDs
-          const newAssignedUserIds = updatedAssignments.map((u: any) => u.id);
-
-          // Update ALL managers
-          setList((prev: any[]) =>
-            prev.map((manager) => {
-              // If current manager, replace with updated assignments
-              if (manager.id === editFormData?.id) {
-                return {
-                  ...manager,
-                  assignedUnits: updatedAssignments,
-                };
-              }
-
-              // Remove any users who are now assigned to the new manager
-              const filteredUnits = manager.assignedUnits?.filter(
-                (u: any) => !newAssignedUserIds.includes(u.id)
-              );
-
-              return {
-                ...manager,
-                assignedUnits: filteredUnits,
-              };
-            })
-          );
-
-          setIsAssignOpen(false);
-          setIsLoader(false);
-          ToastHandler(updateItem.data.message);
-        } else {
-          setIsLoader(false);
-          ToastHandler(updateItem.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
         console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message || 'Something went wrong');
+        ToastHandler(err?.response?.data?.message);
         setIsLoader(false);
       });
   };
 
   return (
     <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Admin Users" />
+      <TopBar title="Tenant Users" />
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Property Managers
+              Approved Contracts
             </h2>
             <div className="flex gap-3 items-center">
               <Input
-                placeholder="Search managers..."
+                placeholder="Search contracts..."
                 value={search}
                 onChange={handleChange}
                 onKeyPress={handleKeyPress}
                 className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
               />
               <DropdownMenu>
-                {can(PERMISSIONS.MANAGER.CREATE) && (
+                {/* {can(PERMISSIONS.USER.CREATE) && (
                   <Button
                     onClick={() => setIsOpen(true)}
                     className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
@@ -595,7 +455,7 @@ const PropertyManagers = () => {
                   >
                     + Add New
                   </Button>
-                )}
+                )} */}
                 <DropdownMenuContent align="end">
                   {table
                     .getAllColumns()
@@ -694,14 +554,14 @@ const PropertyManagers = () => {
           )}
         </div>
       </SidebarInset>
-      {isOpen && (
+      {/* {isOpen && (
         <OfficeUsersCreationDialog
           isLoader={isLoader}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
           callback={createEmployeeHandler}
         />
-      )}
+      )} */}
       {editOpen && (
         <OfficeUserUpdateDialog
           isLoader={isLoader}
@@ -721,19 +581,8 @@ const PropertyManagers = () => {
           callback={deleteUserHandler}
         />
       )}
-      {isAssignOpen && (
-        <AssignUserDialog
-          isLoader={isLoader}
-          isOpen={isAssignOpen}
-          setIsOpen={setIsAssignOpen}
-          assignedUnits={
-            editFormData?.assignedUnits?.map((u: any) => u.id) || []
-          }
-          onAssignUnits={(unitIds) => onAssignUnits(unitIds)}
-        />
-      )}
     </div>
   );
 };
 
-export default PropertyManagers;
+export default ApprovedContracts;

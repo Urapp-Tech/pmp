@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 // import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Fields } from '@/interfaces/users.interface';
+import { Fields } from '@/interfaces/back-office-user.interface';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -31,26 +31,24 @@ type Props = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   callback: (...args: any[]) => any;
+  formData: any;
 };
 
-const OfficeUserCreateDialog = ({
+const OfficeUserUpdateDialog = ({
   isOpen,
   setIsOpen,
   callback,
   isLoader,
+  formData,
 }: Props) => {
-  const form = useForm<Fields>();
+  const form = useForm<Fields>({
+    defaultValues: {
+      password: '',
+      avatar: formData.avatar || '',
+      role: formData.role || '',
+    },
+  });
 
-  /*************  ✨ Windsurf Command ⭐  *************/
-  /**
-   * Displays a toast notification with the provided text.
-   * The notification is styled with a fixed position at the top-right corner,
-   * a specific background color, and a high z-index for visibility.
-   *
-   * @param {string} text - The message to be displayed in the toast notification.
-   */
-
-  /*******  d3311b49-b875-4c0f-a6d4-9e311a493f77  *******/
   const ToastHandler = (text: string) => {
     return toast({
       description: text,
@@ -68,6 +66,7 @@ const OfficeUserCreateDialog = ({
   const [file, setFile] = useState<any>(null);
   const [selectedImg, setSelectedImg] = useState<any>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [roleLov, setRoleLov] = useState([]);
 
   const {
     register,
@@ -78,23 +77,39 @@ const OfficeUserCreateDialog = ({
   } = form;
 
   const onSubmit = async (data: Fields) => {
-    let obj: any = {
-      fname: data.fname,
-      lname: data.lname,
-      email: data.email,
-      password: data.password,
-      phone: data.phone,
-      gender: data.gender,
-      roleType: 'Manager',
-    };
-    if (file) obj.profilePic = file;
+    if (file) data.avatar = file;
+    data.userType = 'USER';
+    data.id = formData.id;
+    callback(data);
     // console.log('s', data);
-    callback(obj);
   };
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
+
+  const fetchRoleLov = async () => {
+    try {
+      const roles = await service.lov();
+      if (roles.data.success) {
+        const lov = roles.data.data.map((el: any) => {
+          return {
+            name: el.name,
+            id: el.id,
+          };
+        });
+        setRoleLov(lov);
+      } else {
+        console.log('error: ', roles.data.message);
+      }
+    } catch (error: Error | unknown) {
+      console.log('error: ', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoleLov();
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -103,7 +118,7 @@ const OfficeUserCreateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Add New Manager User</DialogTitle>
+          <DialogTitle>Update Admin User</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -111,37 +126,46 @@ const OfficeUserCreateDialog = ({
               <div className="form-group w-full flex gap-3">
                 <FormControl className="m-1 w-full">
                   <div className="">
-                    <FormLabel htmlFor="fname" className="text-sm font-medium">
+                    <FormLabel
+                      htmlFor="firstName"
+                      className="text-sm font-medium"
+                    >
                       First Name
                     </FormLabel>
                     <Input
                       className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="fname"
+                      id="firstName"
                       placeholder="john"
                       type="text"
-                      {...register('fname', {
+                      {...register('firstName', {
+                        value: formData?.firstName,
                         required: 'Please enter your first name',
                       })}
                     />
-                    {errors.fname && (
-                      <FormMessage>*{errors.fname.message}</FormMessage>
+                    {errors.firstName && (
+                      <FormMessage>*{errors.firstName.message}</FormMessage>
                     )}
                   </div>
                 </FormControl>
                 <FormControl className="m-1 w-full">
                   <div className="">
-                    <FormLabel htmlFor="lname" className="text-sm font-medium">
+                    <FormLabel
+                      htmlFor="lastName"
+                      className="text-sm font-medium"
+                    >
                       Last Name
                     </FormLabel>
                     <Input
                       className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="lname"
+                      id="lastName"
                       placeholder="doe"
                       type="text"
-                      {...register('lname')}
+                      {...register('lastName', {
+                        value: formData?.lastName,
+                      })}
                     />
-                    {/* {errors.lname && (
-                      <FormMessage>*{errors.lname.message}</FormMessage>
+                    {/* {errors.lastName && (
+                      <FormMessage>*{errors.lastName.message}</FormMessage>
                     )} */}
                   </div>
                 </FormControl>
@@ -158,6 +182,7 @@ const OfficeUserCreateDialog = ({
                       placeholder="johndoe@gmail.com"
                       type="text"
                       {...register('email', {
+                        value: formData?.email,
                         required: 'Please enter your email',
                       })}
                     />
@@ -183,12 +208,7 @@ const OfficeUserCreateDialog = ({
                         className="text-sm pr-10 mt-2"
                         {...register('password', {
                           required: 'Please enter your password.',
-                          pattern: {
-                            value:
-                              /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
-                            message:
-                              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
-                          },
+                          value: '',
                         })}
                       />
                       <Button
@@ -213,55 +233,60 @@ const OfficeUserCreateDialog = ({
               </div>
               <div className="form-group w-full flex items-center justify-center gap-3 m-1">
                 <div className="w-full">
-                  <FormControl className="m-1 w-full">
-                    <div className="">
-                      <FormLabel
-                        htmlFor="phone"
-                        className="text-sm font-medium"
-                      >
-                        Phone
-                      </FormLabel>
-                      <Input
-                        className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                        id="phone"
-                        placeholder="876543215"
-                        type="number"
-                        {...register('phone', {
-                          required: 'Please enter your phone',
-                          pattern: {
-                            value: /^[9654]\d{7}$/,
-                            message:
-                              'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
-                          },
-                        })}
-                      />
-                      {errors.phone && (
-                        <FormMessage>*{errors.phone.message}</FormMessage>
-                      )}
-                    </div>
-                  </FormControl>
-                </div>
-                <div className="w-full">
                   <FormLabel
-                    htmlFor="gender"
+                    htmlFor="phone"
                     className="text-sm font-medium my-2 block"
                   >
-                    Gender
+                    Roles
                   </FormLabel>
                   <SingleSelectDropDown
                     control={control}
-                    name="gender"
+                    name="role"
                     label=""
-                    items={[
-                      { id: 'male', name: 'Male' },
-                      { id: 'female', name: 'Female' },
-                      { id: 'other', name: 'Other' },
-                    ]}
+                    items={roleLov}
+                    // value={formData.role}
                     placeholder="Choose an option"
-                    // rules={{ required: 'This field is required' }}
+                    rules={{ required: 'This field is required' }}
                   />
                 </div>
+                <FormControl className="m-1 w-full">
+                  <div className="">
+                    <FormLabel htmlFor="phone" className="text-sm font-medium">
+                      Phone
+                    </FormLabel>
+                    <Input
+                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                      id="phone"
+                      placeholder="876543215"
+                      type="number"
+                      {...register('phone', {
+                        required: 'Please enter your phone',
+                        value: formData.phone,
+                      })}
+                    />
+                    {errors.phone && (
+                      <FormMessage>*{errors.phone.message}</FormMessage>
+                    )}
+                  </div>
+                </FormControl>
               </div>
+              <FormControl className="m-1 w-full">
+                <div className="">
+                  <FormLabel htmlFor="address" className="text-sm font-medium">
+                    Address
+                  </FormLabel>
+                  <Input
+                    className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                    id="address"
+                    placeholder="Street 55"
+                    type="text"
+                    {...register('address', { value: formData.address })}
+                  />
+                  {errors.address && (
+                    <FormMessage>*{errors.address.message}</FormMessage>
+                  )}
+                </div>
+              </FormControl>
               <div>
                 <div className="flex justify-between">
                   <FormLabel
@@ -287,11 +312,11 @@ const OfficeUserCreateDialog = ({
                         alt="Shop Logo"
                       />
                     </div>
-                  ) : getValues('profilePic') ? (
+                  ) : getValues('avatar') ? (
                     <div className="col-span-6 flex items-center justify-center  xl:justify-center 2xl:justify-start">
                       <img
                         className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                        src={getValues('profilePic')}
+                        src={getValues('avatar')}
                         alt="Shop Logo"
                       />
                     </div>
@@ -304,7 +329,7 @@ const OfficeUserCreateDialog = ({
                   type="submit"
                   className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                 >
-                  {isLoader && <Loader2 className="animate-spin" />} Add
+                  {isLoader && <Loader2 className="animate-spin" />} Update
                 </Button>
               </DialogFooter>
             </div>
@@ -315,4 +340,4 @@ const OfficeUserCreateDialog = ({
   );
 };
 
-export default OfficeUserCreateDialog;
+export default OfficeUserUpdateDialog;

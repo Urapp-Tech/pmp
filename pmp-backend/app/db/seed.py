@@ -39,7 +39,7 @@ def seed_permissions(
             permission_sequence=i + 1,
             permission_parent=str(parent_id),
             action=f"/admin/{to_kebab_case(parent_name)}/{action}",
-            show_on_menu=True,
+            show_on_menu=(action.lower() == "view"),
             is_active=True,
         )
         db.add(permission)
@@ -67,6 +67,7 @@ def seed_roles_permissions_users():
             "Landlord",
             "Manager",
             "User",
+            "Tenant Contract",
             "Property",
             "Invoice",
             "Receipts",

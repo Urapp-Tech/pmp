@@ -33,6 +33,7 @@ class Tenant(Base):
     nationality = Column(String(255), nullable=True)
     legal_case = Column(Boolean, default=False, nullable=False)
     language = Column(String(255), nullable=True)
+    agreement_doc = Column(String(255), nullable=True)
 
     contract_start = Column(TIMESTAMP(timezone=True), nullable=False)
     contract_end = Column(TIMESTAMP(timezone=True), nullable=False)
@@ -49,3 +50,6 @@ class Tenant(Base):
     is_approved = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", backref=backref("tenants", lazy="joined"))
+    property_unit = relationship("PropertyUnit", backref="tenants")

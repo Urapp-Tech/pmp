@@ -67,6 +67,10 @@ def upgrade() -> None:
         "tenants",
         sa.Column("leaving_date", postgresql.TIMESTAMP(timezone=True), nullable=True),
     )
+    op.add_column(
+        "tenants",
+        sa.Column("agreement_doc", sa.String(length=255), nullable=True),
+    )
     op.add_column("tenants", sa.Column("rent_pay_day", sa.Integer(), nullable=True))
     op.add_column(
         "tenants",
@@ -100,6 +104,7 @@ def downgrade() -> None:
     op.drop_column("tenants", "leaving_date")
     op.drop_column("tenants", "rent_price")
     op.drop_column("tenants", "contract_number")
+    op.drop_column("tenants", "agreement_doc")
     op.drop_column("tenants", "is_approved")
     op.drop_column("tenants", "contract_end")
     op.drop_column("tenants", "contract_start")

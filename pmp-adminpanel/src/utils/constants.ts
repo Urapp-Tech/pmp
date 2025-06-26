@@ -23,6 +23,7 @@ export const PROPERTY_UNIT_PREFIX = 'property-units';
 export const SUB_USER_PREFIX = 'sub-user';
 export const ROLE_PREFIX = 'roles';
 export const BLOG_PREFIX = 'blog';
+export const TENANTS_PREFIX = 'tenants';
 
 export const imageAllowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
@@ -80,6 +81,12 @@ export const PERMISSIONS = {
     CREATE: 'Create User Management',
     UPDATE: 'Update User Management',
     DELETE: 'Delete User Management',
+  },
+  USER_CONTRACT: {
+    VIEW: 'View Tenant Contract Management',
+    CREATE: 'Create Tenant Contract Management',
+    UPDATE: 'Update Tenant Contract Management',
+    DELETE: 'Delete Tenant Contract Management',
   },
   MANAGER: {
     VIEW: 'View Manager Management',

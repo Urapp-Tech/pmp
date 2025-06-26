@@ -15,25 +15,25 @@ import {
 } from '@/components/ui/table';
 import propertyService from '@/services/adminapp/property'; // adjust if needed
 
-const UnitListModal = ({ open, setOpen, property }: any) => {
-  const [units, setUnits] = useState([]);
-console.log('UnitListModal property:', property);
+const UnitListModal = ({ open, setOpen, property, units }: any) => {
+  // const [units, setUnits] = useState([]);
+  console.log('UnitListModal property:', property);
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    if (open && property) {
-      fetchUnits();
-    }
-  }, [open, property]);
+  //   if (open && property) {
+  //     fetchUnits();
+  //   }
+  // }, [open, property]);
 
-  const fetchUnits = async () => {
-    try {
-      const res = await propertyService.getUnitsByPropertyId(property, '', 1, 20);
-      setUnits(res.data?.items || []);
-    } catch (error) {
-      console.error('Failed to fetch units', error);
-    }
-  };
+  // const fetchUnits = async () => {
+  //   try {
+  //     const res = await propertyService.getUnitsByPropertyId(property, '', 1, 20);
+  //     setUnits(res.data?.items || []);
+  //   } catch (error) {
+  //     console.error('Failed to fetch units', error);
+  //   }
+  // };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

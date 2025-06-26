@@ -13,10 +13,9 @@ class PaymentCycle(str, Enum):
 
 class ContractCreate(BaseModel):
     user_id: UUID = Field(..., alias="userId")
-    property_unit_ids: List[UUID] = Field(..., alias="propertyUnitIds")
+    property_unit_id: UUID = Field(..., alias="propertyUnitId")
     contract_start: date = Field(..., alias="contractStart")
     contract_end: date = Field(..., alias="contractEnd")
-    contract_number: str = Field(..., alias="contractNumber")
     rent_price: float = Field(..., alias="rentPrice")
     rent_pay_day: int = Field(..., alias="rentPayDay")
     payment_cycle: PaymentCycle = Field(..., alias="paymentCycle")
@@ -35,13 +34,9 @@ class ContractCreate(BaseModel):
             "examples": [
                 {
                     "userId": "a1b2c3d4-5678-9012-3456-7890abcdef12",
-                    "propertyUnitIds": [
-                        "a1b2c3d4-5678-9012-3456-7890abcdef12",
-                        "a1b2c3d4-5678-9012-3456-7890abcdef12",
-                    ],
+                    "propertyUnitId": "a1b2c3d4-5678-9012-3456-7890abcdef12",
                     "contractStart": "2025-07-01",
                     "contractEnd": "2026-06-30",
-                    "contractNumber": "CNT-2025-001",
                     "rentPrice": 1200.50,
                     "rentPayDay": 5,
                     "paymentCycle": "Monthly",
@@ -74,6 +69,7 @@ class ContractCreateOut(BaseModel):
     nationality: Optional[str]
     legal_case: Optional[bool] = Field(False, alias="legalCase")
     language: Optional[str]
+    agreement_doc: Optional[str] = (Field(None, alias="agreementDoc"),)
     is_active: bool = Field(..., alias="isActive")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
@@ -98,6 +94,7 @@ class ContractCreateOut(BaseModel):
                 "nationality": "Pakistani",
                 "legalCase": False,
                 "language": "English",
+                "agreement_doc": None,
                 "isActive": True,
                 "isApproved": False,
                 "createdAt": "2025-06-24",
@@ -136,17 +133,37 @@ class UserDetailOut(BaseModel):
     email: str
     phone: str
     gender: Optional[str] = None
-    profile_pic: Optional[str] = None
+    profile_pic: Optional[str] = Field(None, alias="profilePic")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class UnitDetailOut(BaseModel):
+    id: UUID
+    name: str
+    unit_no: str = Field(..., alias="unitNo")
+    unit_type: str = Field(..., alias="unitType")
+    size: str
+    electricity_meter: Optional[str] = Field(None, alias="electricityMeter")
+    water_meter: Optional[str] = Field(None, alias="waterMeter")
+    pictures: Optional[List[str]] = None
+    rent: Optional[str]
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
 
 
 class ContractListOut(BaseModel):
     id: UUID
-    user_id: UUID
-    property_unit_id: UUID
-    contract_start: date
-    contract_end: date
-    contract_number: str
-    rent_price: float
+    user_id: UUID = Field(..., alias="userId")
+    property_unit_id: UUID = Field(..., alias="propertyUnitId")
+    contract_start: date = Field(..., alias="contractStart")
+    contract_end: date = Field(..., alias="contractEnd")
+    contract_number: str = Field(..., alias="contractNumber")
+    rent_price: float = Field(..., alias="rentPrice")
     rent_pay_day: int = Field(..., alias="rentPayDay")
     payment_cycle: PaymentCycle = Field(..., alias="paymentCycle")
     leaving_date: Optional[date] = Field(None, alias="leavingDate")
@@ -158,6 +175,7 @@ class ContractListOut(BaseModel):
     is_active: bool = Field(..., alias="isActive")
     is_approved: bool = Field(..., alias="isApproved")
     user_detail: Optional[UserDetailOut] = Field(None, alias="userDetail")
+    unit_detail: Optional[UnitDetailOut] = Field(None, alias="unitDetail")
 
     class Config:
         from_attributes = True
@@ -170,3 +188,9 @@ class PaginatedContractList(BaseModel):
     page: int
     size: int
     items: List[ContractListOut]
+
+
+class ContractStandardResponse(BaseModel):
+    success: bool
+    message: str
+    data: ContractCreateOut

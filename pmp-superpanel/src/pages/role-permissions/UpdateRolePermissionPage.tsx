@@ -215,7 +215,7 @@ const UpdateRolePermissionPage = () => {
                           state?.name === 'Manager' ||
                           state?.name === 'Landlord',
                         required: 'Please enter your role name',
-                        value: state?.name ?? '',
+                        value: state?.name === 'User' ? 'Tenant' : state?.name,
                       })}
                     />
                     {errors.name && (

@@ -5,6 +5,8 @@ export const ADMIN_BASE_URL =
   import.meta.env.VITE_ADMIN_BASE_URL || `${HOST}/api/v1/admin/`;
 export const BASE_SYSTEM_URL =
   import.meta.env.VITE_SYSTEM_BASE_URL || `${HOST}/api/v1/system/config/`;
+export const ASSET_BASE_URL =
+  import.meta.env.VITE_ASSETS_BASE_URL || `http://localhost:8000/`;
 export const BACKOFFICE_PREFIX = 'office-user';
 export const USER_PREFIX = 'user';
 export const EMPLOYEE_PREFIX = 'employee';

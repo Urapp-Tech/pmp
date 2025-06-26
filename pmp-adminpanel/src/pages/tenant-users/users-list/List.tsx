@@ -19,7 +19,7 @@ import {
   ArrowUpDown,
   Loader2,
   // ChevronDown,
-  MoreHorizontal,
+  MapPinHouse,
   Pencil,
   Trash2,
 } from 'lucide-react';
@@ -30,10 +30,6 @@ import { Paginator } from '@/components/Paginator';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  //   DropdownMenuLabel,
-  //   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
@@ -47,14 +43,16 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import userService from '@/services/adminapp/users';
+import contreactService from '@/services/adminapp/contracts';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
-import OfficeUsersCreationDialog from './CreateDialog';
+import CreateContractDialog from './CreateContractDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/utils/helper';
+import { getInitials, handleErrorMessage } from '@/utils/helper';
 import { usePermission } from '@/utils/hasPermission';
 import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
+import OfficeUserCreateDialog from './CreateDialog';
 
 export type Users = {
   id: string; // UUID
@@ -90,7 +88,7 @@ const TenantUsers = () => {
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
-  const [editFormData, setEditFormData] = useState();
+  const [editFormData, setEditFormData] = useState<any>();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -101,6 +99,7 @@ const TenantUsers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [contractOpen, setContractOpen] = useState(false);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -172,40 +171,6 @@ const TenantUsers = () => {
         </div>
       ),
     },
-    // {
-    //   accessorKey: 'assignedManager',
-    //   header: 'Assigned Manager',
-    //   cell: ({ row }) => {
-    //     const managerUser = row.getValue('assignedManager') as {
-    //       id: string;
-    //       name: string;
-    //       profilePic?: string | null;
-    //     } | null;
-
-    //     if (!managerUser) {
-    //       return (
-    //         <span className="text-sm text-muted-foreground">
-    //           Not assigned yet
-    //         </span>
-    //       );
-    //     }
-
-    //     return (
-    //       <div className="flex items-center space-x-2">
-    //         <Avatar>
-    //           <AvatarImage
-    //             src={managerUser.profilePic ?? ''}
-    //             alt={`@manager-user`}
-    //           />
-    //           <AvatarFallback>
-    //             {managerUser.name?.charAt(0).toUpperCase() || 'M'}
-    //           </AvatarFallback>
-    //         </Avatar>
-    //         <span className="text-sm font-medium">{managerUser.name}</span>
-    //       </div>
-    //     );
-    //   },
-    // },
     {
       id: 'actions',
       enableHiding: false,
@@ -216,6 +181,15 @@ const TenantUsers = () => {
           <div className="flex justify-center items-center">
             {can(PERMISSIONS.USER.UPDATE) && (
               <div>
+                <MapPinHouse
+                  className="text-lunar-bg cursor-pointer"
+                  onClick={() => handleActionMenu('contract', id)}
+                  size={20}
+                />
+              </div>
+            )}
+            {can(PERMISSIONS.USER.UPDATE) && (
+              <div className="pl-3">
                 <Pencil
                   className="text-lunar-bg cursor-pointer"
                   onClick={() => handleActionMenu('edit', id)}
@@ -239,6 +213,11 @@ const TenantUsers = () => {
   ];
 
   const handleActionMenu = (type: string, actionId: string) => {
+    if (type === 'contract') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setContractOpen(true);
+    }
     if (type === 'edit') {
       const editData = list.find((item: any) => item.id === actionId);
       setEditFormData(editData);
@@ -254,7 +233,7 @@ const TenantUsers = () => {
   const fetchUsers = async () => {
     try {
       const users = await usersService.userslist(
-        userDetails?.id,
+        userDetails?.landlordId,
         search,
         page,
         pageSize
@@ -325,7 +304,7 @@ const TenantUsers = () => {
     table.setPageIndex(newPage);
     try {
       const users = await userService.userslist(
-        userDetails?.id,
+        userDetails?.landlordId,
         search,
         newPage,
         pageSize
@@ -399,15 +378,15 @@ const TenantUsers = () => {
 
   const updateEmployeeHandler = (data: any) => {
     const formData = new FormData();
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
+    formData.append('fname', data.fname);
+    formData.append('lname', data.lname);
     formData.append('email', data.email);
-    formData.append('username', data.email);
     formData.append('phone', data.phone);
+    formData.append('gender', data.gender);
     formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
+    formData.append('roleType', data.roleType);
+    formData.append('landlordId', userDetails?.landlordId);
+    if (data.profilePic) formData.append('profilePic', data.profilePic);
     setIsLoader(true);
     userService
       .update(data.id, formData)
@@ -417,13 +396,13 @@ const TenantUsers = () => {
           setIsLoader(false);
           setList((newArr: any) => {
             return newArr.map((item: any) => {
-              if (item.id === updateItem.data.data.id) {
-                item.firstName = updateItem.data.data.firstName;
-                item.lastName = updateItem.data.data.lastName;
-                item.email = updateItem.data.data.email;
-                item.phone = updateItem.data.data.phone;
-                item.address = updateItem.data.data.address;
-                item.avatar = updateItem.data.data.avatar;
+              if (item.id === updateItem.data.items.id) {
+                item.fname = updateItem.data.items.fname;
+                item.lname = updateItem.data.items.lname;
+                item.email = updateItem.data.items.email;
+                item.phone = updateItem.data.items.phone;
+                item.gender = updateItem.data.items.gender;
+                item.profilePic = updateItem.data.items.profilePic;
               }
               return { ...item };
             });
@@ -435,8 +414,46 @@ const TenantUsers = () => {
         }
       })
       .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setIsLoader(false);
+      });
+  };
+
+  const createContractHandler = (data: any) => {
+    console.log('dadad', data);
+
+    setIsLoader(true);
+    const formData = new FormData();
+    formData.append('userId', editFormData?.id);
+    formData.append('propertyUnitId', data.propertyUnitId);
+    formData.append('civilId', data.civilId || '');
+    formData.append('nationality', data.nationality || '');
+    formData.append('rentPrice', String(data.rentPrice));
+    formData.append('rentPayDay', String(data.rentPayDay));
+    formData.append('tenantType', data.tenantType || '');
+    formData.append('legalCase', String(data.legalCase)); // boolean to string
+    formData.append('contractStart', data.contractStart);
+    formData.append('contractEnd', data.contractEnd);
+    formData.append('leavingDate', data.leavingDate || '');
+    formData.append('paymentCycle', data.paymentCycle || '');
+    formData.append('language', data.language || '');
+    if (data.agreementDoc) formData.append('agreementDoc', data.agreementDoc);
+    contreactService
+      .create(formData)
+      .then((item) => {
+        if (item.data.success) {
+          setContractOpen(false);
+          setIsLoader(false);
+          ToastHandler(item.data.message);
+          // setList([item.data.items, ...list]);
+          // let newtotal = total;
+          // setTotal((newtotal += 1));
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
         setIsLoader(false);
       });
   };
@@ -568,7 +585,7 @@ const TenantUsers = () => {
         </div>
       </SidebarInset>
       {isOpen && (
-        <OfficeUsersCreationDialog
+        <OfficeUserCreateDialog
           isLoader={isLoader}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
@@ -592,6 +609,15 @@ const TenantUsers = () => {
           title={'User'}
           formData={editFormData}
           callback={deleteUserHandler}
+        />
+      )}
+      {contractOpen && (
+        <CreateContractDialog
+          isLoader={isLoader}
+          isOpen={contractOpen}
+          setIsOpen={setContractOpen}
+          callback={createContractHandler}
+          formData={editFormData}
         />
       )}
     </div>

@@ -15,3 +15,19 @@ export function breakCamelCase(text: string): string {
     .replace(/^./, (str) => str.toUpperCase());
   return result;
 }
+
+export function handleErrorMessage(error: any): string {
+  const detail = error?.response?.data?.detail;
+
+  if (!detail) return 'Something went wrong.';
+
+  if (typeof detail === 'string') {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item?.msg || JSON.stringify(item)).join('; ');
+  }
+
+  return JSON.stringify(detail);
+}

@@ -7,6 +7,7 @@ from fastapi import (
     UploadFile,
     File,
     HTTPException,
+    Path,
 )
 from typing import Optional, List, Union
 from pydantic import EmailStr, ValidationError
@@ -16,6 +17,7 @@ from uuid import UUID
 from app.modules.users.schemas import (
     UserLogin,
     UserCreate,
+    UserUpdate,
     UserResponseOut,
     UserLOV,
     LoginResponse,
@@ -26,10 +28,11 @@ from app.modules.users.schemas import (
 )
 from app.modules.users.services import (
     create_user,
+    update_user,
+    delete_user,
     authenticate_user,
     refresh_access_token,
-    get_users_by_role,
-    # get_manager_users_by_role,
+    get_users_by_landlord,
     get_assigned_units_managers,
     get_users_lov_by_landlord,
 )
@@ -68,6 +71,42 @@ def parse_user_create(
         raise HTTPException(status_code=422, detail=e.errors())
 
 
+def parse_user_update(
+    fname: Optional[str] = Form(None),
+    lname: Optional[str] = Form(None),
+    email: Optional[EmailStr] = Form(None),
+    password: Optional[str] = Form(None),
+    phone: Optional[str] = Form(None),
+    gender: Optional[str] = Form(None),
+    landlordId: Optional[UUID] = Form(None),
+    roleType: Optional[str] = Form(None),
+    profilePic: Union[UploadFile, str, None] = File(None),
+):
+
+    password = password if password != "" else None
+    fname = fname if fname != "" else None
+    lname = lname if lname != "" else None
+    phone = phone if phone != "" else None
+
+    if isinstance(profilePic, str) and profilePic == "":
+        profilePic = None
+
+    try:
+        update_data = UserUpdate(
+            fname=fname,
+            lname=lname,
+            email=email,
+            password=password,
+            phone=phone,
+            gender=gender,
+            landlord_id=landlordId,
+            role_type=roleType,
+        )
+        return {"user_data": update_data, "profile_pic": profilePic}
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=e.errors())
+
+
 router = APIRouter()
 
 
@@ -98,6 +137,28 @@ def create(parsed: dict = Depends(parse_user_create), db: Session = Depends(get_
     return create_user(db, parsed["user_data"], parsed["profile_pic"])
 
 
+@router.post(
+    "/update/{user_id}",
+    response_model=UserResponseOut,
+    summary="Update user (FormData)",
+)
+def update_user_route(
+    user_id: UUID = Path(...),
+    parsed: dict = Depends(parse_user_update),
+    db: Session = Depends(get_db),
+):
+    return update_user(db, user_id, parsed["user_data"], parsed["profile_pic"])
+
+
+@router.post(
+    "/delete/{user_id}",
+    response_model=UserResponseOut,
+    summary="Soft delete (deactivate) a user",
+)
+def soft_delete_user_route(user_id: UUID = Path(...), db: Session = Depends(get_db)):
+    return delete_user(db, user_id)
+
+
 # @router.get("/list/{landlord_id}", response_model=PaginatedUserResponse)
 # def read_users(
 #     page: int = Query(1, ge=1),
@@ -126,20 +187,17 @@ def get_managers_users(
     )
 
 
-@router.get("/user-list/{user_id}", response_model=PaginatedTenantUserResponse)
+@router.get("/user-list/{landlord_id}", response_model=PaginatedTenantUserResponse)
 def get_tenant_users(
-    # landlord_id: UUID,
-    user_id: UUID,
+    landlord_id: UUID,
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    return get_users_by_role(
+    return get_users_by_landlord(
         db=db,
-        # landlord_id=landlord_id,
-        # role_name="User",
-        user_id=user_id,
+        landlord_id=landlord_id,
         page=page,
         size=size,
         search=search,

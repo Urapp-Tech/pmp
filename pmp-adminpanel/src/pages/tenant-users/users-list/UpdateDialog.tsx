@@ -24,33 +24,35 @@ import DragDropFile from '@/components/DragDropImgFile';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
-import service from '@/services/adminapp/role-permissions';
+import { ASSET_BASE_URL } from '@/utils/constants';
 
 type Props = {
   isLoader: boolean;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   callback: (...args: any[]) => any;
+  formData: any;
 };
 
-const OfficeUserCreateDialog = ({
+const OfficeUserUpdateDialog = ({
   isOpen,
   setIsOpen,
   callback,
   isLoader,
+  formData,
 }: Props) => {
-  const form = useForm<Fields>();
+  const form = useForm<Fields>({
+    defaultValues: {
+      password: '',
+      profilePic: formData.profilePic || '',
+      fname: formData.fname || '',
+      lname: formData.lname || '',
+      email: formData.email || '',
+      gender: formData.gender || '',
+      phone: formData.phone || '',
+    },
+  });
 
-  /*************  ✨ Windsurf Command ⭐  *************/
-  /**
-   * Displays a toast notification with the provided text.
-   * The notification is styled with a fixed position at the top-right corner,
-   * a specific background color, and a high z-index for visibility.
-   *
-   * @param {string} text - The message to be displayed in the toast notification.
-   */
-
-  /*******  d3311b49-b875-4c0f-a6d4-9e311a493f77  *******/
   const ToastHandler = (text: string) => {
     return toast({
       description: text,
@@ -79,17 +81,18 @@ const OfficeUserCreateDialog = ({
 
   const onSubmit = async (data: Fields) => {
     let obj: any = {
+      id: formData.id,
       fname: data.fname,
       lname: data.lname,
       email: data.email,
       password: data.password,
       phone: data.phone,
       gender: data.gender,
-      roleType: 'Manager',
+      roleType: 'User',
     };
     if (file) obj.profilePic = file;
-    // console.log('s', data);
     callback(obj);
+    console.log('UPDATEs', obj);
   };
 
   const togglePasswordVisibility = () => {
@@ -103,7 +106,7 @@ const OfficeUserCreateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Add New Manager User</DialogTitle>
+          <DialogTitle>Update Tenant User</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -141,8 +144,8 @@ const OfficeUserCreateDialog = ({
                       {...register('lname')}
                     />
                     {/* {errors.lname && (
-                      <FormMessage>*{errors.lname.message}</FormMessage>
-                    )} */}
+                        <FormMessage>*{errors.lname.message}</FormMessage>
+                      )} */}
                   </div>
                 </FormControl>
               </div>
@@ -182,7 +185,7 @@ const OfficeUserCreateDialog = ({
                         type={passwordVisible ? 'text' : 'password'}
                         className="text-sm pr-10 mt-2"
                         {...register('password', {
-                          required: 'Please enter your password.',
+                          // required: 'Please enter your password.',
                           pattern: {
                             value:
                               /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
@@ -284,15 +287,15 @@ const OfficeUserCreateDialog = ({
                       <img
                         className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
                         src={selectedImg}
-                        alt="Shop Logo"
+                        alt="profilePic"
                       />
                     </div>
                   ) : getValues('profilePic') ? (
                     <div className="col-span-6 flex items-center justify-center  xl:justify-center 2xl:justify-start">
                       <img
                         className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                        src={getValues('profilePic')}
-                        alt="Shop Logo"
+                        src={`${ASSET_BASE_URL}${getValues('profilePic')}`}
+                        alt="profilePic"
                       />
                     </div>
                   ) : null}
@@ -304,7 +307,7 @@ const OfficeUserCreateDialog = ({
                   type="submit"
                   className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                 >
-                  {isLoader && <Loader2 className="animate-spin" />} Add
+                  {isLoader && <Loader2 className="animate-spin" />} Update
                 </Button>
               </DialogFooter>
             </div>
@@ -315,4 +318,4 @@ const OfficeUserCreateDialog = ({
   );
 };
 
-export default OfficeUserCreateDialog;
+export default OfficeUserUpdateDialog;
