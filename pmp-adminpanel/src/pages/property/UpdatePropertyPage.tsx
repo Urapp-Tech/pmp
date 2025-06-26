@@ -61,7 +61,7 @@ const UpdatePropertyPage = () => {
     setMainIsLoader(true);
     if (!id) {
   toast({ description: 'Invalid property ID' });
-  navigate('/admin/property/list');
+  navigate('/admin-panel/property/list');
   return;
 }
 
@@ -92,7 +92,7 @@ setUnitPicturesPreview(previews);
         setMainIsLoader(false);
       } catch (error) {
         toast({ description: 'Error loading property data' });
-        navigate('/admin/property/list');
+        navigate('/admin-panel/property/list');
       }
     };
     fetchProperty();
@@ -142,7 +142,7 @@ const onSubmit = async (data: Fields) => {
     const response = await service.update(id!, formData);
     if (response.data.success) {
       toast({ description: 'Property updated successfully!' });
-      navigate('/admin/property/list');
+      navigate('/admin-panel/property/list');
     } else {
       toast({ description: response.data.message });
     }

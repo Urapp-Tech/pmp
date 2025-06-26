@@ -125,7 +125,7 @@ const PropertyList = () => {
     const id = item.id;
     setEditFormData(item);
     if (action === 'edit') {
-      navigate(`/admin/property/edit/${id}`);
+      navigate(`/admin-panel/property/edit/${id}`);
     } else if (action === 'delete') {
       setSelectedProperty(id);
       setDeleteOpen(true);
@@ -146,7 +146,7 @@ const PropertyList = () => {
             />
             {can(PERMISSIONS.PROPERTY.CREATE) && (
               <Button
-                onClick={() => navigate('/admin/property/add')}
+                onClick={() => navigate('/admin-panel/property/add')}
                 className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                 variant={'outline'}
               >

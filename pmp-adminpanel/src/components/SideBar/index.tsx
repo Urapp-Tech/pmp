@@ -147,7 +147,7 @@ export function MainSidebar({
     },
     {
       title: 'Financial Reports',
-      url: '/admin/reports/invoices',
+      url: '/admin-panel/reports/invoices',
       icon: assets.images.pagesSidebarIcon,
       permission: PERMISSIONS.FINANCIAL_REPORT.VIEW,
       items: [],

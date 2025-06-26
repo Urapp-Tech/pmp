@@ -150,7 +150,7 @@ data.units.forEach((unit) => {
     if (response.data.success) {
       toast({ description: 'Property created successfully!' });
       reset();
-      navigate('/admin/property/list');
+      navigate('/admin-panel/property/list');
       setPropertyPicturesPreview([]);
       setUnitPicturesPreview({});
     } else {
