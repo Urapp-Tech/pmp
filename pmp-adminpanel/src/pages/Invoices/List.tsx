@@ -398,7 +398,7 @@ const Invoices = () => {
         onComplete={async () => {
           if (selectedInvoiceId) {
             await fetchInvoiceItems(selectedInvoiceId);
-            // await fetchList();
+            await fetchList(search, page);
           }
         }}
       />
@@ -433,6 +433,9 @@ const Invoices = () => {
       ToastHandler(`${action.toUpperCase()} successful`);
       refreshData();
       setShowItemsModal(false); // ✅ Close only on success
+      
+            // await fetchInvoiceItems(selectedInvoiceId);
+            await fetchList(search, page);
     } else {
       ToastHandler(res.data.message || 'Failed to update status');
     }

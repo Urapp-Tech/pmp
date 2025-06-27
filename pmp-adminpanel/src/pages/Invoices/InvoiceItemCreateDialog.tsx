@@ -114,7 +114,7 @@ const InvoiceItemCreateDialog = ({
         setFile(null);
         setIsOpen(false);
         
-        // onComplete?.();
+        onComplete?.();
       }
     } catch (err) {
       console.error('Error saving invoice item', err);
