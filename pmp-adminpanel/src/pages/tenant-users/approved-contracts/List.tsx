@@ -201,7 +201,7 @@ const ApprovedContracts = () => {
         const { id } = row.original;
         return (
           <div className="flex justify-center items-center">
-            {can(PERMISSIONS.USER_CONTRACT.UPDATE) && (
+            {/* {can(PERMISSIONS.USER_CONTRACT.UPDATE) && (
               <div>
                 <Pencil
                   className="text-lunar-bg cursor-pointer"
@@ -218,7 +218,7 @@ const ApprovedContracts = () => {
                   onClick={() => handleActionMenu('delete', id)}
                 />
               </div>
-            )}
+            )} */}
           </div>
         );
       },

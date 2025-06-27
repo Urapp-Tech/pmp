@@ -41,7 +41,7 @@ function ManagerDashboard() {
   };
 
   return (
-    <div className="bg-white p-4 rounded-[20px] mt-5">
+    <div className="bg-white rounded-[20px] mt-5">
       <SidebarInset>
         <TopBar title="Manager Dashboard" />
 

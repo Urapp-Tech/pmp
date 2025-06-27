@@ -129,6 +129,10 @@ const OfficeUserCreateDialog = ({
                       type="text"
                       {...register('firstName', {
                         required: 'Please enter your first name',
+                        pattern: {
+                          value: /^[A-Za-z\s]+$/,
+                          message: 'Only alphabets and spaces are allowed',
+                        },
                       })}
                     />
                     {errors.firstName && (
@@ -149,11 +153,16 @@ const OfficeUserCreateDialog = ({
                       id="lastName"
                       placeholder="doe"
                       type="text"
-                      {...register('lastName')}
+                      {...register('lastName', {
+                        pattern: {
+                          value: /^[A-Za-z\s]+$/,
+                          message: 'Only alphabets and spaces are allowed',
+                        },
+                      })}
                     />
-                    {/* {errors.lastName && (
+                    {errors.lastName && (
                       <FormMessage>*{errors.lastName.message}</FormMessage>
-                    )} */}
+                    )}
                   </div>
                 </FormControl>
               </div>

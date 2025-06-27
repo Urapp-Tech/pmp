@@ -26,9 +26,20 @@ const managerActivity = (landlordId: string, managerUserId: string) => {
   );
 };
 
+const tenantActivity = (userId: string) => {
+  return network.get(
+    `dashboard/tenant/stats`,
+    {
+      user_id: userId,
+    },
+    'super'
+  );
+};
+
 export default {
   loginService,
   systemConfig,
   activity,
   managerActivity,
+  tenantActivity,
 };

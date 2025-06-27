@@ -7,9 +7,11 @@ from app.models.users import User
 from app.models.properties import Property
 from app.models.roles import Role
 from app.models.managers import Manager
+from app.models.tenants import Tenant
 from app.models.invoices import Invoice, InvoiceStatus
 from app.models.property_units import PropertyUnit
 from app.models.support_tickets import SupportTicketStatus, SupportTicket
+from collections import defaultdict
 
 
 def get_super_admin_activity_summary(db: Session):
@@ -161,7 +163,7 @@ def get_manager_stats(db: Session, landlord_id: UUID, user_id: UUID) -> dict:
         db.query(User)
         .filter(
             User.role.has(name="User"),
-            User.unit_id.in_(assigned_unit_ids),
+            Tenant.property_unit_id.in_(assigned_unit_ids),
             User.is_active == True,
             User.landlord_id == landlord_id,
         )
@@ -181,4 +183,86 @@ def get_manager_stats(db: Session, landlord_id: UUID, user_id: UUID) -> dict:
             },
             "tenants_assigned": tenants_count,
         },
+    }
+
+
+def get_tenant_stats(db: Session, user_id: UUID):
+    # Step 1: Validate user
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Step 2: Get approved tenant assignments
+    approved_tenants = (
+        db.query(Tenant)
+        .filter(Tenant.user_id == user_id, Tenant.is_approved == True)
+        .all()
+    )
+
+    if not approved_tenants:
+        return {
+            "user": {},
+            "properties": [],
+        }
+        # raise HTTPException(
+        #     status_code=404, detail="No approved unit assignments found"
+        # )
+
+    # Step 3: Organize data
+    property_map = {}  # property_id -> property data
+    units_by_property = defaultdict(list)
+
+    for tenant in approved_tenants:
+        unit = (
+            db.query(PropertyUnit)
+            .filter(PropertyUnit.id == tenant.property_unit_id)
+            .first()
+        )
+        if unit and unit.status:  # optional: check if unit is active
+            property_obj = (
+                db.query(Property).filter(Property.id == unit.property_id).first()
+            )
+            if property_obj:
+                prop_id = str(property_obj.id)
+
+                # Only once store property data
+                if prop_id not in property_map:
+                    prop_data = property_obj.__dict__.copy()
+                    prop_data.pop("_sa_instance_state", None)
+                    prop_data["units"] = []
+                    property_map[prop_id] = prop_data
+
+                # Add unit under the corresponding property
+                unit_data = unit.__dict__.copy()
+                unit_data.pop("_sa_instance_state", None)
+                units_by_property[prop_id].append(unit_data)
+
+    # Attach units to properties
+    for prop_id, units in units_by_property.items():
+        property_map[prop_id]["units"] = units
+
+    # Prepare list of properties with grouped units
+    property_list = list(property_map.values())
+
+    # Prepare user data with only approved tenants, include unit_name
+    user_data = user.__dict__.copy()
+    user_data.pop("_sa_instance_state", None)
+    user_data["tenants"] = []
+
+    for t in approved_tenants:
+        t_data = t.__dict__.copy()
+        t_data.pop("_sa_instance_state", None)
+
+        # 🔽 Add unit_name from associated property unit
+        unit = (
+            db.query(PropertyUnit).filter(PropertyUnit.id == t.property_unit_id).first()
+        )
+        if unit:
+            t_data["unit_name"] = unit.name
+
+        user_data["tenants"].append(t_data)
+
+    return {
+        "user": user_data,
+        "properties": property_list,
     }

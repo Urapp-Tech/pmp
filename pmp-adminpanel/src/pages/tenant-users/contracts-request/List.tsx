@@ -235,7 +235,7 @@ const ContractRequest = () => {
         const { id, propertyUnitId, userId } = row.original;
         return (
           <div className="flex justify-center items-center">
-            {can(PERMISSIONS.USER.UPDATE) && (
+            {/* {can(PERMISSIONS.USER.UPDATE) && (
               <div className="pr-3">
                 <Pencil
                   className="text-lunar-bg cursor-pointer"
@@ -243,7 +243,7 @@ const ContractRequest = () => {
                   size={20}
                 />
               </div>
-            )}
+            )} */}
             {can(PERMISSIONS.USER.DELETE) && (
               <div className="pl-3">
                 <CircleCheck
