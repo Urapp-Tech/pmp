@@ -52,7 +52,7 @@ import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
 import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/utils/helper';
+import { getInitials, handleErrorMessage } from '@/utils/helper';
 
 export type Users = {
   id: string; // UUID
@@ -304,7 +304,8 @@ const Users = () => {
         }
       })
       .catch((err: Error) => {
-        console.log('error: ', err);
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
         setIsLoader(false);
       });
   };
@@ -375,8 +376,8 @@ const Users = () => {
         }
       })
       .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
         setIsLoader(false);
       });
   };
@@ -419,8 +420,8 @@ const Users = () => {
         }
       })
       .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
         setIsLoader(false);
       });
   };
