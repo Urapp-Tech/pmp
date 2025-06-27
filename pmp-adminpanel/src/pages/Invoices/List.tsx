@@ -38,10 +38,11 @@ import InvoiceItemActionDialog from './InvoiceItemActionDialog';
 import { hasPermission, usePermission } from '@/utils/hasPermission';
 import { PERMISSIONS } from '@/utils/constants';
 import InvoiceItemCreateDialog from './InvoiceItemCreateDialog';
+import { getItem } from '@/utils/storage';
 
 const Invoices = () => {
   const { toast } = useToast();
-
+  const userDetails: any = getItem('USER');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
@@ -110,7 +111,13 @@ const Invoices = () => {
   const fetchList = async (keySearch = search, pageNo: number) => {
     setMainIsLoader(true);
     try {
-      const resp = await invoiceService.list(keySearch, pageNo, pageSize);
+      const resp = await invoiceService.list(
+        userDetails?.id,
+        userDetails?.role?.name,
+        keySearch,
+        pageNo,
+        pageSize
+      );
       if (resp.data.success) {
         setList(resp.data.items);
         setTotal(resp.data.total);
@@ -137,7 +144,7 @@ const Invoices = () => {
   const handlePageChange = (newPage: number) => {
     table.setPageIndex(newPage + 1);
     console.log('current page: ', newPage);
-    
+
     setPage(newPage + 1);
     fetchList(search, newPage + 1);
   };
@@ -148,7 +155,7 @@ const Invoices = () => {
   };
 
   const createHandler = async (data: InvoiceFields) => {
-    // data.landlord_id =  userDetails?.landlordId;
+    data.landlord_id =  userDetails?.landlordId;
     setIsLoader(true);
     const resp = await invoiceService.create(data);
     if (resp.data.success) {
@@ -358,18 +365,20 @@ const Invoices = () => {
           pageSize={pageSize}
           currentPage={page - 1}
           totalPages={Math.ceil(total)}
-           onPageChange={(pageNumber) => handlePageChange(pageNumber)}
+          onPageChange={(pageNumber) => handlePageChange(pageNumber)}
           showPreviousNext
         />
       </SidebarInset>
 
       {/* Dialogs */}
-      <InvoiceCreateDialog
-        isLoader={isLoader}
-        isOpen={createOpen}
-        setIsOpen={setCreateOpen}
-        callback={createHandler}
-      />
+      {createOpen && (
+        <InvoiceCreateDialog
+          isLoader={isLoader}
+          isOpen={createOpen}
+          setIsOpen={setCreateOpen}
+          callback={createHandler}
+        />
+      )}
       {editFormData && (
         <InvoiceUpdateDialog
           isLoader={isLoader}

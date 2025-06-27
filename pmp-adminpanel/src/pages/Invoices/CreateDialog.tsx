@@ -20,6 +20,7 @@ import { useForm  } from 'react-hook-form';
 import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
 import service from '@/services/adminapp/invoice' ;
 import { useEffect, useState } from 'react';
+import { getItem } from '@/utils/storage';
 
 interface InvoiceCreateDialogProps {
   isOpen: boolean;
@@ -67,10 +68,11 @@ const cycleMap: Record<string, number> = {
     reset()
   };
 
+  const userDetails: any = getItem('USER');
   useEffect(() => {
      const fetchTenants = async () => {
       
-      const res = await service.get_all_tanents();
+      const res = await service.get_all_tanents(userDetails?.landlordId);
       if (res?.data?.success) {
         // console.log('res111', res);
         setContracts(res.data.items);

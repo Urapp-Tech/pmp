@@ -54,9 +54,10 @@ const InvoiceUpdateDialog = ({
     form.reset(formData); // populate values when opened
   }, [formData]);
 
+  const userDetails: any = getItem('USER');
   useEffect(() => {
     const fetchTenants = async () => {
-      const res = await service.get_all_tanents();
+      const res = await service.get_all_tanents(userDetails?.landlordId);
       if (res?.data?.success) {
         setContracts(res.data.items);
         const mapped = res.data.items.map((t: any) => ({

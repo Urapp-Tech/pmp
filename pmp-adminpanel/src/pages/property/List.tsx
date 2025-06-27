@@ -42,7 +42,7 @@ const PropertyList = () => {
 
   const [units, setUnits] = useState([]);
 
-  const fetchList = async () => {
+  const fetchList = async (search = '', page=1) => {
     setIsLoader(true);
 
     try {
@@ -66,16 +66,17 @@ const PropertyList = () => {
   };
 
   useEffect(() => {
-    fetchList();
+    fetchList(search, page);
   }, [page]);
 
   const handleSearchKey = (e: any) => {
     setSearchKey(e.target.value);
-    fetchList();
+    // fetchList(search, page);
   };
   const handlePageChange = (p: any) => {
-    setPage(p);
-    fetchList();
+    // setPageIndex(newPage + 1);
+    setPage(p+1);
+    fetchList(search, p+1);
   };
 
   const openUnitsModal = (property: any, units: any) => {
@@ -91,7 +92,7 @@ const PropertyList = () => {
       const response = await propertyService.deleteProperty(id.id);
 
       if (response.data.success) {
-        fetchList();
+        fetchList(search, page);
         toast({
           description: response.data.message,
           className: cn(
@@ -235,7 +236,7 @@ const PropertyList = () => {
         <div className="my-5 flex justify-center">
           <Paginator
             pageSize={pageSize}
-            currentPage={page}
+            currentPage={page-1}
             totalPages={total}
             onPageChange={handlePageChange}
             showPreviousNext

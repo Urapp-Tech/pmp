@@ -1,13 +1,11 @@
 import { INVOICE_PREFIX,TENANTS_PREFIX, INVOICE_ITEM_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
-import { getItem } from '@/utils/storage';
 
- const userDetails: any = getItem('USER');
-const list = ( search: string, page: number, size: number,landlord_id?: string) => {
+const list = ( id: string, roleName: string,search: string, page: number, size: number,landlord_id?: string) => {
   return network.get(`${INVOICE_PREFIX}/`, {
 //  landlord_id: landlord?.landlordId || '',
-      user_id: userDetails?.id || '',
-      role_id:  userDetails?.role?.name || '',
+      user_id: id || '',
+      role_id:  roleName || '',
     search: '' + search,
       page,
       size,
@@ -15,7 +13,7 @@ const list = ( search: string, page: number, size: number,landlord_id?: string) 
 };
 
 const create = (data: any) => {
-  data.landlord_id = userDetails?.landlordId || '';
+  // data.landlord_id = userDetails?.landlordId || '';
   return network.post(`${INVOICE_PREFIX}/create`, data);
 };
 
@@ -33,7 +31,7 @@ const deleteMethod = (id: string) => {
 
 
 const get_all_tanents = (id?: string) => {
-  const landlordId = id || userDetails?.landlordId || '';
+  const landlordId = id || '';
   return network.get(`${TENANTS_PREFIX}/by-landlord/${landlordId}`,{  landlord_id: landlordId || ''});
 };
 
