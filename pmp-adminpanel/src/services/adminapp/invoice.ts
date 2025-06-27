@@ -61,11 +61,11 @@ const getInvoiceItemById = (id: string) => {
 const approveRejectInvoiceItem = (
   id: string,
   action: 'approved' | 'rejected',
-  payload: { remarks: string }
+  payload: { remarks: string, user_id: string }
 ) => {
   const finalPayload = {
     ...payload,
-    user_id: userDetails?.id || '',
+    // user_id: userDetails?.id || '',
   };
 
   return network.post(`${INVOICE_ITEM_PREFIX}/${id}/${action}`, finalPayload);

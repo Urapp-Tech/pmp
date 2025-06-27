@@ -171,7 +171,7 @@ const Invoices = () => {
     } else ToastHandler(resp.data.message);
   };
 
-  console.log('updated list', list);
+  // console.log('updated list', list);
 
   const updateHandler = async (data: InvoiceFields) => {
     setIsLoader(true);
@@ -419,26 +419,28 @@ const Invoices = () => {
         actionType={actionType}
         item={selectedItem}
         onAction={async (id, remarks, action) => {
-          try {
-            const res = await invoiceService.approveRejectInvoiceItem(
-              id,
-              action,
-              {
-                remarks,
-              }
-            );
+  try {
+    const res = await invoiceService.approveRejectInvoiceItem(
+      id,
+      action,
+      {
+        remarks,
+        user_id: userDetails?.id || '',
+      }
+    );
 
-            if (res?.data?.success) {
-              ToastHandler(`${action.toUpperCase()} successful`);
-              refreshData();
-              setShowItemsModal(false); // ✅ Close only on success
-            } else {
-              ToastHandler(res.data.message || 'Failed to update status');
-            }
-          } catch (err) {
-            ToastHandler('Action failed');
-          }
-        }}
+    if (res?.data?.success) {
+      ToastHandler(`${action.toUpperCase()} successful`);
+      refreshData();
+      setShowItemsModal(false); // ✅ Close only on success
+    } else {
+      ToastHandler(res.data.message || 'Failed to update status');
+    }
+  } catch (err) {
+    ToastHandler('Action failed');
+  }
+}}
+
       />
 
       {editFormData && (
