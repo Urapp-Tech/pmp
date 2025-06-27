@@ -86,7 +86,7 @@ const EmployeeAssignDialog = ({
       setIsPopOpen(true);
       setCabinData(data);
     } else {
-      console.log('data,', data);
+      // console.log('data,', data);
       callback(data);
     }
   };

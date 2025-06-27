@@ -334,11 +334,11 @@ const PropertyManagers = () => {
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -385,7 +385,7 @@ const PropertyManagers = () => {
         }
       })
       .catch((err: Error) => {
-        console.log('error: ', err);
+        // console.log('error: ', err);
         setIsLoader(false);
       });
   };
@@ -405,10 +405,10 @@ const PropertyManagers = () => {
         setTotal(users.data.data.total);
       } else {
         ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

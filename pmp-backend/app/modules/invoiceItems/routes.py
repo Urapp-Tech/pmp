@@ -119,7 +119,7 @@ async def update_invoice_item(
         items=InvoiceItemOut(**updated.__dict__)
     )
 
-@router.post("/{item_id}/{action}", response_model=InvoiceItemResponse)
+@router.post("/{item_id}/{action}")
 def handle_invoice_item_action(
     item_id: UUID4,
     action: str,
@@ -134,11 +134,11 @@ def handle_invoice_item_action(
         db=db,
     )
 
-    return InvoiceItemResponse(
-        success=True,
-        message=f"Item {action} successfully",
-        items=InvoiceItemOut(**updated.__dict__),
-    )
+    return {
+    "success": True,
+    "message": f"Item {action} successfully",
+    "items": updated
+    }
 @router.delete("/{item_id}", response_model=InvoiceItemResponse)
 async def delete_invoice_item(item_id: UUID, db: Session = Depends(get_db)):
     deleted = delete_invoice_item_service(db, item_id)

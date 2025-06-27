@@ -34,7 +34,7 @@ const deleteMethod = (id: string) => {
 
 const get_all_tanents = (id?: string) => {
   const landlordId = id || userDetails?.landlordId || '';
-  return network.get(`${TENANTS_PREFIX}/by-landlord/${landlordId}`);
+  return network.get(`${TENANTS_PREFIX}/by-landlord/${landlordId}`,{  landlord_id: landlordId || ''});
 };
 
 

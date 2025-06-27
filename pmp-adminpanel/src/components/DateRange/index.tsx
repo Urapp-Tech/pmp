@@ -43,7 +43,7 @@ export function DatePickerWithRange({
 
   const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const year = parseInt(event.target.value, 10);
-    console.log('event.target.value', event.target.value);
+    // console.log('event.target.value', event.target.value);
     setSelectedYear(year);
 
     // Adjust the calendar's default month when the year changes

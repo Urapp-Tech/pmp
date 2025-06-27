@@ -27,31 +27,6 @@ def get_invoice(db: Session, invoice_id: UUID4) -> Invoice | None:
     return db.query(Invoice).filter(Invoice.id == invoice_id).first()
 
 
-
-# def get_all_invoices(
-#     db: Session,
-#     skip: int = 0,
-#     limit: int = 10,
-#     page: int = 1,
-#     landlord_id: UUID4 | None = None,
-#     search: str = "",
-# ) -> dict:
-#     query = db.query(Invoice).options(joinedload(Invoice.items)).filter(Invoice.landlord_id == landlord_id)
-
-#     if search:
-#         query = query.filter(Invoice.invoice_no.ilike(f"%{search.lower()}%"))
-
-#     total = query.count()
-#     items = query.offset(skip).limit(limit).all()
-
-#     return {
-#         "success": True,
-#         "message": "Invoices retrieved successfully.",
-#         "total": total,
-#         "page": page,
-#         "size": limit,
-#         "items": items,
-#     }
 def get_all_invoices(
     db: Session,
     user_id: Optional[str] = None,
@@ -109,7 +84,7 @@ def get_all_invoices(
 
         query = query.join(InvoiceItem).filter(InvoiceItem.property_unit_id.in_(assigned_unit_ids))
 
-    elif role_id == "Tenant":
+    elif role_id == "User":
         tenant = db.query(Tenant).filter(Tenant.user_id == user_id).first()
         if not tenant:
             return {

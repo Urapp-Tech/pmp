@@ -9,7 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { FormItem, FormLabel } from '@/components/ui/form';
-import { FormControl, FormField, FormMessage, Form } from '@/components/ui/form';
+import {
+  FormControl,
+  FormField,
+  FormMessage,
+  Form,
+} from '@/components/ui/form';
 import { useForm, FormProvider } from 'react-hook-form';
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
@@ -24,6 +29,7 @@ const InvoiceItemCreateDialog = ({
   amount,
   invoiceItemId,
   onComplete,
+  setList,
 }: {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
@@ -31,14 +37,15 @@ const InvoiceItemCreateDialog = ({
   amount?: number;
   invoiceItemId?: string;
   onComplete?: () => void;
+  setList: any;
 }) => {
   const isEditMode = Boolean(invoiceItemId);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-const getValidDate = (dateString: string | null | undefined) => {
-  const parsed = new Date(dateString || '');
-  return isNaN(parsed.getTime()) ? new Date() : parsed;
-};
+  const getValidDate = (dateString: string | null | undefined) => {
+    const parsed = new Date(dateString || '');
+    return isNaN(parsed.getTime()) ? new Date() : parsed;
+  };
   const form = useForm<InvoiceItemFields>({
     defaultValues: {
       amount: amount || 0,
@@ -48,46 +55,44 @@ const getValidDate = (dateString: string | null | undefined) => {
     },
   });
 
-  const {
-    handleSubmit,
-    setValue,
-    control,
-    watch,
-    reset,
-  } = form;
+  const { handleSubmit, setValue, control, watch, reset } = form;
 
-  useEffect(() => {
-    if (isOpen && onComplete) {
-    onComplete(); // fetch invoice items when modal opens
-  }
-    if (isEditMode && invoiceItemId) {
-      (async () => {
-        try {
-          const res = await invoiceService.getInvoiceItemById(invoiceItemId);
-          const item = res?.data.items;
-          console.log('item', item);
-          
-          if (item) {
-            reset({
-              amount: item.amount,
-              payment_method: item.payment_method,
-                payment_date: format(getValidDate(item.payment_date), 'yyyy-MM-dd'),
-              description: item.description || '',
-            });
-          }
-        } catch (err) {
-          console.error('Failed to fetch invoice item:', err);
-        }
-      })();
-    } else {
-      reset({
-        amount: amount || 0,
-        payment_method: '',
-        payment_date: format(new Date(), 'yyyy-MM-dd'),
-        description: '',
-      });
-    }
-}, [invoiceItemId, amount, isEditMode]);
+  // useEffect(() => {
+
+  //   if (isOpen) {
+  //     if (isEditMode && invoiceItemId) {
+  //       (async () => {
+  //         try {
+  //           console.log();
+            
+  //           const res = await invoiceService.getInvoiceItemById(invoiceItemId);
+  //           const item = res?.data.items;
+
+  //           if (item) {
+  //             reset({
+  //               amount: item.amount,
+  //               payment_method: item.payment_method,
+  //               payment_date: format(
+  //                 getValidDate(item.payment_date),
+  //                 'yyyy-MM-dd'
+  //               ),
+  //               description: item.description || '',
+  //             });
+  //           }
+  //         } catch (err) {
+  //           console.error('Failed to fetch invoice item:', err);
+  //         }
+  //       })();
+  //     } else {
+  //       reset({
+  //         amount: amount || 0,
+  //         payment_method: '',
+  //         payment_date: format(new Date(), 'yyyy-MM-dd'),
+  //         description: '',
+  //       });
+  //     }
+  //   }
+  // }, [ invoiceItemId, amount, isEditMode]);
 
   const onSubmit = async (data: InvoiceItemFields) => {
     const formData = new FormData();
@@ -108,7 +113,8 @@ const getValidDate = (dateString: string | null | undefined) => {
         reset();
         setFile(null);
         setIsOpen(false);
-        onComplete?.();
+        
+        // onComplete?.();
       }
     } catch (err) {
       console.error('Error saving invoice item', err);
@@ -118,10 +124,15 @@ const getValidDate = (dateString: string | null | undefined) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={setIsOpen}
+    >
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Update Rent Payment' : 'Create Rent Payment'}</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? 'Update Rent Payment' : 'Create Rent Payment'}
+          </DialogTitle>
         </DialogHeader>
 
         <FormProvider {...form}>
@@ -156,8 +167,7 @@ const getValidDate = (dateString: string | null | undefined) => {
                       <SingleSelectDropDown
                         name="payment_method"
                         control={control}
-                        value={watch('payment_method')}
-                        onChange={(val) => setValue('payment_method', val)}
+                        label="payment_method"
                         items={[
                           { name: 'Cash', id: 'cash' },
                           { name: 'Bank', id: 'bank' },
@@ -209,7 +219,10 @@ const getValidDate = (dateString: string | null | undefined) => {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Optional description" {...field} />
+                        <Textarea
+                          placeholder="Optional description"
+                          {...field}
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -218,7 +231,11 @@ const getValidDate = (dateString: string | null | undefined) => {
             </div>
 
             <DialogFooter className="mt-2">
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>

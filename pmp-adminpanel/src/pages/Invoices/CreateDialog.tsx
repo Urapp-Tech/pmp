@@ -14,25 +14,33 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { InvoiceFields } from '@/interfaces/invoice.interface';
-import { InvoiceItemFields } from '@/interfaces/invoice-items.interface';
+// import { InvoiceItemFields } from '@/interfaces/invoice-items.interface';
 import { Loader2 } from 'lucide-react';
-import { useForm,Controller  } from 'react-hook-form';
+import { useForm  } from 'react-hook-form';
 import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
 import service from '@/services/adminapp/invoice' ;
 import { useEffect, useState } from 'react';
+
+interface InvoiceCreateDialogProps {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  callback: (data: InvoiceFields) => void;
+  isLoader: boolean;
+}
 
 const InvoiceCreateDialog = ({
   isOpen,
   setIsOpen,
   callback,
   isLoader,
-}) => {
+}: InvoiceCreateDialogProps) => {
   const form = useForm<InvoiceFields>();
   const {
     register,
     handleSubmit,
     control,
-    setValue ,
+    reset,
+    // setValue ,
     formState: { errors },
   } = form;
   const [tenants, setTenants] = useState<{ id: string; name: string }[]>([]);
@@ -56,17 +64,19 @@ const cycleMap: Record<string, number> = {
 
   const onSubmit = (data: InvoiceFields) => {
     callback(data);
+    reset()
   };
 
   useEffect(() => {
      const fetchTenants = async () => {
+      
       const res = await service.get_all_tanents();
       if (res?.data?.success) {
-        console.log('res', res);
+        // console.log('res111', res);
         setContracts(res.data.items);
         const mapped = res.data.items.map((t: any) => ({
           id: t.id,
-          name: t.contractNumber,
+          name: t.contract_number,
         }));
         setTenants(mapped);
       }
@@ -77,12 +87,12 @@ const cycleMap: Record<string, number> = {
 
   useEffect(() => {
         const selectedTenant:any = contracts.find((t:any) => t.id === form.watch('tenant_id'));
-        form.setValue('total_amount', selectedTenant?.rentPrice, { shouldValidate: true });
-        const cycleRaw = selectedTenant?.paymentCycle || 'monthly';
+        form.setValue('total_amount', selectedTenant?.rent_price, { shouldValidate: true });
+        const cycleRaw = selectedTenant?.payment_cycle || 'monthly';
         const cycle = cycleRaw.toLowerCase(); 
         const cycleMonths = cycleMap[cycle] || 1; 
         form.setValue('qty', cycleMonths, { shouldValidate: true });
-        const rentPayDay = selectedTenant?.rentPayDay || 1; // fallback to 1st of month
+        const rentPayDay = selectedTenant?.rent_payDay || 1; // fallback to 1st of month
         const nextDate = new Date();
         nextDate.setMonth(nextDate.getMonth() + cycleMonths);
         nextDate.setDate(rentPayDay);
@@ -138,14 +148,15 @@ const cycleMap: Record<string, number> = {
             <SingleSelectDropDown
               control={control}
               name="status"
-              value={form.watch('status') || 'paid'}
+              // value={form.watch('status') || 'paid'}
               items={[
                 { name: 'Paid', id: 'paid' },
                 { name: 'Unpaid', id: 'unpaid' },
                 // { name: 'Partial', id: 'partial' },
                 { name: 'Overdue', id: 'overdue' },
               ]}
-              selectedValue={ 'paid'}
+              // selectedValue={ 'paid'}
+              label='Status'
               placeholder="Select Status"
               rules={{ required: 'Required' }}
             />

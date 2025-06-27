@@ -145,7 +145,7 @@ data.units.forEach((unit) => {
 
   // Submit to backend
   try {
-    console.log('Submitting form data:', Array.from(formData.entries()));
+    // console.log('Submitting form data:', Array.from(formData.entries()));
     const response = await service.create(formData);
     if (response.data.success) {
       toast({ description: 'Property created successfully!' });

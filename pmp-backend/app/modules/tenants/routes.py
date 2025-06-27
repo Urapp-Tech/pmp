@@ -133,7 +133,10 @@ def get_pending_contracts(
 
 @router.get("/by-landlord/{landlord_id}")
 def get_contracts_by_landlord(
-    landlord_id: UUID = Path(...),
+    landlord_id: UUID = Path(..., description="UUID of the landlord"),
     db: Session = Depends(get_db),
 ):
-    return select_list_contracts_by_landlord(db, landlord_id)
+    contracts = select_list_contracts_by_landlord(db, landlord_id=landlord_id)
+    if not contracts:
+        raise HTTPException(status_code=404, detail="No contracts found for this landlord")
+    return contracts

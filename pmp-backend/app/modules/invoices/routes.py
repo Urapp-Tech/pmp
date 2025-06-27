@@ -61,7 +61,7 @@ def create(invoice: InvoiceCreate, db: Session = Depends(get_db)):
     invoice = create_invoice(db, invoice)
     return {
             "success": True,
-            "message": "Invoice fetched successfully.",
+            "message": "Invoice created successfully.",
             "items": invoice,
         }
 

@@ -198,7 +198,7 @@ def list_contracts_by_landlord(
         "size": size,
         "items": result,
     }
-def select_list_contracts_by_landlord(db: Session, landlord_id: int):
+def select_list_contracts_by_landlord(db: Session, landlord_id: UUID):
     query = (
         db.query(Tenant)
         .join(User, User.id == Tenant.user_id)
@@ -206,22 +206,22 @@ def select_list_contracts_by_landlord(db: Session, landlord_id: int):
         .filter(User.landlord_id == landlord_id)
         .options(joinedload(Tenant.user))
     )
-    contracts = query.all()
-    result: List[ContractListOut] = []
-    for contract in contracts:
-        user = contract.user
-        user_data = {
-            "id": user.id,
-            "fname": user.fname,
-            "lname": user.lname,
-            "email": user.email,
-            "phone": user.phone,
-            "gender": user.gender,
-            "profile_pic": user.profile_pic,
-        }
-        contract_out = ContractListOut.model_validate(contract)
-        contract_out.user_detail = user_data
-        result.append(contract_out)
+    result = query.all()
+    # result: List[ContractListOut] = []
+    # for contract in contracts:
+    #     user = contract.user
+    #     user_data = {
+    #         "id": user.id,
+    #         "fname": user.fname,
+    #         "lname": user.lname,
+    #         "email": user.email,
+    #         "phone": user.phone,
+    #         "gender": user.gender,
+    #         "profile_pic": user.profile_pic,
+    #     }
+    #     contract_out = ContractListOut.model_validate(contract)
+    #     contract_out.user_detail = user_data
+    #     result.append(contract)
     return {
         "success": True,
         "total": len(result),

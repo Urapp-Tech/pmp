@@ -60,7 +60,7 @@ export function FooterNavUser({
       }
     }
     if (logosToShow.length === 0) {
-      console.log('No social media links found');
+      // console.log('No social media links found');
       return null;
     }
     return (

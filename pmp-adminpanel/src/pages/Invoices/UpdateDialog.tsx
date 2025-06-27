@@ -20,13 +20,21 @@ import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown
 import service from '@/services/adminapp/invoice';
 import { useEffect, useState } from 'react';
 
+interface InvoiceUpdateDialogProps {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  callback: (data: InvoiceFields) => void;
+  isLoader: boolean;
+  formData: InvoiceFields;
+}
+
 const InvoiceUpdateDialog = ({
   isOpen,
   setIsOpen,
   callback,
   isLoader,
   formData,
-}) => {
+}: InvoiceUpdateDialogProps) => {
   const form = useForm<InvoiceFields>({
     defaultValues: formData,
   });
@@ -35,7 +43,7 @@ const InvoiceUpdateDialog = ({
     register,
     handleSubmit,
     control,
-    setValue,
+    // setValue,/
     formState: { errors },
   } = form;
 
@@ -53,7 +61,7 @@ const InvoiceUpdateDialog = ({
         setContracts(res.data.items);
         const mapped = res.data.items.map((t: any) => ({
           id: t.id,
-          name: t.contractNumber,
+          name: t.contract_number,
         }));
         setTenants(mapped);
       }
@@ -84,7 +92,6 @@ const InvoiceUpdateDialog = ({
                 <FormControl className="m-1 w-full">
                   <div>
                     <FormLabel>Contract No  </FormLabel>
-                     {/* <Input {...register('contract_number', { required: 'Required' })} /> */}
                     <SingleSelectDropDown
                       name="tenant_id"
                       items={tenants}
@@ -113,7 +120,7 @@ const InvoiceUpdateDialog = ({
                     <SingleSelectDropDown
                       control={control}
                       name="status"
-                      value={form.watch('status') || 'paid'}
+                      label='Status'
                       items={[
                         { name: 'Paid', id: 'paid' },
                         { name: 'Unpaid', id: 'unpaid' },
@@ -130,6 +137,7 @@ const InvoiceUpdateDialog = ({
                     <FormLabel>Payment Method</FormLabel>
                     <SingleSelectDropDown
                       control={control}
+                      label='Payment Method'
                       name="payment_method"
                       items={[
                         { name: 'Cash', id: 'cash' },

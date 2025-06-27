@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID  # ✅ Use this instead
 
 from app.models.invoice_items import InvoiceItem
+from app.models.invoices import Invoice
 from app.modules.invoiceItems.schemas import InvoiceItemCreate, InvoiceItemUpdate
 from app.utils.uploader import save_uploaded_file, is_upload_file
 from app.utils.logger import error_log, debug_log
@@ -26,7 +27,7 @@ def update_invoice_item_status(item_id: UUID, action: str, user_id: UUID, remark
 
     if action not in ["approved", "rejected"]:
         raise HTTPException(status_code=400, detail="Invalid action")
-
+    
     item.status = action
     item.remarks = remarks
     item.updated_by = user_id
@@ -34,6 +35,11 @@ def update_invoice_item_status(item_id: UUID, action: str, user_id: UUID, remark
 
     db.commit()
     db.refresh(item)
+
+    if action == "approved":
+         invoice = db.query(Invoice).filter(Invoice.id == item.invoice_id).first()
+         invoice.status = "paid"
+         db.commit()
 
     return item
 

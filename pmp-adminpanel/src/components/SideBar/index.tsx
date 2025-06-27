@@ -27,7 +27,7 @@ export function MainSidebar({
   const shop: any = getItem('SHOP_TENANT');
   const userRoles: any = getItem('USER');
   const { logo, media } = appState;
-  console.log('authState', userRoles?.role);
+  // console.log('authState', userRoles?.role);
 
   const rolePermissions = userRoles?.role?.permissions || [];
 

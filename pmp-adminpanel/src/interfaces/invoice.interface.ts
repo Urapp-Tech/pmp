@@ -1,8 +1,9 @@
 export interface InvoiceFields {
+  id: string;
   landlord_id: string;
   tenant_id: string;
   invoice_no?: string;
-  total_amount: string;
+  total_amount: any;
   paid_amount: string;
   discount_amount: string;
   due_amount: string;
