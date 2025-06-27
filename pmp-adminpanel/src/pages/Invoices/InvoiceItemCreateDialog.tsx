@@ -57,42 +57,42 @@ const InvoiceItemCreateDialog = ({
 
   const { handleSubmit, setValue, control, watch, reset } = form;
 
-  // useEffect(() => {
+  useEffect(() => {
 
-  //   if (isOpen) {
-  //     if (isEditMode && invoiceItemId) {
-  //       (async () => {
-  //         try {
-  //           console.log();
+    if (isOpen) {
+      if (isEditMode && invoiceItemId) {
+        (async () => {
+          try {
+            console.log();
             
-  //           const res = await invoiceService.getInvoiceItemById(invoiceItemId);
-  //           const item = res?.data.items;
+            const res = await invoiceService.getInvoiceItemById(invoiceItemId);
+            const item = res?.data.items;
 
-  //           if (item) {
-  //             reset({
-  //               amount: item.amount,
-  //               payment_method: item.payment_method,
-  //               payment_date: format(
-  //                 getValidDate(item.payment_date),
-  //                 'yyyy-MM-dd'
-  //               ),
-  //               description: item.description || '',
-  //             });
-  //           }
-  //         } catch (err) {
-  //           console.error('Failed to fetch invoice item:', err);
-  //         }
-  //       })();
-  //     } else {
-  //       reset({
-  //         amount: amount || 0,
-  //         payment_method: '',
-  //         payment_date: format(new Date(), 'yyyy-MM-dd'),
-  //         description: '',
-  //       });
-  //     }
-  //   }
-  // }, [ invoiceItemId, amount, isEditMode]);
+            if (item) {
+              reset({
+                amount: item.amount,
+                payment_method: item.payment_method,
+                payment_date: format(
+                  getValidDate(item.payment_date),
+                  'yyyy-MM-dd'
+                ),
+                description: item.description || '',
+              });
+            }
+          } catch (err) {
+            console.error('Failed to fetch invoice item:', err);
+          }
+        })();
+      } else {
+        reset({
+          amount: amount || 0,
+          payment_method: '',
+          payment_date: format(new Date(), 'yyyy-MM-dd'),
+          description: '',
+        });
+      }
+    }
+  }, [ invoiceItemId, amount, isEditMode]);
 
   const onSubmit = async (data: InvoiceItemFields) => {
     const formData = new FormData();

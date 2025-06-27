@@ -395,12 +395,12 @@ const Invoices = () => {
         invoiceItemId={selectedInvoiceItemId ?? undefined}
         amount={amount}
         setList={setList}
-        // onComplete={async () => {
-        //   if (selectedInvoiceId) {
-        //     // await fetchInvoiceItems(selectedInvoiceId);
-        //     // await fetchList();
-        //   }
-        // }}
+        onComplete={async () => {
+          if (selectedInvoiceId) {
+            await fetchInvoiceItems(selectedInvoiceId);
+            // await fetchList();
+          }
+        }}
       />
       <InvoiceItemModal
         invoiceId={selectedInvoiceId}

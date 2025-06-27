@@ -113,7 +113,7 @@ useEffect(() => {
                     <TableCell>
                       {item.file ? (
                         <a
-                          href={`${ASSETS_BASE_URL}/${item.file}`}
+                          href={`${ASSETS_BASE_URL}${item.file}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           download
