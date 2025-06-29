@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Loader2, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -9,6 +16,7 @@ import { TopBar } from '@/components/TopBar';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
 import reportsService from '@/services/adminapp/reports';
+import { getItem } from '@/utils/storage';
 
 /**
  * InvoiceReport
@@ -22,6 +30,7 @@ import reportsService from '@/services/adminapp/reports';
  * @returns {React.ReactElement} The rendered component
  */
 const InvoiceReport = () => {
+  const userDetails: any = getItem('USER');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [statusFilter, setStatusFilter] = useState('paid'); // Default to 'paid'
@@ -30,50 +39,59 @@ const InvoiceReport = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
- const fetchReport = async () => {
-  if (!fromDate || !toDate) {
-    toast({ description: 'Please select both From and To dates.' });
-    return;
-  }
-
-  setIsLoading(true);
-  try {
-    const payload = {
-      
-      from_date: fromDate,
-      to_date: toDate,
-      status: statusFilter, // optional
-    };
-
-    const res = await reportsService.getReport(payload);
-    if (res?.data?.success) {
-      const data = res.data.items;
-      setReportList(data);
-  const total = data.reduce((sum, inv) => sum + Math.floor(Number(inv.total_amount) || 0), 0);
-      setTotalPaid(total);
-    } else {
-      toast({ description: res.data.message || 'Failed to fetch report' });
+  const fetchReport = async () => {
+    if (!fromDate || !toDate) {
+      toast({ description: 'Please select both From and To dates.' });
+      return;
     }
-  } catch (err) {
-    toast({ description: 'Something went wrong while fetching report.' });
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    setIsLoading(true);
+    try {
+      const payload = {
+        id: userDetails.id,
+        role: userDetails.role.name,
+        from_date: fromDate,
+        to_date: toDate,
+        status: statusFilter, // optional
+      };
+
+      const res = await reportsService.getReport(payload);
+      if (res?.data?.success) {
+        const data = res.data.items;
+        setReportList(data);
+        const total = data.reduce(
+          (sum: number, inv: any) =>
+            sum + Math.floor(Number(inv.total_amount) || 0),
+          0
+        );
+        setTotalPaid(total);
+      } else {
+        toast({ description: res.data.message || 'Failed to fetch report' });
+      }
+    } catch (err) {
+      toast({ description: 'Something went wrong while fetching report.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const downloadPDF = () => {
-    const doc = new jsPDF();
+    const doc: any = new jsPDF();
     doc.text('Invoice Report', 14, 16);
     doc.autoTable({
       startY: 20,
       head: [['Invoice No', 'Date', 'Paid Amount']],
-      body: reportList.map((inv) => [
+      body: reportList?.map((inv: any) => [
         inv.invoice_no,
         inv.payment_date || inv.invoice_date,
-        ` ${inv.paid_amount}`,
+        ` ${inv.total_amount}`,
       ]),
     });
-    doc.text(`Total Collection:  ${totalPaid}`, 14, doc.lastAutoTable.finalY + 10);
+    doc.text(
+      `Total Collection:  ${totalPaid}`,
+      14,
+      doc.lastAutoTable.finalY + 10
+    );
     doc.save('invoice_report.pdf');
   };
 
@@ -107,7 +125,7 @@ const InvoiceReport = () => {
             <option value="overdue">Overdue</option>
           </select>
           <Button onClick={fetchReport}>Generate</Button>
-          {reportList.length > 0 && (
+          {reportList?.length > 0 && (
             <Button variant="outline" onClick={downloadPDF}>
               <Download className="mr-2 h-4 w-4" /> PDF
             </Button>
@@ -133,15 +151,20 @@ const InvoiceReport = () => {
                 <TableBody>
                   {reportList.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-4 text-gray-500">
+                      <TableCell
+                        colSpan={4}
+                        className="text-center py-4 text-gray-500"
+                      >
                         No invoices found for selected filter.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    reportList.map((inv) => (
+                    reportList?.map((inv: any) => (
                       <TableRow key={inv.id}>
                         <TableCell>{inv.invoice_no}</TableCell>
-                        <TableCell>{inv.invoice_date || inv.invoice_date}</TableCell>
+                        <TableCell>
+                          {inv.invoice_date || inv.invoice_date}
+                        </TableCell>
                         <TableCell> {inv.total_amount || 0}</TableCell>
                         <TableCell>{inv.status}</TableCell>
                       </TableRow>
@@ -150,7 +173,7 @@ const InvoiceReport = () => {
                 </TableBody>
               </Table>
               <div className="text-right mt-4 font-semibold text-lg">
-                Total Collection:  {totalPaid}
+                Total Collection: {totalPaid}
               </div>
             </>
           )}
