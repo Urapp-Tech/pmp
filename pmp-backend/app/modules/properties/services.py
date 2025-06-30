@@ -14,6 +14,7 @@ from app.utils.uploader import save_uploaded_file, is_upload_file
 from app.utils.logger import error_log, debug_log
 from uuid import UUID
 
+
 def create_property(db: Session, body: PropertyCreate):
     try:
         # Check for duplicate
@@ -154,7 +155,7 @@ def update_property(db: Session, property_id: UUID, body):
 
         # ✅ Save/Keep property-level pictures
         picture_paths = []
-        
+
         # return body
         try:
             if body["pictures"]:
@@ -166,7 +167,9 @@ def update_property(db: Session, property_id: UUID, body):
                         picture_paths.append(pic)
         except Exception as e:
             error_log(e, "Failed to process property pictures")
-            raise HTTPException(status_code=500, detail="Error while saving property pictures.")
+            raise HTTPException(
+                status_code=500, detail="Error while saving property pictures."
+            )
 
         # ✅ Update basic fields
         property_data.name = body["name"]
@@ -202,7 +205,7 @@ def update_property(db: Session, property_id: UUID, body):
 
             # Extract `pictures_count` and slice the flat list
             count = int(unit_data.get("pictures_count", 0))
-            files_for_unit = flat_unit_pictures[pic_offset:pic_offset + count]
+            files_for_unit = flat_unit_pictures[pic_offset : pic_offset + count]
             pic_offset += count
 
             # Process both new + existing pictures
@@ -227,10 +230,10 @@ def update_property(db: Session, property_id: UUID, body):
                 unit.bathrooms = unit_data["bathrooms"]
                 unit.water_meter = unit_data["water_meter"]
                 unit.electricity_meter = unit_data["electricity_meter"]
-                
-                unit.account_name=unit_data['account_name']
-                unit.account_no=unit_data['account_no']
-                unit.bank_name=unit_data['bank_name']
+
+                unit.account_name = unit_data["account_name"]
+                unit.account_no = unit_data["account_no"]
+                unit.bank_name = unit_data["bank_name"]
                 unit.status = unit_data["status"]
                 new_unit_ids.add(unit_id)
             else:
@@ -247,9 +250,9 @@ def update_property(db: Session, property_id: UUID, body):
                     bedrooms=unit_data["bedrooms"],
                     bathrooms=unit_data["bathrooms"],
                     water_meter=unit_data["water_meter"],
-                    account_name=unit_data['account_name'],
-                    account_no=unit_data['account_no'],
-                    bank_name=unit_data['bank_name'],
+                    account_name=unit_data["account_name"],
+                    account_no=unit_data["account_no"],
+                    bank_name=unit_data["bank_name"],
                     electricity_meter=unit_data["electricity_meter"],
                     status=unit_data["status"],
                 )
@@ -263,7 +266,12 @@ def update_property(db: Session, property_id: UUID, body):
         db.commit()
         db.refresh(property_data)
 
-        property_data = db.query(PropertyModel).options(joinedload(PropertyModel.units)).filter_by(id=property_id).first()
+        property_data = (
+            db.query(PropertyModel)
+            .options(joinedload(PropertyModel.units))
+            .filter_by(id=property_id)
+            .first()
+        )
         return {
             "success": True,
             "message": "Property updated successfully.",
@@ -345,9 +353,13 @@ def get_properties(
     size: int = 20,
     search: Optional[str] = None,
 ):
-   # Super Admin: fetch all
+    # Super Admin: fetch all
     if role_id == "Super Admin":
-        query = db.query(PropertyModel).options(selectinload(PropertyModel.units))
+        query = (
+            db.query(PropertyModel)
+            .options(selectinload(PropertyModel.units))
+            .filter(PropertyModel.is_active == True)
+        )
 
         if search:
             search_term = f"%{search}%"
@@ -384,7 +396,11 @@ def get_properties(
         }
 
     landlord_id = user.landlord_id
-    query = db.query(PropertyModel).options(selectinload(PropertyModel.units))
+    query = (
+        db.query(PropertyModel)
+        .options(selectinload(PropertyModel.units))
+        .filter(PropertyModel.is_active == True)
+    )
 
     if role_id == "Landlord":
         query = query.filter(PropertyModel.landlord_id == landlord_id)
@@ -414,7 +430,10 @@ def get_properties(
 
         units = (
             db.query(PropertyUnitModel)
-            .filter(PropertyUnitModel.id.in_(assigned_unit_ids))
+            .filter(
+                PropertyUnitModel.id.in_(assigned_unit_ids),
+                PropertyUnitModel.is_active == True,
+            )
             .all()
         )
 
@@ -439,10 +458,13 @@ def get_properties(
     results = []
     for prop in properties:
         if role_id == "Manager":
-            filtered_units = [
-                unit for unit in prop.units if unit.id in assigned_unit_ids
+            prop.units = [
+                unit
+                for unit in prop.units
+                if unit.id in assigned_unit_ids and unit.is_active
             ]
-            prop.units = filtered_units
+        else:
+            prop.units = [unit for unit in prop.units if unit.is_active]
 
         results.append(PropertyOut.model_validate(prop))
 
@@ -455,32 +477,37 @@ def get_properties(
     }
 
 
-
 def delete_property(db: Session, property_id: str):
     try:
         property_data = (
-            db.query(PropertyModel).filter(PropertyModel.id == property_id).first()
+            db.query(PropertyModel)
+            .filter(PropertyModel.id == property_id, PropertyModel.is_active == True)
+            .first()
         )
 
         if not property_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Property not found",
+                detail="Property not found or already inactive.",
             )
 
-        # Delete associated units first
+        # Soft delete associated property units
         db.query(PropertyUnitModel).filter(
             PropertyUnitModel.property_id == property_id
-        ).delete()
+        ).update({PropertyUnitModel.is_active: False})
 
-        # Delete the property
-        db.delete(property_data)
+        # Soft delete the property
+        property_data.is_active = False
+
         db.commit()
-        return {"success": True, "message": "Property deleted successfully"}
+        return {
+            "success": True,
+            "message": "Property and their units has been deleted successfully",
+        }
 
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Delete failed: {str(e)}",
+            detail=f"Soft delete failed: {str(e)}",
         )

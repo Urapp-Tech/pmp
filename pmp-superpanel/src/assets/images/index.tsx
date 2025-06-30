@@ -25,7 +25,7 @@ import securityIcon from './security.png';
 import subsIcon from './subs.png';
 import feedbackIcon from './feedback.png';
 import propertyIcon from './property.png';
-// import uplo from './construction.jpg';
+import groupUsersIcon from './group-users.png';
 
 const assets = {
   images: {
@@ -55,6 +55,7 @@ const assets = {
     subsIcon,
     feedbackIcon,
     propertyIcon,
+    groupUsersIcon,
   },
 } as const;
 

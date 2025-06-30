@@ -197,12 +197,14 @@ def get_tickets_by_user(
     base_condition = and_(
         SupportTicket.sender_id == user_id,
         SupportTicket.sender_role_id == role_id,
+        SupportTicket.is_active == True,
     )
 
     if role_type == "super admin":
         extra_condition = and_(
             SupportTicket.receiver_id == user_id,
             SupportTicket.receiver_role_id == role_id,
+            SupportTicket.is_active == True,
         )
         query = db.query(SupportTicket).filter(or_(base_condition, extra_condition))
     else:
@@ -289,6 +291,7 @@ def get_landlord_reported_tickets_from_subusers(
         .filter(
             SupportTicket.sender_id.in_(sub_users),
             SupportTicket.receiver_id == landlord_id,
+            SupportTicket.is_active == True,
         )
     )
 
@@ -328,3 +331,17 @@ def get_landlord_reported_tickets_from_subusers(
         tickets.append(ticket_dict)
 
     return tickets, total
+
+
+def delete_ticket(db: Session, ticket_id: str):
+    ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
+
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    if ticket.is_active is False:
+        raise HTTPException(status_code=400, detail="Ticket already deleted")
+
+    ticket.is_active = False
+    db.commit()
+    return {"success": True, "message": "Ticket deleted successfully"}

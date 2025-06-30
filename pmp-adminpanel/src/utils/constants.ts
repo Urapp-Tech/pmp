@@ -29,7 +29,16 @@ export const BLOG_PREFIX = 'blog';
 export const INVOICE_ITEM_PREFIX = 'invoice-items';
 export const TENANTS_PREFIX = 'tenants';
 
-export const imageAllowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+export const allowedFileTypes = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'application/pdf',
+  'application/msword', // .doc
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'application/vnd.ms-excel', // .xls
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+];
 
 export const PERMISSIONS = {
   ROLE: {

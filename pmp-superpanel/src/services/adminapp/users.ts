@@ -2,6 +2,7 @@ import { BACKOFFICE_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
 
 const USERS = 'landlord-users';
+const TENANT_USERS = 'users';
 
 const list = (search: string, page: number, size: number) => {
   return network.get(`${USERS}/list`, {
@@ -19,17 +20,13 @@ const unverifiedList = (search: string, page: number, size: number) => {
   });
 };
 
-// const create = (data: any) => {
-//   return network.postMultipart(`${BACKOFFICE_PREFIX}/create`, data);
-// };
-
-// const update = (id: string, data: any) => {
-//   return network.postMultipart(`${BACKOFFICE_PREFIX}/update/${id}`, data);
-// };
-
-// const deleteUser = (id: string) => {
-//   return network.post(`${BACKOFFICE_PREFIX}/delete/${id}`, {});
-// };
+const tenantUserList = (search: string, page: number, size: number) => {
+  return network.get(`${TENANT_USERS}/tenant-users/list`, {
+    search,
+    page,
+    size,
+  });
+};
 
 const verifyUser = (data: any) => {
   return network.post(`${USERS}/verify`, data);
@@ -38,8 +35,6 @@ const verifyUser = (data: any) => {
 export default {
   list,
   unverifiedList,
-  // create,
-  // update,
-  // deleteUser,
+  tenantUserList,
   verifyUser,
 };

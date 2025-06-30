@@ -159,6 +159,7 @@ export function MainSidebar({
       icon: assets.images.rolePermissionsSidebarIcon,
       permission: PERMISSIONS.INVOICE.VIEW,
       items: [],
+      role: ['Landlord', 'Manager'],
     },
     {
       title: 'Financial Reports',
@@ -174,13 +175,14 @@ export function MainSidebar({
     //   permission: PERMISSIONS.RENTAL_COLLECTION.VIEW,
     //   items: [],
     // },
-    // {
-    //   title: 'My Rents',
-    //   url: '/admin/tenant-rental',
-    //   icon: assets.images.rolePermissionsSidebarIcon,
-    //   permission: PERMISSIONS.TENANT_RENTAL.VIEW,
-    //   items: [],
-    // },
+    {
+      title: 'My Rental Invoices',
+      url: '/admin-panel/invoices',
+      icon: assets.images.rolePermissionsSidebarIcon,
+      permission: PERMISSIONS.TENANT_RENTAL.VIEW,
+      items: [],
+      role: ['User'],
+    },
   ];
 
   // parent oriented

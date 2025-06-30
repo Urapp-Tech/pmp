@@ -1,7 +1,7 @@
 export interface Fields {
   id?: string;
   propertyUnitId: string;
-  agreementDoc?: string;
+  agreementDoc?: string | any;
   language: string;
   civilId: string;
   nationality: string;

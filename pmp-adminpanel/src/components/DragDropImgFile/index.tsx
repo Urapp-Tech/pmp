@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 
 import assets from '@/assets/images';
-import { imageAllowedTypes } from '@/utils/constants';
+import { allowedFileTypes } from '@/utils/constants';
 
 type DragDropFileProps = {
   setFile: any;
@@ -43,7 +43,7 @@ function DragDropFile({
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       const fileType = droppedFile.type;
-      if (imageAllowedTypes.includes(fileType)) {
+      if (allowedFileTypes.includes(fileType)) {
         setFile(droppedFile);
         const reader = new FileReader();
         reader.onload = () => {
@@ -51,7 +51,7 @@ function DragDropFile({
         };
         reader.readAsDataURL(droppedFile);
       } else {
-        setIsNotify('Only .png, .jpg, and .jpeg files are allowed');
+        setIsNotify('Only image, PDF, Word, and Excel files are allowed');
       }
     }
   };
@@ -64,7 +64,7 @@ function DragDropFile({
     const uploadedFile = e.target.files?.[0];
     if (uploadedFile) {
       const fileType = uploadedFile.type;
-      if (imageAllowedTypes.includes(fileType)) {
+      if (allowedFileTypes.includes(fileType)) {
         const reader = new FileReader();
         reader.onload = () => {
           setImg(reader.result as string);
@@ -86,7 +86,7 @@ function DragDropFile({
     >
       <input
         className="hidden"
-        accept="image/*,.jpg,.jpeg,.png"
+        accept="image/*,.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
         ref={inputRef}
         type="file"
         multiple

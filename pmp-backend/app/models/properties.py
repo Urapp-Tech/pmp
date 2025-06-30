@@ -37,6 +37,7 @@ class Property(Base):
     longitude = Column(String(255), nullable=True)
 
     status = Column(String(255), nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(
         TIMESTAMP(timezone=True), server_default="now()", nullable=False
     )

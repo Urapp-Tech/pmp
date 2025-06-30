@@ -42,7 +42,7 @@ const PropertyList = () => {
 
   const [units, setUnits] = useState([]);
 
-  const fetchList = async (search = '', page=1) => {
+  const fetchList = async (search = '', page = 1) => {
     setIsLoader(true);
 
     try {
@@ -75,8 +75,8 @@ const PropertyList = () => {
   };
   const handlePageChange = (p: any) => {
     // setPageIndex(newPage + 1);
-    setPage(p+1);
-    fetchList(search, p+1);
+    setPage(p + 1);
+    fetchList(search, p + 1);
   };
 
   const openUnitsModal = (property: any, units: any) => {
@@ -168,7 +168,7 @@ const PropertyList = () => {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Address</TableHead>
-                  <TableHead>Status</TableHead>
+                  {/* <TableHead>Status</TableHead> */}
                   <TableHead>Units</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
@@ -179,7 +179,7 @@ const PropertyList = () => {
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
                       <TableCell>{item.address}</TableCell>
-                      <TableCell>{item.status}</TableCell>
+                      {/* <TableCell>{item.status}</TableCell> */}
                       <TableCell>
                         <div className=" flex">
                           <span className="bg-blue-500 mt-3 text-center text-white w-[18px] h-[18px] rounded-[30px] text-[10px] leading-normal font-semibold  py-[1px]">
@@ -236,7 +236,7 @@ const PropertyList = () => {
         <div className="my-5 flex justify-center">
           <Paginator
             pageSize={pageSize}
-            currentPage={page-1}
+            currentPage={page - 1}
             totalPages={total}
             onPageChange={handlePageChange}
             showPreviousNext

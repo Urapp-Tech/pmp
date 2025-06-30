@@ -153,6 +153,8 @@ const CreateContractDialog = ({
     }
   }, [watch('propertyUnitId'), unitList, setValue]);
 
+  console.log('selected unit', selectedImg, file);
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
@@ -417,13 +419,55 @@ const CreateContractDialog = ({
                       setIsNotify={ToastHandler}
                     />
                   </div>
+                  {/* {selectedImg ? (
+                    /\.(jpg|jpeg|png|gif|webp)$/i.test(selectedImg) ? (
+                      // ✅ If image: show preview
+                      <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
+                        <img
+                          className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
+                          src={selectedImg}
+                          alt="Uploaded"
+                        />
+                      </div>
+                    ) : (
+                      // ✅ If not image: show file name
+                      <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
+                        <p className="text-sm font-medium truncate max-w-[200px]">
+                          {selectedImg.split('/').pop()}
+                        </p>
+                      </div>
+                    )
+                  ) : getValues('agreementDoc') ? (
+                    /\.(jpg|jpeg|png|gif|webp)$/i.test(
+                      getValues('agreementDoc')
+                    ) ? (
+                      <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
+                        <img
+                          className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
+                          src={getValues('agreementDoc')}
+                          alt="agreementDoc"
+                        />
+                      </div>
+                    ) : (
+                      <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
+                        <p className="text-sm font-medium truncate max-w-[200px]">
+                          {getValues('agreementDoc').split('/').pop()}
+                        </p>
+                      </div>
+                    )
+                  ) : null} */}
                   {selectedImg ? (
                     <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
-                      <img
-                        className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                        src={selectedImg}
-                        alt="Shop Logo"
-                      />
+                      {/^data:image\//.test(selectedImg) ||
+                      /\.(jpg|jpeg|png|webp|gif)$/i.test(selectedImg) ? (
+                        <img
+                          className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
+                          src={selectedImg}
+                          alt="Doc Uploaded"
+                        />
+                      ) : (
+                        <div>{file?.name}</div>
+                      )}
                     </div>
                   ) : getValues('agreementDoc') ? (
                     <div className="col-span-6 flex items-center justify-center  xl:justify-center 2xl:justify-start">

@@ -24,7 +24,12 @@ def upgrade():
         "support_tickets",
         sa.Column("images", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     )
+    op.add_column(
+        "support_tickets",
+        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
+    )
 
 
 def downgrade():
     op.drop_column("support_tickets", "images")
+    op.drop_column("support_tickets", "is_active")

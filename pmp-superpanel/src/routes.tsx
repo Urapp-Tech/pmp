@@ -15,6 +15,7 @@ import Users from './pages/landlord-users/List';
 import Invoices from './pages/subscriptions-management/List';
 import Receipts from './pages/security-logs/List';
 import UnverifiedUsers from './pages/landlord-users/UnverifiedList';
+import TenantUsers from './pages/tenant-users/List';
 
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
 const RolePermissions = lazy(
@@ -94,6 +95,23 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <UnverifiedUsers />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'tenant-users',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <TenantUsers />
                   </Suspense>
                 ),
               },

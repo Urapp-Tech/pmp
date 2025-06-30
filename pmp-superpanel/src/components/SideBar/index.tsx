@@ -44,7 +44,13 @@ export function MainSidebar({
         items: [],
       },
       {
-        title: 'User Management',
+        title: 'Tenant Users',
+        url: '/super-admin/tenant-users',
+        icon: assets.images.usersSidebarIcon,
+        items: [],
+      },
+      {
+        title: 'Landlord Management',
         url: '#',
         icon: assets.images.adminUsersSidebarIcon,
         items: [

@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react';
 import { Download, CheckCircle, XCircle, Pencil } from 'lucide-react';
 import invoiceService from '@/services/adminapp/invoice';
 import { PERMISSIONS } from '@/utils/constants';
-import {  usePermission } from '@/utils/hasPermission';
+import { usePermission } from '@/utils/hasPermission';
 
 const ITEMS_PER_PAGE = 5;
 const ASSETS_BASE_URL = import.meta.env.VITE_ASSETS_BASE_URL || '';
@@ -26,7 +26,7 @@ const InvoiceItemModal = ({
   setIsOpen,
   invoiceId,
   setShowCreateItemModal,
-setSelectedInvoiceItemId,
+  setSelectedInvoiceItemId,
   // onAction,
   setActionType,
   setSelectedItem,
@@ -38,16 +38,20 @@ setSelectedInvoiceItemId,
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-useEffect(() => {
-  if (invoiceId && isOpen) {
-    fetchInvoiceItems(invoiceId, currentPage);
-  }
-}, [invoiceId, currentPage, isOpen]);
+  useEffect(() => {
+    if (invoiceId && isOpen) {
+      fetchInvoiceItems(invoiceId, currentPage);
+    }
+  }, [invoiceId, currentPage, isOpen]);
 
   const fetchInvoiceItems = async (id: string, page: number) => {
     setIsLoading(true);
     try {
-      const res = await invoiceService.getInvoiceItems(id, page, ITEMS_PER_PAGE);
+      const res = await invoiceService.getInvoiceItems(
+        id,
+        page,
+        ITEMS_PER_PAGE
+      );
       if (res?.data?.success) {
         setInvoiceItems(res.data.items);
         setTotal(res.data.total);
@@ -59,10 +63,9 @@ useEffect(() => {
     }
   };
 
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-6xl">
+      <DialogContent className="max-w-5xl cs-dialog-box">
         <DialogHeader>
           <DialogTitle>Invoice Payment Items</DialogTitle>
         </DialogHeader>
@@ -91,21 +94,21 @@ useEffect(() => {
                 invoiceItems.map((item: any, index: number) => (
                   <TableRow key={index}>
                     <TableCell>{item.amount || '-'}</TableCell>
-                   <TableCell>
-  <span
-    className={`px-3 py-1 rounded-full text-sm font-semibold
+                    <TableCell>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-semibold
       ${
         item.status === 'approved'
           ? 'bg-green-200 text-green-700'
           : item.status === 'rejected'
-          ? 'bg-red-200 text-red-700'
-          : 'bg-gray-200 text-gray-700'
+            ? 'bg-red-200 text-red-700'
+            : 'bg-gray-200 text-gray-700'
       }
     `}
-  >
-    {item.status || '-'}
-  </span>
-</TableCell>
+                      >
+                        {item.status || '-'}
+                      </span>
+                    </TableCell>
 
                     <TableCell>{item.payment_method || '-'}</TableCell>
                     <TableCell>{item.payment_date || '-'}</TableCell>
@@ -125,53 +128,53 @@ useEffect(() => {
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-{item.status === 'pending' ? (
-  <div className="flex gap-2 justify-center">
-    {can(PERMISSIONS.TENANT_RENTAL.UPDATE) && (
-      <Pencil
-        className="cursor-pointer text-blue-500"
-        onClick={() => {
-           setSelectedInvoiceItemId(item.id);
-            setShowCreateItemModal(true);
-        }}
-      />
-    )}
+                      {item.status === 'pending' ? (
+                        <div className="flex gap-2 justify-center">
+                          {can(PERMISSIONS.TENANT_RENTAL.UPDATE) && (
+                            <Pencil
+                              className="cursor-pointer text-blue-500"
+                              onClick={() => {
+                                setSelectedInvoiceItemId(item.id);
+                                setShowCreateItemModal(true);
+                              }}
+                            />
+                          )}
 
-    {can(PERMISSIONS.INVOICE.UPDATE) && (
-      <>
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-green-600 border-green-600 hover:bg-green-50"
-          onClick={() => {
-            setActionType('approved');
-            setSelectedItem(item);
-            setActionDialogOpen(true);
-          }}
-        >
-          <CheckCircle className="w-4 h-4" />
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-red-600 border-red-600 hover:bg-red-50"
-          onClick={() => {
-            setActionType('rejected');
-            setSelectedItem(item);
-            setActionDialogOpen(true);
-          }}
-        >
-          <XCircle className="w-4 h-4" />
-        </Button>
-      </>
-    )}
-  </div>
-) : (
-  <div className="text-sm text-gray-700 italic max-w-[200px] mx-auto">
-    {item.remarks || 'No remarks'}
-  </div>
-)}
-</TableCell>
+                          {can(PERMISSIONS.INVOICE.UPDATE) && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-green-600 border-green-600 hover:bg-green-50"
+                                onClick={() => {
+                                  setActionType('approved');
+                                  setSelectedItem(item);
+                                  setActionDialogOpen(true);
+                                }}
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 border-red-600 hover:bg-red-50"
+                                onClick={() => {
+                                  setActionType('rejected');
+                                  setSelectedItem(item);
+                                  setActionDialogOpen(true);
+                                }}
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-700 italic max-w-[200px] mx-auto">
+                          {item.remarks || 'No remarks'}
+                        </div>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -183,7 +186,6 @@ useEffect(() => {
               )}
             </TableBody>
           </Table>
-
         </div>
       </DialogContent>
     </Dialog>

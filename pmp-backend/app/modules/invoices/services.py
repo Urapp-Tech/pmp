@@ -9,6 +9,7 @@ from app.models.users import User
 from app.modules.invoices.schemas import InvoiceCreate, InvoiceUpdate
 from sqlalchemy.orm import joinedload
 
+
 def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
     invoice = Invoice(**invoice_data.dict())
 
@@ -68,9 +69,9 @@ def get_all_invoices(
             .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
             .all()
         )
-        assigned_unit_ids = list({
-            m.assign_property_unit for m in managers if m.assign_property_unit
-        })
+        assigned_unit_ids = list(
+            {m.assign_property_unit for m in managers if m.assign_property_unit}
+        )
 
         if not assigned_unit_ids:
             return {
@@ -82,7 +83,9 @@ def get_all_invoices(
                 "items": [],
             }
 
-        query = query.join(InvoiceItem).filter(InvoiceItem.property_unit_id.in_(assigned_unit_ids))
+        query = query.join(Invoice.tenant).filter(
+            Tenant.property_unit_id.in_(assigned_unit_ids)
+        )
 
     elif role_id == "User":
         tenant = db.query(Tenant).filter(Tenant.user_id == user_id).first()
@@ -112,12 +115,7 @@ def get_all_invoices(
         query = query.filter(Invoice.invoice_no.ilike(f"%{search.lower()}%"))
 
     total = query.distinct().count()
-    items = (
-        query.order_by(Invoice.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+    items = query.order_by(Invoice.created_at.desc()).offset(skip).limit(limit).all()
 
     return {
         "success": True,
@@ -129,7 +127,9 @@ def get_all_invoices(
     }
 
 
-def update_invoice(db: Session, invoice_id: UUID4, update_data: InvoiceUpdate) -> Invoice | None:
+def update_invoice(
+    db: Session, invoice_id: UUID4, update_data: InvoiceUpdate
+) -> Invoice | None:
     invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
     if not invoice:
         return None
@@ -154,6 +154,8 @@ def delete_invoice(db: Session, invoice_id: UUID4) -> bool:
 
 def generate_invoice_no(db: Session, landlord_id: str) -> str:
     # Count existing invoices for this landlord
-    invoice_count = db.query(Invoice).filter(Invoice.landlord_id == landlord_id).count() +1
+    invoice_count = (
+        db.query(Invoice).filter(Invoice.landlord_id == landlord_id).count() + 1
+    )
     invoice_number = f"inv-rent-{invoice_count + 1:05d}"
     return invoice_number

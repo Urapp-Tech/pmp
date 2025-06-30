@@ -23,6 +23,7 @@ from app.modules.users.schemas import (
     UserLoggedInOut,
     UserLOV,
     TokenSchema,
+    PaginatedTenantUserResponse,
 )
 from app.utils.bcrypt import hash_password, verify_password
 from app.utils.jwt import (
@@ -487,3 +488,39 @@ def get_users_lov_by_landlord(landlord_id: UUID, db: Session) -> List[UserLOV]:
         .all()
     )
     return [UserLOV(id=user.id, name=f"{user.fname} {user.lname}") for user in users]
+
+
+def get_tenant_users_service(
+    db: Session, page: int = 1, limit: int = 10, search: Optional[str] = None
+):
+    skip = (page - 1) * limit
+
+    user_role = db.query(Role).filter(Role.name == "User").first()
+    if not user_role:
+        return PaginatedTenantUserResponse(
+            success=True, total=0, page=page, size=limit, items=[]
+        )
+
+    # Base query
+    query = db.query(User).filter(User.role_id == user_role.id)
+
+    if search:
+        query = query.filter(
+            or_(
+                User.fname.ilike(f"%{search}%"),
+                User.lname.ilike(f"%{search}%"),
+                User.email.ilike(f"%{search}%"),
+                User.phone.ilike(f"%{search}%"),
+            )
+        )
+
+    total = query.count()
+    items = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+
+    return PaginatedTenantUserResponse(
+        success=True,
+        total=total,
+        page=page,
+        size=limit,
+        items=items,
+    )

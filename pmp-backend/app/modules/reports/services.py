@@ -15,7 +15,7 @@ from app.models.users import User
 
 # def get_invoice_report_service(
 #     db: Session,
-    
+
 #     from_date: Optional[date] = None,
 #     to_date: Optional[date] = None,
 #     status: Optional[str] = None,
@@ -45,6 +45,7 @@ from typing import Optional, Dict, Any
 from datetime import date
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
+
 # from app.models import Invoice, InvoiceItem, Manager, User, Tenant
 
 
@@ -86,9 +87,9 @@ def get_invoice_report_service(
             .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
             .all()
         )
-        assigned_unit_ids = list({
-            m.assign_property_unit for m in managers if m.assign_property_unit
-        })
+        assigned_unit_ids = list(
+            {m.assign_property_unit for m in managers if m.assign_property_unit}
+        )
 
         if not assigned_unit_ids:
             return {
@@ -99,7 +100,9 @@ def get_invoice_report_service(
                 "total_paid": 0,
             }
 
-        query = query.join(InvoiceItem).filter(InvoiceItem.property_unit_id.in_(assigned_unit_ids))
+        query = query.join(Invoice.tenant).filter(
+            Tenant.property_unit_id.in_(assigned_unit_ids)
+        )
 
     elif role_id == "Tenant":
         tenant = db.query(Tenant).filter(Tenant.user_id == user_id).first()
@@ -137,7 +140,7 @@ def get_invoice_report_service(
 
     if to_date:
         query = query.filter(Invoice.created_at <= to_date)
-        
+
     if status:
         query = query.filter(Invoice.status.ilike(status))
 
@@ -148,7 +151,6 @@ def get_invoice_report_service(
     invoices = query.distinct().all()
     total_paid = sum(int(float(inv.total_amount or 0)) for inv in invoices)
 
-
     return {
         "success": True,
         "message": "Invoice report fetched successfully.",
@@ -156,7 +158,10 @@ def get_invoice_report_service(
         "items": invoices,
         "total_paid": total_paid,
     }
+
+
 from datetime import datetime, date
+
 
 def parse_date(date_input):
     if isinstance(date_input, date):

@@ -18,6 +18,7 @@ from app.modules.supportTickets.services import (
     create_ticket,
     get_tickets_by_user,
     update_ticket,
+    delete_ticket,
     update_ticket_status_service,
     get_landlord_reported_tickets_from_subusers,
 )
@@ -168,3 +169,8 @@ def list_landlord_user_tickets(
         "total": total,
         "items": tickets,
     }
+
+
+@router.post("/delete/{id}")
+def delete_ticket_by_id(id: UUID, db: Session = Depends(get_db)):
+    return delete_ticket(db, str(id))

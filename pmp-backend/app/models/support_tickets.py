@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, ForeignKey, Text, DateTime, Enum
+from sqlalchemy import Column, String, ForeignKey, Text, DateTime, Enum, Boolean
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -31,3 +31,4 @@ class SupportTicket(Base):
     images = Column(JSONB, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = Column(Boolean, nullable=False, default=True)

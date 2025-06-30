@@ -14,6 +14,8 @@ from pydantic import EmailStr, ValidationError
 from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from uuid import UUID
+from app.models.users import User
+from app.core.security import has_roles
 from app.modules.users.schemas import (
     UserLogin,
     UserCreate,
@@ -35,6 +37,7 @@ from app.modules.users.services import (
     get_users_by_landlord,
     get_assigned_units_managers,
     get_users_lov_by_landlord,
+    get_tenant_users_service,
 )
 
 
@@ -207,3 +210,13 @@ def get_tenant_users(
 @router.get("/lov/{landlord_id}", response_model=List[UserLOV])
 def user_lov(landlord_id: UUID, db: Session = Depends(get_db)):
     return get_users_lov_by_landlord(landlord_id, db)
+
+
+@router.get("/tenant-users/list", response_model=PaginatedTenantUserResponse)
+def get_tenant_users(
+    page: int = 1,
+    limit: int = 10,
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
+    return get_tenant_users_service(db=db, page=page, limit=limit, search=search)

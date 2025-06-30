@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 // import { usePermission } from '@/utils/hasPermission';
 // import { PERMISSIONS } from '@/utils/constants';
 import { getItem } from '@/utils/storage';
+import UnitListModal from './UnitListModal';
 
 const PropertyList = () => {
   const userDetails: any = getItem('USER');
@@ -71,6 +72,12 @@ const PropertyList = () => {
   useEffect(() => {
     fetchList();
   }, [page]);
+
+  const openUnitsModal = (property: any, units: any) => {
+    setSelectedProperty(property);
+    setUnitModalOpen(true);
+    setUnits(units);
+  };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -144,6 +151,56 @@ const PropertyList = () => {
   //     setDeleteOpen(true);
   //   }
   // };
+
+  const handleActionMenu = (action: any, item: any) => {
+    const id = item.id;
+    setEditFormData(item);
+    if (action === 'delete') {
+      setSelectedProperty(id);
+      setDeleteOpen(true);
+    }
+  };
+
+  const deleteHandler = async (id: any) => {
+    setIsLoader(true);
+    try {
+      const response = await propertyService.deleteProperty(id.id);
+
+      if (response.data.success) {
+        setList((newArr: any) => {
+          return newArr.filter((item: any) => item.id !== id.id);
+        });
+        let newtotal = total;
+        setTotal((newtotal -= 1));
+        setIsLoader(false);
+        toast({
+          description: response.data.message,
+          className: cn(
+            'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+          ),
+          style: {
+            backgroundColor: '#5CB85C',
+            color: 'white',
+          },
+        });
+      }
+    } catch (error) {
+      toast({
+        description: 'Failed to delete property.',
+        className: cn(
+          'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+        ),
+        style: {
+          backgroundColor: '#D9534F',
+          color: 'white',
+        },
+      });
+    } finally {
+      setIsLoader(false);
+      setDeleteOpen(false);
+    }
+  };
+
   return (
     <div className="bg-white p-2 rounded-[20px] shadow-2xl mt-5">
       <TopBar title="Property List" />
@@ -187,9 +244,9 @@ const PropertyList = () => {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Address</TableHead>
-                  <TableHead>Status</TableHead>
+                  {/* <TableHead>Status</TableHead> */}
                   <TableHead>Units</TableHead>
-                  {/* <TableHead className="text-center">Actions</TableHead> */}
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -198,17 +255,28 @@ const PropertyList = () => {
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
                       <TableCell>{item.address}</TableCell>
-                      <TableCell>{item.status}</TableCell>
+                      {/* <TableCell>{item.status}</TableCell> */}
                       <TableCell>
                         <div className=" flex">
                           <span className="bg-blue-500 mt-3 text-center text-white w-[18px] h-[18px] rounded-[30px] text-[10px] leading-normal font-semibold  py-[1px]">
                             {item.units.length}
                           </span>
-                          {/* <Eye
+                          <Eye
                             className="pl-3 cursor-pointer text-blue-500 w-[40px] h-[40px]"
                             onClick={() => openUnitsModal(item.id, item.units)}
-                          /> */}
+                          />
                         </div>{' '}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center items-center">
+                          <div className="pl-3">
+                            <Trash2
+                              className="text-lunar-bg cursor-pointer"
+                              size={20}
+                              onClick={() => handleActionMenu('delete', item)}
+                            />
+                          </div>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -235,15 +303,15 @@ const PropertyList = () => {
         </div>
       </SidebarInset>
 
-      {/* {unitModalOpen && (
+      {unitModalOpen && (
         <UnitListModal
           open={unitModalOpen}
           setOpen={setUnitModalOpen}
           property={selectedProperty}
           units={units}
         />
-      )} */}
-      {/* {deleteOpen && (
+      )}
+      {deleteOpen && (
         <DeleteDialog
           isOpen={deleteOpen}
           setIsOpen={setDeleteOpen}
@@ -252,7 +320,7 @@ const PropertyList = () => {
           formData={editFormData}
           callback={deleteHandler}
         />
-      )} */}
+      )}
     </div>
   );
 };

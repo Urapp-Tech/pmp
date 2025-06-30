@@ -217,13 +217,13 @@ const Blogs = () => {
                   />
                 </div>
 
-                <div>
+                {/* <div>
                   <Pencil
                     className="text-lunar-bg cursor-pointer"
                     onClick={() => handleActionMenu('edit', id)}
                     size={20}
                   />
-                </div>
+                </div> */}
                 <div className="pl-3">
                   <Trash2
                     className="text-lunar-bg cursor-pointer"
@@ -318,39 +318,39 @@ const Blogs = () => {
     fetchTickets();
   }, []);
 
-  // const deleteHandler = (data: any) => {
-  //   const userId = data.id;
-  //   setIsLoader(true);
-  //   service
-  //     .deleteBlog(userId)
-  //     .then((updateItem) => {
-  //       if (updateItem.data.success) {
-  //         setDeleteOpen(false);
-  //         setIsLoader(false);
-  //         setList((newArr: any) => {
-  //           return newArr.filter((item: any) => item.id !== userId);
-  //         });
-  //         let newtotal = total;
-  //         setTotal((newtotal -= 1));
-  //         toast({
-  //           description: updateItem.data.message,
-  //           className: cn(
-  //             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-  //           ),
-  //           style: {
-  //             backgroundColor: '#FF5733',
-  //             color: 'white',
-  //           },
-  //         });
-  //       } else {
-  //         setIsLoader(false);
-  //       }
-  //     })
-  //     .catch((err: Error) => {
-  //       console.log('error: ', err);
-  //       setIsLoader(false);
-  //     });
-  // };
+  const deleteHandler = (data: any) => {
+    const userId = data.id;
+    setIsLoader(true);
+    service
+      .deleteTicket(userId)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setDeleteOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.filter((item: any) => item.id !== userId);
+          });
+          let newtotal = total;
+          setTotal((newtotal -= 1));
+          toast({
+            description: updateItem.data.message,
+            className: cn(
+              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+            ),
+            style: {
+              backgroundColor: '#FF5733',
+              color: 'white',
+            },
+          });
+        } else {
+          setIsLoader(false);
+        }
+      })
+      .catch((err: Error) => {
+        console.log('error: ', err);
+        setIsLoader(false);
+      });
+  };
 
   const statusChangeHandler = (data: any) => {
     setIsLoader(true);
@@ -630,6 +630,16 @@ const Blogs = () => {
           setIsOpen={setStatusOpen}
           callback={statusChangeHandler}
           formData={editFormData}
+        />
+      )}
+      {deleteOpen && (
+        <DeleteDialog
+          isLoader={isLoader}
+          isOpen={deleteOpen}
+          setIsOpen={setDeleteOpen}
+          title={'Blog'}
+          formData={editFormData}
+          callback={deleteHandler}
         />
       )}
       {/* {isOpen && (

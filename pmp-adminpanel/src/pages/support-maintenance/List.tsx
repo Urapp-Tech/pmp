@@ -309,40 +309,6 @@ const SupportMaintenance = () => {
     fetchTickets();
   }, []);
 
-  // const deleteHandler = (data: any) => {
-  //   const userId = data.id;
-  //   setIsLoader(true);
-  //   service
-  //     .deleteBlog(userId)
-  //     .then((updateItem) => {
-  //       if (updateItem.data.success) {
-  //         setDeleteOpen(false);
-  //         setIsLoader(false);
-  //         setList((newArr: any) => {
-  //           return newArr.filter((item: any) => item.id !== userId);
-  //         });
-  //         let newtotal = total;
-  //         setTotal((newtotal -= 1));
-  //         toast({
-  //           description: updateItem.data.message,
-  //           className: cn(
-  //             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-  //           ),
-  //           style: {
-  //             backgroundColor: '#FF5733',
-  //             color: 'white',
-  //           },
-  //         });
-  //       } else {
-  //         setIsLoader(false);
-  //       }
-  //     })
-  //     .catch((err: Error) => {
-  //       console.log('error: ', err);
-  //       setIsLoader(false);
-  //     });
-  // };
-
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
     try {
@@ -457,6 +423,40 @@ const SupportMaintenance = () => {
       .catch((err: Error | any) => {
         const error = handleErrorMessage(err);
         ToastHandler(error);
+        setIsLoader(false);
+      });
+  };
+
+  const deleteHandler = (data: any) => {
+    const userId = data.id;
+    setIsLoader(true);
+    service
+      .deleteTicket(userId)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setDeleteOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.filter((item: any) => item.id !== userId);
+          });
+          let newtotal = total;
+          setTotal((newtotal -= 1));
+          toast({
+            description: updateItem.data.message,
+            className: cn(
+              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+            ),
+            style: {
+              backgroundColor: '#FF5733',
+              color: 'white',
+            },
+          });
+        } else {
+          setIsLoader(false);
+        }
+      })
+      .catch((err: Error) => {
+        console.log('error: ', err);
         setIsLoader(false);
       });
   };
@@ -613,17 +613,17 @@ const SupportMaintenance = () => {
           callback={updateHandler}
         />
       )}
-      {/* 
+
       {deleteOpen && (
         <DeleteDialog
           isLoader={isLoader}
           isOpen={deleteOpen}
           setIsOpen={setDeleteOpen}
-          title={'Blog'}
+          title={'Ticket'}
           formData={editFormData}
           callback={deleteHandler}
         />
-      )} */}
+      )}
     </div>
   );
 };

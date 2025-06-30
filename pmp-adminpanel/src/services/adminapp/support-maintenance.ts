@@ -45,10 +45,15 @@ const statusChange = (data: any) => {
   return network.post(`${SUPPORT_TICKETS}/update-status`, data);
 };
 
+const deleteTicket = (id: any) => {
+  return network.post(`${SUPPORT_TICKETS}/delete/${id}`, {});
+};
+
 export default {
   list,
   landlordReportedList,
   create,
   update,
   statusChange,
+  deleteTicket,
 };

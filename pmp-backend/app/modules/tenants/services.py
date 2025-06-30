@@ -17,6 +17,8 @@ import uuid
 from uuid import UUID
 from typing import List, Optional
 from sqlalchemy import or_
+
+
 def create_contract_for_user(
     db: Session, data: ContractCreate, agreement_doc: Optional[UploadFile] = None
 ):
@@ -27,6 +29,7 @@ def create_contract_for_user(
             .filter(
                 Tenant.property_unit_id == data.property_unit_id,
                 Tenant.contract_end >= date.today(),
+                Tenant.is_active == True,
             )
             .first()
         )
@@ -90,6 +93,8 @@ def create_contract_for_user(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
 def approve_contract_unit(
     db: Session, user_id: UUID, property_unit_id: UUID, is_approved: bool
 ):
@@ -119,6 +124,8 @@ def approve_contract_unit(
         tenant_contract.is_active = False
     db.commit()
     return {"success": True, "message": "Contract approval updated successfully."}
+
+
 def list_contracts_by_landlord(
     db: Session,
     landlord_id: UUID,
@@ -198,6 +205,8 @@ def list_contracts_by_landlord(
         "size": size,
         "items": result,
     }
+
+
 def select_list_contracts_by_landlord(db: Session, landlord_id: UUID):
     query = (
         db.query(Tenant)
