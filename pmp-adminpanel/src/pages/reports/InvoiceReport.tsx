@@ -17,6 +17,7 @@ import { SidebarInset } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
 import reportsService from '@/services/adminapp/reports';
 import { getItem } from '@/utils/storage';
+import dayjs from 'dayjs';
 
 /**
  * InvoiceReport
@@ -31,8 +32,12 @@ import { getItem } from '@/utils/storage';
  */
 const InvoiceReport = () => {
   const userDetails: any = getItem('USER');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [fromDate, setFromDate] = useState(
+    dayjs().subtract(6, 'month').format('YYYY-MM-DD')
+  );
+  const [toDate, setToDate] = useState(
+    dayjs().add(6, 'month').format('YYYY-MM-DD')
+  );
   const [statusFilter, setStatusFilter] = useState('paid'); // Default to 'paid'
   const [reportList, setReportList] = useState([]);
   const [totalPaid, setTotalPaid] = useState(0);

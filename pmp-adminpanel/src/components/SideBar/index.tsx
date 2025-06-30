@@ -105,25 +105,40 @@ export function MainSidebar({
       items: [],
     },
     {
-      title: 'Maintenance Requests',
-      url: '/admin-panel/support-maintenance',
+      title: 'Support Tickets',
+      url: '/admin-panel/support-tickets',
       icon: assets.images.notificationSidebarIcon,
       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
-      items: [
-        {
-          title: 'Created List',
-          url: '/admin-panel/support-maintenance/list',
-          // role: 'Landlord',
-          permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
-        },
-        {
-          title: 'Reported Tickets',
-          url: '/admin-panel/support-maintenance/tenant-tickets',
-          permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
-          role: ['Landlord', 'Manager'],
-        },
-      ],
+      items: [],
     },
+    {
+      title: 'Maintenance Requests',
+      url: '/admin-panel/reported-tickets',
+      icon: assets.images.helpFeedbackSidebarIcon,
+      permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
+      role: ['Landlord', 'Manager'],
+      items: [],
+    },
+    // {
+    //   title: 'Maintenance Requests',
+    //   url: '/admin-panel/support-maintenance',
+    //   icon: assets.images.notificationSidebarIcon,
+    //   permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
+    //   items: [
+    //     {
+    //       title: 'Created List',
+    //       url: '/admin-panel/support-maintenance/list',
+    //       // role: 'Landlord',
+    //       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
+    //     },
+    //     {
+    //       title: 'Reported Tickets',
+    //       url: '/admin-panel/support-maintenance/tenant-tickets',
+    //       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
+    //       role: ['Landlord', 'Manager'],
+    //     },
+    //   ],
+    // },
     {
       title: 'Bank and Settlement Tracking',
       url: '/admin-panel/feedback',

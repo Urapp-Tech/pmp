@@ -155,7 +155,7 @@ const Invoices = () => {
   };
 
   const createHandler = async (data: InvoiceFields) => {
-    data.landlord_id =  userDetails?.landlordId;
+    data.landlord_id = userDetails?.landlordId;
     setIsLoader(true);
     const resp = await invoiceService.create(data);
     if (resp.data.success) {
@@ -201,8 +201,14 @@ const Invoices = () => {
       { accessorKey: 'total_amount', header: 'Total' },
       { accessorKey: 'due_date', header: 'Due' },
       { accessorKey: 'status', header: 'Status' },
-      { accessorKey: 'invoice_date', header: 'Invoice Date' },
-
+      {
+        accessorKey: 'invoice_date',
+        header: 'Invoice Date',
+        cell: ({ row }) =>
+          row.original.invoice_date
+            ? new Date(row.original.invoice_date).toLocaleDateString()
+            : '--',
+      },
       {
         id: 'Submitted',
         header: 'Payment',
@@ -290,20 +296,37 @@ const Invoices = () => {
     <div className="bg-white p-4 rounded-lg shadow mt-5">
       <TopBar title="Invoices" />
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
-        <div className="flex justify-between items-center py-4">
+        <div className="flex items-center py-4 justify-between">
+          <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
+            Inovices
+          </h2>
           <div className="flex items-center gap-3">
             <Input
+              placeholder="Search invoices..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyPress={handleSearch}
+              className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
+            />
+            {/* <Input
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyUp={handleSearch}
               className="w-[300px]"
-            />
+            /> */}
             {/* <Button onClick={() => fetchList(search,0)}>🔍</Button> */}
+            {can(PERMISSIONS.INVOICE.CREATE) && (
+              <Button
+                onClick={() => setCreateOpen(true)}
+                className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                variant={'outline'}
+              >
+                + Add Invoice
+              </Button>
+            )}
           </div>
-          {can(PERMISSIONS.INVOICE.CREATE) && (
-            <Button onClick={() => setCreateOpen(true)}>+ Add Invoice</Button>
-          )}
+          {/* <Button onClick={() => setCreateOpen(true)}>+ Add Invoice</Button> */}
         </div>
         <div className="overflow-x-auto border rounded">
           {mainIsLoader ? (
@@ -419,31 +442,30 @@ const Invoices = () => {
         actionType={actionType}
         item={selectedItem}
         onAction={async (id, remarks, action) => {
-  try {
-    const res = await invoiceService.approveRejectInvoiceItem(
-      id,
-      action,
-      {
-        remarks,
-        user_id: userDetails?.id || '',
-      }
-    );
+          try {
+            const res = await invoiceService.approveRejectInvoiceItem(
+              id,
+              action,
+              {
+                remarks,
+                user_id: userDetails?.id || '',
+              }
+            );
 
-    if (res?.data?.success) {
-      ToastHandler(`${action.toUpperCase()} successful`);
-      refreshData();
-      setShowItemsModal(false); // ✅ Close only on success
-      
-            // await fetchInvoiceItems(selectedInvoiceId);
-            await fetchList(search, page);
-    } else {
-      ToastHandler(res.data.message || 'Failed to update status');
-    }
-  } catch (err) {
-    ToastHandler('Action failed');
-  }
-}}
+            if (res?.data?.success) {
+              ToastHandler(`${action.toUpperCase()} successful`);
+              refreshData();
+              setShowItemsModal(false); // ✅ Close only on success
 
+              // await fetchInvoiceItems(selectedInvoiceId);
+              await fetchList(search, page);
+            } else {
+              ToastHandler(res.data.message || 'Failed to update status');
+            }
+          } catch (err) {
+            ToastHandler('Action failed');
+          }
+        }}
       />
 
       {editFormData && (

@@ -226,7 +226,7 @@ export const routeObjects: RouteObject[] = [
             ],
           },
           {
-            path: 'support-maintenance',
+            path: 'support-tickets',
             children: [
               {
                 index: true,
@@ -240,8 +240,17 @@ export const routeObjects: RouteObject[] = [
                   </Suspense>
                 ),
               },
+            ],
+          },
+          {
+            path: 'reported-tickets',
+            children: [
               {
-                path: 'tenant-tickets',
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <ReportedTicketsList />
@@ -250,6 +259,31 @@ export const routeObjects: RouteObject[] = [
               },
             ],
           },
+          // {
+          //   path: 'support-maintenance',
+          //   children: [
+          //     {
+          //       index: true,
+          //       element: <Navigate to="list" replace />,
+          //     },
+          //     {
+          //       path: 'list',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <SupportMaintenance />
+          //         </Suspense>
+          //       ),
+          //     },
+          //     {
+          //       path: 'tenant-tickets',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <ReportedTicketsList />
+          //         </Suspense>
+          //       ),
+          //     },
+          //   ],
+          // },
           {
             path: 'rental-collection',
             children: [
