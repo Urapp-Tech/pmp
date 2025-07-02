@@ -41,13 +41,14 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
             .joinedload(Role.role_permissions)
             .joinedload(RolePermission.permission_obj)
         )
-        .filter(User.email == login_data.email)
+        .filter(or_(User.email == login_data.email, User.phone == login_data.email))
         .first()
     )
 
     if not user or not verify_password(login_data.password, user.password):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email/phone or password",
         )
 
     access_token = create_access_token(data={"sub": str(user.id)})

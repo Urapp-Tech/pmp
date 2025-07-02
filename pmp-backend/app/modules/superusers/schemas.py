@@ -4,7 +4,7 @@ from uuid import UUID
 
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str = Field(..., description="Email address or phone number")
     password: str
 
 

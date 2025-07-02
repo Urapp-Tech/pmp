@@ -10,6 +10,8 @@ from app.modules.supportTickets.schemas import (
 from app.models.users import User
 from app.models.landlords import Landlord
 from app.models.roles import Role
+from app.models.managers import Manager
+from app.models.tenants import Tenant
 from app.models.super_admins import SuperAdmin as SuperUser
 from app.models.support_tickets import SupportTicketStatus
 from typing import Optional, List
@@ -321,6 +323,142 @@ def get_landlord_reported_tickets_from_subusers(
     # Step 8: Format response
     tickets = []
 
+    for ticket, user_id, fname, lname, role_name in results:
+        ticket_dict = ticket.__dict__.copy()
+        ticket_dict["user_id"] = user_id
+        ticket_dict["first_name"] = fname
+        ticket_dict["last_name"] = lname
+        ticket_dict["role_name"] = role_name
+        ticket_dict.pop("_sa_instance_state", None)
+        tickets.append(ticket_dict)
+
+    return tickets, total
+
+
+def get_reported_tickets_based_on_role(
+    db: Session,
+    user_id: UUID,
+    role_type: str,
+    skip: int = 0,
+    limit: int = 10,
+    search: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    role_type = role_type.capitalize()
+    if role_type not in ["Landlord", "Manager"]:
+        raise HTTPException(status_code=400, detail="Invalid roleType")
+
+    tickets_query = (
+        db.query(
+            SupportTicket,
+            User.id.label("user_id"),
+            User.fname,
+            User.lname,
+            Role.name.label("role_name"),
+        )
+        .join(User, SupportTicket.sender_id == User.id)
+        .join(Role, User.role_id == Role.id)
+        .filter(SupportTicket.is_active == True)
+    )
+
+    if role_type == "Landlord":
+        landlord = db.query(Landlord).filter(Landlord.id == user_id).first()
+        if not landlord:
+            raise HTTPException(status_code=404, detail="Landlord not found")
+
+        # ✅ Step 2: Check if corresponding user is valid (active, verified, marked as landlord)
+        landlord_user = (
+            db.query(User)
+            .filter(
+                User.landlord_id == landlord.id,
+                User.is_verified == True,
+                User.is_landlord == True,
+                User.is_active == True,
+            )
+            .first()
+        )
+
+        if not landlord_user:
+            raise HTTPException(
+                status_code=403,
+                detail="Landlord user is not active, verified, or properly marked",
+            )
+
+        # Step 3: Get sub-users (Managers + Users) under this landlord
+        allowed_roles = (
+            db.query(Role.id).filter(Role.name.in_(["Manager", "User"])).subquery()
+        )
+
+        sub_user_ids = (
+            db.query(User.id)
+            .filter(
+                User.landlord_id == landlord.id,
+                User.role_id.in_(allowed_roles),
+            )
+            .subquery()
+        )
+
+        tickets_query = tickets_query.filter(
+            SupportTicket.sender_id.in_(sub_user_ids),
+            SupportTicket.receiver_id == landlord_user.landlord_id,
+        )
+
+    elif role_type == "Manager":
+        # Step 1: Get manager from users table
+        manager = db.query(User).filter(User.id == user_id).first()
+        if not manager:
+            raise HTTPException(status_code=404, detail="Manager not found")
+
+        # Step 2: Get role ID of "User"
+        user_role_id = db.query(Role.id).filter(Role.name == "User").scalar_subquery()
+
+        # Step 3: Get sub-users (only Users) under same landlord
+        sub_user_ids = (
+            db.query(User.id)
+            .filter(
+                User.landlord_id == manager.landlord_id,
+                User.role_id == user_role_id,
+                User.is_active == True,
+            )
+            .subquery()
+        )
+
+        # Step 4: Filter support tickets
+        tickets_query = tickets_query.filter(
+            SupportTicket.sender_id.in_(sub_user_ids),
+            SupportTicket.receiver_id == manager.landlord_id,
+            SupportTicket.is_active == True,
+        )
+
+    # Apply search filter
+    if search:
+        search_term = f"%{search.lower()}%"
+        tickets_query = tickets_query.filter(
+            or_(
+                SupportTicket.subject.ilike(search_term),
+                SupportTicket.message.ilike(search_term),
+            )
+        )
+
+    # Apply status filter
+    if status:
+        try:
+            status_enum = SupportTicketStatus(status)
+            tickets_query = tickets_query.filter(SupportTicket.status == status_enum)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid status")
+
+    # Paginate
+    total = tickets_query.count()
+    results = (
+        tickets_query.order_by(SupportTicket.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    # Format response
+    tickets = []
     for ticket, user_id, fname, lname, role_name in results:
         ticket_dict = ticket.__dict__.copy()
         ticket_dict["user_id"] = user_id

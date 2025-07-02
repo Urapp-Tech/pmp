@@ -66,9 +66,9 @@ networkInstance.interceptors.response.use(
       return Promise.reject(new Error('Aborted'));
     }
     const originalRequest = { ...error.config };
-    if (error.response.status === 401) {
+    if (error.response.status === 4012) {
       return refreshInstance
-        .get(`${BASE_URL}backofficeUser/refresh/token`, {
+        .get(`${BASE_URL}refresh/token`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: refreshToken(),
@@ -146,7 +146,7 @@ const get = (endPoint: string, body?: unknown, type?: any) => {
   });
 };
 
-const postMultipart = <T = unknown>(endPoint: string, data: T,type?: any) => {
+const postMultipart = <T = unknown>(endPoint: string, data: T, type?: any) => {
   let baseUrl = ADMIN_BASE_URL;
   if (type === 'super') {
     baseUrl = BASE_URL;

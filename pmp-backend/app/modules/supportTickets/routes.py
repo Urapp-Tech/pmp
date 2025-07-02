@@ -2,10 +2,13 @@ from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, HTTPExcep
 from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from app.db.database import get_db
+from app.core.security import get_current_user
 from typing import Optional, List
 from pydantic import ValidationError
 from uuid import UUID
 from app.models.support_tickets import SupportTicketStatus
+from app.models.users import User
+from app.models.roles import Role
 from app.modules.supportTickets.schemas import (
     SupportTicketCreate,
     SupportTicketOut,
@@ -21,6 +24,7 @@ from app.modules.supportTickets.services import (
     delete_ticket,
     update_ticket_status_service,
     get_landlord_reported_tickets_from_subusers,
+    get_reported_tickets_based_on_role,
 )
 from typing import List
 import uuid
@@ -146,18 +150,20 @@ def update_ticket_status(
     return update_ticket_status_service(db, status_data)
 
 
-@router.get("/landlord-tickets/{landlord_id}")
+@router.get("/landlord-tickets/{user_id}")
 def list_landlord_user_tickets(
-    landlord_id: UUID,
+    user_id: UUID,
+    role_type: str,
     skip: int = 0,
     limit: int = 10,
     search: Optional[str] = None,
     status: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
-    tickets, total = get_landlord_reported_tickets_from_subusers(
+    tickets, total = get_reported_tickets_based_on_role(
         db=db,
-        landlord_id=landlord_id,
+        user_id=user_id,
+        role_type=role_type,
         skip=skip,
         limit=limit,
         search=search,

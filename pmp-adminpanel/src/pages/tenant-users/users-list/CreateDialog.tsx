@@ -140,9 +140,10 @@ const OfficeUserCreateDialog = ({
                 <FormControl className="m-1 w-full">
                   <div className="">
                     <FormLabel htmlFor="email" className="text-sm font-medium">
-                      Eamil
+                      Email
                     </FormLabel>
                     <Input
+                      autoComplete="new-email"
                       className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
                       id="email"
                       placeholder="johndoe@gmail.com"
@@ -167,6 +168,7 @@ const OfficeUserCreateDialog = ({
                     </FormLabel>
                     <div className="relative">
                       <Input
+                        autoComplete="new-password"
                         id="password"
                         placeholder="********"
                         type={passwordVisible ? 'text' : 'password'}

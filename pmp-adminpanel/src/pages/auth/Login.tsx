@@ -26,6 +26,7 @@ import assets from '@/assets/images';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NavLink } from 'react-router-dom';
+import { handleErrorMessage } from '@/utils/helper';
 // import { useForm } from 'react-hook-form';
 // import { Button } from '@/components/ui/button';
 // import authService from '@/services/adminapp/admin';
@@ -93,8 +94,9 @@ const Login = () => {
       }
     } catch (err: Error | any) {
       setIsLoader(false);
-      ToastHandler(err?.response?.data?.detail);
-      console.log('🚀 ~ loginHandler ~ error:', err?.response?.data?.detail);
+      const error = handleErrorMessage(err);
+      ToastHandler(error);
+      // console.log('🚀 ~ loginHandler ~ error:', err?.response?.data?.detail);
     }
   };
 

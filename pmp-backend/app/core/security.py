@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.utils.jwt import JWT_SECRET_KEY
 
 # from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
@@ -21,25 +22,18 @@ def get_current_user(
 ) -> User:
     try:
         token_str = token.credentials
-        print("🪪 Raw Token:", token_str)
-
-        payload = jwt.decode(token_str, SECRET_KEY, algorithms=[ALGORITHM])
-        print("🧾 Payload:", payload)
-
+        payload = jwt.decode(token_str, JWT_SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
+
         if not user_id:
-            print("❌ No user ID in token")
             raise HTTPException(status_code=401, detail="Invalid token")
 
         user = db.query(User).get(user_id)
-        if not user:
-            print("❌ No user found for ID:", user_id)
         if not user or not user.is_active:
             raise HTTPException(status_code=401, detail="User inactive or not found")
 
         return user
     except JWTError as e:
-        print("❌ JWT Error:", str(e))
         raise HTTPException(status_code=401, detail="Invalid token")
 
 

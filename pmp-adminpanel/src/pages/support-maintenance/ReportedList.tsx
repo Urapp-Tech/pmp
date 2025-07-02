@@ -279,7 +279,10 @@ const ReportedTicketsList = () => {
   const fetchTickets = async () => {
     try {
       const resp = await service.landlordReportedList(
-        userDetails?.landlordId,
+        userDetails?.role.name === 'Landlord'
+          ? userDetails?.landlordId
+          : userDetails?.id,
+        userDetails?.role.name,
         search,
         status,
         page,
@@ -351,8 +354,10 @@ const ReportedTicketsList = () => {
     table.setPageIndex(newPage);
     try {
       const users = await service.list(
-        userDetails?.id,
-        userDetails?.roleId,
+        userDetails?.role.name === 'Landlord'
+          ? userDetails?.landlordId
+          : userDetails?.id,
+        userDetails?.role.name,
         search,
         status,
         newPage,

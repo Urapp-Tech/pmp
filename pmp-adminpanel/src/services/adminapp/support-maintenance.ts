@@ -19,13 +19,15 @@ const list = (
 };
 
 const landlordReportedList = (
-  landlordId: any,
+  userId: any,
+  roleName: any,
   search: string,
   status: string,
   page: number,
   size: number
 ) => {
-  return network.get(`${SUPPORT_TICKETS}/landlord-tickets/${landlordId}`, {
+  return network.get(`${SUPPORT_TICKETS}/landlord-tickets/${userId}`, {
+    role_type: roleName,
     search,
     status,
     page,

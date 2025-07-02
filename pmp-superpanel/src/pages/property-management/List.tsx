@@ -93,10 +93,10 @@ const PropertyList = () => {
   //   setSearchKey(e.target.value);
   //   fetchList();
   // };
-  const handlePageChange = (p: any) => {
-    setPage(p);
-    fetchList();
-  };
+  // const handlePageChange = (p: any) => {
+  //   setPage(p);
+  //   fetchList();
+  // };
 
   // const openUnitsModal = (property, units) => {
   //   setSelectedProperty(property);
@@ -201,6 +201,29 @@ const PropertyList = () => {
     }
   };
 
+  const handlePageChange = async (newPage: any) => {
+    setMainIsLoader(true);
+    const nextPage = newPage + 1;
+    try {
+      const users = await propertyService.list(
+        userDetails?.id,
+        userDetails?.roleName,
+        search,
+        page,
+        pageSize
+      );
+      if (users.data.success) {
+        setPage(nextPage);
+        setList(users.data.items);
+        setTotal(users.data.total);
+        setMainIsLoader(false);
+      }
+    } catch (error: Error | unknown) {
+      setMainIsLoader(false);
+      console.log('error: ', error);
+    }
+  };
+
   return (
     <div className="bg-white p-2 rounded-[20px] shadow-2xl mt-5">
       <TopBar title="Property List" />
@@ -295,7 +318,7 @@ const PropertyList = () => {
         <div className="my-5 flex justify-center">
           <Paginator
             pageSize={pageSize}
-            currentPage={page}
+            currentPage={page - 1}
             totalPages={total}
             onPageChange={handlePageChange}
             showPreviousNext

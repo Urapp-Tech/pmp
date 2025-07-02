@@ -1,9 +1,8 @@
 from fastapi import Request
 from sqlalchemy.orm import Session
 from app.models.super_admins import SuperAdmin
-from app.modules.securityLogs.services import log_security_event
-from app.modules.securityLogs.schemas import SecurityLogCreate
 from app.models.roles import Role
+from sqlalchemy import or_
 from app.modules.superusers.schemas import (
     UserCreate,
     UserLogin,
@@ -47,8 +46,16 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
             raise ValueError("Role 'Super Admin' not found in roles table.")
 
         superuser = (
-            db.query(SuperAdmin).filter(SuperAdmin.email == login_data.email).first()
+            db.query(SuperAdmin)
+            .filter(
+                or_(
+                    SuperAdmin.email == login_data.email,
+                    SuperAdmin.phone == login_data.email,
+                )
+            )
+            .first()
         )
+
         if not superuser or not verify_password(
             login_data.password, superuser.password
         ):

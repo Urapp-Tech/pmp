@@ -1,8 +1,6 @@
 import { TopBar } from '@/components/TopBar';
-import { Button } from '@/components/ui/button';
 import { SidebarInset } from '@/components/ui/sidebar';
 
-import usersService from '@/services/adminapp/users';
 import securityService from '@/services/adminapp/security-logs';
 import {
   ColumnDef,
@@ -16,25 +14,14 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  ArrowUpDown,
-  Loader2,
-  // ChevronDown,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { Checkbox } from '@/components/ui/checkbox';
-import DeleteDialog from '@/components/DeletePopup';
 import { Paginator } from '@/components/Paginator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  //   DropdownMenuLabel,
-  //   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
@@ -47,13 +34,9 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import userService from '@/services/adminapp/users';
+import { getInitials } from '@/utils/helper';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
-import OfficeUsersCreationDialog from './CreateDialog';
-import OfficeUserUpdateDialog from './UpdateDialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/utils/helper';
 import dayjs from 'dayjs';
 
 export type Users = {
@@ -89,17 +72,12 @@ const Receipts = () => {
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
-  const [editFormData, setEditFormData] = useState();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
-  const [isLoader, setIsLoader] = useState(false);
   const [mainIsLoader, setMainIsLoader] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -168,68 +146,7 @@ const Receipts = () => {
         </div>
       ),
     },
-    // {
-    //   id: 'actions',
-    //   enableHiding: false,
-    //   cell: ({ row }) => {
-    //     // const payment = row.original;
-    //     const { id } = row.original;
-    //     return (
-    //       <div className="flex justify-center items-center">
-    //         <div>
-    //           <Pencil
-    //             className="text-lunar-bg cursor-pointer"
-    //             onClick={() => handleActionMenu('edit', id)}
-    //             size={20}
-    //           />
-    //         </div>
-    //         <div className="pl-3">
-    //           <Trash2
-    //             className="text-lunar-bg cursor-pointer"
-    //             size={20}
-    //             onClick={() => handleActionMenu('delete', id)}
-    //           />
-    //         </div>
-    //       </div>
-    //       // <DropdownMenu>
-    //       //   <DropdownMenuTrigger asChild>
-    //       //     <Button variant="ghost" className="h-8 w-8 p-0">
-    //       //       <span className="sr-only">Open menu</span>
-    //       //       <MoreHorizontal />
-    //       //     </Button>
-    //       //   </DropdownMenuTrigger>
-    //       //   <DropdownMenuContent align="end">
-    //       //     <DropdownMenuItem
-    //       //       className="cursor-pointer"
-    //       //       onClick={() => handleActionMenu('edit', id)}
-    //       //     >
-    //       //       Edit
-    //       //     </DropdownMenuItem>
-    //       //     <DropdownMenuItem
-    //       //       className="cursor-pointer"
-    //       //       onClick={() => handleActionMenu('delete', id)}
-    //       //     >
-    //       //       Delete
-    //       //     </DropdownMenuItem>
-    //       //   </DropdownMenuContent>
-    //       // </DropdownMenu>
-    //     );
-    //   },
-    // },
   ];
-
-  const handleActionMenu = (type: string, actionId: string) => {
-    if (type === 'edit') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setEditOpen(true);
-    }
-    if (type === 'delete') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setDeleteOpen(true);
-    }
-  };
 
   const fetchUsers = async () => {
     try {
@@ -266,57 +183,27 @@ const Receipts = () => {
     fetchUsers();
   }, []);
 
-  // const deleteUserHandler = (data: any) => {
-  //   const userId = data.id;
-  //   setIsLoader(true);
-  //   userService
-  //     .deleteUser(userId)
-  //     .then((updateItem) => {
-  //       if (updateItem.data.success) {
-  //         setDeleteOpen(false);
-  //         setIsLoader(false);
-  //         setList((newArr: any) => {
-  //           return newArr.filter((item: any) => item.id !== userId);
-  //         });
-  //         let newtotal = total;
-  //         setTotal((newtotal -= 1));
-  //         toast({
-  //           description: updateItem.data.message,
-  //           className: cn(
-  //             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-  //           ),
-  //           style: {
-  //             backgroundColor: '#FF5733',
-  //             color: 'white',
-  //           },
-  //         });
-  //       } else {
-  //         setIsLoader(false);
-  //       }
-  //     })
-  //     .catch((err: Error) => {
-  //       console.log('error: ', err);
-  //       setIsLoader(false);
-  //     });
-  // };
-
   const handlePageChange = async (newPage: any) => {
-    table.setPageIndex(newPage);
+    setMainIsLoader(true);
+    const nextPage = newPage + 1;
+    table.setPageIndex(nextPage);
     try {
       const users = await securityService.getSecurityLogs(
         search,
-        newPage,
+        nextPage,
         pageSize
       );
       if (users.data.success) {
-        setPage(newPage);
-        setList(users.data.data.list);
-        setTotal(users.data.data.total);
+        setPage(nextPage);
+        setList(users.data.items);
+        setTotal(users.data.total);
+        setMainIsLoader(false);
       } else {
         ToastHandler(users.data.message);
         console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
+      setMainIsLoader(false);
       console.log('error: ', error);
     }
   };
@@ -339,85 +226,6 @@ const Receipts = () => {
       rowSelection,
     },
   });
-
-  // const createEmployeeHandler = (data: any) => {
-  //   console.log('dadad', data);
-
-  //   setIsLoader(true);
-  //   const formData = new FormData();
-  //   formData.append('userType', data.userType);
-  //   formData.append('firstName', data.firstName);
-  //   formData.append('lastName', data.lastName);
-  //   formData.append('email', data.email);
-  //   formData.append('phone', data.phone);
-  //   formData.append('password', data.password);
-  //   formData.append('address', data.address);
-  //   formData.append('role', data.role);
-  //   if (data.avatar) formData.append('avatar', data.avatar);
-  //   userService
-  //     .create(data)
-  //     .then((item) => {
-  //       if (item.data.success) {
-  //         setIsOpen(false);
-  //         setIsLoader(false);
-  //         setList([item.data.data, ...list]);
-  //         let newtotal = total;
-  //         setTotal((newtotal += 1));
-  //       } else {
-  //         setIsLoader(false);
-  //         ToastHandler(item.data.message);
-  //       }
-  //     })
-  //     .catch((err: Error | any) => {
-  //       console.log('error: ', err);
-  //       ToastHandler(err?.response?.data?.message);
-  //       setIsLoader(false);
-  //     });
-  // };
-
-  // const updateEmployeeHandler = (data: any) => {
-  //   const formData = new FormData();
-  //   formData.append('firstName', data.firstName);
-  //   formData.append('lastName', data.lastName);
-  //   formData.append('email', data.email);
-  //   formData.append('username', data.email);
-  //   formData.append('phone', data.phone);
-  //   formData.append('password', data.password);
-  //   formData.append('address', data.address);
-  //   formData.append('role', data.role);
-  //   if (data.avatar) formData.append('avatar', data.avatar);
-  //   setIsLoader(true);
-  //   userService
-  //     .update(data.id, formData)
-  //     .then((updateItem) => {
-  //       if (updateItem.data.success) {
-  //         setEditOpen(false);
-  //         setIsLoader(false);
-  //         setList((newArr: any) => {
-  //           return newArr.map((item: any) => {
-  //             if (item.id === updateItem.data.data.id) {
-  //               item.firstName = updateItem.data.data.firstName;
-  //               item.lastName = updateItem.data.data.lastName;
-  //               item.email = updateItem.data.data.email;
-  //               item.phone = updateItem.data.data.phone;
-  //               item.address = updateItem.data.data.address;
-  //               item.avatar = updateItem.data.data.avatar;
-  //             }
-  //             return { ...item };
-  //           });
-  //         });
-  //         ToastHandler(updateItem.data.message);
-  //       } else {
-  //         setIsLoader(false);
-  //         ToastHandler(updateItem.data.message);
-  //       }
-  //     })
-  //     .catch((err: Error | any) => {
-  //       console.log('error: ', err);
-  //       ToastHandler(err?.response?.data?.message);
-  //       setIsLoader(false);
-  //     });
-  // };
 
   return (
     <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
@@ -531,7 +339,7 @@ const Receipts = () => {
               <div className="my-5 flex justify-center w-full">
                 <Paginator
                   pageSize={pageSize}
-                  currentPage={page}
+                  currentPage={page - 1}
                   totalPages={total}
                   onPageChange={(pageNumber) => handlePageChange(pageNumber)}
                   showPreviousNext
@@ -543,33 +351,6 @@ const Receipts = () => {
           )}
         </div>
       </SidebarInset>
-      {/* {isOpen && (
-        <OfficeUsersCreationDialog
-          isLoader={isLoader}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          callback={createEmployeeHandler}
-        />
-      )}
-      {editOpen && (
-        <OfficeUserUpdateDialog
-          isLoader={isLoader}
-          isOpen={editOpen}
-          setIsOpen={setEditOpen}
-          formData={editFormData}
-          callback={updateEmployeeHandler}
-        />
-      )}
-      {deleteOpen && (
-        <DeleteDialog
-          isLoader={isLoader}
-          isOpen={deleteOpen}
-          setIsOpen={setDeleteOpen}
-          title={'User'}
-          formData={editFormData}
-          callback={deleteUserHandler}
-        />
-      )} */}
     </div>
   );
 };
