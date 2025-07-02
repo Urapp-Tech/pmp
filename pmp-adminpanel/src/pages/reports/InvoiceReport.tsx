@@ -91,7 +91,7 @@ const InvoiceReport = () => {
       head: [['Invoice No','Contract no', 'Date', 'Paid Amount']],
       body: reportList?.map((inv: any) => [
         inv.invoice_no,
-        inv.original.tenant.contract_number || 'N/A',
+        inv.tenant.contract_number || 'N/A',
         inv.payment_date || inv.invoice_date,
         ` ${inv.total_amount}`,
       ]),
@@ -153,6 +153,7 @@ const InvoiceReport = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Invoice No</TableHead>
+                    <TableHead>Contract No</TableHead>
                     <TableHead>Invoice Date</TableHead>
                     <TableHead>Paid Amount</TableHead>
                     <TableHead>Status</TableHead>
@@ -179,6 +180,9 @@ const InvoiceReport = () => {
     {inv.invoice_no}
   </span>
 </TableCell>
+                        <TableCell>
+                          {inv.tenant.contract_number || 'N/A'}
+                        </TableCell>
                         <TableCell>
                           {inv.invoice_date || inv.invoice_date}
                         </TableCell>

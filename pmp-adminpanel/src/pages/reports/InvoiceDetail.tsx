@@ -212,7 +212,7 @@ const InvoiceDetail = () => {
               <th className="p-2 border">Description</th>
               <th className="p-2 border">Payment Date</th>
               <th className="p-2 border">Payment Method</th>
-              <th className="p-2 border">status</th>
+              <th className="p-2 border">Status</th>
               <th className="p-2 border">Amount</th>
             </tr>
           </thead>
@@ -220,10 +220,10 @@ const InvoiceDetail = () => {
             {invoice.items?.map((item: any) => (
               <tr key={item.id}>
                 <td className="p-2 border">{item.description}</td>
-                <td className="p-2 border">{item.payment_method}</td>
+                <td className="p-2 border capitalize">{item.payment_method}</td>
                 <td className="p-2 border">{item.payment_date || '—'}</td>
-                <td className="p-2 border">{item.status}</td>
-                <td className="p-2 border">{item.amount}</td>
+                <td className="p-2 border capitalize">{item.status}</td>
+                <td className="p-2 border ">{item.amount}</td>
               </tr>
             ))}
           </tbody>
