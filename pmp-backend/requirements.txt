@@ -13,3 +13,4 @@ python-jose[cryptography]
 boto3
 python-multipart
 watchfiles
+apscheduler

@@ -21,7 +21,7 @@ from app.modules.invoiceItems.routes import router as invoice_item_router
 from app.utils.uploader import get_file_base_url
 from app.modules.dashboardActivities.routes import router as dashboard_activity_router
 from app.modules.reports.routes import router as report_router
-
+from app.schedulers.invoice_scheduler import start_scheduler
 app = FastAPI(
     docs_url="/docs",  # disables Swagger UI (/docs)
     # openapi_url=None       # disables OpenAPI schema (/openapi.json)
@@ -36,6 +36,13 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 setup_global_logger()
 # debug_log({"key": "value", "status": 200})
 
+@app.on_event("startup")
+def startup_event():
+    start_scheduler()
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello from FastAPI with Cron!"}
 
 # error_log( "Division failed")
 # Middleware to log full errors with tracebacks
