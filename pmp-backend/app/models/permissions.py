@@ -19,6 +19,12 @@ class Permission(Base):
     show_on_menu = Column(Boolean, nullable=False, default=False)
     is_active = Column(Boolean, nullable=False, default=True)
 
+    role_permissions = relationship("RolePermission", back_populates="permission", cascade="all, delete-orphan")
+
     roles = relationship(
-        "Role", secondary="role_permissions", back_populates="permissions"
+        "Role",
+        secondary="role_permissions",
+        back_populates="permissions",
+        lazy="joined",
+         overlaps="role_permissions"
     )

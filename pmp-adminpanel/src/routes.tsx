@@ -26,6 +26,7 @@ import ContractRequest from './pages/tenant-users/contracts-request/List';
 import ApprovedContracts from './pages/tenant-users/approved-contracts/List';
 import ReportedTicketsList from './pages/support-maintenance/ReportedList';
 import InvoiceReport from './pages/reports/InvoiceReport';
+import InvoiceDetail from './pages/reports/InvoiceDetail';
 // const LandlordDashboard = lazy(
 //   () => import('@/pages/dashboard/LandlordDashboard')
 // );
@@ -186,6 +187,14 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <Invoices />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'detail/:invoiceId',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <InvoiceDetail />
                   </Suspense>
                 ),
               },
@@ -383,5 +392,13 @@ export const routeObjects: RouteObject[] = [
   {
     path: '/',
     element: <Navigate to="/admin-panel/auth" replace />,
+  },
+  {
+    path: '/admin-panel/invoice/detail/:invoiceId',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <InvoiceDetail />
+      </Suspense>
+    ),
   },
 ];

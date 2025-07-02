@@ -12,37 +12,7 @@ from app.models.invoices import Invoice
 from app.models.managers import Manager
 from app.models.tenants import Tenant
 from app.models.users import User
-
-# def get_invoice_report_service(
-#     db: Session,
-
-#     from_date: Optional[date] = None,
-#     to_date: Optional[date] = None,
-#     status: Optional[str] = None,
-#     landlord_id: Optional[UUID] = None
-# ) -> Dict[str, Any]:
-
-#     query = db.query(Invoice).options(joinedload(Invoice.items)).filter(Invoice.landlord_id == landlord_id)
-#     # if from_date:
-#     #     query = query.filter(Invoice.payment_date >= from_date)
-#     # if to_date:
-#     #     query = query.filter(Invoice.payment_date <= to_date)
-#     # if status:
-#     #     query = query.filter(Invoice.status == status)
-
-#     invoices = query.all()
-#     total_paid = sum(inv.paid_amount or 0 for inv in invoices)
-
-#     return {
-#         "success": True,
-#         "message": "Invoice report fetched successfully.",
-#         "total": len(invoices),
-#         "items": invoices,
-#         "total_paid": total_paid,
-#     }
-
 from typing import Optional, Dict, Any
-from datetime import date
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 
@@ -67,7 +37,7 @@ def get_invoice_report_service(
             "total_paid": 0,
         }
 
-    query = db.query(Invoice).options(joinedload(Invoice.items))
+    query = db.query(Invoice).options(joinedload(Invoice.items), joinedload(Invoice.tenant))
 
     if role_id == "Landlord":
         user = db.query(User).filter(User.id == user_id).first()
@@ -126,15 +96,6 @@ def get_invoice_report_service(
             "total_paid": 0,
         }
 
-    # Apply filters
-    # parsed_from = parse_date(from_date)
-    # parsed_to = parse_date(to_date)
-
-    # if parsed_from:
-    #     query = query.filter(parse_date(Invoice.invoice_date) >= parsed_from)
-
-    # if parsed_to:
-    #     query = query.filter(parse_date(Invoice.invoice_date) <= parsed_to)
     if from_date:
         query = query.filter(Invoice.created_at >= from_date)
 
@@ -160,10 +121,6 @@ def get_invoice_report_service(
     }
 
 
-from datetime import datetime, date
-
-
-def parse_date(date_input):
-    if isinstance(date_input, date):
-        return date_input  # Already a date object
-    return datetime.strptime(date_input, "%Y-%m-%d").date()
+def get_invoice(db: Session, invoice_id: UUID) -> Invoice | None:
+    return db.query(Invoice).options(joinedload(Invoice.items), joinedload(Invoice.tenant)
+    .joinedload(Tenant.user)).filter(Invoice.id == invoice_id).first()

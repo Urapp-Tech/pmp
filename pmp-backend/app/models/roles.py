@@ -20,17 +20,16 @@ class Role(Base):
     )
 
     role_permissions = relationship(
-        "RolePermission", back_populates="role", lazy="joined"
+        "RolePermission", back_populates="role", lazy="joined"  ,cascade="all, delete-orphan"
     )
 
     # ✅ add this relationship
     permissions = relationship(
         "Permission",
         secondary="role_permissions",
-        primaryjoin="Role.id == RolePermission.role_id",
-        secondaryjoin="Permission.id == RolePermission.permission_id",
-        viewonly=True,
+        back_populates="roles",
         lazy="joined",
+    overlaps="role_permissions"
     )
 
 
@@ -46,5 +45,5 @@ class RolePermission(Base):
     )
     is_active = Column(Boolean, default=True)
 
-    role = relationship("Role", back_populates="role_permissions")
-    permission_obj = relationship("Permission", lazy="joined")
+    role = relationship("Role", back_populates="role_permissions", overlaps="permissions,roles")
+    permission = relationship("Permission", back_populates="role_permissions", lazy="joined", overlaps="roles,permissions")

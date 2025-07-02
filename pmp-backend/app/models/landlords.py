@@ -36,7 +36,7 @@ class Landlord(Base):
         cascade="all, delete-orphan",
     )
 
-    # user = relationship("User", back_populates="landlord")
+    users = relationship("User", back_populates="landlord", cascade="all, delete-orphan")
     # Relationships
     # users = relationship("User", back_populates="landlord", cascade="all, delete")
     # tenants = relationship("Tenant", back_populates="landlord", cascade="all, delete")

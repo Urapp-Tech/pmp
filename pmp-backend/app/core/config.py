@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
-
+# from pydantic import BaseSettings, Field
+from functools import lru_cache
 # import os
 
 # SERVER_BASE_PATH = os.getenv("SERVER_BASE_PATH", "/api/v1")
@@ -23,13 +24,20 @@ class Settings(BaseSettings):
     s3_region: str
     s3_bucket: str
     s3_bucket_storage: bool
-    @property
-    def DATABASE_URL(self) -> str:
-        return f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.database}"
 
+    @property
+    def sqlalchemy_url(self):
+        return (
+            f"postgresql://{self.db_user}:{self.db_password}"
+            f"@{self.db_host}:{self.db_port}/{self.database}"
+        )
     class Config:
         env_file = ".env"
-        extra = "forbid"
+        # extra = "forbid"
 
 
-settings = Settings()
+# @lru_cache()
+def get_settings():
+    return Settings()
+
+settings = get_settings()  # ✅ This makes `from app.core.config import settings` work

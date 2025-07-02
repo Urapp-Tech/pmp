@@ -1,12 +1,16 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from app.core.config import settings
 
-engine = create_engine(settings.DATABASE_URL)
+from app.core.config import get_settings
+from app.utils.database_check import create_database_if_not_exists
+
+settings = get_settings()
+create_database_if_not_exists()  # 👈 Ensure DB exists
+
+engine = create_engine(settings.sqlalchemy_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-
 
 def get_db():
     db = SessionLocal()

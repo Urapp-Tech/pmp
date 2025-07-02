@@ -32,6 +32,9 @@ class InvoiceBase(BaseModel):
     created_by: Optional[str] = "machine"
     updated_by: Optional[UUID4] = None
 
+class Tenant(BaseModel):
+    contract_number: str = Field(...)
+
 
 class InvoiceCreate(InvoiceBase):
     pass
@@ -43,12 +46,13 @@ class InvoiceUpdate(InvoiceBase):
 
 class InvoiceRead(InvoiceBase):
     id: UUID4
-    invoice_items: Optional[List[InvoiceItemBase]] = []  # ✅ default empty list
+    invoice_items: Optional[List[InvoiceItemBase]] = [] 
+    tenant: Optional[Tenant]  # ✅ default empty list
     created_at: datetime
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes  = True
 
 class InvoiceResponse(BaseModel):
     success: bool

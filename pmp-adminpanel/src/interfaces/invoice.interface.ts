@@ -1,4 +1,5 @@
 export interface InvoiceFields {
+  tenant: any;
   id: string;
   landlord_id: string;
   tenant_id: string;

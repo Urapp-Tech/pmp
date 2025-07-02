@@ -17,6 +17,7 @@ import { SidebarInset } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
 import reportsService from '@/services/adminapp/reports';
 import { getItem } from '@/utils/storage';
+import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 /**
@@ -31,6 +32,8 @@ import dayjs from 'dayjs';
  * @returns {React.ReactElement} The rendered component
  */
 const InvoiceReport = () => {
+  
+    const navigate = useNavigate();
   const userDetails: any = getItem('USER');
   const [fromDate, setFromDate] = useState(
     dayjs().subtract(6, 'month').format('YYYY-MM-DD')
@@ -85,9 +88,10 @@ const InvoiceReport = () => {
     doc.text('Invoice Report', 14, 16);
     doc.autoTable({
       startY: 20,
-      head: [['Invoice No', 'Date', 'Paid Amount']],
+      head: [['Invoice No','Contract no', 'Date', 'Paid Amount']],
       body: reportList?.map((inv: any) => [
         inv.invoice_no,
+        inv.original.tenant.contract_number || 'N/A',
         inv.payment_date || inv.invoice_date,
         ` ${inv.total_amount}`,
       ]),
@@ -100,6 +104,7 @@ const InvoiceReport = () => {
     doc.save('invoice_report.pdf');
   };
 
+     
   return (
     <div className="bg-white p-4 rounded shadow mt-5">
       <TopBar title="Invoice Report" />
@@ -166,7 +171,14 @@ const InvoiceReport = () => {
                   ) : (
                     reportList?.map((inv: any) => (
                       <TableRow key={inv.id}>
-                        <TableCell>{inv.invoice_no}</TableCell>
+                        <TableCell>
+  <span
+    className="text-blue-600 underline cursor-pointer"
+    onClick={() =>  navigate(`/admin-panel/invoices/detail/${inv.id}`)}
+  >
+    {inv.invoice_no}
+  </span>
+</TableCell>
                         <TableCell>
                           {inv.invoice_date || inv.invoice_date}
                         </TableCell>

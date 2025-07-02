@@ -39,7 +39,7 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
         .options(
             joinedload(User.role)
             .joinedload(Role.role_permissions)
-            .joinedload(RolePermission.permission_obj)
+            .joinedload(RolePermission.permission)
         )
         .filter(User.email == login_data.email)
         .first()
@@ -74,13 +74,13 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
             "name": user.role.name,
             "permissions": [
                 {
-                    "id": str(rp.permission_obj.id),
-                    "name": rp.permission_obj.name,
-                    "action": rp.permission_obj.action,
-                    "show_on_menu": rp.permission_obj.show_on_menu,
+                    "id": str(rp.permission.id),
+                    "name": rp.permission.name,
+                    "action": rp.permission.action,
+                    "show_on_menu": rp.permission.show_on_menu,
                 }
                 for rp in user.role.role_permissions
-                if rp.is_active and rp.permission_obj and rp.permission_obj.is_active
+                if rp.is_active and rp.permission and rp.permission.is_active
                 # for p in user.role.permissions
             ],
         }
