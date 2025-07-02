@@ -39,6 +39,8 @@ import { hasPermission, usePermission } from '@/utils/hasPermission';
 import { PERMISSIONS } from '@/utils/constants';
 import InvoiceItemCreateDialog from './InvoiceItemCreateDialog';
 import { getItem } from '@/utils/storage';
+import { useNavigate } from 'react-router-dom';
+
 
 const Invoices = () => {
   const { toast } = useToast();
@@ -47,7 +49,7 @@ const Invoices = () => {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
-
+  const navigate = useNavigate();
   const [list, setList] = useState<InvoiceFields[]>([]);
   const [editFormData, setEditFormData] = useState<InvoiceFields | null>(null);
   const [showItemsModal, setShowItemsModal] = useState(false);
@@ -119,6 +121,8 @@ const Invoices = () => {
         pageSize
       );
       if (resp.data.success) {
+        // console.log(resp.data);
+        
         setList(resp.data.items);
         setTotal(resp.data.total);
       } else ToastHandler(resp.data.message);
@@ -149,9 +153,15 @@ const Invoices = () => {
     fetchList(search, newPage + 1);
   };
 
-  const handleAction = (type: 'edit' | 'delete', inv: InvoiceFields) => {
-    setEditFormData(inv);
-    type === 'edit' ? setEditOpen(true) : setDeleteOpen(true);
+  const handleAction = (type: 'edit' | 'delete'| 'view', inv: InvoiceFields) => {
+    if (type === 'edit') {
+     setEditFormData(inv);
+     setEditOpen(true)
+  } else if (type === 'delete') {
+    setDeleteOpen(true)
+  } else if (type === 'view') {
+    navigate(`/admin-panel/invoices/detail/${inv.id}`);
+  }
   };
 
   const createHandler = async (data: InvoiceFields) => {
@@ -198,6 +208,15 @@ const Invoices = () => {
   const columns = React.useMemo<ColumnDef<InvoiceFields>[]>(
     () => [
       { accessorKey: 'invoice_no', header: 'Invoice' },
+      {
+        accessorKey: 'contract_no',
+        header: 'Contract no',
+        cell: ({ row }) =>
+          row.original.tenant.contract_number
+            ? row.original.tenant.contract_number
+            : '--',
+      },
+      // { accessorKey: 'invoice_no', header: 'Contract no' },
       { accessorKey: 'total_amount', header: 'Total' },
       { accessorKey: 'due_date', header: 'Due' },
       { accessorKey: 'status', header: 'Status' },
@@ -270,6 +289,10 @@ const Invoices = () => {
                   onClick={() => handleAction('delete', inv)}
                 />
               )}
+              <Eye
+                className="cursor-pointer text-gray-600"
+                onClick={() => handleAction('view', inv)}
+              />
             </div>
           );
         },
@@ -315,7 +338,6 @@ const Invoices = () => {
               onKeyUp={handleSearch}
               className="w-[300px]"
             /> */}
-            {/* <Button onClick={() => fetchList(search,0)}>🔍</Button> */}
             {can(PERMISSIONS.INVOICE.CREATE) && (
               <Button
                 onClick={() => setCreateOpen(true)}

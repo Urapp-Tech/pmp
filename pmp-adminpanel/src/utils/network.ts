@@ -8,7 +8,7 @@ const token = () => getItem<{ access_token: string }>('USER')?.access_token;
 const refreshToken = () =>
   getItem<{ refresh_token: string }>('USER')?.refresh_token;
 
-console.log('toekn', token(), getItem('USER'));
+// console.log('toekn', token(), getItem('USER'));
 
 const networkInstance = axios.create();
 const refreshInstance = axios.create();

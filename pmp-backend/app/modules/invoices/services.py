@@ -48,7 +48,7 @@ def get_all_invoices(
             "items": [],
         }
 
-    query = db.query(Invoice).options(joinedload(Invoice.items))
+    query = db.query(Invoice).options(joinedload(Invoice.items), joinedload(Invoice.tenant))
 
     if role_id == "Landlord":
         user = db.query(User).filter(User.id == user_id).first()
