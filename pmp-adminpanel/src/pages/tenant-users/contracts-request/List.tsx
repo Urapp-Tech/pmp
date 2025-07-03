@@ -145,11 +145,20 @@ const ContractRequest = () => {
       },
     },
     {
-      accessorKey: 'unitDetail.name',
-      header: 'Unit Name',
+      accessorKey: 'property',
+      header: 'Property Name',
       cell: ({ row }) => {
         const unit = row.original.unitDetail;
-        return <div className="capitalize">{unit?.name}</div>;
+        return <div className="capitalize">{unit?.property?.name}</div>;
+      },
+    },
+    {
+      accessorKey: 'unit_no',
+      header: 'Unit no',
+      cell: ({ row }) => {
+        const unit = row.original.unitDetail;
+        
+        return <div className="capitalize">{unit?.unitNo}</div>;
       },
     },
     {

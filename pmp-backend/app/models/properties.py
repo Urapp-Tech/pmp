@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Boolean, ForeignKey, TIMESTAMP, JSON, Enum
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, TIMESTAMP, JSON, Enum
 from sqlalchemy.dialects.postgresql import UUID
 
 # from sqlalchemy.orm import relationship
@@ -35,7 +35,10 @@ class Property(Base):
     estimate_value = Column(String(255), nullable=True)
     latitude = Column(String(255), nullable=True)
     longitude = Column(String(255), nullable=True)
-
+    unit_counts = Column(Integer, nullable=False, default=0)
+    bank_name = Column(String(255), nullable=True)
+    account_no = Column(String(255), nullable=True)
+    account_name = Column(String(255), nullable=True)
     status = Column(String(255), nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(
@@ -48,8 +51,12 @@ class Property(Base):
     # Relationships
     landlord = relationship("Landlord", backref="properties")
     property_units = relationship(
-        "PropertyUnit", back_populates="property", cascade="all, delete-orphan"
+        "PropertyUnit",
+        back_populates="property",
+        cascade="all, delete-orphan"
     )
+
     units = relationship(
-        "PropertyUnit", back_populates="property", cascade="all, delete-orphan"
+        "PropertyUnit",
+        overlaps="property_units"
     )

@@ -177,9 +177,6 @@ const handleCSVUpload = (event) => {
         bathrooms: row.bathrooms || '',
         water_meter: row.water_meter || '',
         electricity_meter: row.electricity_meter || '',
-        bank_name:row.bank_name || '',
-        account_no: row.account_no || '',
-        account_name:row.account_name || '',
         pictures: [], // CSV can't provide actual images
       }));
 
@@ -357,7 +354,7 @@ const handleCSVUpload = (event) => {
   />
   <p className="text-xs text-gray-500 mt-1">
     CSV should include columns: name, unit_no, unit_type, size, rent, status,
-    description, bedrooms, bathrooms, water_meter, electricity_meter, bank_name, account_no, account_name 
+    description, bedrooms, bathrooms, water_meter, electricity_meter
   </p>
 </div>
 <div>
@@ -390,7 +387,7 @@ const handleCSVUpload = (event) => {
                 {[
                   'name', 'unit_no', 'unit_type', 'size', 'rent',
                   'status', 'description', 'bedrooms', 'bathrooms',
-                  'water_meter', 'electricity_meter', 'bank_name', 'account_no', 'account_name',
+                  'water_meter', 'electricity_meter'
                 ].map((unitField) => (
                   <FormControl key={unitField} className="m-1 w-full">
                     <div>
@@ -524,7 +521,7 @@ const handleCSVUpload = (event) => {
 </div>
 </div>
 
-<Button
+{/* <Button
   type="button"
 className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2xl shadow-sm border border-gray-200 hover:text-white"
   onClick={() => {
@@ -540,9 +537,6 @@ className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2
     bathrooms: '',
     water_meter: '',
     electricity_meter: '',
-    bank_name: '',
-    account_no: '',
-    account_name: '',
     pictures: [],
   });
   setUnitPicturesPreview((prev) => ({
@@ -552,7 +546,7 @@ className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2
 }}
 >
   + Add Unit
-</Button>
+</Button> */}
 
             <Button
               disabled={isSubmitting}

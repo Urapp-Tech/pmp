@@ -48,4 +48,8 @@ class PropertyUnit(Base):
     manager_links = relationship(
         "Manager", back_populates="assigned_unit", cascade="all, delete-orphan"
     )
-    property = relationship("Property", back_populates="property_units")
+    property = relationship(
+            "Property",
+            back_populates="property_units",  # or "units", depending on your Property model
+            overlaps="units,property_units"   # optional, but useful if both names are used
+        )

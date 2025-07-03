@@ -41,7 +41,6 @@ import InvoiceItemCreateDialog from './InvoiceItemCreateDialog';
 import { getItem } from '@/utils/storage';
 import { useNavigate } from 'react-router-dom';
 
-
 const Invoices = () => {
   const { toast } = useToast();
   const userDetails: any = getItem('USER');
@@ -122,7 +121,7 @@ const Invoices = () => {
       );
       if (resp.data.success) {
         // console.log(resp.data);
-        
+
         setList(resp.data.items);
         setTotal(resp.data.total);
       } else ToastHandler(resp.data.message);
@@ -153,15 +152,18 @@ const Invoices = () => {
     fetchList(search, newPage + 1);
   };
 
-  const handleAction = (type: 'edit' | 'delete'| 'view', inv: InvoiceFields) => {
+  const handleAction = (
+    type: 'edit' | 'delete' | 'view',
+    inv: InvoiceFields
+  ) => {
     if (type === 'edit') {
-     setEditFormData(inv);
-     setEditOpen(true)
-  } else if (type === 'delete') {
-    setDeleteOpen(true)
-  } else if (type === 'view') {
-    navigate(`/admin-panel/invoices/detail/${inv.id}`);
-  }
+      setEditFormData(inv);
+      setEditOpen(true);
+    } else if (type === 'delete') {
+      setDeleteOpen(true);
+    } else if (type === 'view') {
+      navigate(`/admin-panel/invoices/detail/${inv.id}`);
+    }
   };
 
   const createHandler = async (data: InvoiceFields) => {
@@ -210,24 +212,50 @@ const Invoices = () => {
       { accessorKey: 'invoice_no', header: 'Invoice' },
       {
         accessorKey: 'contract_no',
-        header: 'Contract no',
+        header: 'Tenant',
+        cell: ({ row }) => {
+          const tenant = row.original.tenant;
+          const user = tenant?.user;
+
+          return (
+            <div className="leading-tight">
+              {user?.fname && user?.lname && (
+                <div className="text-sm font-semibold text-gray-800">
+                  {user.fname} {user.lname}
+                </div>
+              )}
+              {tenant?.contract_number && (
+                <div className="text-xs text-gray-500 mt-0.5">
+                  ({tenant.contract_number})
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'property',
+        header: 'Property',
         cell: ({ row }) =>
-          row.original.tenant.contract_number
-            ? row.original.tenant.contract_number
-            : '--',
+          row.original.tenant?.property_unit?.property?.name || '--',
+      },
+      {
+        accessorKey: 'unit_no',
+        header: 'Unit No',
+        cell: ({ row }) => row.original.tenant?.property_unit?.unit_no || '--',
       },
       // { accessorKey: 'invoice_no', header: 'Contract no' },
       { accessorKey: 'total_amount', header: 'Total' },
       { accessorKey: 'due_date', header: 'Due' },
       { accessorKey: 'status', header: 'Status' },
-      {
-        accessorKey: 'invoice_date',
-        header: 'Invoice Date',
-        cell: ({ row }) =>
-          row.original.invoice_date
-            ? new Date(row.original.invoice_date).toLocaleDateString()
-            : '--',
-      },
+      // {
+      //   accessorKey: 'invoice_date',
+      //   header: 'Invoice Date',
+      //   cell: ({ row }) =>
+      //     row.original.invoice_date
+      //       ? new Date(row.original.invoice_date).toLocaleDateString()
+      //       : '--',
+      // },
       {
         id: 'Submitted',
         header: 'Payment',

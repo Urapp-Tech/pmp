@@ -32,8 +32,28 @@ class InvoiceBase(BaseModel):
     created_by: Optional[str] = "machine"
     updated_by: Optional[UUID4] = None
 
+class Property(BaseModel):
+    id: UUID4
+    name: str
+
+class PropertyUnit(BaseModel):
+    id: UUID4
+    name: str
+    unit_no: str
+    property: Optional[Property]
+
+class User(BaseModel):
+    id: UUID4
+    fname: str
+    lname: str
+    email: str
+
 class Tenant(BaseModel):
     contract_number: str = Field(...)
+    property_unit: Optional[PropertyUnit]
+    user: Optional[User]
+
+    
 
 
 class InvoiceCreate(InvoiceBase):

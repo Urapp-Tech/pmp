@@ -24,9 +24,6 @@ class PropertyUnitBase(BaseModel):
     bedrooms: Optional[str] = Field(None, example="2")
     bathrooms: Optional[str] = Field(None, example="2")
     water_meter: Optional[str] = Field(None, example="WM123456")
-    account_name: Optional[str] = Field(None, example="WM123456")
-    account_no: Optional[str] = Field(None, example="WM123456")
-    bank_name: Optional[str] = Field(None, example="WM123456")
     electricity_meter: Optional[str] = Field(None, example="EM123456")
     status: Optional[str] = Field(None, example="available")
 
@@ -78,6 +75,10 @@ class PropertyBase(BaseModel):
     latitude: Optional[str] = Field(None, example="29.3759")
     longitude: Optional[str] = Field(None, example="47.9774")
     status: Optional[str] = Field(None, example="active")
+    unit_counts: Optional[int] = Field(None, example=12)
+    bank_name: Optional[str] = Field(None, example="Gulf Bank")
+    account_no: Optional[str] = Field(None, example="GB123456789")
+    account_name: Optional[str] = Field(None, example="Sunrise Property Ltd.")
 
 class PropertyCreate(PropertyBase):
     landlord_id: UUID = Field(..., example="e8c31774-b165-43f6-9a51-a6cf3a6e57f9")

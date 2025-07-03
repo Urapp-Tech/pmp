@@ -83,6 +83,10 @@ def create_property(db: Session, body: PropertyCreate):
             latitude=body.latitude,
             longitude=body.longitude,
             status=body.status,
+            unit_counts=body.unit_counts,         
+            bank_name=body.bank_name,           
+            account_no=body.account_no,          
+            account_name=body.account_name,  
         )
         db.add(property_data)
 
@@ -118,9 +122,6 @@ def create_property(db: Session, body: PropertyCreate):
                 bathrooms=unit_data.bathrooms,
                 water_meter=unit_data.water_meter,
                 electricity_meter=unit_data.electricity_meter,
-                account_name=unit_data.account_name,
-                account_no=unit_data.account_no,
-                bank_name=unit_data.bank_name,
                 status=unit_data.status,
             )
             units.append(unit)
@@ -190,6 +191,11 @@ def update_property(db: Session, property_id: UUID, body):
         property_data.latitude = body["latitude"]
         property_data.longitude = body["longitude"]
         property_data.status = body["status"]
+        property_data.unit_counts = body["unit_counts"]
+        property_data.bank_name = body["bank_name"]
+        property_data.account_no = body["account_no"]
+        property_data.account_name = body["account_name"]
+
 
         # ✅ Track existing units for update vs delete
         existing_units = {str(u.id): u for u in property_data.units}
@@ -230,10 +236,6 @@ def update_property(db: Session, property_id: UUID, body):
                 unit.bathrooms = unit_data["bathrooms"]
                 unit.water_meter = unit_data["water_meter"]
                 unit.electricity_meter = unit_data["electricity_meter"]
-
-                unit.account_name = unit_data["account_name"]
-                unit.account_no = unit_data["account_no"]
-                unit.bank_name = unit_data["bank_name"]
                 unit.status = unit_data["status"]
                 new_unit_ids.add(unit_id)
             else:
@@ -250,9 +252,6 @@ def update_property(db: Session, property_id: UUID, body):
                     bedrooms=unit_data["bedrooms"],
                     bathrooms=unit_data["bathrooms"],
                     water_meter=unit_data["water_meter"],
-                    account_name=unit_data["account_name"],
-                    account_no=unit_data["account_no"],
-                    bank_name=unit_data["bank_name"],
                     electricity_meter=unit_data["electricity_meter"],
                     status=unit_data["status"],
                 )
