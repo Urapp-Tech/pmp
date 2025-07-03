@@ -26,31 +26,41 @@ function Dashboard() {
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <Monitor /> Active Landlords
+                <Users /> Active Tenant Users
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
-                  {data?.active_landlords}
+                  {data?.activeTenants}
                 </span>
               </div>
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <MonitorCheck /> Active Reporting Issues
+                <MonitorCheck /> Active Requests
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
-                  {data?.active_tickets}
+                  {data?.activeRequests}
                 </span>
               </div>
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <Users /> Active Properties
+                <Monitor /> Currnet Month Invoices
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
-                  {data?.active_properties}
+                  {data?.currentMonthUnpaidInvoices}
+                </span>
+              </div>
+            </div>
+            <div className="aspect-video p-3 rounded-xl bg-muted/50">
+              <Label className="text-xl" htmlFor="activeCabin">
+                <MonitorCheck /> Currnet Month Receipts
+              </Label>
+              <div className="flex items-center justify-center mt-[15%]">
+                <span className="text-4xl font-semibold">
+                  {data?.currentMonthPaidReceipts}
                 </span>
               </div>
             </div>

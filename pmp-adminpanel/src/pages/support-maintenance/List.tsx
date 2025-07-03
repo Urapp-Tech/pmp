@@ -469,7 +469,9 @@ const SupportMaintenance = () => {
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Support Tickets
+              {userDetails?.role?.name === 'User'
+                ? 'Maintenance Requests'
+                : 'Support Tickets'}
             </h2>
             <div className="flex gap-3 items-center">
               <Input

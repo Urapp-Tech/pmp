@@ -44,26 +44,32 @@ export function MainSidebar({
         items: [],
       },
       {
-        title: 'Tenant Users',
-        url: '/super-admin/tenant-users',
+        title: 'Users',
+        url: '/super-admin/users',
         icon: assets.images.usersSidebarIcon,
         items: [],
       },
       {
-        title: 'Landlord Management',
-        url: '#',
-        icon: assets.images.adminUsersSidebarIcon,
-        items: [
-          {
-            title: 'Users',
-            url: '/super-admin/users',
-          },
-          {
-            title: 'Requests',
-            url: '/super-admin/users/request-list',
-          },
-        ],
+        title: 'Landlord Requests',
+        url: '/super-admin/landlord-request',
+        icon: assets.images.usersSidebarIcon,
+        items: [],
       },
+      // {
+      //   title: 'Landlord Management',
+      //   url: '#',
+      //   icon: assets.images.adminUsersSidebarIcon,
+      //   items: [
+      //     {
+      //       title: 'Users',
+      //       url: '/super-admin/l-users',
+      //     },
+      //     {
+      //       title: 'Requests',
+      //       url: '/super-admin/l-users/request-list',
+      //     },
+      //   ],
+      // },
       // {
       //   title: 'Users',
       //   url: '/super-admin/users',

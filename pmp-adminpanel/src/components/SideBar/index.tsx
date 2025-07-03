@@ -105,7 +105,10 @@ export function MainSidebar({
       items: [],
     },
     {
-      title: 'Support Tickets',
+      title:
+        userRoles?.role?.name === 'User'
+          ? 'Maintenance Requests'
+          : 'Support Tickets',
       url: '/admin-panel/support-tickets',
       icon: assets.images.notificationSidebarIcon,
       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,

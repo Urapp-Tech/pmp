@@ -45,6 +45,12 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
         .first()
     )
 
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This user account is currently deactivated. Please contact super admin.",
+        )
+
     if not user or not verify_password(login_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -155,11 +161,28 @@ def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile 
     db.commit()
     db.refresh(user)
 
+    user_data = {
+        "id": str(user.id),
+        "fname": user.fname,
+        "lname": user.lname,
+        "email": user.email,
+        "phone": user.phone,
+        "gender": user.gender,
+        "isLandlord": False,
+        "createdAt": user.created_at,
+        "updatedAt": user.updated_at,
+        "is_verified": user.is_verified,
+        "is_active": user.is_active,
+        "landlord_id": str(user.landlord_id),
+        "role_id": str(user.role_id),
+        "role_name": user.role.name,
+    }
+
     # return user
     return {
         "success": True,
         "message": "User created successfully",
-        "items": UserOut.model_validate(user),
+        "items": UserOut.model_validate(user_data),
     }
 
 
@@ -199,10 +222,27 @@ def update_user(
     db.commit()
     db.refresh(user)
 
+    user_data = {
+        "id": str(user.id),
+        "fname": user.fname,
+        "lname": user.lname,
+        "email": user.email,
+        "phone": user.phone,
+        "gender": user.gender,
+        "isLandlord": False,
+        "createdAt": user.created_at,
+        "updatedAt": user.updated_at,
+        "is_verified": user.is_verified,
+        "is_active": user.is_active,
+        "landlord_id": str(user.landlord_id),
+        "role_id": str(user.role_id),
+        "role_name": user.role.name,
+    }
+
     return {
         "success": True,
         "message": "User updated successfully",
-        "items": UserOut.model_validate(user),
+        "items": UserOut.model_validate(user_data),
     }
 
 
@@ -491,19 +531,48 @@ def get_users_lov_by_landlord(landlord_id: UUID, db: Session) -> List[UserLOV]:
     return [UserLOV(id=user.id, name=f"{user.fname} {user.lname}") for user in users]
 
 
-def get_tenant_users_service(
+# def get_tenant_users_service(
+#     db: Session, page: int = 1, limit: int = 10, search: Optional[str] = None
+# ):
+#     skip = (page - 1) * limit
+
+#     user_role = db.query(Role).filter(Role.name == "User").first()
+#     if not user_role:
+#         return PaginatedTenantUserResponse(
+#             success=True, total=0, page=page, size=limit, items=[]
+#         )
+
+#     # Base query
+#     query = db.query(User).filter(User.role_id == user_role.id)
+
+#     if search:
+#         query = query.filter(
+#             or_(
+#                 User.fname.ilike(f"%{search}%"),
+#                 User.lname.ilike(f"%{search}%"),
+#                 User.email.ilike(f"%{search}%"),
+#                 User.phone.ilike(f"%{search}%"),
+#             )
+#         )
+
+#     total = query.count()
+#     items = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+
+#     return PaginatedTenantUserResponse(
+#         success=True,
+#         total=total,
+#         page=page,
+#         size=limit,
+#         items=items,
+#     )
+
+
+def get_all_active_users_service(
     db: Session, page: int = 1, limit: int = 10, search: Optional[str] = None
 ):
     skip = (page - 1) * limit
 
-    user_role = db.query(Role).filter(Role.name == "User").first()
-    if not user_role:
-        return PaginatedTenantUserResponse(
-            success=True, total=0, page=page, size=limit, items=[]
-        )
-
-    # Base query
-    query = db.query(User).filter(User.role_id == user_role.id)
+    query = db.query(User).options(joinedload(User.role))
 
     if search:
         query = query.filter(
@@ -516,12 +585,19 @@ def get_tenant_users_service(
         )
 
     total = query.count()
-    items = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+    users = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
 
-    return PaginatedTenantUserResponse(
-        success=True,
-        total=total,
-        page=page,
-        size=limit,
-        items=items,
-    )
+    # Prepare output with roleName
+    items = []
+    for user in users:
+        user_data = user.to_dict() if hasattr(user, "to_dict") else user.__dict__.copy()
+        user_data["roleName"] = user.role.name if user.role else None
+        items.append(user_data)
+
+    return {
+        "success": True,
+        "total": total,
+        "page": page,
+        "size": limit,
+        "items": items,
+    }

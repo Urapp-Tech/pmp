@@ -159,7 +159,7 @@ class UnitDetailOut(BaseModel):
 class ContractListOut(BaseModel):
     id: UUID
     user_id: UUID = Field(..., alias="userId")
-    property_unit_id: UUID = Field(..., alias="propertyUnitId")
+    property_unit_id: Optional[UUID] = Field(None, alias="propertyUnitId")
     contract_start: date = Field(..., alias="contractStart")
     contract_end: date = Field(..., alias="contractEnd")
     contract_number: str = Field(..., alias="contractNumber")

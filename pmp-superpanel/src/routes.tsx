@@ -14,7 +14,7 @@ import PropertyManagers from '@/pages/property-management/List';
 import Users from './pages/landlord-users/List';
 import Invoices from './pages/subscriptions-management/List';
 import Receipts from './pages/security-logs/List';
-import UnverifiedUsers from './pages/landlord-users/UnverifiedList';
+import UnverifiedUsers from './pages/tenant-users/UnverifiedList';
 import TenantUsers from './pages/tenant-users/List';
 
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
@@ -75,6 +75,31 @@ export const routeObjects: RouteObject[] = [
               </Suspense>
             ),
           },
+          // {
+          //   path: 'l-users',
+          //   children: [
+          //     {
+          //       index: true,
+          //       element: <Navigate to="list" replace />,
+          //     },
+          //     {
+          //       path: 'list',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <Users />
+          //         </Suspense>
+          //       ),
+          //     },
+          //     {
+          //       path: 'request-list',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <UnverifiedUsers />
+          //         </Suspense>
+          //       ),
+          //     },
+          //   ],
+          // },
           {
             path: 'users',
             children: [
@@ -86,22 +111,14 @@ export const routeObjects: RouteObject[] = [
                 path: 'list',
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
-                    <Users />
-                  </Suspense>
-                ),
-              },
-              {
-                path: 'request-list',
-                element: (
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <UnverifiedUsers />
+                    <TenantUsers />
                   </Suspense>
                 ),
               },
             ],
           },
           {
-            path: 'tenant-users',
+            path: 'landlord-request',
             children: [
               {
                 index: true,
@@ -111,7 +128,7 @@ export const routeObjects: RouteObject[] = [
                 path: 'list',
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
-                    <TenantUsers />
+                    <UnverifiedUsers />
                   </Suspense>
                 ),
               },

@@ -17,10 +17,15 @@ class LandlordCreate(BaseModel):
 
     @field_validator("fname", "lname")
     def name_must_be_alphabets(cls, v, field):
-        if not v.isalpha():
-            raise ValueError(
-                f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets."
-            )
+        if v is not None:
+
+            v_clean = v.strip()
+
+            if not all(part.isalpha() for part in v_clean.split()) or "  " in v_clean:
+                raise ValueError(
+                    f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets and single spaces."
+                )
+
         return v
 
     @field_validator("phone")
@@ -58,10 +63,15 @@ class LandlordUpdate(BaseModel):
 
     @field_validator("fname", "lname")
     def name_must_be_alphabets(cls, v, field):
-        if v is not None and not v.isalpha():
-            raise ValueError(
-                f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets."
-            )
+        if v is not None:
+
+            v_clean = v.strip()
+
+            if not all(part.isalpha() for part in v_clean.split()) or "  " in v_clean:
+                raise ValueError(
+                    f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets and single spaces."
+                )
+
         return v
 
     @field_validator("phone")
@@ -101,6 +111,7 @@ class LandlordOut(BaseModel):
     is_landlord: bool = Field(..., alias="isLandlord")
     landlord_id: Optional[UUID] = Field(None, alias="landlordId")
     role_id: Optional[UUID] = Field(None, alias="roleId")
+    role_name: Optional[str] = Field(None, alias="roleName")
     profile_pic: Optional[str] = Field(None, alias="profilePic")
     gender: Optional[str]
     is_active: bool = Field(..., alias="isActive")

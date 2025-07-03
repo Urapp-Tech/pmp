@@ -19,9 +19,11 @@ import {
   ArrowUpDown,
   Loader2,
   // ChevronDown,
-  MapPinHouse,
+  MoreHorizontal,
   Pencil,
   Trash2,
+  CircleCheck,
+  CircleX,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { Checkbox } from '@/components/ui/checkbox';
@@ -30,6 +32,10 @@ import { Paginator } from '@/components/Paginator';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
+  //   DropdownMenuLabel,
+  //   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
@@ -43,19 +49,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import userService from '@/services/adminapp/users';
-import LandlordService from '@/services/adminapp/landlords';
-// import contreactService from '@/services/adminapp/contracts';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
-// import CreateContractDialog from './CreateContractDialog';
-// import OfficeUserUpdateDialog from './UpdateDialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials, handleErrorMessage } from '@/utils/helper';
-// import { usePermission } from '@/utils/hasPermission';
-import { ASSET_BASE_URL } from '@/utils/constants';
+import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
-import OfficeUserCreateDialog from './CreateDialog';
-// import OfficeUserCreateDialog from './CreateDialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getInitials } from '@/utils/helper';
 
 export type Users = {
   id: string; // UUID
@@ -71,7 +70,7 @@ export type Users = {
   city: string | null; // City information, nullable
   zipCode: string | null; // Zip code, nullable
   role: string | null; // User role, nullable
-  profilePic: string | null; // Avatar URL or path, nullable
+  avatar: string | null; // Avatar URL or path, nullable
   address: string; // Address of the user
   userType: 'USER' | 'ADMIN'; // Enum type to restrict values
   isActive: boolean; // Active status of the user
@@ -81,17 +80,16 @@ export type Users = {
   status: 'Active' | 'InActive';
 };
 
-const TenantUsers = () => {
+const UnverifiedUsers = () => {
   const userDetails: any = getItem('USER');
   const { toast } = useToast();
-  // const { can } = usePermission();
 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
-  const [editFormData, setEditFormData] = useState<any>();
+  const [editFormData, setEditFormData] = useState();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -102,7 +100,6 @@ const TenantUsers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [contractOpen, setContractOpen] = useState(false);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -123,11 +120,12 @@ const TenantUsers = () => {
       accessorKey: 'fname',
       header: 'Name',
       cell: ({ row }) => {
+        const { fname, lname } = row.original;
         return (
           <div className="flex items-center gap-3">
             <Avatar>
               <AvatarImage
-                src={`${ASSET_BASE_URL}${row.original.profilePic}` || ''}
+                src={row.original.avatar || ''}
                 alt={row.getValue('fname') || '@fallback'}
               />
               <AvatarFallback>
@@ -135,133 +133,153 @@ const TenantUsers = () => {
               </AvatarFallback>
             </Avatar>
             <div className="capitalize font-semibold">
-              {row.getValue('fname')} {row.original?.lname}
+              {fname} {lname}
             </div>
           </div>
         );
       },
     },
+    // {
+    //   accessorKey: 'email',
+    //   header: ({ column }) => {
+    //     return (
+    //       <Button
+    //         variant="ghost"
+    //         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+    //       >
+    //         Email
+    //         <ArrowUpDown />
+    //       </Button>
+    //     );
+    //   },
+    //   cell: ({ row }) => (
+    //     <div className="lowercase">{row.getValue('email')}</div>
+    //   ),
+    // },
+    // {
+    //   accessorKey: 'phone',
+    //   header: 'Phone',
+    //   cell: ({ row }) => (
+    //     <div className="capitalize">{row.getValue('phone')}</div>
+    //   ),
+    // },
+    // {
+    //   accessorKey: 'isActive',
+    //   header: 'Status',
+    //   cell: ({ row }) => (
+    //     <div className="capitalize bg-neptune-bg/30 text-center w-[50px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
+    //       {row.getValue('isActive') ? 'Active' : 'In-Active'}
+    //     </div>
+    //   ),
+    // },
+    // {
+    //   accessorKey: 'address',
+    //   header: 'Address',
+    //   cell: ({ row }) => (
+    //     <div className="capitalize">
+    //       {row.getValue('address') ? row.getValue('address') : '---'}
+    //     </div>
+    //   ),
+    // },
     {
-      accessorKey: 'email',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Email
-            <ArrowUpDown />
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
-        <div className="lowercase">{row.getValue('email')}</div>
-      ),
-    },
-    {
-      accessorKey: 'phone',
-      header: 'Phone',
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('phone')}</div>
-      ),
-    },
-    {
-      accessorKey: 'roleName',
-      header: 'Role',
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('roleName')}</div>
-      ),
-    },
-    {
-      accessorKey: 'isActive',
-      header: 'Status',
-      cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[60px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
-          {row.getValue('isActive') ? 'Active' : 'Deactive'}
-        </div>
-      ),
-    },
-    {
-      id: 'status',
-      header: 'Actions',
+      id: 'actions',
+      enableHiding: false,
       cell: ({ row }) => {
-        const { id, isActive } = row.original;
-
-        const handleToggle = () => {
-          // You can call your API or state update logic here
-          handleStatusToggle(id, !isActive);
-        };
-
+        // const payment = row.original;
+        const { id } = row.original;
         return (
-          <div className="flex justify-center items-center">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={isActive}
-                onChange={handleToggle}
-              />
-              <div
-                className="w-11 h-6 bg-gray-300 rounded-full
-               peer peer-checked:bg-lunar-bg
-               transition-colors duration-300"
-              />
-              <div
-                className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full
-               transition-transform duration-300 ease-in-out
-               transform peer-checked:translate-x-5"
-              />
-            </label>
-            <div className="pl-4">
-              <Pencil
-                className="text-lunar-bg cursor-pointer"
-                onClick={() => handleActionMenu('edit', id)}
-                size={20}
-              />
+          <div className="flex justify-end items-center gap-3">
+            <div
+              onClick={() => handleActionMenu('accept', id)}
+              className="hover:bg-mars-bg cursor-pointer border-[1px] border-lunar-bg rounded-[20px] px-2 py-1 flex items-center gap-2"
+            >
+              <CircleCheck className="text-lunar-bg cursor-pointer" size={20} />
+              <span>Accept</span>
             </div>
-            {/* <div className="pl-3">
-              <Trash2
-                className="text-lunar-bg cursor-pointer"
-                size={20}
-                onClick={() => handleActionMenu('delete', id)}
-              />
-            </div> */}
+            <div
+              onClick={() => handleActionMenu('reject', id)}
+              className="hover:bg-mars-bg cursor-pointer border-[1px] border-lunar-bg rounded-[20px] px-2 py-1 flex items-center gap-2"
+            >
+              <CircleX className="text-lunar-bg cursor-pointer" size={20} />
+              <span>Reject</span>
+            </div>
           </div>
+          // <DropdownMenu>
+          //   <DropdownMenuTrigger asChild>
+          //     <Button variant="ghost" className="h-8 w-8 p-0">
+          //       <span className="sr-only">Open menu</span>
+          //       <MoreHorizontal />
+          //     </Button>
+          //   </DropdownMenuTrigger>
+          //   <DropdownMenuContent align="end">
+          //     <DropdownMenuItem
+          //       className="cursor-pointer"
+          //       onClick={() => handleActionMenu('edit', id)}
+          //     >
+          //       Edit
+          //     </DropdownMenuItem>
+          //     <DropdownMenuItem
+          //       className="cursor-pointer"
+          //       onClick={() => handleActionMenu('delete', id)}
+          //     >
+          //       Delete
+          //     </DropdownMenuItem>
+          //   </DropdownMenuContent>
+          // </DropdownMenu>
         );
       },
     },
   ];
 
-  const handleStatusToggle = (userId: any, newStatus: any) => {
+  const handleActionMenu = async (type: string, actionId: string) => {
     setMainIsLoader(true);
-    const formData = new FormData();
-    formData.append('isActive', newStatus);
-    usersService
-      .update(userId, formData)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          setMainIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.map((item: any) => {
-              if (item.id === updateItem.data.items.id) {
-                item.isActive = updateItem.data.items.isActive;
-              }
-              return { ...item };
-            });
-          });
-          ToastHandler(updateItem.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        const error = handleErrorMessage(err);
-        ToastHandler(error);
-        setMainIsLoader(false);
+    if (type === 'accept') {
+      const res = await usersService.verifyUser({
+        userId: actionId,
+        isVerified: true,
       });
+      if (res.data.success) {
+        setMainIsLoader(false);
+        fetchUsers();
+        toast({
+          description: res.data.message,
+          className: cn(
+            'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+          ),
+          style: {
+            backgroundColor: '#FF5733',
+            color: 'white',
+          },
+        });
+      }
+    }
+    if (type === 'reject') {
+      const res = await usersService.verifyUser({
+        userId: actionId,
+        isVerified: false,
+      });
+      if (res.data.success) {
+        setMainIsLoader(false);
+        fetchUsers();
+        toast({
+          description: res.data.message,
+          className: cn(
+            'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+          ),
+          style: {
+            backgroundColor: '#FF5733',
+            color: 'white',
+          },
+        });
+      }
+    }
   };
 
   const fetchUsers = async () => {
     try {
-      const users = await usersService.tenantUserList(search, page, pageSize);
+      const users = await usersService.unverifiedList(search, page, pageSize);
+      console.log('users: ', users);
+
       if (users.data.success) {
         setMainIsLoader(false);
         setList(users.data.items);
@@ -290,19 +308,48 @@ const TenantUsers = () => {
     fetchUsers();
   }, []);
 
+  // const deleteUserHandler = (data: any) => {
+  //   const userId = data.id;
+  //   setIsLoader(true);
+  //   userService
+  //     .deleteUser(userId)
+  //     .then((updateItem) => {
+  //       if (updateItem.data.success) {
+  //         setDeleteOpen(false);
+  //         setIsLoader(false);
+  //         setList((newArr: any) => {
+  //           return newArr.filter((item: any) => item.id !== userId);
+  //         });
+  //         let newtotal = total;
+  //         setTotal((newtotal -= 1));
+  //         toast({
+  //           description: updateItem.data.message,
+  //           className: cn(
+  //             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+  //           ),
+  //           style: {
+  //             backgroundColor: '#FF5733',
+  //             color: 'white',
+  //           },
+  //         });
+  //       } else {
+  //         setIsLoader(false);
+  //       }
+  //     })
+  //     .catch((err: Error) => {
+  //       console.log('error: ', err);
+  //       setIsLoader(false);
+  //     });
+  // };
+
   const handlePageChange = async (newPage: any) => {
-    const nextPage = newPage + 1;
-    table.setPageIndex(nextPage);
+    table.setPageIndex(newPage);
     try {
-      const users = await userService.tenantUserList(
-        search,
-        nextPage,
-        pageSize
-      );
+      const users = await userService.list(search, newPage, pageSize);
       if (users.data.success) {
-        setPage(nextPage);
-        setList(users.data.items);
-        setTotal(users.data.total);
+        setPage(newPage);
+        setList(users.data.data.list);
+        setTotal(users.data.data.total);
       } else {
         ToastHandler(users.data.message);
         console.log('error: ', users.data.message);
@@ -310,115 +357,6 @@ const TenantUsers = () => {
     } catch (error: Error | unknown) {
       console.log('error: ', error);
     }
-  };
-
-  const handleActionMenu = (type: string, actionId: string) => {
-    if (type === 'edit') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setEditOpen(true);
-    }
-    if (type === 'delete') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setDeleteOpen(true);
-    }
-  };
-
-  const createHandler = (data: any) => {
-    setIsLoader(true);
-    let service: any;
-    const formData = new FormData();
-    if (data.roleName === 'Landlord') {
-      data.isVerified = true;
-      delete data.roleName;
-      delete data.landlordId;
-      service = LandlordService.createService(data);
-    } else {
-      console.log('me formdata ho');
-      formData.append('fname', data.fname);
-      formData.append('lname', data.lname);
-      formData.append('email', data.email);
-      formData.append('phone', data.phone);
-      formData.append('gender', data.gender);
-      formData.append('password', data.password);
-      formData.append('roleType', data.roleName);
-      formData.append('landlordId', data.landlordId);
-      if (data.profilePic) formData.append('profilePic', data.profilePic);
-      service = userService.create(formData);
-    }
-
-    service
-      .then((item: any) => {
-        if (item.data.success) {
-          setIsOpen(false);
-          setIsLoader(false);
-          setList([item.data.items, ...list]);
-          let newtotal = total;
-          setTotal((newtotal += 1));
-          ToastHandler(item.data.message);
-        } else {
-          setIsLoader(false);
-          ToastHandler(item.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        const error = handleErrorMessage(err);
-        ToastHandler(error);
-        setIsLoader(false);
-      });
-  };
-
-  const updateEmployeeHandler = (id: any, data: any) => {
-    setIsLoader(true);
-    let service: any;
-    const formData = new FormData();
-    if (data.roleName === 'Landlord') {
-      data.isVerified = true;
-      delete data.roleName;
-      delete data.landlordId;
-      service = LandlordService.updateService(id, data);
-    } else {
-      console.log('me formdata ho');
-      formData.append('fname', data.fname);
-      formData.append('lname', data.lname);
-      formData.append('email', data.email);
-      formData.append('phone', data.phone);
-      formData.append('gender', data.gender);
-      formData.append('password', data.password);
-      formData.append('roleType', data.roleName);
-      formData.append('landlordId', data.landlordId);
-      if (data.profilePic) formData.append('profilePic', data.profilePic);
-      service = userService.update(id, formData);
-    }
-
-    service
-      .then((updateItem: any) => {
-        if (updateItem.data.success) {
-          setEditOpen(false);
-          setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.map((item: any) => {
-              if (item.id === updateItem.data.items.id) {
-                item.fname = updateItem.data.items.fname;
-                item.lname = updateItem.data.items.lname;
-                item.email = updateItem.data.items.email;
-                item.phone = updateItem.data.items.phone;
-                item.roleId = updateItem.data.items.roleId;
-                item.gender = updateItem.data.items.gender;
-                item.roleName = updateItem.data.items.roleName;
-              }
-              return { ...item };
-            });
-          });
-          ToastHandler(updateItem.data.message);
-        }
-      })
-      .catch((err: Error | any) => {
-        const error = handleErrorMessage(err);
-        ToastHandler(error);
-        setIsLoader(false);
-      });
   };
 
   const table = useReactTable({
@@ -440,15 +378,94 @@ const TenantUsers = () => {
     },
   });
 
+  // const createEmployeeHandler = (data: any) => {
+  //   console.log('dadad', data);
+
+  //   setIsLoader(true);
+  //   const formData = new FormData();
+  //   formData.append('userType', data.userType);
+  //   formData.append('firstName', data.firstName);
+  //   formData.append('lastName', data.lastName);
+  //   formData.append('email', data.email);
+  //   formData.append('phone', data.phone);
+  //   formData.append('password', data.password);
+  //   formData.append('address', data.address);
+  //   formData.append('role', data.role);
+  //   if (data.avatar) formData.append('avatar', data.avatar);
+  //   userService
+  //     .create(data)
+  //     .then((item) => {
+  //       if (item.data.success) {
+  //         setIsOpen(false);
+  //         setIsLoader(false);
+  //         setList([item.data.data, ...list]);
+  //         let newtotal = total;
+  //         setTotal((newtotal += 1));
+  //       } else {
+  //         setIsLoader(false);
+  //         ToastHandler(item.data.message);
+  //       }
+  //     })
+  //     .catch((err: Error | any) => {
+  //       console.log('error: ', err);
+  //       ToastHandler(err?.response?.data?.message);
+  //       setIsLoader(false);
+  //     });
+  // };
+
+  // const updateEmployeeHandler = (data: any) => {
+  //   const formData = new FormData();
+  //   formData.append('firstName', data.firstName);
+  //   formData.append('lastName', data.lastName);
+  //   formData.append('email', data.email);
+  //   formData.append('username', data.email);
+  //   formData.append('phone', data.phone);
+  //   formData.append('password', data.password);
+  //   formData.append('address', data.address);
+  //   formData.append('role', data.role);
+  //   if (data.avatar) formData.append('avatar', data.avatar);
+  //   setIsLoader(true);
+  //   userService
+  //     .update(data.id, formData)
+  //     .then((updateItem) => {
+  //       if (updateItem.data.success) {
+  //         setEditOpen(false);
+  //         setIsLoader(false);
+  //         setList((newArr: any) => {
+  //           return newArr.map((item: any) => {
+  //             if (item.id === updateItem.data.data.id) {
+  //               item.firstName = updateItem.data.data.firstName;
+  //               item.lastName = updateItem.data.data.lastName;
+  //               item.email = updateItem.data.data.email;
+  //               item.phone = updateItem.data.data.phone;
+  //               item.address = updateItem.data.data.address;
+  //               item.avatar = updateItem.data.data.avatar;
+  //             }
+  //             return { ...item };
+  //           });
+  //         });
+  //         ToastHandler(updateItem.data.message);
+  //       } else {
+  //         setIsLoader(false);
+  //         ToastHandler(updateItem.data.message);
+  //       }
+  //     })
+  //     .catch((err: Error | any) => {
+  //       console.log('error: ', err);
+  //       ToastHandler(err?.response?.data?.message);
+  //       setIsLoader(false);
+  //     });
+  // };
+
   return (
     <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Tenant Users" />
+      <TopBar title="Unverified Users" />
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              All Users
+              Users Requests
             </h2>
             <div className="flex gap-3 items-center">
               <Input
@@ -459,13 +476,13 @@ const TenantUsers = () => {
                 className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
               />
               <DropdownMenu>
-                <Button
+                {/* <Button
                   onClick={() => setIsOpen(true)}
                   className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                   variant={'outline'}
                 >
                   + Add New
-                </Button>
+                </Button> */}
                 <DropdownMenuContent align="end">
                   {table
                     .getAllColumns()
@@ -552,7 +569,7 @@ const TenantUsers = () => {
               <div className="my-5 flex justify-center w-full">
                 <Paginator
                   pageSize={pageSize}
-                  currentPage={page - 1}
+                  currentPage={page}
                   totalPages={total}
                   onPageChange={(pageNumber) => handlePageChange(pageNumber)}
                   showPreviousNext
@@ -564,12 +581,12 @@ const TenantUsers = () => {
           )}
         </div>
       </SidebarInset>
-      {isOpen && (
-        <OfficeUserCreateDialog
+      {/* {isOpen && (
+        <OfficeUsersCreationDialog
           isLoader={isLoader}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          callback={createHandler}
+          callback={createEmployeeHandler}
         />
       )}
       {editOpen && (
@@ -581,8 +598,18 @@ const TenantUsers = () => {
           callback={updateEmployeeHandler}
         />
       )}
+      {deleteOpen && (
+        <DeleteDialog
+          isLoader={isLoader}
+          isOpen={deleteOpen}
+          setIsOpen={setDeleteOpen}
+          title={'User'}
+          formData={editFormData}
+          callback={deleteUserHandler}
+        />
+      )} */}
     </div>
   );
 };
 
-export default TenantUsers;
+export default UnverifiedUsers;

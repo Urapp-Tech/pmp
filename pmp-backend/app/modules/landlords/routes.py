@@ -21,6 +21,7 @@ from app.modules.landlords.services import (
     verify_landlord_service,
     update_landlord,
     delete_landlord_user,
+    get_landlord_lov,
 )
 
 router = APIRouter()
@@ -85,3 +86,8 @@ def delete_landlord(
     id: UUID = Path(..., description="Landlord user ID"), db: Session = Depends(get_db)
 ):
     return delete_landlord_user(db, id)
+
+
+@router.get("/lov")
+def landlord_lov(db: Session = Depends(get_db)):
+    return get_landlord_lov(db)

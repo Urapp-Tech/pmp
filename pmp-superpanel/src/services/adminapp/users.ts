@@ -32,9 +32,19 @@ const verifyUser = (data: any) => {
   return network.post(`${USERS}/verify`, data);
 };
 
+const create = (data: any) => {
+  return network.postMultipart(`${TENANT_USERS}/create`, data);
+};
+
+const update = (id: string, data: any) => {
+  return network.postMultipart(`${TENANT_USERS}/update/${id}`, data);
+};
+
 export default {
   list,
   unverifiedList,
   tenantUserList,
   verifyUser,
+  create,
+  update,
 };

@@ -18,9 +18,14 @@ const deleteService = (id: string) => {
   return network.post(`${LANDLORD_USERS}/delete/${id}`, {});
 };
 
+const lov = () => {
+  return network.get(`${LANDLORD_USERS}/lov`, {});
+};
+
 export default {
   getService,
   createService,
   updateService,
   deleteService,
+  lov,
 };
