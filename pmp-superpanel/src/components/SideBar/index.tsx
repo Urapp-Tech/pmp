@@ -55,6 +55,18 @@ export function MainSidebar({
         icon: assets.images.usersSidebarIcon,
         items: [],
       },
+      {
+        title: 'Inovices',
+        url: '/super-admin/invoices',
+        icon: assets.images.pagesSidebarIcon,
+        items: [],
+      },
+      {
+        title: 'reports',
+        url: '/super-admin/invoices',
+        icon: assets.images.pagesSidebarIcon,
+        items: [],
+      },
       // {
       //   title: 'Landlord Management',
       //   url: '#',

@@ -11,11 +11,13 @@ import Otp from './pages/auth/Otp';
 import AddRolePermissionsPage from '@/pages/role-permissions/AddRolePermissionsPage';
 import UpdateRolePermissionPage from '@/pages/role-permissions/UpdateRolePermissionPage';
 import PropertyManagers from '@/pages/property-management/List';
-import Users from './pages/landlord-users/List';
-import Invoices from './pages/subscriptions-management/List';
+// import Users from './pages/landlord-users/List';
+import Invoices from './pages/invoices/List';
 import Receipts from './pages/security-logs/List';
 import UnverifiedUsers from './pages/tenant-users/UnverifiedList';
+import InvoiceDetail from './pages/reports/InvoiceDetail';
 import TenantUsers from './pages/tenant-users/List';
+import InvoiceReport from './pages/reports/InvoiceReport';
 
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
 const RolePermissions = lazy(
@@ -146,6 +148,48 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <PropertyManagers />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'invoices',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Invoices />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'detail/:invoiceId',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <InvoiceDetail />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'reports',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="invoices" replace />,
+              },
+              {
+                path: 'invoices',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <InvoiceReport />
                   </Suspense>
                 ),
               },
