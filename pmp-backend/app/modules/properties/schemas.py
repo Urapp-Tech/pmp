@@ -30,9 +30,6 @@ class PropertyUnitBase(BaseModel):
     bedrooms: Optional[str] = Field(None, example="2")
     bathrooms: Optional[str] = Field(None, example="2")
     water_meter: Optional[str] = Field(None, example="WM123456")
-    account_name: Optional[str] = Field(None, example="WM123456")
-    account_no: Optional[str] = Field(None, example="WM123456")
-    bank_name: Optional[str] = Field(None, example="WM123456")
     electricity_meter: Optional[str] = Field(None, example="EM123456")
     status: Optional[str] = Field(None, example="available")
     is_active: Optional[bool] = Field(None)
@@ -95,6 +92,10 @@ class PropertyBase(BaseModel):
     longitude: Optional[str] = Field(None, example="47.9774")
     status: Optional[str] = Field(None, example="active")
     is_active: Optional[bool] = Field(None, example="true")
+    unit_counts: Optional[int] = Field(None, example=12)
+    bank_name: Optional[str] = Field(None, example="Gulf Bank")
+    account_no: Optional[str] = Field(None, example="GB123456789")
+    account_name: Optional[str] = Field(None, example="Sunrise Property Ltd.")
 
 
 class PropertyCreate(PropertyBase):

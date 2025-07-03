@@ -12,6 +12,8 @@ from app.models.invoices import Invoice
 from app.models.managers import Manager
 from app.models.tenants import Tenant
 from app.models.users import User
+from app.models.property_units import PropertyUnit
+from app.models.properties import  Property
 from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
@@ -28,18 +30,34 @@ def get_invoice_report_service(
     status: Optional[str] = None,
     # search: Optional[str] = "",
 ) -> Dict[str, Any]:
-    if role_id == "Super Admin":
-        return {
-            "success": True,
-            "message": "Super Admin is not allowed to view reports.",
-            "total": 0,
-            "items": [],
-            "total_paid": 0,
-        }
+    query = db.query(Invoice).options(
+        joinedload(Invoice.items),
+        joinedload(Invoice.tenant).load_only(Tenant.id, Tenant.contract_number),
+        joinedload(Invoice.tenant)
+        .joinedload(Tenant.property_unit)
+        .joinedload(PropertyUnit.property)
+        .load_only(Property.id, Property.name),  # ✅ class attributes
+        joinedload(Invoice.tenant)
+        .joinedload(Tenant.property_unit)
+        .load_only(PropertyUnit.id, PropertyUnit.unit_no), # ✅ class attributes
+        joinedload(Invoice.tenant)
+        .joinedload(Tenant.user)
+        .load_only(User.id, User.fname, User.lname, User.email),  # ✅ class attributes
+    )
+    # if role_id == "Super Admin":
 
-    query = db.query(Invoice).options(joinedload(Invoice.items), joinedload(Invoice.tenant))
+        # return {
+        #     "success": True,
+        #     "message": "Super Admin is not allowed to view reports.",
+        #     "total": 0,
+        #     "items": [],
+        #     "total_paid": 0,
+        # }
+
+    
 
     if role_id == "Landlord":
+        
         user = db.query(User).filter(User.id == user_id).first()
         if not user or not user.landlord_id:
             return {
@@ -87,15 +105,14 @@ def get_invoice_report_service(
 
         query = query.filter(Invoice.tenant_id == tenant.id)
 
-    else:
-        return {
-            "success": False,
-            "message": "Invalid role.",
-            "total": 0,
-            "items": [],
-            "total_paid": 0,
-        }
-
+    # else:
+    #     return {
+    #         "success": False,
+    #         "message": "Invalid role.",
+    #         "total": 0,
+    #         "items": [],
+    #         "total_paid": 0,
+    #     }
     if from_date:
         query = query.filter(Invoice.created_at >= from_date)
 
@@ -122,5 +139,15 @@ def get_invoice_report_service(
 
 
 def get_invoice(db: Session, invoice_id: UUID) -> Invoice | None:
-    return db.query(Invoice).options(joinedload(Invoice.items), joinedload(Invoice.tenant)
-    .joinedload(Tenant.user)).filter(Invoice.id == invoice_id).first()
+    return db.query(Invoice).options(
+    joinedload(Invoice.items),
+    joinedload(Invoice.tenant)
+        .joinedload(Tenant.user),  # Load full user (or add .load_only if needed)
+
+    joinedload(Invoice.tenant)
+        .load_only(Tenant.id, Tenant.contract_number)
+        .joinedload(Tenant.property_unit)
+            .load_only(PropertyUnit.id, PropertyUnit.unit_no)
+            .joinedload(PropertyUnit.property)
+                .load_only(Property.id, Property.name)
+).filter(Invoice.id == invoice_id).first()

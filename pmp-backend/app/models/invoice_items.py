@@ -26,5 +26,5 @@ class InvoiceItem(Base):
     updated_at = Column(TIMESTAMP(timezone=True), server_default=text("now()"), nullable=False)
 
     # Relationships
-    invoice = relationship("Invoice", back_populates="items", passive_deletes=True)
+    invoice = relationship("Invoice", back_populates="items",overlaps="items,invoice_items" , passive_deletes=True)
     # updated_user = relationship("User", back_populates="invoice_items", foreign_keys=[updated_by])

@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from app.models.invoice_items import InvoiceItem
 from app.models.invoices import Invoice
 from app.models.managers import Manager
+from app.models.properties import Property
+from app.models.property_units import PropertyUnit
 from app.models.tenants import Tenant
 from app.models.users import User
 from app.modules.invoices.schemas import InvoiceCreate, InvoiceUpdate
@@ -38,18 +40,30 @@ def get_all_invoices(
 ) -> dict:
     skip = (page - 1) * limit
 
-    if role_id == "Super Admin":
-        return {
-            "success": True,
-            "message": "Super Admin is not allowed to view invoices.",
-            "total": 0,
-            "page": page,
-            "size": limit,
-            "items": [],
-        }
+    # if role_id == "Super Admin":
+    #     return {
+    #         "success": True,
+    #         "message": "Super Admin is not allowed to view invoices.",
+    #         "total": 0,
+    #         "page": page,
+    #         "size": limit,
+    #         "items": [],
+    #     }
 
-    query = db.query(Invoice).options(joinedload(Invoice.items), joinedload(Invoice.tenant))
-
+    query = db.query(Invoice).options(
+        joinedload(Invoice.items),
+        joinedload(Invoice.tenant)
+        .joinedload(Tenant.property_unit)
+        .joinedload(PropertyUnit.property)
+        .load_only(Property.id, Property.name),  # ✅ class attributes
+        joinedload(Invoice.tenant)
+        .joinedload(Tenant.property_unit)
+        .load_only(PropertyUnit.id, PropertyUnit.unit_no),  # ✅ class attributes
+        joinedload(Invoice.tenant)
+        .joinedload(Tenant.user)
+        .load_only(User.id, User.fname, User.lname, User.email),  # ✅ class attributes
+    )
+    
     if role_id == "Landlord":
         user = db.query(User).filter(User.id == user_id).first()
         if not user or not user.landlord_id:
@@ -101,15 +115,15 @@ def get_all_invoices(
 
         query = query.filter(Invoice.tenant_id == tenant.id)
 
-    else:
-        return {
-            "success": True,
-            "message": "Invalid role.",
-            "total": 0,
-            "page": page,
-            "size": limit,
-            "items": [],
-        }
+    # else:
+    #     return {
+    #         "success": True,
+    #         "message": "Invalid role.",
+    #         "total": 0,
+    #         "page": page,
+    #         "size": limit,
+    #         "items": [],
+    #     }
 
     if search:
         query = query.filter(Invoice.invoice_no.ilike(f"%{search.lower()}%"))

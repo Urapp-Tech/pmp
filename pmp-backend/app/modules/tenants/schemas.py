@@ -139,6 +139,13 @@ class UserDetailOut(BaseModel):
         from_attributes = True
         populate_by_name = True
 
+class PropertyOut(BaseModel):
+    id: UUID
+    name: str
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+    
 
 class UnitDetailOut(BaseModel):
     id: UUID
@@ -150,7 +157,7 @@ class UnitDetailOut(BaseModel):
     water_meter: Optional[str] = Field(None, alias="waterMeter")
     pictures: Optional[List[str]] = None
     rent: Optional[str]
-
+    property: Optional[PropertyOut]
     class Config:
         from_attributes = True
         populate_by_name = True

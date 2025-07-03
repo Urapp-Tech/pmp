@@ -153,12 +153,15 @@ def list_contracts_by_landlord(
         }
     query = (
         db.query(Tenant)
-        .options(joinedload(Tenant.user), joinedload(Tenant.property_unit))
-        .filter(
-            Tenant.user_id.in_(user_ids),
-            Tenant.is_approved == is_approved,
-            Tenant.is_active == True,
-        )
+    .options(
+        joinedload(Tenant.user),  # Eager load related User
+        joinedload(Tenant.property_unit).joinedload(PropertyUnit.property)  # Nested eager load PropertyUnit → Property
+    )
+    .filter(
+        Tenant.user_id.in_(user_ids),       # Filter by user_ids
+        Tenant.is_approved == is_approved,  # Approved status filter
+        Tenant.is_active == True            # Only active tenants
+    )
     )
     if search:
         search_term = f"%{search.strip()}%"

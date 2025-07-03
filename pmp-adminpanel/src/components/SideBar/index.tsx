@@ -165,7 +165,7 @@ export function MainSidebar({
       role: ['Landlord', 'Manager'],
     },
     {
-      title: 'Financial Reports',
+      title: 'Receipts',
       url: '/admin-panel/reports/invoices',
       icon: assets.images.pagesSidebarIcon,
       permission: PERMISSIONS.FINANCIAL_REPORT.VIEW,
