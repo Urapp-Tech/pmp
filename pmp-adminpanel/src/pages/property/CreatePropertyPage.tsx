@@ -26,7 +26,6 @@ import {
   AccordionContent,
 } from '@/components/ui/accordion';
 import Papa from 'papaparse';
-import { log } from 'console';
 
 const CreatePropertyPage = () => {
   const [mainIsLoader, setMainIsLoader] = useState(true);
@@ -65,10 +64,10 @@ const CreatePropertyPage = () => {
       ],
     },
   });
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'units',
-  });
+  // const { fields, append, remove } = useFieldArray({
+  //   control: form.control,
+  //   name: 'units',
+  // });
 
   const {
     register,
@@ -102,12 +101,12 @@ const CreatePropertyPage = () => {
   };
 
   console.log('Submitting errors:', errors);
-  console.log('Submitting units:', form.getValues('units'));
+  // console.log('Submitting units:', form.getValues('units'));
   console.log('Submitting values:', form.getValues());
 
   const onSubmit = async (data: Fields) => {
     const formData = new FormData();
-    console.log('Submitting data:', data);
+    console.log('Submitting data:', Object.entries(data));
 
     Object.entries(data).forEach(([key, value]) => {
       if (key === 'pictures') {
@@ -279,7 +278,7 @@ const CreatePropertyPage = () => {
     });
   };
 
-  console.log('unit count', form.watch('unit_count'));
+  // console.log('unit count', form.watch('unit_count'));
 
   return mainIsLoader ? (
     <div className="flex justify-center h-[80%] bg-white rounded-[20px] items-center">
@@ -385,7 +384,7 @@ const CreatePropertyPage = () => {
                           <FormMessage>
                             *{form.formState.errors[field]?.message as string}
                           </FormMessage>
-                          {console.log(form.formState.errors[field]?.message)}
+                          {/* {console.log(form.formState.errors[field]?.message)} */}
                         </>
                       )}
                   </div>
@@ -466,12 +465,9 @@ const CreatePropertyPage = () => {
                       if (!value || isNaN(count)) return;
 
                       const existingUnits = form.getValues('units') || [];
-                      console.log('existingUnits', existingUnits);
 
                       let newUnits;
-
                       if (count > existingUnits.length) {
-                        // Add new empty units
                         const additional = Array.from(
                           { length: count - existingUnits.length },
                           () => ({
@@ -489,26 +485,22 @@ const CreatePropertyPage = () => {
                             pictures: [],
                           })
                         );
-
                         newUnits = [...existingUnits, ...additional];
                       } else {
-                        // Truncate extra units
                         newUnits = existingUnits.slice(0, count);
-                        // Clear validation errors for removed units
-                        const currentErrors =
-                          form.formState.errors?.units || [];
-                        for (let i = count; i < currentErrors.length; i++) {
-                          form.clearErrors(`units.${i}`);
-                          form.unregister(`units.${i}`);
-                        }
                       }
+                      form.unregister('units');
 
-                      console.log('new units', newUnits, clearErrors('units'));
+                      // ✅ Final fix: reset whole form with new values
+                      form.reset({
+                        ...form.getValues(), // preserve other values
+                        unit_count: count,
+                        units: newUnits,
+                      });
 
-                      form.setValue('units', newUnits);
-                      form.setValue('unit_count', count);
+                      form.clearErrors('units');
 
-                      // Update preview state too
+                      // ✅ Reset previews too
                       setUnitPicturesPreview((prev) => {
                         const updated: Record<number, File[]> = {};
                         for (let i = 0; i < count; i++) {
@@ -547,11 +539,13 @@ const CreatePropertyPage = () => {
             <Accordion
               className="w-full"
               type="multiple"
-              defaultValue={fields.map((_, idx) => `item-${idx}`)} // open all by default
+              defaultValue={(form.watch('units') || []).map(
+                (_, idx) => `item-${idx}`
+              )} // open all by default
             >
-              {fields.map((field, index) => (
+              {(form.watch('units') || []).map((field, index) => (
                 <AccordionItem
-                  key={field.id}
+                  key={index}
                   value={`item-${index}`}
                   className="border rounded-[20px] p-0 bg-gray-50 mb-4 overflow-hidden"
                 >
@@ -560,7 +554,7 @@ const CreatePropertyPage = () => {
                   </AccordionTrigger>
                   <AccordionContent className="p-4 pt-2">
                     <div
-                      key={field.id}
+                      key={index}
                       className="border  rounded-[20px] p-4 mb-6 bg-gray-50 relative"
                     >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -651,13 +645,6 @@ const CreatePropertyPage = () => {
                                         ] as string
                                       )?.message
                                     }
-                                    {console.log(
-                                      (
-                                        errors?.units?.[index]?.[
-                                          unitField
-                                        ] as string
-                                      )?.message
-                                    )}
                                   </FormMessage>
                                 )}
                             </div>

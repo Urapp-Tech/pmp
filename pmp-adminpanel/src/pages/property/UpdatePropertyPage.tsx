@@ -217,7 +217,8 @@ const handleCSVUpload = (event) => {
   'name', 'city', 'governance', 'address', 'address2',
   'description', 'property_type', 'type', 'paci_no',
   'property_no', 'civil_no', 'build_year', 'book_value',
-  'estimate_value', 'latitude', 'longitude', 'status',
+  'estimate_value', 'latitude', 'longitude', 'status', 'bank_name',
+  'account_no', 'account_name',
 ].map((field) => (
   <FormControl key={field} className="mb-4">
     <div>
