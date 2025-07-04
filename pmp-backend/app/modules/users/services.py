@@ -45,16 +45,16 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
         .first()
     )
 
+    if not user or not verify_password(login_data.password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="This user account is currently deactivated. Please contact super admin.",
-        )
-
-    if not user or not verify_password(login_data.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email/phone or password",
         )
 
     access_token = create_access_token(data={"sub": str(user.id)})
@@ -252,6 +252,7 @@ def delete_user(db: Session, user_id: UUID):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    
     if not user.is_active:
         raise HTTPException(status_code=400, detail="User is already inactive")
 

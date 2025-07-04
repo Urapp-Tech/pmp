@@ -104,7 +104,9 @@ const Invoices = () => {
   const ToastHandler = (msg: string) =>
     toast({
       description: msg,
-      className: cn('top-0 right-0 fixed z-[9999]'),
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+      ),
       style: { backgroundColor: '#FF5733', color: 'white' },
     });
 
@@ -120,8 +122,6 @@ const Invoices = () => {
         pageSize
       );
       if (resp.data.success) {
-        // console.log(resp.data);
-
         setList(resp.data.items);
         setTotal(resp.data.total);
       } else ToastHandler(resp.data.message);
@@ -146,7 +146,6 @@ const Invoices = () => {
 
   const handlePageChange = (newPage: number) => {
     table.setPageIndex(newPage + 1);
-    console.log('current page: ', newPage);
 
     setPage(newPage + 1);
     fetchList(search, newPage + 1);
@@ -171,26 +170,39 @@ const Invoices = () => {
     setIsLoader(true);
     const resp = await invoiceService.create(data);
     if (resp.data.success) {
-      console.log(resp.data.items);
-
       setList((list: any) => [resp.data.items, ...list]);
-      ToastHandler(resp.data.message);
+      toast({
+        description: resp.data.message,
+        className: cn(
+          'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+        ),
+        style: {
+          backgroundColor: '#5CB85C',
+          color: 'white',
+        },
+      });
       setIsLoader(false);
       setCreateOpen(false);
-      // console.log(resp.data.message);
 
       // fetchList();
     } else ToastHandler(resp.data.message);
   };
-
-  // console.log('updated list', list);
 
   const updateHandler = async (data: InvoiceFields) => {
     setIsLoader(true);
     const resp = await invoiceService.update(data?.id!, data);
     setIsLoader(false);
     if (resp.data.success) {
-      ToastHandler(resp.data.message);
+      toast({
+        description: resp.data.message,
+        className: cn(
+          'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+        ),
+        style: {
+          backgroundColor: '#5CB85C',
+          color: 'white',
+        },
+      });
       setEditOpen(false);
       fetchList(search, page);
     } else ToastHandler(resp.data.message);
@@ -202,6 +214,16 @@ const Invoices = () => {
     const resp = await invoiceService.deleteMethod(editFormData.id!);
     setIsLoader(false);
     if (resp.data.success) {
+      toast({
+        description: resp.data.message,
+        className: cn(
+          'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+        ),
+        style: {
+          backgroundColor: '#5CB85C',
+          color: 'white',
+        },
+      });
       setDeleteOpen(false);
       fetchList(search, page);
     } else ToastHandler(resp.data.message);
@@ -305,13 +327,13 @@ const Invoices = () => {
           const inv = row.original;
           return (
             <div className="flex gap-2">
-              {can(PERMISSIONS.INVOICE.UPDATE) && (
+              {can(PERMISSIONS.INVOICE.UPDATE) && inv.status !== 'paid' && (
                 <Pencil
                   className="cursor-pointer text-blue-500"
                   onClick={() => handleAction('edit', inv)}
                 />
               )}
-              {can(PERMISSIONS.INVOICE.DELETE) && (
+              {can(PERMISSIONS.INVOICE.DELETE) && inv.status !== 'paid' && (
                 <Trash2
                   className="cursor-pointer text-red-500"
                   onClick={() => handleAction('delete', inv)}
@@ -503,11 +525,18 @@ const Invoices = () => {
             );
 
             if (res?.data?.success) {
-              ToastHandler(`${action.toUpperCase()} successful`);
+              toast({
+                description: res.data.message,
+                className: cn(
+                  'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+                ),
+                style: {
+                  backgroundColor: '#5CB85C',
+                  color: 'white',
+                },
+              });
               refreshData();
               setShowItemsModal(false); // ✅ Close only on success
-
-              // await fetchInvoiceItems(selectedInvoiceId);
               await fetchList(search, page);
             } else {
               ToastHandler(res.data.message || 'Failed to update status');

@@ -61,7 +61,7 @@ const Invoices = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    actions: false,
+    actions: true,
   });
   const [rowSelection, setRowSelection] = useState({});
   const [amount, setAmount] = useState(0);
@@ -101,11 +101,12 @@ const Invoices = () => {
       fetchInvoiceItems(selectedInvoiceId, invoiceItemPage); // add current page
     }
   };
+  
   const ToastHandler = (msg: string) =>
     toast({
       description: msg,
       className: cn('top-0 right-0 fixed z-[9999]'),
-      style: { backgroundColor: '#FF5733', color: 'white' },
+      style: { backgroundColor: '#5CB85C', color: 'white' },
     });
 
   // 🔃 Fetch list with filters & pagination
@@ -135,7 +136,7 @@ const Invoices = () => {
 
   useEffect(() => {
     // if (can(PERMISSIONS.INVOICE.UPDATE) || can(PERMISSIONS.INVOICE.DELETE)) {
-    //   setColumnVisibility({ actions: true });
+      setColumnVisibility({ actions: true });
     // }
     fetchList(search, page);
   }, []);
@@ -156,13 +157,11 @@ const Invoices = () => {
     type: 'edit' | 'delete' | 'view',
     inv: InvoiceFields
   ) => {
-    if (type === 'edit') {
-      setEditFormData(inv);
-      setEditOpen(true);
-    } else if (type === 'delete') {
-      setDeleteOpen(true);
-    } else if (type === 'view') {
-      navigate(`/admin-panel/invoices/detail/${inv.id}`);
+    //  if (type === 'delete') {
+    //   setDeleteOpen(true);
+    // } else 
+    if (type === 'view') {
+      navigate(`/super-admin/invoices/detail/${inv.id}`);
     }
   };
 
@@ -271,14 +270,15 @@ const Invoices = () => {
         },
       },
       {
-        id: 'actions',
+        id: '1actions',
         header: 'Actions',
 
-        enableHiding: true,
+        enableHiding: false,
         cell: ({ row }) => {
           const inv = row.original;
           return (
             <div className="flex gap-2">
+              
               {/* {can(PERMISSIONS.INVOICE.UPDATE) && (
                 <Pencil
                   className="cursor-pointer text-blue-500"

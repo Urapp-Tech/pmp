@@ -100,13 +100,8 @@ const CreatePropertyPage = () => {
     });
   };
 
-  console.log('Submitting errors:', errors);
-  // console.log('Submitting units:', form.getValues('units'));
-  console.log('Submitting values:', form.getValues());
-
   const onSubmit = async (data: Fields) => {
     const formData = new FormData();
-    console.log('Submitting data:', Object.entries(data));
 
     Object.entries(data).forEach(([key, value]) => {
       if (key === 'pictures') {
@@ -151,10 +146,19 @@ const CreatePropertyPage = () => {
 
     // Submit to backend
     try {
-      // console.log('Submitting form data:', Array.from(formData.entries()));
       const response = await service.create(formData);
       if (response.data.success) {
-        toast({ description: 'Property created successfully!' });
+        // toast({ description: 'Property created successfully!' });/
+        toast({
+                  description: response.data.message,
+                  className: cn(
+                    'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+                  ),
+                  style: {
+                    backgroundColor: '#5CB85C',
+                    color: 'white',
+                  },
+                });
         reset();
         navigate('/admin-panel/property/list');
         setPropertyPicturesPreview([]);
@@ -278,8 +282,6 @@ const CreatePropertyPage = () => {
     });
   };
 
-  // console.log('unit count', form.watch('unit_count'));
-
   return mainIsLoader ? (
     <div className="flex justify-center h-[80%] bg-white rounded-[20px] items-center">
       <Loader2 className="animate-spin" />
@@ -360,6 +362,7 @@ const CreatePropertyPage = () => {
                         {...form.register('status', {
                           required: 'This field is required',
                         })}
+                        label='Status'
                         control={form.control}
                         placeholder="Select Status"
                         items={[
@@ -370,21 +373,19 @@ const CreatePropertyPage = () => {
                     ) : (
                       <Input
                         type="text"
-                        {...form.register(field, {
+                        {...form.register(field as any, {
                           required: 'This field is required',
                         })}
                         className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
                       />
                     )}
 
-                    {form.formState.errors[field] &&
+                    {form.formState.errors[field as keyof Fields] &&
                       !['type', 'property_type', 'status'].includes(field) && (
                         <>
-                          {' '}
                           <FormMessage>
-                            *{form.formState.errors[field]?.message as string}
+                            *{(form.formState.errors[field as keyof Fields]?.message) as string}
                           </FormMessage>
-                          {/* {console.log(form.formState.errors[field]?.message)} */}
                         </>
                       )}
                   </div>
@@ -622,7 +623,7 @@ const CreatePropertyPage = () => {
                                 <Input
                                   type="text"
                                   {...form.register(
-                                    `units.${index}.${unitField}`,
+                                    `units.${index}.${unitField}` as any,
                                     {
                                       required: `${unitField.replace(/_/g, ' ')} is required`,
                                     }
@@ -630,7 +631,7 @@ const CreatePropertyPage = () => {
                                   className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
                                 />
                               )}
-                              {errors.units?.[index]?.[unitField] &&
+                              {errors.units?.[index]?.[unitField as keyof typeof errors.units[number]] &&
                                 ![
                                   'description',
                                   'status',
@@ -641,8 +642,8 @@ const CreatePropertyPage = () => {
                                     {
                                       (
                                         errors?.units?.[index]?.[
-                                          unitField
-                                        ] as string
+                                          unitField as keyof typeof errors.units[number]
+                                        ] as { message?: string }
                                       )?.message
                                     }
                                   </FormMessage>
@@ -672,7 +673,6 @@ const CreatePropertyPage = () => {
                                 }));
                               }}
                             />
-                            {/* {console.log("Unit Pictures:",watch(`units.${index}.pictures`))} */}
                             <div className="flex flex-wrap gap-3 mt-3">
                               {unitPicturesPreview[index]?.map(
                                 (file, picIndex) =>

@@ -62,8 +62,8 @@ export function MainSidebar({
         items: [],
       },
       {
-        title: 'reports',
-        url: '/super-admin/invoices',
+        title: 'Reciepts',
+        url: '/super-admin/reports/invoices',
         icon: assets.images.pagesSidebarIcon,
         items: [],
       },

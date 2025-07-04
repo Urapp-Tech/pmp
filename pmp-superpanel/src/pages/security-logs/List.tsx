@@ -86,7 +86,7 @@ const Receipts = () => {
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#FF5733',
+        backgroundColor: '#5CB85C',
         color: 'white',
         zIndex: 9999,
       },
