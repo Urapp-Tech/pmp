@@ -253,7 +253,7 @@ const InvoiceReport = () => {
                     <TableHead>Unit No</TableHead>
                     <TableHead>Invoice Date</TableHead>
                     <TableHead>Paid Amount</TableHead>
-                    <TableHead>Status</TableHead>
+                    {/* <TableHead>Status</TableHead> */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -301,7 +301,7 @@ const InvoiceReport = () => {
                         </TableCell>
                         <TableCell>{inv.invoice_date || '—'}</TableCell>
                         <TableCell>{inv.total_amount || 0}</TableCell>
-                        <TableCell>{inv.status || 'N/A'}</TableCell>
+                        {/* <TableCell>{inv.status || 'N/A'}</TableCell> */}
                       </TableRow>
                     ))
                   )}

@@ -242,8 +242,8 @@ const InvoiceDetail = () => {
             {invoice.items?.map((item: any) => (
               <tr key={item.id}>
                 <td className="p-2 border">{item.description}</td>
-                <td className="p-2 border capitalize">{item.payment_method}</td>
                 <td className="p-2 border">{item.payment_date || '—'}</td>
+                <td className="p-2 border capitalize">{item.payment_method}</td>
                 <td className="p-2 border capitalize">{item.status}</td>
                 <td className="p-2 border ">{item.amount}</td>
               </tr>
