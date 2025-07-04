@@ -13,30 +13,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import propertyService from '@/services/adminapp/property'; // adjust if needed
 import { ASSET_BASE_URL } from '@/utils/constants';
 import { FileText } from 'lucide-react';
 
 const UnitListModal = ({ open, setOpen, property, units }: any) => {
-  // const [units, setUnits] = useState([]);
-  console.log('UnitListModal property:', property);
-
-  // useEffect(() => {
-
-  //   if (open && property) {
-  //     fetchUnits();
-  //   }
-  // }, [open, property]);
-
-  // const fetchUnits = async () => {
-  //   try {
-  //     const res = await propertyService.getUnitsByPropertyId(property, '', 1, 20);
-  //     setUnits(res.data?.items || []);
-  //   } catch (error) {
-  //     console.error('Failed to fetch units', error);
-  //   }
-  // };
-
+ 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-2xl">

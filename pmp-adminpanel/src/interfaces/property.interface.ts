@@ -12,6 +12,7 @@ export interface Unit {
   water_meter: string;
   electricity_meter: string;
   pictures: File[]; // handled separately
+  pictures_count: number;
 }
 
 export interface Fields {
