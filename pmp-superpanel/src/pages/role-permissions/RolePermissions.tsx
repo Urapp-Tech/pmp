@@ -140,7 +140,7 @@ const RolePermissions = () => {
       enableHiding: false,
       cell: ({ row }) => {
         const { id, key } = row.original;
-        console.log('row.original: ', row.original);
+        // // console.log('row.original: ', row.original);
 
         return key !== 'SUPER_ADMIN' ? (
           <div className="flex justify-center items-center">
@@ -195,11 +195,11 @@ const RolePermissions = () => {
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -246,7 +246,7 @@ const RolePermissions = () => {
         }
       })
       .catch((err: Error) => {
-        console.log('error: ', err);
+        // console.log('error: ', err);
         setIsLoader(false);
       });
   };
@@ -268,11 +268,11 @@ const RolePermissions = () => {
       } else {
         setMainIsLoader(false);
         ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

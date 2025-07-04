@@ -46,7 +46,7 @@ const PropertyList = () => {
 
   const [units, setUnits] = useState([]);
 
-  console.log('userDetails', userDetails);
+  // console.log('userDetails', userDetails);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -236,7 +236,7 @@ const PropertyList = () => {
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

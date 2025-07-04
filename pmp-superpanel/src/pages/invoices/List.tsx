@@ -147,7 +147,7 @@ const Invoices = () => {
 
   const handlePageChange = (newPage: number) => {
     table.setPageIndex(newPage + 1);
-    console.log('current page: ', newPage);
+    // console.log('current page: ', newPage);
 
     setPage(newPage + 1);
     fetchList(search, newPage + 1);
@@ -211,24 +211,50 @@ const Invoices = () => {
       { accessorKey: 'invoice_no', header: 'Invoice' },
       {
         accessorKey: 'contract_no',
-        header: 'Contract no',
+        header: 'Tenant',
+        cell: ({ row }) => {
+          const tenant = row.original.tenant;
+          const user = tenant?.user;
+
+          return (
+            <div className="leading-tight">
+              {user?.fname && user?.lname && (
+                <div className="text-sm font-semibold text-gray-800">
+                  {user.fname} {user.lname}
+                </div>
+              )}
+              {tenant?.contract_number && (
+                <div className="text-xs text-gray-500 mt-0.5">
+                  ({tenant.contract_number})
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'property',
+        header: 'Property',
         cell: ({ row }) =>
-          row.original.tenant.contract_number
-            ? row.original.tenant.contract_number
-            : '--',
+          row.original.tenant?.property_unit?.property?.name || '--',
+      },
+      {
+        accessorKey: 'unit_no',
+        header: 'Unit No',
+        cell: ({ row }) => row.original.tenant?.property_unit?.unit_no || '--',
       },
       // { accessorKey: 'invoice_no', header: 'Contract no' },
       { accessorKey: 'total_amount', header: 'Total' },
       { accessorKey: 'due_date', header: 'Due' },
       { accessorKey: 'status', header: 'Status' },
-      {
-        accessorKey: 'invoice_date',
-        header: 'Invoice Date',
-        cell: ({ row }) =>
-          row.original.invoice_date
-            ? new Date(row.original.invoice_date).toLocaleDateString()
-            : '--',
-      },
+      // {
+      //   accessorKey: 'invoice_date',
+      //   header: 'Invoice Date',
+      //   cell: ({ row }) =>
+      //     row.original.invoice_date
+      //       ? new Date(row.original.invoice_date).toLocaleDateString()
+      //       : '--',
+      // },
       {
         id: 'Submitted',
         header: 'Payment',
@@ -323,7 +349,7 @@ const Invoices = () => {
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
         <div className="flex items-center py-4 justify-between">
           <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-            Inovices
+            Invoices
           </h2>
           <div className="flex items-center gap-3">
             <Input

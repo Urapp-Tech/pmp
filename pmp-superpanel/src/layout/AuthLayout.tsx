@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 
 function AuthLayout() {
   const authState: any = useSelector((state: any) => state.authState);
-  console.log('auth', authState);
+  // console.log('auth', authState);
 
   if (authState.user && authState.user.access_token) {
     return <Navigate to="../dashboard" replace />;

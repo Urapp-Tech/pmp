@@ -157,7 +157,7 @@ export function MainSidebar({
       items: [],
     },
     {
-      title: 'Inovices',
+      title: 'Invoices',
       url: '/admin-panel/invoices',
       icon: assets.images.rolePermissionsSidebarIcon,
       permission: PERMISSIONS.INVOICE.VIEW,

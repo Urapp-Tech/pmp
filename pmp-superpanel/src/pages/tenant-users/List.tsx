@@ -268,11 +268,11 @@ const TenantUsers = () => {
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -305,10 +305,10 @@ const TenantUsers = () => {
         setTotal(users.data.total);
       } else {
         ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -335,7 +335,7 @@ const TenantUsers = () => {
       delete data.landlordId;
       service = LandlordService.createService(data);
     } else {
-      console.log('me formdata ho');
+      // console.log('me formdata ho');
       formData.append('fname', data.fname);
       formData.append('lname', data.lname);
       formData.append('email', data.email);
@@ -379,7 +379,7 @@ const TenantUsers = () => {
       delete data.landlordId;
       service = LandlordService.updateService(id, data);
     } else {
-      console.log('me formdata ho');
+      // console.log('me formdata ho');
       formData.append('fname', data.fname);
       formData.append('lname', data.lname);
       formData.append('email', data.email);

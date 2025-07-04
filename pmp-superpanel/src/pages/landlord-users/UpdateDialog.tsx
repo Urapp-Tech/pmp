@@ -49,7 +49,7 @@ const OfficeUserUpdateDialog = ({
       gender: formData.gender || '',
     },
   });
-  console.log('formData', formData);
+  // console.log('formData', formData);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -124,7 +124,7 @@ const OfficeUserUpdateDialog = ({
       const roles = await service.lov();
       setRoleLov(roles.data);
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

@@ -89,7 +89,7 @@ const OfficeUserCreateDialog = ({
       roleName: roleLov.filter((item: any) => item.id === data.role)[0]?.name,
     };
     callback(obj);
-    // console.log('s', obj);
+    // // console.log('s', obj);
   };
 
   const togglePasswordVisibility = () => {
@@ -101,7 +101,7 @@ const OfficeUserCreateDialog = ({
       const roles = await service.lov();
       setRoleLov(roles.data);
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -110,7 +110,7 @@ const OfficeUserCreateDialog = ({
       const roles = await landlordService.lov();
       setLandlordRoleLov(roles.data.items);
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -127,7 +127,7 @@ const OfficeUserCreateDialog = ({
     }
   }, [selectedRoleName, form.setValue]);
 
-  console.log('roleLov', selectedRoleName);
+  // console.log('roleLov', selectedRoleName);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

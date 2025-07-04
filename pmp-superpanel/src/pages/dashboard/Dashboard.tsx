@@ -46,7 +46,7 @@ function Dashboard() {
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <Monitor /> Currnet Month Invoices
+                <Monitor /> Current Month Invoices
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">
@@ -56,7 +56,7 @@ function Dashboard() {
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
               <Label className="text-xl" htmlFor="activeCabin">
-                <MonitorCheck /> Currnet Month Receipts
+                <MonitorCheck /> Current Month Receipts
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
                 <span className="text-4xl font-semibold">

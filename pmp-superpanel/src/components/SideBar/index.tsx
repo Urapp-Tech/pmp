@@ -23,7 +23,7 @@ export function MainSidebar({
   const authState: any = useSelector((state: any) => state.authState);
   const appState: any = useSelector((state: any) => state.appState);
   const userRoles: any = getItem('USER');
-  console.log('userRoles', userRoles);
+  // console.log('userRoles', userRoles);
 
   // const { logo, media } = appState;
   // console.log('authState', appState);
@@ -56,13 +56,13 @@ export function MainSidebar({
         items: [],
       },
       {
-        title: 'Inovices',
+        title: 'Invoices',
         url: '/super-admin/invoices',
         icon: assets.images.pagesSidebarIcon,
         items: [],
       },
       {
-        title: 'Reciepts',
+        title: 'Receipts',
         url: '/super-admin/reports/invoices',
         icon: assets.images.pagesSidebarIcon,
         items: [],

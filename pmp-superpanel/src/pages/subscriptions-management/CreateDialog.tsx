@@ -72,7 +72,7 @@ const OfficeUserCreateDialog = ({
     if (file) data.avatar = file;
     data.userType = 'USER';
     callback(data);
-    // console.log('s', data);
+    // // console.log('s', data);
   };
 
   const togglePasswordVisibility = () => {
@@ -91,10 +91,10 @@ const OfficeUserCreateDialog = ({
         });
         setRoleLov(lov);
       } else {
-        console.log('error: ', roles.data.message);
+        // console.log('error: ', roles.data.message);
       }
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

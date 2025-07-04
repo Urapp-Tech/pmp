@@ -72,13 +72,13 @@ const AddRolePermissionsPage = () => {
         setMainIsLoader(false);
         setIsLoader(false);
         ToastHandler(response.data.detail);
-        console.log('error: ', response);
+        // console.log('error: ', response);
       }
     } catch (error: Error | any) {
       setMainIsLoader(false);
       setIsLoader(false);
       ToastHandler(error.response.data.detail);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -116,11 +116,11 @@ const AddRolePermissionsPage = () => {
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

@@ -278,7 +278,7 @@ const UnverifiedUsers = () => {
   const fetchUsers = async () => {
     try {
       const users = await usersService.unverifiedList(search, page, pageSize);
-      console.log('users: ', users);
+      // console.log('users: ', users);
 
       if (users.data.success) {
         setMainIsLoader(false);
@@ -286,11 +286,11 @@ const UnverifiedUsers = () => {
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -337,7 +337,7 @@ const UnverifiedUsers = () => {
   //       }
   //     })
   //     .catch((err: Error) => {
-  //       console.log('error: ', err);
+  //       // console.log('error: ', err);
   //       setIsLoader(false);
   //     });
   // };
@@ -352,10 +352,10 @@ const UnverifiedUsers = () => {
         setTotal(users.data.data.total);
       } else {
         ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -379,7 +379,7 @@ const UnverifiedUsers = () => {
   });
 
   // const createEmployeeHandler = (data: any) => {
-  //   console.log('dadad', data);
+  //   // console.log('dadad', data);
 
   //   setIsLoader(true);
   //   const formData = new FormData();
@@ -407,7 +407,7 @@ const UnverifiedUsers = () => {
   //       }
   //     })
   //     .catch((err: Error | any) => {
-  //       console.log('error: ', err);
+  //       // console.log('error: ', err);
   //       ToastHandler(err?.response?.data?.message);
   //       setIsLoader(false);
   //     });
@@ -451,7 +451,7 @@ const UnverifiedUsers = () => {
   //       }
   //     })
   //     .catch((err: Error | any) => {
-  //       console.log('error: ', err);
+  //       // console.log('error: ', err);
   //       ToastHandler(err?.response?.data?.message);
   //       setIsLoader(false);
   //     });

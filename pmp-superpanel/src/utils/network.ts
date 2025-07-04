@@ -48,7 +48,7 @@ networkInstance.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.log('error :>> ', error);
+    // console.log('error :>> ', error);
     // Handle errors during request configuration
     return Promise.reject(error);
   }
@@ -133,7 +133,7 @@ const patch = <T = unknown>(endPoint: string, data: T, type?: any) => {
 };
 
 const get = (endPoint: string, body?: unknown, type?: any) => {
-  // console.log('token', token());
+  // // console.log('token', token());
 
   // let baseUrl = BASE_URL;
   let baseUrl = ADMIN_BASE_URL;

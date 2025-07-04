@@ -51,7 +51,7 @@ const OfficeUserUpdateDialog = ({
       landlord: formData.landlordId || '',
     },
   });
-  console.log('formData', formData);
+  // console.log('formData', formData);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -85,7 +85,7 @@ const OfficeUserUpdateDialog = ({
     (r: any) => r.id === form.watch('role')
   )?.name;
 
-  console.log('selectedRoleName updated', selectedRoleName);
+  // console.log('selectedRoleName updated', selectedRoleName);
 
   const onSubmit = async (data: Fields) => {
     // if (file) data.avatar = file;
@@ -112,7 +112,7 @@ const OfficeUserUpdateDialog = ({
       landlordId: data.landlord,
       roleName: roleLov.filter((item: any) => item.id === data.role)[0]?.name,
     };
-    // console.log(
+    // // console.log(
     //   's',
     //   obj?.roleName === 'User' || obj?.roleName === 'Manager'
     //     ? formData.id
@@ -136,7 +136,7 @@ const OfficeUserUpdateDialog = ({
       const roles = await service.lov();
       setRoleLov(roles.data);
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -151,7 +151,7 @@ const OfficeUserUpdateDialog = ({
           (l: any) => l.id === formData.landlordId
         );
         if (selected) {
-          console.log('Selected landlord:', selected);
+          // console.log('Selected landlord:', selected);
           form.setValue('landlord', selected.id);
         }
       }

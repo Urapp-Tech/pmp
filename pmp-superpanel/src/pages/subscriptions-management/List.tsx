@@ -248,11 +248,11 @@ const Invoices = () => {
         setTotal(users.data.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -315,10 +315,10 @@ const Invoices = () => {
         setTotal(users.data.data.total);
       } else {
         ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -342,7 +342,7 @@ const Invoices = () => {
   });
 
   const createEmployeeHandler = (data: any) => {
-    console.log('dadad', data);
+    // console.log('dadad', data);
 
     setIsLoader(true);
     const formData = new FormData();
