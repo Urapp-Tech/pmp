@@ -55,6 +55,11 @@ class Invoice(Base):
     landlord = relationship("Landlord", back_populates="invoices", passive_deletes=True)
     tenant = relationship("Tenant", back_populates="invoices", passive_deletes=True)
     # updated_user = relationship("User", back_populates="invoice_items", foreign_keys=[updated_by])
-    invoice_items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
-    items = relationship("InvoiceItem",  overlaps="invoice_items")
-    
+    invoice_items = relationship(
+        "InvoiceItem", back_populates="invoice", cascade="all, delete-orphan"
+    )
+    items = relationship("InvoiceItem", overlaps="invoice_items")
+
+    payments = relationship(
+        "PaymentHistory", back_populates="invoice", cascade="all, delete-orphan"
+    )
