@@ -17,7 +17,15 @@ MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Your App")
 
 # Jinja2 setup for email templates
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_DIR = os.path.join(BASE_DIR, "..", "templates")
+TEMPLATE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "templates"))
+
+if not os.path.exists(TEMPLATE_DIR):
+    # fallback to app/templates
+    TEMPLATE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "templates"))
+    print(f"🔄 [EMAIL] Falling back to app/templates: {TEMPLATE_DIR}")
+
+print(f"📂 [EMAIL] Using template directory: {TEMPLATE_DIR}")
+
 
 template_env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 

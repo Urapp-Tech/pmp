@@ -21,7 +21,12 @@ from app.modules.invoiceItems.routes import router as invoice_item_router
 from app.utils.uploader import get_file_base_url
 from app.modules.dashboardActivities.routes import router as dashboard_activity_router
 from app.modules.reports.routes import router as report_router
-from app.schedulers.invoice_scheduler import start_scheduler
+
+from app.schedulers.invoice_scheduler import start_scheduler, scheduler
+from app.jobs.generate_invoice import generate_and_send_invoices
+from contextlib import asynccontextmanager
+
+# from app.schedulers.invoice_scheduler import start_scheduler
 from app.modules.paymentHistory.routes import router as payment_router
 
 from app.utils.email_service import render_template, send_email
@@ -42,9 +47,44 @@ setup_global_logger()
 # debug_log({"key": "value", "status": 200})
 
 
-@app.on_event("startup")
-def on_startup():
-    start_scheduler()
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     # Startup
+#     print("🚀 Starting scheduler...")
+#     scheduler.start()
+
+#     # ⬇️ Add test job (every 10 seconds)
+#     scheduler.add_job(
+#         generate_and_send_invoices,
+#         "interval",
+#         seconds=10,  # Run every 10s for testing
+#         id="invoice_job",
+#         replace_existing=True,
+#     )
+#     print("✅ Test job scheduled (every 10s)")
+
+#     yield  # 👈 Let FastAPI run
+
+#     # Shutdown
+#     print("🛑 Stopping scheduler...")
+#     scheduler.shutdown()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print("🚀 Starting scheduler...")
+    scheduler.start()
+    print("✅ Production cron job scheduled (daily at midnight)")
+
+    yield
+
+    # Shutdown
+    print("🛑 Stopping scheduler...")
+    scheduler.shutdown()
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/")
@@ -171,6 +211,30 @@ async def send_ticket_email(
     )
     background_tasks.add_task(send_email, user_email, "Ticket Created", html_content)
     return {"message": "Ticket email sent"}
+
+
+@app.post("/send-invoice-email/")
+async def send_invoice_email(
+    background_tasks: BackgroundTasks,
+    user_email: str,
+    name: str,
+    invoice_title: str,
+    due_date: str,
+):
+    """Send maintenance ticket created email."""
+    html_content = render_template(
+        "invoice_created.html",
+        {
+            "name": name,
+            "invoice_title": invoice_title,
+            "status": "Pending",
+            "due_date": due_date,
+        },
+    )
+    background_tasks.add_task(
+        send_email, user_email, "New Invoice Created", html_content
+    )
+    return {"message": "Invoice email sent"}
 
 
 # @app.get("/test-email")
