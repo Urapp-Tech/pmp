@@ -12,9 +12,14 @@ class PaymentStatus(str, Enum):
 class CreatePaymentRequest(BaseModel):
     user_id: UUID
     invoice_id: UUID
+    property_unit_id: UUID
+    property: str
+    property_unit: str
+    user_email: str
+    # user_phone: str
     user_name: str
     amount: float
-    payment_type: str
+    # payment_type: str
 
 
 class PaymentResponse(BaseModel):

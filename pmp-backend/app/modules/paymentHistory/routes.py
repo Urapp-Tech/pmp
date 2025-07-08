@@ -1,7 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from app.modules.paymentHistory.schemas import PaymentResponse, CreatePaymentRequest
-from app.modules.paymentHistory.services import create_payment
+from app.modules.paymentHistory.services import (
+    process_payment_callback,
+    generate_payment_error_redirect,
+    create_payment,
+)
 from app.db.database import get_db
 from app.models.payment_history import PaymentStatus, PaymentHistory
 from urllib.parse import urlencode
@@ -9,6 +13,8 @@ from urllib.parse import urlencode
 # from fastapi.security import OAuth2PasswordBearer
 from app.core.security import get_current_user
 from fastapi.responses import RedirectResponse
+from app.core.config import settings
+from app.utils.logger import error_log  # adjust this import if needed
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
@@ -22,9 +28,13 @@ def create_payment_endpoint(
             db,
             user_id=payment_data.user_id,
             invoice_id=payment_data.invoice_id,
+            property_unit_id=payment_data.property_unit_id,
+            property=payment_data.property,
+            property_unit=payment_data.property_unit,
+            user_email=payment_data.user_email,
+            # user_phone=payment_data.user_phone,
             user_name=payment_data.user_name,
             amount=payment_data.amount,
-            payment_type=payment_data.payment_type,
         )
         return {
             "payment_url": payment.payment_url,
@@ -37,12 +47,16 @@ def create_payment_endpoint(
 
 
 @router.get("/callback")
-def payment_callback_browser(paymentId: str, Id: str):
-    query_params = {
-        "paymentId": paymentId,
-        "Id": Id,
-    }
-    url = f"http://localhost:3006/admin-panel/payment-success?{urlencode(query_params)}"
+def payment_callback_browser(paymentId: str, db: Session = Depends(get_db)):
+    # try:
+    invoice_status = process_payment_callback(paymentId, db)
+    if invoice_status == "Paid":
+        url = f"{settings.FRONTEND_BASE_URL}/payments/success?paymentId={paymentId}"
+    else:
+        url = f"{settings.FRONTEND_BASE_URL}/payments/failed?paymentId={paymentId}&reason={invoice_status}"
+    # except Exception as e:
+    #     url = f"{settings.FRONTEND_BASE_URL}payments/failed?paymentId={paymentId}&reason=error"
+
     return RedirectResponse(url=url)
 
 
@@ -52,19 +66,14 @@ def payment_error_browser(
     Id: str,
     reason: str = "Payment failed or was cancelled. Please try again.",
 ):
-    query_params = {
-        "paymentId": paymentId,
-        "Id": Id,
-        "reason": reason,
-    }
-    url = f"http://localhost:3006/admin-panel/payment-failed?{urlencode(query_params)}"
-    return RedirectResponse(url=url)
+    redirect_url = generate_payment_error_redirect(paymentId, Id, reason)
+    return RedirectResponse(url=redirect_url)
 
 
 @router.post("/webhook")
 async def myfatoorah_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.json()
-
+    print(payload)
     invoice_ref = payload.get("CustomerReference") or payload.get("InvoiceReference")
     invoice_status = payload.get("InvoiceStatus") or payload.get("InvoicePaymentStatus")
 

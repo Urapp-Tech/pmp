@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, DateTime, Enum, ForeignKey
+from sqlalchemy import JSON, Column, String, Float, DateTime, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.database import Base
 from sqlalchemy.orm import relationship
@@ -28,6 +28,8 @@ class PaymentHistory(Base):
         ForeignKey("invoices.id", ondelete="CASCADE"),
         nullable=False,
     )
+    payment_id=Column(String(222), nullable=True)
+    payload=Column(JSON, nullable=True)
     amount = Column(Float, nullable=False)
     currency = Column(String(10), nullable=False, default="KWD")
     payment_type = Column(

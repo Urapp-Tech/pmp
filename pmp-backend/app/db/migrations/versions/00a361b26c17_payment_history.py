@@ -49,6 +49,16 @@ def upgrade():
             sa.ForeignKey("invoices.id"),
             nullable=True,
         ),
+        sa.Column(
+            "payment_id",
+             sa.String(length=222),
+            nullable=True,
+        ),
+        sa.Column(
+            "payload",
+             sa.JSON,
+            nullable=True,
+        ),
         sa.Column("amount", sa.Float, nullable=False),
         sa.Column("currency", sa.String(length=10), nullable=False, default="KWD"),
         sa.Column(

@@ -1,58 +1,144 @@
+from datetime import datetime
+import json
+from fastapi import HTTPException, Request
 from sqlalchemy.orm import Session
+from app.models.invoices import Invoice
 from app.models.payment_history import PaymentHistory, PaymentStatus
 from app.models.users import User
-
 # from app.modules.paymentHistory.schemas import PaymentCreate
 from app.utils.myfatoorah_service import create_invoice
 from uuid import UUID
 import requests
 from app.core.config import settings
+from urllib.parse import urlencode
 
 
 MYFATOORAH_API_URL = settings.MYFATOORAH_API_URL
 MYFATOORAH_API_KEY = settings.MYFATOORAH_API_KEY
 
 
+# def create_payment(
+#     db: Session,
+#     user_id: UUID,
+#     invoice_id: UUID,
+#     property_unit_id: UUID,
+#     property: str,
+#     property_unit: str,
+#     user_name: str,
+#     user_email: str, 
+#     user_phone: str,
+#     amount: float,
+# ):
+#     print("Fatoorah URL:", MYFATOORAH_API_URL)
+#     print("Fatoorah API Key:", settings.MYFATOORAH_API_KEY[:10])
+
+#     user = db.query(User).filter(User.id == user_id).first()
+#     if not user:
+#         raise Exception(
+#             f"User with ID {user_id} does not exist. Cannot create payment."
+#         )
+
+#     # MyFatoorah payload
+#     payload = {
+#         "CustomerName": user_name,
+#         "CustomerEmail":user_email ,  # Dummy email for test
+#         # "MobileCountryCode": "+965",  # Dummy Kuwait code for test
+#         "CustomerMobile":user_phone ,  # Dummy mobile for test
+#         "CustomerReference": str(invoice_id),  # Helps map payment later
+#         "UserDefinedField": str(user_id),
+#         "NotificationOption": "ALL",
+#         "CallBackUrl": "http://localhost:8000/admin/payments/callback",
+#         "ErrorUrl": "http://localhost:8000/admin/payments/error",
+#         "WebhookUrl": "http://localhost:8000/api/v1/payment/webhook",
+#         "Language": "en",
+#         "InvoiceValue": amount,
+#         # "CustomerAddress": {  # Dummy address for test
+#         #     "Block": "10",
+#         #     "Street": "Test Street",
+#         #     "HouseBuildingNo": "5",
+#         #     "AddressInstructions": "Near test landmark",
+#         # },
+#         "InvoiceItems": [  # Add a single dummy item
+#             {
+#                 "ItemName": property + " - " + property_unit + " - " + "rent",
+#                 "Quantity": 1,
+#                 "UnitPrice": amount,
+#                 "Weight": 0,
+#                 "Width": 0,
+#                 "Height": 0,
+#                 "Depth": 0,
+#             }
+#         ],
+#         "ProcessingDetails": {"AutoCapture": True, "Bypass3DS": True},
+#     }
+
+#     headers = {
+#         "Authorization": f"Bearer {settings.MYFATOORAH_API_KEY}",
+#         "Content-Type": "application/json",
+#     }
+
+#     try:
+#         response = requests.post(MYFATOORAH_API_URL, json=payload, headers=headers)
+#         response.raise_for_status()  # Raise exception for HTTP errors
+#         payment_data = response.json()
+
+#         print("Payment API response:", payment_data)
+
+#         payment = PaymentHistory(
+#             invoice_id=invoice_id,
+#             user_id=user_id,
+#             property_unit_id=property_unit_id,
+#             amount=amount,  # ✅ FIXED
+#             currency="KWD",  # Or get from invoice if needed
+#             payment_type="RENT",  # ✅ FIXED
+#             payment_url=payment_data["Data"]["InvoiceURL"],
+#             status=PaymentStatus.PENDING,
+#         )
+#         db.add(payment)
+#         db.commit()
+#         db.refresh(payment)
+
+#         return payment
+
+#     except requests.RequestException as e:
+#         # Log error and raise custom exception
+#         print("Payment API call failed:", e)
+#         raise Exception(f"MyFatoorah API Error: {e}")
 def create_payment(
     db: Session,
     user_id: UUID,
     invoice_id: UUID,
+    property_unit_id: UUID,
+    property: str,
+    property_unit: str,
     user_name: str,
+    user_email: str,
+    # user_phone: str,
     amount: float,
-    payment_type: str,
 ):
     print("Fatoorah URL:", MYFATOORAH_API_URL)
     print("Fatoorah API Key:", settings.MYFATOORAH_API_KEY[:10])
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise Exception(
-            f"User with ID {user_id} does not exist. Cannot create payment."
-        )
+        raise Exception(f"User with ID {user_id} does not exist. Cannot create payment.")
 
-    # MyFatoorah payload
+    # Prepare MyFatoorah payload
     payload = {
         "CustomerName": user_name,
-        "CustomerEmail": "test@example.com",  # Dummy email for test
-        "MobileCountryCode": "+965",  # Dummy Kuwait code for test
-        "CustomerMobile": "12345678",  # Dummy mobile for test
-        "CustomerReference": str(invoice_id),  # Helps map payment later
+        "CustomerEmail": user_email,
+        # "CustomerMobile": user_phone,
+        "CustomerReference": str(invoice_id),
         "UserDefinedField": str(user_id),
-        "NotificationOption": "LNK",
+        "NotificationOption": "EML",
         "CallBackUrl": "http://localhost:8000/admin/payments/callback",
         "ErrorUrl": "http://localhost:8000/admin/payments/error",
         "WebhookUrl": "http://localhost:8000/api/v1/payment/webhook",
         "Language": "en",
         "InvoiceValue": amount,
-        "CustomerAddress": {  # Dummy address for test
-            "Block": "10",
-            "Street": "Test Street",
-            "HouseBuildingNo": "5",
-            "AddressInstructions": "Near test landmark",
-        },
-        "InvoiceItems": [  # Add a single dummy item
+        "InvoiceItems": [
             {
-                "ItemName": "Test Payment",
+                "ItemName": f"{property} - {property_unit} - rent",
                 "Quantity": 1,
                 "UnitPrice": amount,
                 "Weight": 0,
@@ -70,19 +156,41 @@ def create_payment(
     }
 
     try:
+        # 🧾 Call MyFatoorah API
         response = requests.post(MYFATOORAH_API_URL, json=payload, headers=headers)
-        response.raise_for_status()  # Raise exception for HTTP errors
+        response.raise_for_status()
         payment_data = response.json()
+        invoice_url = payment_data["Data"]["InvoiceURL"]
+        payment_id = payment_data["Data"]["InvoiceId"]
 
-        print("Payment API response:", payment_data)
+        # ✅ Check if payment already exists
+        existing_payment = (
+            db.query(PaymentHistory)
+            .filter(PaymentHistory.invoice_id == invoice_id)
+            .filter(PaymentHistory.status == PaymentStatus.PENDING)
+            .first()
+        )
 
+        if existing_payment:
+            print("Updating existing pending payment...")
+            existing_payment.payment_url = invoice_url
+            existing_payment.amount = amount  # Optional: in case amount changed
+            existing_payment.updated_at = datetime.utcnow()  # Optional
+            db.commit()
+            db.refresh(existing_payment)
+            return existing_payment
+
+        # ❌ If not exists, create new payment
         payment = PaymentHistory(
             invoice_id=invoice_id,
             user_id=user_id,
-            amount=amount,  # ✅ FIXED
-            currency="KWD",  # Or get from invoice if needed
-            payment_type=payment_type,  # ✅ FIXED
-            payment_url=payment_data["Data"]["InvoiceURL"],
+            payload=payment_data,
+            payment_id=payment_id,
+            property_unit_id=property_unit_id,
+            amount=amount,
+            currency="KWD",
+            payment_type="RENT",
+            payment_url=invoice_url,
             status=PaymentStatus.PENDING,
         )
         db.add(payment)
@@ -92,6 +200,65 @@ def create_payment(
         return payment
 
     except requests.RequestException as e:
-        # Log error and raise custom exception
         print("Payment API call failed:", e)
         raise Exception(f"MyFatoorah API Error: {e}")
+
+def process_payment_callback(payment_id: str, db: Session) -> str:
+    # Step 1: Get payment status from MyFatoorah
+    payment_info = get_payment_status_from_myfatoorah(payment_id)
+    # Log entire response
+    print("Raw Response:", json.dumps(payment_info, indent=2))
+
+    if not payment_info.get("IsSuccess"):
+        raise HTTPException(status_code=400, detail="MyFatoorah response failed")
+
+    # Actual payment details are inside Data
+    payment_data = payment_info.get("Data", {})
+    invoice_status = payment_data.get("InvoiceStatus")  # ✅ Correct now
+    invoice_value = payment_data.get("InvoiceValue")
+    invoice_id = payment_data.get("CustomerReference")
+    # invoice_id = str(payment_data.get("InvoiceId"))
+    payment_data = payment_info  # Full payload
+
+    # Step 2: Find payment
+    payment = db.query(PaymentHistory).filter(PaymentHistory.invoice_id == invoice_id).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment record not found")
+
+    # Step 3: Update payment
+    payment.status = PaymentStatus.SUCCESS if invoice_status == "Paid" else PaymentStatus.FAILED
+    payment.payload = payment_data
+
+    # Step 4: Update invoice
+    invoice = db.query(Invoice).filter(Invoice.id == payment.invoice_id).first()
+    if invoice and invoice_status == "Paid":
+        invoice.status = "paid"
+        invoice.payment_date = datetime.utcnow().date()
+
+    db.commit()
+
+    return invoice_status
+
+def generate_payment_error_redirect(payment_id: str, reference_id: str, reason: str) -> str:
+    query_params = {
+        "paymentId": payment_id,
+        "Id": reference_id,
+        "reason": reason,
+    }
+    return f"{settings.FRONTEND_BASE_URL}/payments/failed?{urlencode(query_params)}"
+
+
+def get_payment_status_from_myfatoorah(payment_id: str):
+    url = "https://apitest.myfatoorah.com/v2/GetPaymentStatus"
+    headers = {
+        "Authorization": f"Bearer {settings.MYFATOORAH_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "Key": payment_id,
+        "KeyType": "PaymentId"
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()  # raises exception for HTTP errors
+    return response.json()
