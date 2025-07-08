@@ -230,28 +230,8 @@ const Login = () => {
             </Form>
           </div>
         </div>
-
-        {/* {notification && (
-              <Notify
-                isOpen
-                setIsOpen={hideNotification}
-                displayMessage={notification}
-              />
-            )} */}
       </div>
     </div>
-    // <>
-    //   <div className='bg-wrap w-full'>
-    //     <div className='max-w-[795px] h-[889px]'>
-    //       <img src={assets.images.signBanner} alt='banner' className='w-full max-w-full h-full object-contain' />
-    //     </div>
-    //     <div className='max-w-[528px] min-h-[776px]'>
-    //       <div className='w-[122px] h-[40px]'>
-    //         <img src={assets.images.mainLogo} alt='logo' />
-    //       </div>
-    //     </div>
-    //   </div>
-    // </>
   );
 };
 

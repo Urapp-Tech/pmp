@@ -27,6 +27,8 @@ import ApprovedContracts from './pages/tenant-users/approved-contracts/List';
 import ReportedTicketsList from './pages/support-maintenance/ReportedList';
 import InvoiceReport from './pages/reports/InvoiceReport';
 import InvoiceDetail from './pages/reports/InvoiceDetail';
+import SuccessPage from './pages/payments/success';
+import FailurePage from './pages/payments/Failure';
 // const LandlordDashboard = lazy(
 //   () => import('@/pages/dashboard/LandlordDashboard')
 // );
@@ -48,6 +50,22 @@ export const routeObjects: RouteObject[] = [
       {
         index: true,
         element: <Navigate to="auth" replace />,
+      },
+      {
+        path: 'payment-success',
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <SuccessPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'payment-failed',
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <FailurePage />
+          </Suspense>
+        ),
       },
       {
         path: 'auth',
@@ -92,6 +110,14 @@ export const routeObjects: RouteObject[] = [
               </Suspense>
             ),
           },
+          // {
+          //   path: 'payment-confirmation',
+          //   element: (
+          //     <Suspense fallback={<div>Loading...</div>}>
+          //       <SuccessPage />
+          //     </Suspense>
+          //   ),
+          // },
           {
             path: 'property-managers',
             children: [

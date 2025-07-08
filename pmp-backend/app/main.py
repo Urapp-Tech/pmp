@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.modules.superusers.routes import router as superuser_router
@@ -22,6 +22,11 @@ from app.utils.uploader import get_file_base_url
 from app.modules.dashboardActivities.routes import router as dashboard_activity_router
 from app.modules.reports.routes import router as report_router
 from app.schedulers.invoice_scheduler import start_scheduler
+from app.modules.paymentHistory.routes import router as payment_router
+
+from app.utils.email_service import render_template, send_email
+from app.utils.email_service import template_env
+
 app = FastAPI(
     docs_url="/docs",  # disables Swagger UI (/docs)
     # openapi_url=None       # disables OpenAPI schema (/openapi.json)
@@ -36,13 +41,16 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 setup_global_logger()
 # debug_log({"key": "value", "status": 200})
 
+
 @app.on_event("startup")
 def on_startup():
     start_scheduler()
 
+
 @app.get("/")
 def root():
     return {"message": "Scheduler running every 1 minute"}
+
 
 # error_log( "Division failed")
 # Middleware to log full errors with tracebacks
@@ -132,6 +140,53 @@ app.include_router(
     prefix="/admin/reports",
     tags=["Admin - Reports"],
 )
+app.include_router(
+    payment_router,
+    prefix="/admin",
+    tags=["Admin - Payments"],
+)
+
+
+@app.post("/send-payment-email/")
+async def send_payment_email(
+    background_tasks: BackgroundTasks, user_email: str, name: str, amount: float
+):
+    """Send payment confirmation email."""
+    html_content = render_template(
+        "payment_created.html",
+        {"name": name, "amount": f"${amount}", "status": "Created"},
+    )
+    background_tasks.add_task(send_email, user_email, "Payment Created", html_content)
+    return {"message": "Payment email sent"}
+
+
+@app.post("/send-ticket-email/")
+async def send_ticket_email(
+    background_tasks: BackgroundTasks, user_email: str, name: str, ticket_title: str
+):
+    """Send maintenance ticket created email."""
+    html_content = render_template(
+        "ticket_created.html",
+        {"name": name, "ticket_title": ticket_title, "status": "Open"},
+    )
+    background_tasks.add_task(send_email, user_email, "Ticket Created", html_content)
+    return {"message": "Ticket email sent"}
+
+
+# @app.get("/test-email")
+# def test_email():
+#     template = template_env.get_template("ticket_created.html")
+#     html = template.render(
+#         first_name="Rafay",
+#         last_name="Asad",
+#         email="layayoissuyau-8461@yopmail.com",
+#         phone="123456789",
+#         comment="This is a test comment.",
+#         created_at="2025-07-08 12:00:00",
+#         year=2025,
+#     )
+#     return {"html_preview": html}
+
 
 app.add_middleware(
     CORSMiddleware,
