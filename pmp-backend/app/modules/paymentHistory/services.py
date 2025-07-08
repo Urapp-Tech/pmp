@@ -79,9 +79,9 @@ def create_payment(
         payment = PaymentHistory(
             invoice_id=invoice_id,
             user_id=user_id,
-            amount=amount,  # ✅ FIXED
-            currency="KWD",  # Or get from invoice if needed
-            payment_type=payment_type,  # ✅ FIXED
+            amount=amount,
+            currency="KWD",
+            payment_type=payment_type,
             payment_url=payment_data["Data"]["InvoiceURL"],
             status=PaymentStatus.PENDING,
         )

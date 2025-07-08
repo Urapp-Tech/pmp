@@ -10,7 +10,7 @@ from urllib.parse import urlencode
 from app.core.security import get_current_user
 from fastapi.responses import RedirectResponse
 
-router = APIRouter(prefix="/payments", tags=["Payments"])
+router = APIRouter()
 
 
 @router.post("/create", response_model=PaymentResponse)

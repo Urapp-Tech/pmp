@@ -30,6 +30,20 @@ class Settings(BaseSettings):
     s3_bucket: str
     s3_bucket_storage: bool
 
+    # SendGrid credentials
+    SENDGRID_API_KEY: str
+    SENDGRID_MAIL_FROM: str
+
+    # SMTP
+    MAIL_MAILER: str
+    MAIL_HOST: str
+    MAIL_PORT: str
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_ENCRYPTION: str
+    MAIL_FROM_ADDRESS: str
+    MAIL_FROM_NAME: str
+
     @property
     def sqlalchemy_url(self):
         return (
@@ -39,7 +53,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
-        # extra = "forbid"
+        extra = "forbid"
 
 
 # @lru_cache()
