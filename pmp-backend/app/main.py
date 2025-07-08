@@ -37,12 +37,12 @@ setup_global_logger()
 # debug_log({"key": "value", "status": 200})
 
 @app.on_event("startup")
-def startup_event():
+def on_startup():
     start_scheduler()
 
 @app.get("/")
-def read_root():
-    return {"message": "Hello from FastAPI with Cron!"}
+def root():
+    return {"message": "Scheduler running every 1 minute"}
 
 # error_log( "Division failed")
 # Middleware to log full errors with tracebacks
