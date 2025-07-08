@@ -71,9 +71,9 @@ const InvoiceCreateDialog = ({
   const userDetails: any = getItem('USER');
   useEffect(() => {
     const fetchTenants = async () => {
-      const res = await service.get_all_tanents(userDetails?.landlordId);
+      const res:any = await service.get_all_tanents(userDetails?.landlordId);
       if (res?.data?.success) {
-        // console.log('res111', res);
+        
         setContracts(res.data.items);
         const mapped = res.data.items.map((t: any) => ({
           id: t.id,
@@ -104,8 +104,6 @@ const InvoiceCreateDialog = ({
     const formattedDate = nextDate.toISOString().slice(0, 10); // "2025-09-05"
     form.setValue('due_date', formattedDate, { shouldValidate: true });
   }, [form.watch('tenant_id')]);
-
-  // console.log("tenants", tenants);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

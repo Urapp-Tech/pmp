@@ -86,7 +86,7 @@ const Receipts = () => {
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#FF5733',
+        backgroundColor: '#5CB85C',
         color: 'white',
         zIndex: 9999,
       },
@@ -161,11 +161,11 @@ const Receipts = () => {
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -200,11 +200,11 @@ const Receipts = () => {
         setMainIsLoader(false);
       } else {
         ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

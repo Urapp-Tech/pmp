@@ -106,7 +106,7 @@ const Users = () => {
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#FF5733',
+        backgroundColor: '#5CB85C',
         color: 'white',
         zIndex: 9999,
       },
@@ -245,7 +245,7 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       const users = await usersService.list(search, page, pageSize);
-      console.log('users: ', users);
+      // console.log('users: ', users);
 
       if (users.data.success) {
         setMainIsLoader(false);
@@ -253,11 +253,11 @@ const Users = () => {
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -295,7 +295,7 @@ const Users = () => {
               'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
             ),
             style: {
-              backgroundColor: '#FF5733',
+              backgroundColor: '#5CB85C',
               color: 'white',
             },
           });
@@ -320,10 +320,10 @@ const Users = () => {
         setTotal(users.data.data.total);
       } else {
         ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -347,7 +347,7 @@ const Users = () => {
   });
 
   const createHandler = (data: any) => {
-    console.log('dadad', data);
+    // console.log('dadad', data);
     setIsLoader(true);
     // const formData = new FormData();
     // formData.append('userType', data.userType);

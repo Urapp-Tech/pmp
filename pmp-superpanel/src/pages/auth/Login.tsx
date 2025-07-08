@@ -80,7 +80,7 @@ const Login = () => {
     };
     try {
       const user = await authService.loginService(userData);
-      console.log('user', user.data);
+      // console.log('user', user.data);
 
       if (user.data.success) {
         setIsLoader(false);
@@ -94,7 +94,7 @@ const Login = () => {
     } catch (err: Error | any) {
       setIsLoader(false);
       ToastHandler(err?.response?.data?.message);
-      console.log('🚀 ~ loginHandler ~ error:', err?.response?.data?.message);
+      // console.log('🚀 ~ loginHandler ~ error:', err?.response?.data?.message);
     }
   };
 

@@ -23,7 +23,7 @@ export function MainSidebar({
   const authState: any = useSelector((state: any) => state.authState);
   const appState: any = useSelector((state: any) => state.appState);
   const userRoles: any = getItem('USER');
-  console.log('userRoles', userRoles);
+  // console.log('userRoles', userRoles);
 
   // const { logo, media } = appState;
   // console.log('authState', appState);
@@ -44,26 +44,44 @@ export function MainSidebar({
         items: [],
       },
       {
-        title: 'Tenant Users',
-        url: '/super-admin/tenant-users',
+        title: 'Users',
+        url: '/super-admin/users',
         icon: assets.images.usersSidebarIcon,
         items: [],
       },
       {
-        title: 'Landlord Management',
-        url: '#',
-        icon: assets.images.adminUsersSidebarIcon,
-        items: [
-          {
-            title: 'Users',
-            url: '/super-admin/users',
-          },
-          {
-            title: 'Requests',
-            url: '/super-admin/users/request-list',
-          },
-        ],
+        title: 'Landlord Requests',
+        url: '/super-admin/landlord-request',
+        icon: assets.images.usersSidebarIcon,
+        items: [],
       },
+      {
+        title: 'Invoices',
+        url: '/super-admin/invoices',
+        icon: assets.images.pagesSidebarIcon,
+        items: [],
+      },
+      {
+        title: 'Receipts',
+        url: '/super-admin/reports/invoices',
+        icon: assets.images.pagesSidebarIcon,
+        items: [],
+      },
+      // {
+      //   title: 'Landlord Management',
+      //   url: '#',
+      //   icon: assets.images.adminUsersSidebarIcon,
+      //   items: [
+      //     {
+      //       title: 'Users',
+      //       url: '/super-admin/l-users',
+      //     },
+      //     {
+      //       title: 'Requests',
+      //       url: '/super-admin/l-users/request-list',
+      //     },
+      //   ],
+      // },
       // {
       //   title: 'Users',
       //   url: '/super-admin/users',

@@ -50,10 +50,27 @@ def create_landlord(db: Session, landlord_data: LandlordCreate):
         db.commit()
         db.refresh(user)
 
+        user_data = {
+            "id": str(user.id),
+            "fname": user.fname,
+            "lname": user.lname,
+            "email": user.email,
+            "phone": user.phone,
+            "gender": user.gender,
+            "isLandlord": True,
+            "createdAt": user.created_at,
+            "updatedAt": user.updated_at,
+            "is_verified": user.is_verified,
+            "is_active": user.is_active,
+            "landlord_id": str(user.landlord_id),
+            "role_id": str(user.role_id),
+            "role_name": user.role.name,
+        }
+
         return {
             "success": True,
             "message": "Landlord created successfully.",
-            "items": user,
+            "items": user_data,
         }
 
     except Exception as e:
@@ -91,10 +108,27 @@ def update_landlord(db: Session, landlord_id: UUID, data: LandlordUpdate):
         db.commit()
         db.refresh(user)
 
+        user_data = {
+            "id": str(user.id),
+            "fname": user.fname,
+            "lname": user.lname,
+            "email": user.email,
+            "phone": user.phone,
+            "gender": user.gender,
+            "isLandlord": True,
+            "createdAt": user.created_at,
+            "updatedAt": user.updated_at,
+            "is_verified": user.is_verified,
+            "is_active": user.is_active,
+            "landlord_id": str(user.landlord_id),
+            "role_id": str(user.role_id),
+            "role_name": user.role.name,
+        }
+
         return {
             "success": True,
             "message": "Landlord updated successfully.",
-            "items": user,
+            "items": user_data,
         }
 
     except Exception as e:
@@ -222,3 +256,35 @@ def delete_landlord_user(db: Session, landlord_user_id: UUID):
     db.commit()
 
     return {"success": True, "message": "Landlord user deactivated successfully."}
+
+
+def get_landlord_lov(db: Session):
+    try:
+        landlords = (
+            db.query(User.landlord_id, User.fname, User.lname)
+            .filter(
+                User.is_landlord == True,
+                User.is_verified == True,
+                User.landlord_id.isnot(None),
+            )
+            .all()
+        )
+
+        landlord_lov = [
+            {
+                "id": landlord.landlord_id,
+                "name": f"{landlord.fname} {landlord.lname}".strip(),
+            }
+            for landlord in landlords
+        ]
+
+        return {
+            "success": True,
+            "total": len(landlord_lov),
+            "items": landlord_lov,
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching landlords: {str(e)}"
+        )

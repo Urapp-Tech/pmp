@@ -27,10 +27,15 @@ class UserCreate(BaseModel):
 
     @field_validator("fname", "lname")
     def name_must_be_alphabets(cls, v, field):
-        if not v.isalpha():
-            raise ValueError(
-                f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets."
-            )
+        if v is not None:
+
+            v_clean = v.strip()
+
+            if not all(part.isalpha() for part in v_clean.split()) or "  " in v_clean:
+                raise ValueError(
+                    f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets and single spaces."
+                )
+
         return v
 
     @field_validator("phone")
@@ -69,16 +74,22 @@ class UserUpdate(BaseModel):
     gender: Optional[str] = None
     landlord_id: Optional[UUID] = Field(None, alias="landlordId")
     role_type: Optional[str] = Field(None, alias="roleType")
+    is_active: Optional[bool] = None
 
     class Config:
         populate_by_name = True
 
     @field_validator("fname", "lname")
     def name_must_be_alphabets(cls, v, field):
-        if v is not None and not v.isalpha():
-            raise ValueError(
-                f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets."
-            )
+        if v is not None:
+
+            v_clean = v.strip()
+
+            if not all(part.isalpha() for part in v_clean.split()) or "  " in v_clean:
+                raise ValueError(
+                    f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets and single spaces."
+                )
+
         return v
 
     @field_validator("phone")

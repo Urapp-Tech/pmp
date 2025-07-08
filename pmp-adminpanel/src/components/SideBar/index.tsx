@@ -105,7 +105,10 @@ export function MainSidebar({
       items: [],
     },
     {
-      title: 'Support Tickets',
+      title:
+        userRoles?.role?.name === 'User'
+          ? 'Maintenance Requests'
+          : 'Support Tickets',
       url: '/admin-panel/support-tickets',
       icon: assets.images.notificationSidebarIcon,
       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
@@ -154,7 +157,7 @@ export function MainSidebar({
       items: [],
     },
     {
-      title: 'Inovices',
+      title: 'Invoices',
       url: '/admin-panel/invoices',
       icon: assets.images.rolePermissionsSidebarIcon,
       permission: PERMISSIONS.INVOICE.VIEW,
@@ -162,7 +165,7 @@ export function MainSidebar({
       role: ['Landlord', 'Manager'],
     },
     {
-      title: 'Financial Reports',
+      title: 'Receipts',
       url: '/admin-panel/reports/invoices',
       icon: assets.images.pagesSidebarIcon,
       permission: PERMISSIONS.FINANCIAL_REPORT.VIEW,

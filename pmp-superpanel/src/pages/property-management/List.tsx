@@ -23,6 +23,8 @@ import { cn } from '@/lib/utils';
 // import { PERMISSIONS } from '@/utils/constants';
 import { getItem } from '@/utils/storage';
 import UnitListModal from './UnitListModal';
+import UnitDetailsModal from './UnitDetailModal';
+import { handleErrorMessage } from '@/utils/helper';
 
 const PropertyList = () => {
   const userDetails: any = getItem('USER');
@@ -44,7 +46,21 @@ const PropertyList = () => {
 
   const [units, setUnits] = useState([]);
 
-  console.log('userDetails', userDetails);
+  // console.log('userDetails', userDetails);
+
+  const ToastHandler = (text: string) => {
+    return toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
+      ),
+      style: {
+        backgroundColor: '#5CB85C',
+        color: 'white',
+        zIndex: 9999,
+      },
+    });
+  };
 
   const fetchList = async () => {
     setIsLoader(true);
@@ -220,8 +236,42 @@ const PropertyList = () => {
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
+  };
+
+  const handleStatusToggle = (userId: any, newStatus: any) => {
+    setMainIsLoader(true);
+    propertyService
+      .updateToggleStatus(userId, { is_active: newStatus })
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setMainIsLoader(false);
+          setList((prevList: any) =>
+            prevList.map((item: any) => {
+              if (item.id === updateItem.data.property_id) {
+                const updatedProperty = {
+                  ...item,
+                  is_active: updateItem.data.is_active,
+
+                  units: item.units.map((unit: any) => ({
+                    ...unit,
+                    is_active: updateItem.data.is_active,
+                  })),
+                };
+                return updatedProperty;
+              }
+              return item;
+            })
+          );
+          ToastHandler(updateItem.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setMainIsLoader(false);
+      });
   };
 
   return (
@@ -268,7 +318,7 @@ const PropertyList = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Address</TableHead>
                   {/* <TableHead>Status</TableHead> */}
-                  <TableHead>Units</TableHead>
+                  {/* <TableHead>Units</TableHead> */}
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -279,24 +329,49 @@ const PropertyList = () => {
                       <TableCell>{item.name}</TableCell>
                       <TableCell>{item.address}</TableCell>
                       {/* <TableCell>{item.status}</TableCell> */}
-                      <TableCell>
+                      {/* <TableCell>
                         <div className=" flex">
                           <span className="bg-blue-500 mt-3 text-center text-white w-[18px] h-[18px] rounded-[30px] text-[10px] leading-normal font-semibold  py-[1px]">
                             {item.units.length}
                           </span>
-                          <Eye
-                            className="pl-3 cursor-pointer text-blue-500 w-[40px] h-[40px]"
-                            onClick={() => openUnitsModal(item.id, item.units)}
-                          />
                         </div>{' '}
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell>
                         <div className="flex justify-center items-center">
                           <div className="pl-3">
-                            <Trash2
+                            {/* <Trash2
                               className="text-lunar-bg cursor-pointer"
                               size={20}
                               onClick={() => handleActionMenu('delete', item)}
+                            /> */}
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={item.is_active}
+                                onChange={() =>
+                                  handleStatusToggle(item.id, !item.is_active)
+                                }
+                              />
+                              <div
+                                className="w-11 h-6 bg-gray-300 rounded-full
+                                    peer peer-checked:bg-lunar-bg
+                                    transition-colors duration-300"
+                              />
+                              <div
+                                className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full
+                                      transition-transform duration-300 ease-in-out
+                                      transform peer-checked:translate-x-5"
+                              />
+                            </label>
+                          </div>
+                          <div>
+                            <Eye
+                              className="pl-3 cursor-pointer text-blue-500 w-[40px] h-[40px]"
+                              onClick={() => {
+                                setSelectedProperty(item); // not item.id
+                                setUnitModalOpen(true);
+                              }}
                             />
                           </div>
                         </div>
@@ -342,6 +417,13 @@ const PropertyList = () => {
           isLoader={isLoader}
           formData={editFormData}
           callback={deleteHandler}
+        />
+      )}
+      {unitModalOpen && (
+        <UnitDetailsModal
+          open={unitModalOpen}
+          onClose={() => setUnitModalOpen(false)}
+          property={selectedProperty}
         />
       )}
     </div>

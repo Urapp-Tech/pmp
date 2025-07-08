@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { FormItem, FormLabel } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import {
   FormControl,
   FormField,
@@ -42,6 +44,8 @@ const InvoiceItemCreateDialog = ({
   const isEditMode = Boolean(invoiceItemId);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { toast } = useToast();
   const getValidDate = (dateString: string | null | undefined) => {
     const parsed = new Date(dateString || '');
     return isNaN(parsed.getTime()) ? new Date() : parsed;
@@ -58,13 +62,10 @@ const InvoiceItemCreateDialog = ({
   const { handleSubmit, setValue, control, watch, reset } = form;
 
   useEffect(() => {
-
     if (isOpen) {
       if (isEditMode && invoiceItemId) {
         (async () => {
           try {
-            console.log();
-            
             const res = await invoiceService.getInvoiceItemById(invoiceItemId);
             const item = res?.data.items;
 
@@ -92,7 +93,7 @@ const InvoiceItemCreateDialog = ({
         });
       }
     }
-  }, [ invoiceItemId, amount, isEditMode]);
+  }, [invoiceItemId, amount, isEditMode]);
 
   const onSubmit = async (data: InvoiceItemFields) => {
     const formData = new FormData();
@@ -110,10 +111,20 @@ const InvoiceItemCreateDialog = ({
         : await invoiceService.createInvoiceItem(formData);
 
       if (res?.data?.success) {
+        toast({
+          description: res.data.message,
+          className: cn(
+            'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+          ),
+          style: {
+            backgroundColor: '#5CB85C',
+            color: 'white',
+          },
+        });
         reset();
         setFile(null);
         setIsOpen(false);
-        
+
         onComplete?.();
       }
     } catch (err) {
@@ -124,10 +135,7 @@ const InvoiceItemCreateDialog = ({
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={setIsOpen}
-    >
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>

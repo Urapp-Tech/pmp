@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { usePermission } from '@/utils/hasPermission';
 import { PERMISSIONS } from '@/utils/constants';
 import { getItem } from '@/utils/storage';
-
+import PropertyDetailModal from './PropertyDetail';
 const PropertyList = () => {
   const userDetails: any = getItem('USER');
   const navigate = useNavigate();
@@ -41,7 +41,7 @@ const PropertyList = () => {
   const [editFormData, setEditFormData] = useState();
 
   const [units, setUnits] = useState([]);
-
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const fetchList = async (search = '', page = 1) => {
     setIsLoader(true);
 
@@ -130,6 +130,9 @@ const PropertyList = () => {
     } else if (action === 'delete') {
       setSelectedProperty(id);
       setDeleteOpen(true);
+    } else if (action === 'view') {
+      setSelectedProperty(item);
+      setViewModalOpen(true);
     }
   };
   return (
@@ -169,7 +172,7 @@ const PropertyList = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Address</TableHead>
                   {/* <TableHead>Status</TableHead> */}
-                  <TableHead>Units</TableHead>
+                  {/* <TableHead>Units</TableHead> */}
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -180,7 +183,7 @@ const PropertyList = () => {
                       <TableCell>{item.name}</TableCell>
                       <TableCell>{item.address}</TableCell>
                       {/* <TableCell>{item.status}</TableCell> */}
-                      <TableCell>
+                      {/* <TableCell>
                         <div className=" flex">
                           <span className="bg-blue-500 mt-3 text-center text-white w-[18px] h-[18px] rounded-[30px] text-[10px] leading-normal font-semibold  py-[1px]">
                             {item.units.length}
@@ -192,13 +195,22 @@ const PropertyList = () => {
                             }
                           />
                         </div>{' '}
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell>
                         {!can(PERMISSIONS.PROPERTY.UPDATE) &&
                           !can(PERMISSIONS.PROPERTY.UPDATE) && (
                             <div className="text-center">Restricted</div>
                           )}
                         <div className="flex justify-center items-center">
+                          {can(PERMISSIONS.PROPERTY.VIEW) && (
+                            <div className="pr-3">
+                              <Eye
+                                className="text-lunar-bg cursor-pointer"
+                                onClick={() => handleActionMenu('view', item)}
+                                // size={20}
+                              />
+                            </div>
+                          )}
                           {can(PERMISSIONS.PROPERTY.UPDATE) && (
                             <div className="pl-3">
                               <Pencil
@@ -243,15 +255,21 @@ const PropertyList = () => {
           />
         </div>
       </SidebarInset>
-
-      {unitModalOpen && (
+      {viewModalOpen && (
+        <PropertyDetailModal
+          open={viewModalOpen}
+          onClose={() => setViewModalOpen(false)}
+          property={selectedProperty}
+        />
+      )}
+      {/* {unitModalOpen && (
         <UnitListModal
           open={unitModalOpen}
           setOpen={setUnitModalOpen}
           property={selectedProperty}
           units={units}
         />
-      )}
+      )} */}
       {deleteOpen && (
         <DeleteDialog
           isOpen={deleteOpen}

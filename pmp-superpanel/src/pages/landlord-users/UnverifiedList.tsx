@@ -108,7 +108,7 @@ const UnverifiedUsers = () => {
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#FF5733',
+        backgroundColor: '#5CB85C',
         color: 'white',
         zIndex: 9999,
       },
@@ -247,7 +247,7 @@ const UnverifiedUsers = () => {
             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
           ),
           style: {
-            backgroundColor: '#FF5733',
+            backgroundColor: '#5CB85C',
             color: 'white',
           },
         });
@@ -267,7 +267,7 @@ const UnverifiedUsers = () => {
             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
           ),
           style: {
-            backgroundColor: '#FF5733',
+            backgroundColor: '#5CB85C',
             color: 'white',
           },
         });
@@ -278,7 +278,7 @@ const UnverifiedUsers = () => {
   const fetchUsers = async () => {
     try {
       const users = await usersService.unverifiedList(search, page, pageSize);
-      console.log('users: ', users);
+      // console.log('users: ', users);
 
       if (users.data.success) {
         setMainIsLoader(false);
@@ -286,11 +286,11 @@ const UnverifiedUsers = () => {
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -352,10 +352,10 @@ const UnverifiedUsers = () => {
         setTotal(users.data.data.total);
       } else {
         ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

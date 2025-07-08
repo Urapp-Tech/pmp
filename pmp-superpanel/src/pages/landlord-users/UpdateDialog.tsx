@@ -49,7 +49,7 @@ const OfficeUserUpdateDialog = ({
       gender: formData.gender || '',
     },
   });
-  console.log('formData', formData);
+  // console.log('formData', formData);
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -58,7 +58,7 @@ const OfficeUserUpdateDialog = ({
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#FF5733',
+        backgroundColor: '#5CB85C',
         color: 'white',
         zIndex: 9999,
       },
@@ -124,7 +124,7 @@ const OfficeUserUpdateDialog = ({
       const roles = await service.lov();
       setRoleLov(roles.data);
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

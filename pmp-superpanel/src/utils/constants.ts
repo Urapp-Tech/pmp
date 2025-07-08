@@ -21,3 +21,7 @@ export const BLOG_PREFIX = 'blog';
 export const PROPERTY_PREFIX = 'properties';
 export const imageAllowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 export const PROPERTY_UNIT_PREFIX = 'property-units';
+export const INVOICE_ITEM_PREFIX = 'invoice-items';
+export const TENANTS_PREFIX = 'tenants';
+export const INVOICE_PREFIX = 'invoices';
+export const REPORT_PREFIX = 'reports';

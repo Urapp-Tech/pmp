@@ -1,4 +1,3 @@
-
 import { PROPERTY_PREFIX, PROPERTY_UNIT_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
 
@@ -9,7 +8,7 @@ const list = (
   page: number,
   size: number
 ) => {
-  return network.get(`${PROPERTY_PREFIX}/`, {
+  return network.get(`${PROPERTY_PREFIX}/super-admin/view`, {
     user_id: userId,
     role_id: roleId,
     search: '' + search,
@@ -56,12 +55,20 @@ const availableLov = (landlordId: string) => {
   return network.get(`${PROPERTY_UNIT_PREFIX}/available-lov/${landlordId}`, {});
 };
 
+const updateToggleStatus = (id: string, data: any) => {
+  return network.post(
+    `${PROPERTY_PREFIX}/toggle-status/${id}?is_active=${data.is_active}`,
+    {}
+  );
+};
+
 export default {
   list,
   getUnitsByPropertyId,
   getPropertyId,
   create,
   update,
+  updateToggleStatus,
   deleteProperty,
   Lov,
   availableLov,

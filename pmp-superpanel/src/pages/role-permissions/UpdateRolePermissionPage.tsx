@@ -35,7 +35,7 @@ const UpdateRolePermissionPage = () => {
 
   const [mainIsLoader, setMainIsLoader] = useState(true);
   const [isLoader, setIsLoader] = useState(false);
-  // console.log('state', state);
+  // // console.log('state', state);
 
   const {
     register,
@@ -50,7 +50,7 @@ const UpdateRolePermissionPage = () => {
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#FF5733',
+        backgroundColor: '#5CB85C',
         color: 'white',
         zIndex: 9999,
       },
@@ -58,7 +58,7 @@ const UpdateRolePermissionPage = () => {
   };
 
   const onSubmit = async (data: Fields) => {
-    console.log('data', data, state);
+    // console.log('data', data, state);
 
     if (checkedIds?.length <= 0) {
       ToastHandler('Please select atleast one permission');
@@ -74,7 +74,7 @@ const UpdateRolePermissionPage = () => {
           : data.name,
       data: checkedIds,
     };
-    console.log(obj);
+    // console.log(obj);
 
     try {
       const response = await service.update(state.id, obj);
@@ -85,13 +85,13 @@ const UpdateRolePermissionPage = () => {
         setIsLoader(false);
         setMainIsLoader(false);
         ToastHandler(response.data.message);
-        console.log('error: ', response.data.message);
+        // console.log('error: ', response.data.message);
       }
     } catch (error: Error | any) {
       setIsLoader(false);
       setMainIsLoader(false);
       ToastHandler(error.response.data.message);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -126,7 +126,7 @@ const UpdateRolePermissionPage = () => {
         setMainIsLoader(false);
         const result = users.data.items;
         setList(result);
-        // console.log('res', result);
+        // // console.log('res', result);
 
         const ids: any = [];
         result?.forEach((x: any) => {
@@ -140,11 +140,11 @@ const UpdateRolePermissionPage = () => {
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 

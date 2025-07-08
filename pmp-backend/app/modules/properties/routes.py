@@ -28,6 +28,8 @@ from app.modules.properties.services import (
     get_property_units,
     get_properties,
     delete_property,
+    get_properties_super_admin_view,
+    toggle_property_status,
 )
 from typing import Optional, List
 
@@ -62,6 +64,10 @@ async def create_property_endpoint(
     latitude: str = Form(...),
     longitude: str = Form(...),
     status: str = Form(...),
+    unit_counts: Optional[int] = Form(None),
+    bank_name: Optional[str] = Form(None),
+    account_no: Optional[str] = Form(None),
+    account_name: Optional[str] = Form(None),
     pictures: List[UploadFile] = File([]),
     units_data: Optional[List[str]] = Form(None),  # JSON strings for each unit
     unit_pictures: List[UploadFile] = File([]),
@@ -100,6 +106,10 @@ async def create_property_endpoint(
         "estimate_value": estimate_value,
         "latitude": latitude,
         "longitude": longitude,
+        "unit_counts": unit_counts,
+        "bank_name": bank_name,
+        "account_no": account_no,
+        "account_name": account_name,
         "status": status,
         "units": parsed_units,
     }
@@ -107,55 +117,67 @@ async def create_property_endpoint(
     # Validate with PropertyCreate schema
     body = PropertyCreate(**property_obj)
     return create_property(db=db, body=body)
+
+
 @router.post("/update/{property_id}")
 async def update_property_endpoint(
     property_id: UUID,
-    landlord_id: UUID = Form(...),
-    name: str = Form(...),
-    city: str = Form(...),
-    governance: str = Form(...),
-    address: str = Form(...),
+    landlord_id: Optional[UUID] = Form(None),
+    name: Optional[str] = Form(None),
+    city: Optional[str] = Form(None),
+    governance: Optional[str] = Form(None),
+    address: Optional[str] = Form(None),
     address2: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
-    property_type: str = Form(...),
-    type: str = Form(...),
-    paci_no: str = Form(...),
-    property_no: str = Form(...),
-    civil_no: str = Form(...),
-    build_year: str = Form(...),
-    book_value: str = Form(...),
-    estimate_value: str = Form(...),
-    latitude: str = Form(...),
-    longitude: str = Form(...),
-    status: str = Form(...),
-
+    property_type: Optional[str] = Form(None),
+    type: Optional[str] = Form(None),
+    paci_no: Optional[str] = Form(None),
+    property_no: Optional[str] = Form(None),
+    civil_no: Optional[str] = Form(None),
+    build_year: Optional[str] = Form(None),
+    book_value: Optional[str] = Form(None),
+    estimate_value: Optional[str] = Form(None),
+    latitude: Optional[str] = Form(None),
+    longitude: Optional[str] = Form(None),
+    status: Optional[str] = Form(None),
+    unit_counts: Optional[int] = Form(None),
+    bank_name: Optional[str] = Form(None),
+    account_no: Optional[str] = Form(None),
+    account_name: Optional[str] = Form(None),
+    is_active: Optional[str] = Form(None),
     pictures: List[UploadFile] = File(default=[]),
     existing_pictures: Optional[str] = Form("[]"),
-
     units_data: Optional[List[str]] = Form(None),
     unit_pictures: List[UploadFile] = File(default=[]),
     existing_unit_pictures: Optional[str] = Form("{}"),
-
     removed_unit_ids: Optional[str] = Form("[]"),
-
     db: Session = Depends(get_db),
-):# ✅ Parse existing property picture strings
+):  # ✅ Parse existing property picture strings
     try:
         existing_property_pictures = json.loads(existing_pictures or "[]")
         if not isinstance(existing_property_pictures, list):
-            raise HTTPException(status_code=400, detail="Invalid format for existing_pictures")
+            raise HTTPException(
+                status_code=400, detail="Invalid format for existing_pictures"
+            )
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid format for existing_pictures")
+        raise HTTPException(
+            status_code=400, detail="Invalid format for existing_pictures"
+        )
 
     # ✅ Just merge existing + new property pictures (no saving here)
-    all_property_pictures = existing_property_pictures + pictures  # mix of str and UploadFile
+    all_property_pictures = (
+        existing_property_pictures + pictures
+    )  # mix of str and UploadFile
 
+    is_active_bool = str(is_active).lower() == "true" if is_active is not None else None
 
     # ✅ Parse and combine unit pictures (no saving)
     try:
         existing_unit_pic_map = json.loads(existing_unit_pictures or "{}")
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid format for existing_unit_pictures")
+        raise HTTPException(
+            status_code=400, detail="Invalid format for existing_unit_pictures"
+        )
 
     parsed_units = []
     unit_pic_index = 0
@@ -167,7 +189,7 @@ async def update_property_endpoint(
             raise HTTPException(status_code=400, detail="Invalid unit format")
 
         count = int(unit.get("pictures_count", 0))
-        new_files = unit_pictures[unit_pic_index:unit_pic_index + count]
+        new_files = unit_pictures[unit_pic_index : unit_pic_index + count]
         unit_pic_index += count
 
         existing_paths = existing_unit_pic_map.get(str(idx), [])
@@ -195,14 +217,21 @@ async def update_property_endpoint(
         "estimate_value": estimate_value,
         "latitude": latitude,
         "longitude": longitude,
+        "unit_counts": unit_counts,
+        "bank_name": bank_name,
+        "account_no": account_no,
+        "account_name": account_name,
         "status": status,
         "pictures": all_property_pictures,
         "removed_unit_ids": json.loads(removed_unit_ids or "[]"),
         "units": parsed_units,
     }
 
-# Call the main update function
-# return update_property(property_id=str(property_id), db=db, body=body)
+    if is_active_bool is not None:
+        body["is_active"] = is_active_bool
+
+    # Call the main update function
+    # return update_property(property_id=str(property_id), db=db, body=body)
 
     # return body
     # ✅ Validate
@@ -230,6 +259,18 @@ def get_all_properties(
     return get_properties(db, user_id, role_id, page, size, search)
 
 
+@router.get("/super-admin/view")
+def get_all_properties_super_admin_view(
+    db: Session = Depends(get_db),
+    user_id: Optional[UUID4] = None,
+    role_id: Optional[str] = None,
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(20, ge=1, le=1000, description="Page size"),
+    search: Optional[str] = None,
+):
+    return get_properties_super_admin_view(db, user_id, role_id, page, size, search)
+
+
 @router.get("/units/{property_id}")
 def get_all_property_units(
     property_id: UUID4,  # required
@@ -245,3 +286,8 @@ def get_all_property_units(
 def delete_property_by_id(id: UUID, db: Session = Depends(get_db)):
     """Delete a property and all its units"""
     return delete_property(db, str(id))
+
+
+@router.post("/toggle-status/{property_id}")
+def toggle_status(property_id: UUID, is_active: bool, db: Session = Depends(get_db)):
+    return toggle_property_status(db=db, property_id=property_id, is_active=is_active)

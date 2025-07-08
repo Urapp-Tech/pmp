@@ -118,9 +118,9 @@ const onSubmit = async (data: Fields) => {
   // ✅ Units processing
   const existingUnitPicturesMap: Record<number, string[]> = {};
 
-  data.units.forEach((unit, index) => {
+  data.units.forEach((unit : any, index) => {
     const unitData = { ...unit };
-    delete unitData.pictures;
+    delete unitData?.pictures;
 
     const previews = unitPicturesPreview[index] || [];
     const newFiles = previews.filter(p => p instanceof File);
@@ -141,7 +141,17 @@ const onSubmit = async (data: Fields) => {
   try {
     const response = await service.update(id!, formData);
     if (response.data.success) {
-      toast({ description: 'Property updated successfully!' });
+      // toast({ description: 'Property updated successfully!' });
+      toast({
+                        description: response.data.message,
+                        className: cn(
+                          'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+                        ),
+                        style: {
+                          backgroundColor: '#5CB85C',
+                          color: 'white',
+                        },
+                      });
       navigate('/admin-panel/property/list');
     } else {
       toast({ description: response.data.message });
@@ -157,7 +167,7 @@ const onSubmit = async (data: Fields) => {
 
 
 // Inside your component
-const handleCSVUpload = (event) => {
+const handleCSVUpload = (event :any) => {
   const file = event.target.files[0];
   if (!file) return;
 
@@ -165,7 +175,7 @@ const handleCSVUpload = (event) => {
     header: true,
     skipEmptyLines: true,
     complete: function (results) {
-      const parsedUnits = results.data.map((row) => ({
+      const parsedUnits = results.data.map((row: any) => ({
         name: row.name || '',
         unit_no: row.unit_no || '',
         unit_type: row.unit_type || '',
@@ -177,14 +187,11 @@ const handleCSVUpload = (event) => {
         bathrooms: row.bathrooms || '',
         water_meter: row.water_meter || '',
         electricity_meter: row.electricity_meter || '',
-        bank_name:row.bank_name || '',
-        account_no: row.account_no || '',
-        account_name:row.account_name || '',
         pictures: [], // CSV can't provide actual images
       }));
 
       // Append parsed units instead of replacing
-      parsedUnits.forEach((unit) => append(unit));
+      parsedUnits.forEach((unit :any) => append(unit));
 
       // Add blank picture previews for new units
       setUnitPicturesPreview((prev) => {
@@ -220,7 +227,8 @@ const handleCSVUpload = (event) => {
   'name', 'city', 'governance', 'address', 'address2',
   'description', 'property_type', 'type', 'paci_no',
   'property_no', 'civil_no', 'build_year', 'book_value',
-  'estimate_value', 'latitude', 'longitude', 'status',
+  'estimate_value', 'latitude', 'longitude', 'status', 'bank_name',
+  'account_no', 'account_name',
 ].map((field) => (
   <FormControl key={field} className="mb-4">
     <div>
@@ -237,9 +245,9 @@ const handleCSVUpload = (event) => {
 
     <SingleSelectDropDown
       {...form.register('type', { required: 'This field is required' })}
-      value={form.watch('type')}
-      onChange={(val) => form.setValue('type', val)}
+      label='Type'
       placeholder="Select Type"
+      control={form.control}
       items={[
         { name: 'Residential', id: 'residential' },
         { name: 'Commercial', id: 'commercial' },
@@ -248,8 +256,8 @@ const handleCSVUpload = (event) => {
   ) : field === 'property_type' ? (
     <SingleSelectDropDown
       {...form.register('property_type', { required: 'This field is required' })}
-      value={form.watch('property_type')}
-      onChange={(val) => form.setValue('property_type', val)}
+      label='Property Type'
+      control={form.control}
       placeholder="Select Property Type"
       items={[
         { name: 'Villa', id: 'villa' },
@@ -260,8 +268,8 @@ const handleCSVUpload = (event) => {
   ) : field === 'status' ? (
     <SingleSelectDropDown
       {...form.register('status', { required: 'This field is required' })}
-      value={form.watch('status')}
-      onChange={(val) => form.setValue('status', val)}
+      label='Status'  
+      control={form.control}
       placeholder="Select Status"
       items={[
         {  name: 'Available', id: 'available' },
@@ -271,14 +279,14 @@ const handleCSVUpload = (event) => {
 ) : (
     <Input
       type="text"
-      {...form.register(field)}
+      {...form.register(field as any)}
       className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
     />
   )}
 
-      {form.formState.errors[field] && !['type', 'property_type', 'status'].includes(field) && (
+      {form.formState.errors[field as keyof Fields] && !['type', 'property_type', 'status'].includes(field) && (
         <FormMessage>
-          *{form.formState.errors[field]?.message as string}
+          *{form.formState.errors[field as keyof Fields]?.message as string}
         </FormMessage>
       )}
     </div>
@@ -357,7 +365,7 @@ const handleCSVUpload = (event) => {
   />
   <p className="text-xs text-gray-500 mt-1">
     CSV should include columns: name, unit_no, unit_type, size, rent, status,
-    description, bedrooms, bathrooms, water_meter, electricity_meter, bank_name, account_no, account_name 
+    description, bedrooms, bathrooms, water_meter, electricity_meter
   </p>
 </div>
 <div>
@@ -368,7 +376,7 @@ const handleCSVUpload = (event) => {
     type="multiple"
     defaultValue={["item-0"]} // must be array if type is multiple
   >
-    {fields.map((field, index) => (
+    {fields.map((field, index : number) => (
       <AccordionItem
         key={field.id}
         value={`item-${index}`}
@@ -390,7 +398,7 @@ const handleCSVUpload = (event) => {
                 {[
                   'name', 'unit_no', 'unit_type', 'size', 'rent',
                   'status', 'description', 'bedrooms', 'bathrooms',
-                  'water_meter', 'electricity_meter', 'bank_name', 'account_no', 'account_name',
+                  'water_meter', 'electricity_meter'
                 ].map((unitField) => (
                   <FormControl key={unitField} className="m-1 w-full">
                     <div>
@@ -406,8 +414,8 @@ const handleCSVUpload = (event) => {
                           
                           <SingleSelectDropDown
                             {...register(`units.${index}.${unitField}`)}
-                            value={form.watch(`units.${index}.${unitField}`)}
-                            onChange={(val) => setValue(`units.${index}.${unitField}`, val)}
+                            control={form.control}
+                            label='Status'
                             placeholder="Select Status"
                             items={[
                               { name: 'Available', id: 'available' },
@@ -418,8 +426,8 @@ const handleCSVUpload = (event) => {
           
               <SingleSelectDropDown
                 {...form.register(`units.${index}.${unitField}`)}
-                value={form.watch(`units.${index}.${unitField}`)}
-                onChange={(val) => setValue(`units.${index}.${unitField}`, val)}
+                control={form.control}
+                label='Select Type'
                 placeholder="Select Type"
                 items={[
                   { name: 'Residential', id: 'residential' },
@@ -429,13 +437,13 @@ const handleCSVUpload = (event) => {
             ) : (
                         <Input
                           type="text"
-                          {...register(`units.${index}.${unitField}`)}
+                          {...register(`units.${index}.${unitField}` as any)}
                           className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
                         />
                       )}
-                      {errors.units?.[index]?.[unitField] && (
+                      {errors.units?.[index] && (errors.units[index] as Record<string, any>)[unitField] && (
                         <FormMessage>
-                          *{(errors.units[index][unitField] as any)?.message}
+                          *{((errors.units[index] as Record<string, any>)[unitField]?.message as string)}
                         </FormMessage>
                       )}
                     </div>
@@ -465,7 +473,6 @@ const handleCSVUpload = (event) => {
   form.setValue(`units.${index}.pictures`, [...currentFiles, ...files]);
   }}
 />
-          {console.log("Unit Pictures:",watch(`units.${index}.pictures`))}
           <div className="flex flex-wrap gap-3 mt-3">
            {unitPicturesPreview[index]?.map((file, picIndex) => {
   const imageUrl =
@@ -524,7 +531,7 @@ const handleCSVUpload = (event) => {
 </div>
 </div>
 
-<Button
+{/* <Button
   type="button"
 className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2xl shadow-sm border border-gray-200 hover:text-white"
   onClick={() => {
@@ -540,9 +547,6 @@ className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2
     bathrooms: '',
     water_meter: '',
     electricity_meter: '',
-    bank_name: '',
-    account_no: '',
-    account_name: '',
     pictures: [],
   });
   setUnitPicturesPreview((prev) => ({
@@ -552,7 +556,7 @@ className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2
 }}
 >
   + Add Unit
-</Button>
+</Button> */}
 
             <Button
               disabled={isSubmitting}

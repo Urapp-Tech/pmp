@@ -82,7 +82,7 @@ export type Users = {
 
 const Blogs = () => {
   const userDetails: any = getItem('USER');
-  console.log('userDetails', userDetails);
+  // console.log('userDetails', userDetails);
 
   const { toast } = useToast();
 
@@ -112,7 +112,7 @@ const Blogs = () => {
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#FF5733',
+        backgroundColor: '#5CB85C',
         color: 'white',
         zIndex: 9999,
       },
@@ -203,7 +203,7 @@ const Blogs = () => {
       cell: ({ row }) => {
         // const payment = row.original;
         const { id, status } = row.original;
-        console.log('status', status);
+        // console.log('status', status);
 
         return (
           <div className="flex justify-center items-center">
@@ -296,11 +296,11 @@ const Blogs = () => {
         setTotal(resp.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', resp.data.message);
+        // console.log('error: ', resp.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -338,7 +338,7 @@ const Blogs = () => {
               'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
             ),
             style: {
-              backgroundColor: '#FF5733',
+              backgroundColor: '#5CB85C',
               color: 'white',
             },
           });
@@ -347,7 +347,7 @@ const Blogs = () => {
         }
       })
       .catch((err: Error) => {
-        console.log('error: ', err);
+        // console.log('error: ', err);
         setIsLoader(false);
       });
   };
@@ -399,10 +399,10 @@ const Blogs = () => {
         setTotal(users.data.data.total);
       } else {
         ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -450,7 +450,7 @@ const Blogs = () => {
   //       }
   //     })
   //     .catch((err: Error | any) => {
-  //       console.log('error: ', err);
+  //       // console.log('error: ', err);
   //       ToastHandler(err?.response?.data?.message);
   //       setIsLoader(false);
   //     });
@@ -493,7 +493,7 @@ const Blogs = () => {
   //       }
   //     })
   //     .catch((err: Error | any) => {
-  //       console.log('error: ', err);
+  //       // console.log('error: ', err);
   //       ToastHandler(err?.response?.data?.message);
   //       setIsLoader(false);
   //     });

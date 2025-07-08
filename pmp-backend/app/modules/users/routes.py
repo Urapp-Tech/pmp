@@ -37,7 +37,7 @@ from app.modules.users.services import (
     get_users_by_landlord,
     get_assigned_units_managers,
     get_users_lov_by_landlord,
-    get_tenant_users_service,
+    get_all_active_users_service,
 )
 
 
@@ -84,28 +84,45 @@ def parse_user_update(
     landlordId: Optional[UUID] = Form(None),
     roleType: Optional[str] = Form(None),
     profilePic: Union[UploadFile, str, None] = File(None),
+    isActive: Optional[str] = Form(None),
 ):
 
     password = password if password != "" else None
     fname = fname if fname != "" else None
     lname = lname if lname != "" else None
     phone = phone if phone != "" else None
+    email = email if email != "" else None
+    gender = gender if gender != "" else None
+    roleType = roleType if roleType != "" else None
 
     if isinstance(profilePic, str) and profilePic == "":
         profilePic = None
 
+    if isinstance(isActive, str):
+        isActive = isActive.lower() == "true"
+
+    print("Parsed isActive value:", isActive)
+
+    field_dict = {
+        "fname": fname,
+        "lname": lname,
+        "email": email,
+        "password": password,
+        "phone": phone,
+        "gender": gender,
+        "landlord_id": landlordId,
+        "role_type": roleType,
+        "is_active": isActive,
+    }
+
+    filtered_fields = {k: v for k, v in field_dict.items() if v is not None}
+
     try:
-        update_data = UserUpdate(
-            fname=fname,
-            lname=lname,
-            email=email,
-            password=password,
-            phone=phone,
-            gender=gender,
-            landlord_id=landlordId,
-            role_type=roleType,
-        )
-        return {"user_data": update_data, "profile_pic": profilePic}
+        update_data = UserUpdate(**filtered_fields)
+        return {
+            "user_data": update_data,
+            "profile_pic": profilePic,
+        }
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=e.errors())
 
@@ -219,4 +236,4 @@ def get_tenant_users(
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    return get_tenant_users_service(db=db, page=page, limit=limit, search=search)
+    return get_all_active_users_service(db=db, page=page, limit=limit, search=search)

@@ -9,5 +9,6 @@ export interface Fields {
   userType: string;
   avatar: string;
   role: string;
+  landlord: string;
   gender: string;
 }

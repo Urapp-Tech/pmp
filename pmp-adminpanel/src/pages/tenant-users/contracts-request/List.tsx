@@ -115,7 +115,7 @@ const ContractRequest = () => {
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#FF5733',
+        backgroundColor: '#5CB85C',
         color: 'white',
         zIndex: 9999,
       },
@@ -145,11 +145,20 @@ const ContractRequest = () => {
       },
     },
     {
-      accessorKey: 'unitDetail.name',
-      header: 'Unit Name',
+      accessorKey: 'property',
+      header: 'Property Name',
       cell: ({ row }) => {
         const unit = row.original.unitDetail;
-        return <div className="capitalize">{unit?.name}</div>;
+        return <div className="capitalize">{unit?.property?.name}</div>;
+      },
+    },
+    {
+      accessorKey: 'unit_no',
+      header: 'Unit no',
+      cell: ({ row }) => {
+        const unit = row.original.unitDetail;
+        
+        return <div className="capitalize">{unit?.unitNo}</div>;
       },
     },
     {

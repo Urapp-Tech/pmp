@@ -64,6 +64,17 @@ const InvoiceDetail = () => {
         leftX,
         tenantY
       );
+      if (invoice.tenant?.property_unit) {
+        tenantY += 6;
+        doc.text(
+          `Property: ${invoice.tenant.property_unit.property?.name || 'N/A'}`,
+          leftX,
+          tenantY
+        );
+        tenantY += 6;
+        doc.text(`Unit No: ${invoice.tenant.property_unit.unit_no || 'N/A'}`, leftX, tenantY);
+        
+      }
     } else {
       doc.text('No tenant info.', leftX, tenantY);
     }
@@ -179,6 +190,17 @@ const InvoiceDetail = () => {
                 <strong>Contract No:</strong>{' '}
                 {invoice.tenant.contract_number || 'N/A'}
               </div>
+               {invoice.tenant.property_unit && (
+              <>
+                <div>
+                  <strong>Property:</strong>{' '}
+                  {invoice.tenant.property_unit.property?.name || 'N/A'}
+                </div>
+                <div>
+                  <strong>Unit No:</strong> {invoice.tenant.property_unit.unit_no}
+                </div>
+              </>
+             )}
             </div>
           ) : (
             <div>No tenant info.</div>
@@ -220,8 +242,8 @@ const InvoiceDetail = () => {
             {invoice.items?.map((item: any) => (
               <tr key={item.id}>
                 <td className="p-2 border">{item.description}</td>
-                <td className="p-2 border capitalize">{item.payment_method}</td>
                 <td className="p-2 border">{item.payment_date || '—'}</td>
+                <td className="p-2 border capitalize">{item.payment_method}</td>
                 <td className="p-2 border capitalize">{item.status}</td>
                 <td className="p-2 border ">{item.amount}</td>
               </tr>

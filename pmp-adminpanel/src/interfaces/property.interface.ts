@@ -1,3 +1,4 @@
+
 export interface Unit {
   name: string;
   unit_no: string;
@@ -11,6 +12,7 @@ export interface Unit {
   water_meter: string;
   electricity_meter: string;
   pictures: File[]; // handled separately
+  pictures_count: number;
 }
 
 export interface Fields {
@@ -31,6 +33,10 @@ export interface Fields {
   estimate_value: string;
   latitude: string;
   longitude: string;
+  bank_name: string;
+  account_no: string;
+  account_name: string;
+  unit_count: number;
   status: string;
   pictures: File[]; // handled in React state
   units: Unit[]; // array of unit objects

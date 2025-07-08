@@ -115,7 +115,7 @@ const SupportMaintenance = () => {
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#FF5733',
+        backgroundColor: '#5CB85C',
         color: 'white',
         zIndex: 9999,
       },
@@ -469,7 +469,9 @@ const SupportMaintenance = () => {
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Support Tickets
+              {userDetails?.role?.name === 'User'
+                ? 'Maintenance Requests'
+                : 'Support Tickets'}
             </h2>
             <div className="flex gap-3 items-center">
               <Input

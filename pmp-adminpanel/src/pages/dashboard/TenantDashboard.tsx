@@ -60,6 +60,7 @@ import { getItem } from '@/utils/storage';
 import dashboardService from '@/services/adminapp/admin';
 import { useEffect, useState } from 'react';
 import { ASSET_BASE_URL } from '@/utils/constants';
+import { cn } from '@/lib/utils';
 
 function Dashboard() {
   const userDetails: any = getItem('USER');
@@ -134,6 +135,20 @@ function Dashboard() {
                             key={unit.id}
                             className="border rounded-lg p-3 bg-white shadow"
                           >
+                            {unit.is_active === false && (
+                              <div className="flex justify-end items-center">
+                                <span
+                                  className={cn(
+                                    'text-xs font-semibold px-5 py-[5px] rounded-full',
+                                    'bg-red-100 text-red-700'
+                                  )}
+                                >
+                                  {unit.is_active === false
+                                    ? 'Temporary Disabled'
+                                    : ''}
+                                </span>
+                              </div>
+                            )}
                             <p>
                               <strong>Unit Name:</strong> {unit.name}
                             </p>
@@ -182,9 +197,29 @@ function Dashboard() {
                     key={index}
                     className="border p-3 rounded-md bg-white shadow"
                   >
-                    <p className="text-center text-2xl font-bold pb-4">
-                      {tenant.unit_name}
-                    </p>
+                    <div className="flex items-center justify-between pb-4">
+                      <div>
+                        <p className="text-center text-2xl font-bold">
+                          {tenant.unit_name}
+                        </p>
+                      </div>
+                      <div>
+                        {tenant.is_active === false && (
+                          // <div className="flex justify-end items-center">
+                          <span
+                            className={cn(
+                              'text-xs font-semibold px-5 py-[5px] rounded-full',
+                              'bg-red-100 text-red-700'
+                            )}
+                          >
+                            {tenant.is_active === false
+                              ? 'Temporary Disabled'
+                              : ''}
+                          </span>
+                          // </div>
+                        )}
+                      </div>
+                    </div>
                     <p>
                       <strong>Contract Number:</strong> {tenant.contract_number}
                     </p>

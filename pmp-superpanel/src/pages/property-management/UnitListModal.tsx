@@ -17,7 +17,7 @@ import propertyService from '@/services/adminapp/property'; // adjust if needed
 
 const UnitListModal = ({ open, setOpen, property, units }: any) => {
   // const [units, setUnits] = useState([]);
-  console.log('UnitListModal property:', property);
+  // console.log('UnitListModal property:', property);
 
   // useEffect(() => {
 

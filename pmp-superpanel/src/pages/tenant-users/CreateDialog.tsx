@@ -1,0 +1,413 @@
+import {
+  Dialog,
+  DialogContent,
+  //   DialogTrigger,
+  DialogFooter,
+  //   DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+// import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Fields } from '@/interfaces/back-office-user.interface';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import DragDropFile from '@/components/DragDropImgFile';
+import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
+import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
+import service from '@/services/adminapp/role-permissions';
+import landlordService from '@/services/adminapp/landlords';
+
+type Props = {
+  isLoader: boolean;
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  callback: (...args: any[]) => any;
+};
+
+const OfficeUserCreateDialog = ({
+  isOpen,
+  setIsOpen,
+  callback,
+  isLoader,
+}: Props) => {
+  const form = useForm<Fields>();
+
+  const ToastHandler = (text: string) => {
+    return toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
+      ),
+      style: {
+        backgroundColor: '#5CB85C',
+        color: 'white',
+        zIndex: 9999,
+      },
+    });
+  };
+
+  const [file, setFile] = useState<any>(null);
+  const [selectedImg, setSelectedImg] = useState<any>(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [roleLov, setRoleLov] = useState<any>([]);
+  const [landlordRoleLov, setLandlordRoleLov] = useState<any>([]);
+
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    control,
+    formState: { errors },
+  } = form;
+
+  const selectedRoleName = roleLov.find(
+    (r: any) => r.id === form.watch('role')
+  )?.name;
+
+  const onSubmit = async (data: Fields) => {
+    // if (file) data.avatar = file;
+    // data.userType = 'USER';
+    let obj = {
+      fname: data.firstName,
+      lname: data.lastName,
+      email: data.email,
+      password: data.password,
+      phone: data.phone,
+      gender: data.gender,
+      roleId: data.role,
+      landlordId: data.landlord,
+      roleName: roleLov.filter((item: any) => item.id === data.role)[0]?.name,
+    };
+    callback(obj);
+    // // console.log('s', obj);
+  };
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
+  const fetchRoleLov = async () => {
+    try {
+      const roles = await service.lov();
+      setRoleLov(roles.data);
+    } catch (error: Error | unknown) {
+      // console.log('error: ', error);
+    }
+  };
+
+  const fetchLandlordLov = async () => {
+    try {
+      const roles = await landlordService.lov();
+      setLandlordRoleLov(roles.data.items);
+    } catch (error: Error | unknown) {
+      // console.log('error: ', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoleLov();
+  }, []);
+
+  useEffect(() => {
+    if (selectedRoleName === 'Manager' || selectedRoleName === 'User') {
+      fetchLandlordLov();
+    } else {
+      setLandlordRoleLov([]);
+      form.setValue('landlord', '');
+    }
+  }, [selectedRoleName, form.setValue]);
+
+  // console.log('roleLov', selectedRoleName);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent
+        className="sm:max-w-[600px] cs-dialog-box"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Add New User</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="custom-form-section">
+              <div className="form-group w-full flex gap-3">
+                <FormControl className="m-1 w-full">
+                  <div className="">
+                    <FormLabel
+                      htmlFor="firstName"
+                      className="text-sm font-medium"
+                    >
+                      First Name
+                    </FormLabel>
+                    <Input
+                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                      id="firstName"
+                      placeholder="john"
+                      type="text"
+                      {...register('firstName', {
+                        required: 'Please enter your first name',
+                        pattern: {
+                          value: /^[A-Za-z\s]+$/,
+                          message: 'Only alphabets and spaces are allowed',
+                        },
+                      })}
+                    />
+                    {errors.firstName && (
+                      <FormMessage>*{errors.firstName.message}</FormMessage>
+                    )}
+                  </div>
+                </FormControl>
+                <FormControl className="m-1 w-full">
+                  <div className="">
+                    <FormLabel
+                      htmlFor="lastName"
+                      className="text-sm font-medium"
+                    >
+                      Last Name
+                    </FormLabel>
+                    <Input
+                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                      id="lastName"
+                      placeholder="doe"
+                      type="text"
+                      {...register('lastName', {
+                        pattern: {
+                          value: /^[A-Za-z\s]+$/,
+                          message: 'Only alphabets and spaces are allowed',
+                        },
+                      })}
+                    />
+                    {errors.lastName && (
+                      <FormMessage>*{errors.lastName.message}</FormMessage>
+                    )}
+                  </div>
+                </FormControl>
+              </div>
+              <div className="form-group w-full flex gap-3">
+                <FormControl className="m-1 w-full">
+                  <div className="">
+                    <FormLabel htmlFor="email" className="text-sm font-medium">
+                      Eamil
+                    </FormLabel>
+                    <Input
+                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                      id="email"
+                      placeholder="johndoe@gmail.com"
+                      type="text"
+                      {...register('email', {
+                        required: 'Please enter your email',
+                      })}
+                    />
+                    {errors.email && (
+                      <FormMessage>*{errors.email.message}</FormMessage>
+                    )}
+                  </div>
+                </FormControl>
+                {/* <div className="form-group w-full"> */}
+                <FormControl className="m-1 w-full">
+                  <div className="">
+                    <FormLabel
+                      htmlFor="password"
+                      className="text-sm font-medium"
+                    >
+                      Password
+                    </FormLabel>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        placeholder="********"
+                        type={passwordVisible ? 'text' : 'password'}
+                        className="text-sm pr-10 mt-2"
+                        {...register('password', {
+                          required: 'Please enter your password.',
+                          pattern: {
+                            value:
+                              /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
+                            message:
+                              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+                          },
+                        })}
+                      />
+                      <Button
+                        variant="ghost"
+                        type="button"
+                        className="bg-transparent absolute inset-y-0 right-0 flex items-center pr-3 mt-[11px]"
+                        onClick={togglePasswordVisibility}
+                      >
+                        {passwordVisible ? (
+                          <EyeOff color="black" />
+                        ) : (
+                          <Eye color="black" />
+                        )}
+                      </Button>
+                      {errors.password && (
+                        <FormMessage>*{errors.password.message}</FormMessage>
+                      )}
+                    </div>
+                  </div>
+                </FormControl>
+                {/* </div> */}
+              </div>
+              <div className="form-group w-full flex items-center justify-center gap-3 m-1">
+                <div className="w-full">
+                  <FormLabel
+                    htmlFor="roles"
+                    className="text-sm font-medium my-2 block"
+                  >
+                    Roles
+                  </FormLabel>
+                  <SingleSelectDropDown
+                    control={control}
+                    name="role"
+                    label=""
+                    items={roleLov}
+                    placeholder="Choose an option"
+                    rules={{ required: 'This field is required' }}
+                  />
+                </div>
+                {(selectedRoleName === 'Manager' ||
+                  selectedRoleName === 'User') && (
+                  <div className="w-full">
+                    <FormLabel
+                      htmlFor="landlords"
+                      className="text-sm font-medium my-2 block"
+                    >
+                      Landlords
+                    </FormLabel>
+                    <SingleSelectDropDown
+                      control={control}
+                      name="landlord"
+                      label=""
+                      items={landlordRoleLov || []}
+                      placeholder="Choose an option"
+                      rules={{ required: 'This field is required' }}
+                    />
+                  </div>
+                )}
+                <div className="w-full">
+                  <FormLabel
+                    htmlFor="gender"
+                    className="text-sm font-medium my-2 block"
+                  >
+                    Gender
+                  </FormLabel>
+                  <SingleSelectDropDown
+                    control={control}
+                    name="gender"
+                    label=""
+                    items={[
+                      { id: 'male', name: 'Male' },
+                      { id: 'female', name: 'Female' },
+                      { id: 'other', name: 'Other' },
+                    ]}
+                    placeholder="Choose an option"
+                    // rules={{ required: 'This field is required' }}
+                  />
+                </div>
+              </div>
+              <FormControl className="m-1 w-full">
+                <div className="">
+                  <FormLabel htmlFor="phone" className="text-sm font-medium">
+                    Phone
+                  </FormLabel>
+                  <Input
+                    className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                    id="phone"
+                    placeholder="91111111"
+                    type="text"
+                    {...register('phone', {
+                      required: 'Please enter your phone',
+                      pattern: {
+                        value: /^[9654]\d{7}$/,
+                        message:
+                          'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
+                      },
+                    })}
+                  />
+                  {errors.phone && (
+                    <FormMessage>*{errors.phone.message}</FormMessage>
+                  )}
+                </div>
+              </FormControl>
+              {/* <FormControl className="m-1 w-full">
+                <div className="">
+                  <FormLabel htmlFor="address" className="text-sm font-medium">
+                    Address
+                  </FormLabel>
+                  <Input
+                    className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                    id="address"
+                    placeholder="Street 55"
+                    type="text"
+                    {...register('address')}
+                  />
+                  {errors.address && (
+                    <FormMessage>*{errors.address.message}</FormMessage>
+                  )}
+                </div>
+              </FormControl> */}
+              {/* <div>
+                <div className="flex justify-between">
+                  <FormLabel
+                    htmlFor="address"
+                    className="text-sm font-medium my-3"
+                  >
+                    Upload Avatar
+                  </FormLabel>
+                </div>
+                <div className="grid grid-cols-12 items-center">
+                  <div className="col-span-5 mb-1">
+                    <DragDropFile
+                      setFile={setFile}
+                      setImg={setSelectedImg}
+                      setIsNotify={ToastHandler}
+                    />
+                  </div>
+                  {selectedImg ? (
+                    <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
+                      <img
+                        className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
+                        src={selectedImg}
+                        alt="Shop Logo"
+                      />
+                    </div>
+                  ) : getValues('avatar') ? (
+                    <div className="col-span-6 flex items-center justify-center  xl:justify-center 2xl:justify-start">
+                      <img
+                        className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
+                        src={getValues('avatar')}
+                        alt="Shop Logo"
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </div> */}
+              <DialogFooter className="mt-6">
+                <Button
+                  disabled={isLoader}
+                  type="submit"
+                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                >
+                  {isLoader && <Loader2 className="animate-spin" />} Add
+                </Button>
+              </DialogFooter>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default OfficeUserCreateDialog;
