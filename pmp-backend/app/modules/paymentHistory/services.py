@@ -11,7 +11,7 @@ from uuid import UUID
 import requests
 from app.core.config import settings
 from urllib.parse import urlencode
-
+from app.utils.email_service import render_template, send_email
 
 MYFATOORAH_API_URL = settings.MYFATOORAH_API_URL
 MYFATOORAH_API_KEY = settings.MYFATOORAH_API_KEY
@@ -206,8 +206,6 @@ def create_payment(
 def process_payment_callback(payment_id: str, db: Session) -> str:
     # Step 1: Get payment status from MyFatoorah
     payment_info = get_payment_status_from_myfatoorah(payment_id)
-    # Log entire response
-    print("Raw Response:", json.dumps(payment_info, indent=2))
 
     if not payment_info.get("IsSuccess"):
         raise HTTPException(status_code=400, detail="MyFatoorah response failed")
@@ -228,12 +226,25 @@ def process_payment_callback(payment_id: str, db: Session) -> str:
     # Step 3: Update payment
     payment.status = PaymentStatus.SUCCESS if invoice_status == "Paid" else PaymentStatus.FAILED
     payment.payload = payment_data
+    user = payment.user
 
     # Step 4: Update invoice
     invoice = db.query(Invoice).filter(Invoice.id == payment.invoice_id).first()
     if invoice and invoice_status == "Paid":
         invoice.status = "paid"
         invoice.payment_date = datetime.utcnow().date()
+        html_content = render_template(
+            "paid_invoice.html",
+            {
+                "name": f"{user.fname} {user.lname}",
+                "invoice_no": invoice.invoice_no,
+                "status": "paid",
+                "payment_date": datetime.utcnow().date(),
+            },
+        )
+        send_email(
+            to_email=user.email, subject="Your Invoice has been paid", html_content=html_content
+        )
 
     db.commit()
 

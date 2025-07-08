@@ -40,6 +40,8 @@ class User(Base):
     landlord = relationship("Landlord", back_populates="users")
     role = relationship("Role", backref="users")
     security_logs = relationship("SecurityLog", back_populates="user")
+    payments = relationship("PaymentHistory", back_populates="user", cascade="all, delete-orphan")
+
     # invoice_items = relationship("InvoiceItem", back_populates="updated_user", passive_deletes=True)
 
     # role = relationship("Role", back_populates="users")

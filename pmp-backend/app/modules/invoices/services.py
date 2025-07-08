@@ -10,19 +10,34 @@ from app.models.tenants import Tenant
 from app.models.users import User
 from app.modules.invoices.schemas import InvoiceCreate, InvoiceUpdate
 from sqlalchemy.orm import joinedload
-
+from app.utils.email_service import render_template, send_email
+from datetime import datetime
 
 def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
     invoice = Invoice(**invoice_data.dict())
 
     # Auto-generate invoice_no if not provided
     if not invoice.invoice_no and invoice.landlord_id:
-        invoice.invoice_no = generate_invoice_no(db, invoice.landlord_id)
-
+        invoice_no = generate_invoice_no(db, invoice.landlord_id)
+        invoice.invoice_no =invoice_no
+    user = db.query(Tenant).options(joinedload(Tenant.user)).filter(Tenant.id == invoice.tenant_id).first()
+    
     db.add(invoice)
     db.add(invoice)
     db.commit()
     db.refresh(invoice)
+    html_content = render_template(
+        "invoice_created.html",
+        {
+             "name": f"{user.user.fname} {user.user.lname}",
+                "invoice_no": invoice_no,
+                "status": invoice.status,
+                "due_date":datetime.strptime(invoice.due_date, "%Y-%m-%d").strftime("%d %B %Y")
+        },
+    )
+    send_email(
+        to_email="testapp.mailed@gmail.com", subject="Your Invoice has been created", html_content=html_content
+    )
     return invoice
 
 

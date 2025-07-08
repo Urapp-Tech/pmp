@@ -45,3 +45,4 @@ class PaymentHistory(Base):
     updated_at = Column(DateTime, server_default="now()", onupdate="now()")
 
     invoice = relationship("Invoice", back_populates="payments")
+    user = relationship("User", back_populates="payments", lazy="joined")

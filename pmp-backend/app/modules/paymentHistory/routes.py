@@ -16,7 +16,7 @@ from fastapi.responses import RedirectResponse
 from app.core.config import settings
 from app.utils.logger import error_log  # adjust this import if needed
 
-router = APIRouter(prefix="/payments", tags=["Payments"])
+router = APIRouter()
 
 
 @router.post("/create", response_model=PaymentResponse)

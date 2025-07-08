@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Payment Confirmation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        color: #333;
+        background-color: #f9f9f9;
+        padding: 30px;
+      }
+      .email-container {
+        background: #ffffff;
+        padding: 20px 30px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        max-width: 600px;
+        margin: auto;
+      }
+      .thank-you {
+        color: #2e7d32;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <h2 class="thank-you">Thank you, {{ name }}!</h2>
+      <p>
+        Your invoice <strong>"{{ invoice_no }}"</strong> has been successfully paid.
+      </p>
+      <p>
+        Please keep this for your records. If you have any questions, feel free to contact us.
+      </p>
+      <p>
+        Payment Date: <strong>{{ payment_date }}</strong>
+      </p>
+      <br />
+      <p>Best regards,<br /><strong>Your Company Team</strong></p>
+    </div>
+  </body>
+</html>
