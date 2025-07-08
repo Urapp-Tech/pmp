@@ -7,8 +7,8 @@ __pycache__/
 venv/
 
 # Environment variables
-.env
-# .env.*
+# .env
+.env.*
 
 # Alembic compiled files (ignore only compiled files and cache, keep migration scripts)
 alembic/versions/*.pyc
