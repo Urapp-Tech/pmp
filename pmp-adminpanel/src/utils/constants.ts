@@ -26,6 +26,7 @@ export const INVOICE_PREFIX = 'invoices';
 export const REPORT_PREFIX = 'reports';
 // export const TANENT_PREFIX = 'tenants';
 export const BLOG_PREFIX = 'blog';
+export const PAYMENT_PREFIX = 'payments';
 export const INVOICE_ITEM_PREFIX = 'invoice-items';
 export const TENANTS_PREFIX = 'tenants';
 

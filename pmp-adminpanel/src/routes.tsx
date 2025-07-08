@@ -52,7 +52,7 @@ export const routeObjects: RouteObject[] = [
         element: <Navigate to="auth" replace />,
       },
       {
-        path: 'payment-success',
+        path: 'payments/success',
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <SuccessPage />
@@ -60,7 +60,7 @@ export const routeObjects: RouteObject[] = [
         ),
       },
       {
-        path: 'payment-failed',
+        path: 'payments/failed',
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <FailurePage />
