@@ -131,9 +131,9 @@ def create_payment(
         "CustomerReference": str(invoice_id),
         "UserDefinedField": str(user_id),
         "NotificationOption": "EML",
-        "CallBackUrl": "http://localhost:8000/admin/payments/callback",
-        "ErrorUrl": "http://localhost:8000/admin/payments/error",
-        "WebhookUrl": "http://localhost:8000/api/v1/payment/webhook",
+        "CallBackUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/callback",
+        "ErrorUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/error",
+        "WebhookUrl": f"{settings.BACKEND_BASE_URL}/api/v1/payment/webhook",
         "Language": "en",
         "InvoiceValue": amount,
         "InvoiceItems": [

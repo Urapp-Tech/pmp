@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     MYFATOORAH_API_URL: str
     MYFATOORAH_API_KEY: str
     FRONTEND_BASE_URL: str
-
+    BACKEND_BASE_URL: str
+    
     # S3 credentials
     s3_access_id: str
     s3_access_key: str
