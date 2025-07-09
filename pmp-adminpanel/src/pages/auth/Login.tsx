@@ -216,7 +216,7 @@ const Login = () => {
                   <div className="mt-8 w-full ">
                     <Button
                       disabled={!!isLoader}
-                      className="btn-black-fill w-full bg-primary p-0 py-2 text-quinary-bg bg-secondary-bg/75 h-[60px] text-[16px] font-semibold hover:bg-secondary-bg rounded-[20px]"
+                      className="btn-black-fill w-full bg-primary p-0 py-2 text-quinary-bg  h-[60px] text-[16px] font-semibold hover:bg-secondary-bg rounded-[20px]"
                       color="inherit"
                       title="Login"
                       type="submit"

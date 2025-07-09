@@ -13,7 +13,15 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowUpDown, Loader2, Pencil, CreditCard, Trash2, Plus, Eye } from 'lucide-react';
+import {
+  ArrowUpDown,
+  Loader2,
+  Pencil,
+  CreditCard,
+  Trash2,
+  Plus,
+  Eye,
+} from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import DeleteDialog from '@/components/DeletePopup';
 import { Paginator } from '@/components/Paginator';
@@ -34,7 +42,7 @@ import InvoiceUpdateDialog from './UpdateDialog';
 import InvoiceItemModal from './InvoiceItemModal';
 import { InvoiceFields } from '@/interfaces/invoice.interface';
 import InvoiceItemActionDialog from './InvoiceItemActionDialog';
-import paymentService from "@/services/adminapp/payments"; // adjust this path
+import paymentService from '@/services/adminapp/payments'; // adjust this path
 import { hasPermission, usePermission } from '@/utils/hasPermission';
 import { PERMISSIONS } from '@/utils/constants';
 import InvoiceItemCreateDialog from './InvoiceItemCreateDialog';
@@ -95,31 +103,31 @@ const Invoices = () => {
       console.error('Failed to fetch invoice items:', error);
     }
   };
-const handleCreatePayment = async (row: any) => {
-  try {
-    const payload = {
-      user_id: row.tenant.user.id,
-      invoice_id: row.id,
-      property_unit_id: row.tenant.property_unit.id,
-      property: row.tenant.property_unit.property.name,
-      property_unit: row.tenant.property_unit.unit_no,
-      user_name: row.tenant.user.fname+ ' ' + row.tenant.user.lname,
-      user_email: row.tenant.user.email,
-      // user_phone: row.tenant.user.user_phone,
-      amount: row.total_amount,
-    };
+  const handleCreatePayment = async (row: any) => {
+    try {
+      const payload = {
+        user_id: row.tenant.user.id,
+        invoice_id: row.id,
+        property_unit_id: row.tenant.property_unit.id,
+        property: row.tenant.property_unit.property.name,
+        property_unit: row.tenant.property_unit.unit_no,
+        user_name: row.tenant.user.fname + ' ' + row.tenant.user.lname,
+        user_email: row.tenant.user.email,
+        // user_phone: row.tenant.user.user_phone,
+        amount: row.total_amount,
+      };
 
-    const res = await paymentService.create(payload); // adjust method
-    if (res?.data?.payment_url) {
-      window.open(res.data.payment_url, "_blank"); // open in new tab
-    } else {
-      ToastHandler("Unable to create payment");
+      const res = await paymentService.create(payload); // adjust method
+      if (res?.data?.payment_url) {
+        window.open(res.data.payment_url, '_blank'); // open in new tab
+      } else {
+        ToastHandler('Unable to create payment');
+      }
+    } catch (error) {
+      console.error('Payment creation failed', error);
+      ToastHandler('Payment creation failed');
     }
-  } catch (error) {
-    console.error("Payment creation failed", error);
-    ToastHandler("Payment creation failed");
-  }
-};
+  };
   const refreshData = () => {
     if (selectedInvoiceId) {
       fetchInvoiceItems(selectedInvoiceId, invoiceItemPage); // add current page
@@ -315,10 +323,10 @@ const handleCreatePayment = async (row: any) => {
 
           return (
             <div className="flex gap-2 items-center">
-              <span className="bg-blue-500 text-white text-[8px] w-[12px] h-[14px] rounded-full font-semibold flex items-center justify-center">
+              {/* <span className="bg-blue-500 text-white text-[8px] w-[12px] h-[14px] rounded-full font-semibold flex items-center justify-center">
                 {invoiceItems.length}
-              </span>
-              <Eye
+              </span> */}
+              {/* <Eye
                 className="cursor-pointer text-blue-500 w-[20px] h-[20px]"
                 onClick={async () => {
                   setSelectedInvoiceId(id);
@@ -338,13 +346,14 @@ const handleCreatePayment = async (row: any) => {
                   }}
                 />
                 
-              )}
-              { hasPending && (
-               <CreditCard
-                className="cursor-pointer text-green-600 w-[20px] h-[20px]"
-                onClick={() => handleCreatePayment(row.original)}
-              />
-                
+              )} */}
+              {hasPending ? (
+                <CreditCard
+                  className="cursor-pointer text-green-600 w-[20px] h-[20px]"
+                  onClick={() => handleCreatePayment(row.original)}
+                />
+              ) : (
+                'payment done'
               )}
             </div>
           );

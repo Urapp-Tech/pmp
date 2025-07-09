@@ -72,8 +72,11 @@ const InvoiceDetail = () => {
           tenantY
         );
         tenantY += 6;
-        doc.text(`Unit No: ${invoice.tenant.property_unit.unit_no || 'N/A'}`, leftX, tenantY);
-        
+        doc.text(
+          `Unit No: ${invoice.tenant.property_unit.unit_no || 'N/A'}`,
+          leftX,
+          tenantY
+        );
       }
     } else {
       doc.text('No tenant info.', leftX, tenantY);
@@ -190,17 +193,18 @@ const InvoiceDetail = () => {
                 <strong>Contract No:</strong>{' '}
                 {invoice.tenant.contract_number || 'N/A'}
               </div>
-               {invoice.tenant.property_unit && (
-              <>
-                <div>
-                  <strong>Property:</strong>{' '}
-                  {invoice.tenant.property_unit.property?.name || 'N/A'}
-                </div>
-                <div>
-                  <strong>Unit No:</strong> {invoice.tenant.property_unit.unit_no}
-                </div>
-              </>
-             )}
+              {invoice.tenant.property_unit && (
+                <>
+                  <div>
+                    <strong>Property:</strong>{' '}
+                    {invoice.tenant.property_unit.property?.name || 'N/A'}
+                  </div>
+                  <div>
+                    <strong>Unit No:</strong>{' '}
+                    {invoice.tenant.property_unit.unit_no}
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div>No tenant info.</div>
@@ -221,12 +225,15 @@ const InvoiceDetail = () => {
             <div>
               <strong>Status:</strong> {invoice.status}
             </div>
+            <div>
+              <strong>Total Amount:</strong> {invoice.total_amount}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Payment Items Table */}
-      <div className="mt-4 border-t pt-4">
+      {/* <div className="mt-4 border-t pt-4">
         <h3 className="font-medium text-sm mb-2">Payment Items</h3>
         <table className="w-full text-sm border">
           <thead>
@@ -260,7 +267,7 @@ const InvoiceDetail = () => {
             </tr>
           </tfoot>
         </table>
-      </div>
+      </div> */}
     </Card>
   );
 };

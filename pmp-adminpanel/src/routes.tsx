@@ -3,44 +3,51 @@ import AppLayout from '@/layout/AppLayout';
 import AuthLayout from '@/layout/AuthLayout';
 import LayoutOutlet from '@/layout/LayoutOutlet';
 import Login from '@/pages/auth/Login';
-import Employees from '@/pages/employees/Employees';
-import EmployeeCabinHistory from '@/pages/employees/EmployeeCabinHistory';
 import PanelSetting from '@/pages/setting/panelSetting';
 import SystemConfiguration from '@/pages/setting/systemConfiguration';
 import { lazy, Suspense } from 'react';
 import { Navigate, RouteObject } from 'react-router';
 import Otp from './pages/auth/Otp';
-import AddRolePermissionsPage from '@/pages/role-permissions/AddRolePermissionsPage';
-import CreatePropertyPage from '@/pages/property/CreatePropertyPage';
-import UpdatePropertyPage from '@/pages/property/UpdatePropertyPage';
-import UpdateRolePermissionPage from '@/pages/role-permissions/UpdateRolePermissionPage';
-import PropertyManagers from '@/pages/property-managers/List';
-import Property from '@/pages/property/List';
-import TenantUsers from './pages/tenant-users/users-list/List';
-import Invoices from './pages/Invoices/List';
-import Receipts from './pages/receipts/List';
-import SupportMaintenance from './pages/support-maintenance/List';
-import RentalCollection from './pages/rental-collection/List';
-import TenantRental from './pages/tenant-rental/List';
-import ContractRequest from './pages/tenant-users/contracts-request/List';
-import ApprovedContracts from './pages/tenant-users/approved-contracts/List';
-import ReportedTicketsList from './pages/support-maintenance/ReportedList';
-import InvoiceReport from './pages/reports/InvoiceReport';
-import InvoiceDetail from './pages/reports/InvoiceDetail';
-import SuccessPage from './pages/payments/success';
-import FailurePage from './pages/payments/Failure';
-// const LandlordDashboard = lazy(
-//   () => import('@/pages/dashboard/LandlordDashboard')
-// );
 
+const AddRolePermissionsPage = lazy(
+  () => import('@/pages/role-permissions/AddRolePermissionsPage')
+);
+const CreatePropertyPage = lazy(
+  () => import('@/pages/property/CreatePropertyPage')
+);
+const UpdatePropertyPage = lazy(
+  () => import('@/pages/property/UpdatePropertyPage')
+);
+const UpdateRolePermissionPage = lazy(
+  () => import('@/pages/role-permissions/UpdateRolePermissionPage')
+);
+const PropertyManagers = lazy(() => import('@/pages/property-managers/List'));
+const Property = lazy(() => import('@/pages/property/List'));
+const TenantUsers = lazy(() => import('@/pages/tenant-users/users-list/List'));
+const Invoices = lazy(() => import('@/pages/Invoices/List'));
+const Receipts = lazy(() => import('@/pages/receipts/List'));
+const SupportMaintenance = lazy(
+  () => import('@/pages/support-maintenance/List')
+);
+const RentalCollection = lazy(() => import('@/pages/rental-collection/List'));
+const TenantRental = lazy(() => import('@/pages/tenant-rental/List'));
+const ContractRequest = lazy(
+  () => import('@/pages/tenant-users/contracts-request/List')
+);
+const ApprovedContracts = lazy(
+  () => import('@/pages/tenant-users/approved-contracts/List')
+);
+const ReportedTicketsList = lazy(
+  () => import('@/pages/support-maintenance/ReportedList')
+);
+const InvoiceReport = lazy(() => import('@/pages/reports/InvoiceReport'));
+const InvoiceDetail = lazy(() => import('@/pages/reports/InvoiceDetail'));
+const SuccessPage = lazy(() => import('@/pages/payments/Success'));
+const FailurePage = lazy(() => import('@/pages/payments/Failure'));
 const RoleBasedDashboard = lazy(() => import('@/pages/dashboard/index'));
-const TenantDashboard = lazy(() => import('@/pages/dashboard/TenantDashboard'));
-
-const OfficeUsers = lazy(() => import('@/pages/property-managers/List'));
 const RolePermissions = lazy(
   () => import('@/pages/role-permissions/RolePermissions')
 );
-const Blogs = lazy(() => import('@/pages/blogs/Blogs'));
 
 export const routeObjects: RouteObject[] = [
   {
@@ -110,14 +117,6 @@ export const routeObjects: RouteObject[] = [
               </Suspense>
             ),
           },
-          // {
-          //   path: 'payment-confirmation',
-          //   element: (
-          //     <Suspense fallback={<div>Loading...</div>}>
-          //       <SuccessPage />
-          //     </Suspense>
-          //   ),
-          // },
           {
             path: 'property-managers',
             children: [
@@ -294,31 +293,6 @@ export const routeObjects: RouteObject[] = [
               },
             ],
           },
-          // {
-          //   path: 'support-maintenance',
-          //   children: [
-          //     {
-          //       index: true,
-          //       element: <Navigate to="list" replace />,
-          //     },
-          //     {
-          //       path: 'list',
-          //       element: (
-          //         <Suspense fallback={<div>Loading...</div>}>
-          //           <SupportMaintenance />
-          //         </Suspense>
-          //       ),
-          //     },
-          //     {
-          //       path: 'tenant-tickets',
-          //       element: (
-          //         <Suspense fallback={<div>Loading...</div>}>
-          //           <ReportedTicketsList />
-          //         </Suspense>
-          //       ),
-          //     },
-          //   ],
-          // },
           {
             path: 'rental-collection',
             children: [

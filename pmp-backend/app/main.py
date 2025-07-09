@@ -75,7 +75,8 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting scheduler...")
     scheduler.start()
-    print("✅ Production cron job scheduled (daily at midnight)")
+    # print("✅ Production cron job scheduled (daily at midnight)")
+    print("✅ Production cron job scheduled (daily)")
 
     yield
 

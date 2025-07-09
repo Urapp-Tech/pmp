@@ -26,9 +26,14 @@ def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
     # Auto-generate invoice_no if not provided
     if not invoice.invoice_no and invoice.landlord_id:
         invoice_no = generate_invoice_no(db, invoice.landlord_id)
-        invoice.invoice_no =invoice_no
-    user = db.query(Tenant).options(joinedload(Tenant.user)).filter(Tenant.id == invoice.tenant_id).first()
-    
+        invoice.invoice_no = invoice_no
+    user = (
+        db.query(Tenant)
+        .options(joinedload(Tenant.user))
+        .filter(Tenant.id == invoice.tenant_id)
+        .first()
+    )
+
     db.add(invoice)
     db.add(invoice)
     db.commit()
@@ -36,14 +41,18 @@ def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
     html_content = render_template(
         "invoice_created.html",
         {
-             "name": f"{user.user.fname} {user.user.lname}",
-                "invoice_title": invoice_no,
-                "status": invoice.status,
-                "due_date":datetime.strptime(invoice.due_date, "%Y-%m-%d").strftime("%d %B %Y")
+            "name": f"{user.user.fname} {user.user.lname}",
+            "invoice_title": invoice_no,
+            "status": invoice.status,
+            "due_date": datetime.strptime(invoice.due_date, "%Y-%m-%d").strftime(
+                "%d %B %Y"
+            ),
         },
     )
     send_email(
-        to_email="testapp.mailed@gmail.com", subject="Your Invoice has been created", html_content=html_content
+        to_email="testapp.mailed@gmail.com",
+        subject="Your Invoice has been created",
+        html_content=html_content,
     )
     return invoice
 
@@ -197,30 +206,7 @@ def generate_invoice_no(db: Session, landlord_id: str) -> str:
     return invoice_number
 
 
-# def get_tenants_with_upcoming_date(db: Session, seconds_before_due: int = 10):
-#     """
-#     Fetch tenants whose invoice due_date is within X days.
-#     """
-#     now_utc = datetime.now(timezone.utc)
-#     upcoming_date = now_utc + timedelta(seconds=seconds_before_due)
-#     invoices = (
-#         db.query(Invoice)
-#         .filter(
-#             and_(
-#                 Invoice.due_date <= upcoming_date,
-#             )
-#         )
-#         .all()
-#     )
-
-#     if not invoices:
-#         print("⚠️ No upcoming invoices found, fetching all for testing...")
-#         invoices = db.query(Invoice).all()
-
-#     tenants = [inv.tenant for inv in invoices if inv.tenant is not None]
-#     return tenants
-
-
+# for testing
 def get_tenants_with_upcoming_date(db, days_before_due: int = 7):
     """
     Fetch invoices whose due_date is within X days.
@@ -228,11 +214,25 @@ def get_tenants_with_upcoming_date(db, days_before_due: int = 7):
     now_utc = datetime.now()
     upcoming_date = now_utc + timedelta(days=days_before_due)
 
-    invoices = db.query(Invoice).filter(Invoice.due_date <= upcoming_date).all()
-    print(
-        f"📥 [PROD] Found {len(invoices)} invoices due in next {days_before_due} days"
-    )
+    invoices = db.query(Invoice).all()  # 🔥 Fetch ALL invoices, no due_date check
+    print(f"📥 [TEST] Found {len(invoices)} invoices for daily generation")
     return invoices
+
+
+# for production
+
+# def get_tenants_with_upcoming_date(db, days_before_due: int = 7):
+#     """
+#     Fetch invoices whose due_date is within X days.
+#     """
+#     now_utc = datetime.now()
+#     upcoming_date = now_utc + timedelta(days=days_before_due)
+
+#     invoices = db.query(Invoice).filter(Invoice.due_date <= upcoming_date).all()
+#     print(
+#         f"📥 [PROD] Found {len(invoices)} invoices due in next {days_before_due} days"
+#     )
+#     return invoices
 
 
 def create_next_invoice(db, previous_invoice: Invoice) -> Invoice:
@@ -306,87 +306,3 @@ def create_next_invoice(db, previous_invoice: Invoice) -> Invoice:
         print(f"⚠️ No user/email found for tenant {tenant.id}")
 
     return new_invoice
-
-
-# def get_all_invoices_for_testing(db: Session):
-#     """
-#     TESTING: Fetch all invoices ignoring due_date.
-#     """
-#     invoices = db.query(Invoice).all()
-#     print(f"📥 [TEST] Found {len(invoices)} invoices")
-#     return invoices
-
-
-# def create_next_invoice(db: Session, previous_invoice: Invoice) -> Invoice:
-#     """
-#     Create a new invoice based on the previous one, send email to the tenant user.
-#     """
-
-#     try:
-#         # Convert qty to int safely
-#         qty = int(previous_invoice.qty or 1)  # default to 1 if null or empty
-#     except ValueError:
-#         print(f"⚠️ [TEST] Invalid qty '{previous_invoice.qty}', defaulting to 1 month")
-#         qty = 1
-
-#     try:
-#         # Convert due_date to datetime if it’s a string
-#         if isinstance(previous_invoice.due_date, str):
-#             due_date = datetime.fromisoformat(previous_invoice.due_date)
-#         else:
-#             due_date = previous_invoice.due_date
-#     except Exception as e:
-#         print(f"⚠️ [TEST] Invalid due_date '{previous_invoice.due_date}': {e}")
-#         # fallback: use current datetime
-#         due_date = datetime.now()
-
-#     # Adjust due date based on unit (month/year)
-#     # qty = previous_invoice.qty or 1  # default to 1 if missing
-#     if qty == 1:
-#         next_due_date = due_date + relativedelta(months=1)
-#     elif qty == 12:
-#         next_due_date = due_date + relativedelta(years=1)
-#     else:
-#         # Assume monthly for any other qty for testing
-#         next_due_date = due_date + relativedelta(months=qty)
-
-#     print(f"📆 [TEST] Next due date: {next_due_date}")
-
-#     new_invoice_no = generate_invoice_no(db, previous_invoice.landlord_id)
-
-#     # Prepare new invoice data
-#     new_invoice_data = InvoiceCreate(
-#         tenant_id=previous_invoice.tenant_id,
-#         landlord_id=previous_invoice.landlord_id,
-#         total_amount=previous_invoice.total_amount,
-#         due_date=next_due_date.isoformat(),
-#         description=f"Auto-generated for period ending {next_due_date.strftime('%B %Y')}",
-#         invoice_no=new_invoice_no,  # Let system generate
-#         status="unpaid",
-#     )
-#     new_invoice = create_invoice(db, new_invoice_data)
-
-#     # Fetch tenant and user to send email
-#     tenant = db.query(Tenant).filter(Tenant.id == previous_invoice.tenant_id).first()
-#     if not tenant:
-#         print(f"⚠️ No tenant contract found for invoice {previous_invoice.id}")
-#         return new_invoice
-
-#     user = db.query(User).filter(User.id == tenant.user_id).first()
-#     if user and user.email:
-#         html_content = render_template(
-#             "invoice_created.html",
-#             {
-#                 "name": f"{user.fname} {user.lname}",
-#                 "invoice_title": new_invoice.invoice_no,
-#                 "status": "unpaid",
-#                 "due_date": next_due_date.strftime("%d %B %Y"),
-#             },
-#         )
-#         send_email(
-#             to_email=user.email, subject="Your New Invoice", html_content=html_content
-#         )
-#     else:
-#         print(f"⚠️ No user/email found for tenant {tenant.id}")
-
-#     return new_invoice
