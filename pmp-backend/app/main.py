@@ -32,43 +32,6 @@ from app.modules.paymentHistory.routes import router as payment_router
 from app.utils.email_service import render_template, send_email
 from app.utils.email_service import template_env
 
-app = FastAPI(
-    docs_url="/docs",  # disables Swagger UI (/docs)
-    # openapi_url=None       # disables OpenAPI schema (/openapi.json)
-)
-
-# 📁 Ensure 'uploads' directory exists
-os.makedirs("uploads", exist_ok=True)
-
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
-# Setup global logging
-setup_global_logger()
-# debug_log({"key": "value", "status": 200})
-
-
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     # Startup
-#     print("🚀 Starting scheduler...")
-#     scheduler.start()
-
-#     # ⬇️ Add test job (every 10 seconds)
-#     scheduler.add_job(
-#         generate_and_send_invoices,
-#         "interval",
-#         seconds=10,  # Run every 10s for testing
-#         id="invoice_job",
-#         replace_existing=True,
-#     )
-#     print("✅ Test job scheduled (every 10s)")
-
-#     yield  # 👈 Let FastAPI run
-
-#     # Shutdown
-#     print("🛑 Stopping scheduler...")
-#     scheduler.shutdown()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -85,7 +48,18 @@ async def lifespan(app: FastAPI):
     scheduler.shutdown()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    docs_url="/docs",
+    lifespan=lifespan,
+)
+
+# 📁 Ensure 'uploads' directory exists
+os.makedirs("uploads", exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Setup global logging
+setup_global_logger()
 
 
 @app.get("/")

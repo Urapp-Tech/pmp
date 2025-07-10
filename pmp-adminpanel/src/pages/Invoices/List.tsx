@@ -315,7 +315,7 @@ const Invoices = () => {
         header: 'Payment',
         cell: ({ row }) => {
           const invoiceItems = row.original.invoice_items || [];
-          const id = row.original.id;
+          // const id = row.original.id;
           const hasPending =
             row.original.status !== 'paid' &&
             (invoiceItems.length === 0 ||
@@ -412,7 +412,7 @@ const Invoices = () => {
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
         <div className="flex items-center py-4 justify-between">
           <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-            Inovices
+            Invoices
           </h2>
           <div className="flex items-center gap-3">
             <Input

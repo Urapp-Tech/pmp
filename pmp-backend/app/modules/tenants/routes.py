@@ -81,7 +81,7 @@ def create_contract(
     )
     return {
         "success": True,
-        "message": "Contract successfully created, need approval by manager or landlord",
+        "message": "Contract successfully created, need approval landlord",
         "data": contract,
     }
 
@@ -131,6 +131,7 @@ def get_pending_contracts(
         search=search,
     )
 
+
 @router.get("/by-landlord/{landlord_id}")
 def get_contracts_by_landlord(
     landlord_id: UUID = Path(..., description="UUID of the landlord"),
@@ -138,5 +139,7 @@ def get_contracts_by_landlord(
 ):
     contracts = select_list_contracts_by_landlord(db, landlord_id=landlord_id)
     if not contracts:
-        raise HTTPException(status_code=404, detail="No contracts found for this landlord")
+        raise HTTPException(
+            status_code=404, detail="No contracts found for this landlord"
+        )
     return contracts
