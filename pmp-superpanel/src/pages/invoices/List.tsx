@@ -101,7 +101,7 @@ const Invoices = () => {
       fetchInvoiceItems(selectedInvoiceId, invoiceItemPage); // add current page
     }
   };
-  
+
   const ToastHandler = (msg: string) =>
     toast({
       description: msg,
@@ -136,7 +136,7 @@ const Invoices = () => {
 
   useEffect(() => {
     // if (can(PERMISSIONS.INVOICE.UPDATE) || can(PERMISSIONS.INVOICE.DELETE)) {
-      setColumnVisibility({ actions: true });
+    setColumnVisibility({ actions: true });
     // }
     fetchList(search, page);
   }, []);
@@ -159,7 +159,7 @@ const Invoices = () => {
   ) => {
     //  if (type === 'delete') {
     //   setDeleteOpen(true);
-    // } else 
+    // } else
     if (type === 'view') {
       navigate(`/super-admin/invoices/detail/${inv.id}`);
     }
@@ -260,37 +260,14 @@ const Invoices = () => {
         header: 'Payment',
         cell: ({ row }) => {
           const invoiceItems = row.original.invoice_items || [];
-          const id = row.original.id;
-          // const hasPending =
-          //   row.original.status !== 'paid' &&
-          //   (invoiceItems.length === 0 ||
-          //     invoiceItems.every((item) => item.status !== 'pending'));
+          const hasPending =
+            row.original.status !== 'paid' &&
+            (invoiceItems.length === 0 ||
+              invoiceItems.every((item) => item.status !== 'pending'));
 
           return (
             <div className="flex gap-2 items-center">
-              <span className="bg-blue-500 text-white text-[8px] w-[12px] h-[14px] rounded-full font-semibold flex items-center justify-center">
-                {invoiceItems.length}
-              </span>
-              <Eye
-                className="cursor-pointer text-blue-500 w-[20px] h-[20px]"
-                onClick={async () => {
-                  setSelectedInvoiceId(id);
-                  await fetchInvoiceItems(id);
-                  setShowItemsModal(true);
-                }}
-              />
-
-              {/* {can(PERMISSIONS.TENANT_RENTAL.CREATE) && hasPending && (
-                <Plus
-                  className="cursor-pointer text-green-600 w-[20px] h-[20px]"
-                  onClick={() => {
-                    setSelectedInvoiceId(id);
-                    setAmount(row.original.total_amount);
-                    setSelectedInvoiceItemId('');
-                    setShowCreateItemModal(true);
-                  }}
-                />
-              )} */}
+              {hasPending ? 'payment remaining' : 'payment done'}
             </div>
           );
         },
@@ -304,7 +281,6 @@ const Invoices = () => {
           const inv = row.original;
           return (
             <div className="flex gap-2">
-              
               {/* {can(PERMISSIONS.INVOICE.UPDATE) && (
                 <Pencil
                   className="cursor-pointer text-blue-500"

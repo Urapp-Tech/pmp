@@ -32,50 +32,12 @@ from app.modules.paymentHistory.routes import router as payment_router
 from app.utils.email_service import render_template, send_email
 from app.utils.email_service import template_env
 
-app = FastAPI(
-    docs_url="/docs",  # disables Swagger UI (/docs)
-    # openapi_url=None       # disables OpenAPI schema (/openapi.json)
-)
-
-# 📁 Ensure 'uploads' directory exists
-os.makedirs("uploads", exist_ok=True)
-
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
-# Setup global logging
-setup_global_logger()
-# debug_log({"key": "value", "status": 200})
-
-
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     # Startup
-#     print("🚀 Starting scheduler...")
-#     scheduler.start()
-
-#     # ⬇️ Add test job (every 10 seconds)
-#     scheduler.add_job(
-#         generate_and_send_invoices,
-#         "interval",
-#         seconds=10,  # Run every 10s for testing
-#         id="invoice_job",
-#         replace_existing=True,
-#     )
-#     print("✅ Test job scheduled (every 10s)")
-
-#     yield  # 👈 Let FastAPI run
-
-#     # Shutdown
-#     print("🛑 Stopping scheduler...")
-#     scheduler.shutdown()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting scheduler...")
     scheduler.start()
-    # print("✅ Production cron job scheduled (daily at midnight)")
     print("✅ Production cron job scheduled (daily)")
 
     yield
@@ -85,7 +47,18 @@ async def lifespan(app: FastAPI):
     scheduler.shutdown()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    docs_url="/docs",
+    lifespan=lifespan,
+)
+
+# 📁 Ensure 'uploads' directory exists
+os.makedirs("uploads", exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Setup global logging
+setup_global_logger()
 
 
 @app.get("/")
@@ -188,69 +161,6 @@ app.include_router(
 )
 
 
-@app.post("/send-payment-email/")
-async def send_payment_email(
-    background_tasks: BackgroundTasks, user_email: str, name: str, amount: float
-):
-    """Send payment confirmation email."""
-    html_content = render_template(
-        "payment_created.html",
-        {"name": name, "amount": f"${amount}", "status": "Created"},
-    )
-    background_tasks.add_task(send_email, user_email, "Payment Created", html_content)
-    return {"message": "Payment email sent"}
-
-
-@app.post("/send-ticket-email/")
-async def send_ticket_email(
-    background_tasks: BackgroundTasks, user_email: str, name: str, ticket_title: str
-):
-    """Send maintenance ticket created email."""
-    html_content = render_template(
-        "ticket_created.html",
-        {"name": name, "ticket_title": ticket_title, "status": "Open"},
-    )
-    background_tasks.add_task(send_email, user_email, "Ticket Created", html_content)
-    return {"message": "Ticket email sent"}
-
-
-@app.post("/send-invoice-email/")
-async def send_invoice_email(
-    background_tasks: BackgroundTasks,
-    user_email: str,
-    name: str,
-    invoice_title: str,
-    due_date: str,
-):
-    """Send maintenance ticket created email."""
-    html_content = render_template(
-        "invoice_created.html",
-        {
-            "name": name,
-            "invoice_title": invoice_title,
-            "status": "Pending",
-            "due_date": due_date,
-        },
-    )
-    background_tasks.add_task(
-        send_email, user_email, "New Invoice Created", html_content
-    )
-    return {"message": "Invoice email sent"}
-
-
-# @app.get("/test-email")
-# def test_email():
-#     template = template_env.get_template("ticket_created.html")
-#     html = template.render(
-#         first_name="Rafay",
-#         last_name="Asad",
-#         email="layayoissuyau-8461@yopmail.com",
-#         phone="123456789",
-#         comment="This is a test comment.",
-#         created_at="2025-07-08 12:00:00",
-#         year=2025,
-#     )
-#     return {"html_preview": html}
 
 
 app.add_middleware(

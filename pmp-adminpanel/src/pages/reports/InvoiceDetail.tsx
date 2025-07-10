@@ -95,56 +95,58 @@ const InvoiceDetail = () => {
     doc.text(`Due Date: ${invoice.due_date}`, rightX, y);
     y += 6;
     doc.text(`Status: ${invoice.status}`, rightX, y);
+    y += 6;
+    doc.text(`Total Amount: ${invoice.total_amount.toString()}`, rightX, y);
 
     // Payment Items Table starts below the taller block (invoice or tenant)
-    const tableStartY = Math.max(y, tenantY) + 12;
+    // const tableStartY = Math.max(y, tenantY) + 12;
 
-    doc.autoTable({
-      startY: tableStartY,
-      head: [['Description', 'Payment Date', 'Method', 'Status', 'Amount']],
-      body: invoice.items?.map((item: any) => [
-        item.description,
-        item.payment_date || '—',
-        item.payment_method,
-        item.status,
-        'pending',
-        item.amount,
-      ]),
-      theme: 'grid',
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-        lineColor: [100, 100, 100], // medium dark border
-        lineWidth: 0.2,
-      },
-      headStyles: {
-        fillColor: [240, 240, 240],
-        textColor: [0, 0, 0],
-        lineColor: [100, 100, 100],
-        lineWidth: 0.2,
-        fontStyle: 'bold',
-      },
-      footStyles: {
-        fillColor: [230, 230, 230],
-        textColor: [0, 0, 0],
-        fontStyle: 'bold',
-        lineColor: [100, 100, 100],
-        lineWidth: 0.2,
-      },
-      foot: [
-        [
-          { content: 'Total:', colSpan: 4, styles: { halign: 'right' } },
-          {
-            content: invoice.total_amount.toString(),
-          },
-        ],
-      ],
-      // columnStyles: {
-      //   3: { halign: 'right' },
-      //   2: { halign: 'center' },
-      //   1: { halign: 'center' },
-      // },
-    });
+    // doc.autoTable({
+    //   startY: tableStartY,
+    //   head: [['Description', 'Payment Date', 'Method', 'Status', 'Amount']],
+    //   body: invoice.items?.map((item: any) => [
+    //     item.description,
+    //     item.payment_date || '—',
+    //     item.payment_method,
+    //     item.status,
+    //     'pending',
+    //     item.amount,
+    //   ]),
+    //   theme: 'grid',
+    //   styles: {
+    //     fontSize: 10,
+    //     cellPadding: 3,
+    //     lineColor: [100, 100, 100], // medium dark border
+    //     lineWidth: 0.2,
+    //   },
+    //   headStyles: {
+    //     fillColor: [240, 240, 240],
+    //     textColor: [0, 0, 0],
+    //     lineColor: [100, 100, 100],
+    //     lineWidth: 0.2,
+    //     fontStyle: 'bold',
+    //   },
+    //   footStyles: {
+    //     fillColor: [230, 230, 230],
+    //     textColor: [0, 0, 0],
+    //     fontStyle: 'bold',
+    //     lineColor: [100, 100, 100],
+    //     lineWidth: 0.2,
+    //   },
+    //   foot: [
+    //     [
+    //       { content: 'Total:', colSpan: 4, styles: { halign: 'right' } },
+    //       {
+    //         content: invoice.total_amount.toString(),
+    //       },
+    //     ],
+    //   ],
+    //   // columnStyles: {
+    //   //   3: { halign: 'right' },
+    //   //   2: { halign: 'center' },
+    //   //   1: { halign: 'center' },
+    //   // },
+    // });
 
     doc.save(`invoice_${invoice.invoice_no}.pdf`);
   };

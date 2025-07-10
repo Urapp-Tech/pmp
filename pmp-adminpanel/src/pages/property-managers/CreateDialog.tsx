@@ -150,7 +150,7 @@ const OfficeUserCreateDialog = ({
                 <FormControl className="m-1 w-full">
                   <div className="">
                     <FormLabel htmlFor="email" className="text-sm font-medium">
-                      Eamil
+                      Email
                     </FormLabel>
                     <Input
                       autoComplete="new-email"
