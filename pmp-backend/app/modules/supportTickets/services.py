@@ -155,9 +155,10 @@ def create_ticket(db: Session, data, images: Optional[List[UploadFile]] = None):
         if sender_user:
             sender_name = f"{sender_user.fname} {sender_user.lname}"
     elif sender_role.name.lower() == "landlord":
-        landlord = db.query(Landlord).joinlo.filter(Landlord.id == sender_id).first()
-        if landlord:
-            sender_name = f"{landlord.fname} {landlord.lname}"
+        user = db.query(User).filter(User.landlord_id == ticket.sender_id).filter(User.is_landlord == True).first()
+        # landlord = db.query(Landlord).joinlo.filter(Landlord.id == sender_id).first()
+        if user:
+            sender_name = f"{user.fname} {user.lname}"
 
     # Get receiver's full name and email (based on role used earlier)
     receiver_name = "Support Team"
@@ -167,7 +168,7 @@ def create_ticket(db: Session, data, images: Optional[List[UploadFile]] = None):
     if receiver_role and receiver_role.name.lower() == "super admin":
         super_admin = db.query(SuperUser).filter(SuperUser.id == ticket.receiver_id).first()
         if super_admin:
-            receiver_name = f"{super_admin.fname} {super_admin.lname}"
+            receiver_name = super_admin.name
             receiver_email = super_admin.email
 
     elif receiver_role and receiver_role.name.lower() == "landlord":
@@ -351,7 +352,7 @@ def update_ticket_status_service(db: Session, data: SupportTicketStatusUpdate):
 
     return {
         "success": True,
-        "message": f"Ticket status updated to '{ticket.status}' successfully",
+        "message": f"Ticket status updated successfully",
         "ticket_id": str(ticket.id),
         "new_status": ticket.status,
     }
