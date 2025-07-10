@@ -1,6 +1,8 @@
+from datetime import datetime
 from fastapi import UploadFile, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
+from sqlalchemy.orm import joinedload
 from app.models.support_tickets import SupportTicket
 from app.modules.supportTickets.schemas import (
     SupportTicketOut,
@@ -16,6 +18,7 @@ from app.models.super_admins import SuperAdmin as SuperUser
 from app.models.support_tickets import SupportTicketStatus
 from typing import Optional, List
 from app.utils.uploader import is_upload_file, save_uploaded_file
+from app.utils.email_service import render_template, send_email
 import uuid
 from uuid import UUID
 
@@ -145,6 +148,53 @@ def create_ticket(db: Session, data, images: Optional[List[UploadFile]] = None):
     db.flush()
     db.commit()
     db.refresh(ticket)
+    # Get sender's full name
+    sender_name = "Unknown"
+    if sender_role.name.lower() in ["user", "manager"]:
+        sender_user = db.query(User).filter(User.id == sender_id).first()
+        if sender_user:
+            sender_name = f"{sender_user.fname} {sender_user.lname}"
+    elif sender_role.name.lower() == "landlord":
+        landlord = db.query(Landlord).joinlo.filter(Landlord.id == sender_id).first()
+        if landlord:
+            sender_name = f"{landlord.fname} {landlord.lname}"
+
+    # Get receiver's full name and email (based on role used earlier)
+    receiver_name = "Support Team"
+    receiver_email = "support@example.com"
+
+    receiver_role = db.query(Role).filter(Role.id == ticket.receiver_role_id).first()
+    if receiver_role and receiver_role.name.lower() == "super admin":
+        super_admin = db.query(SuperUser).filter(SuperUser.id == ticket.receiver_id).first()
+        if super_admin:
+            receiver_name = f"{super_admin.fname} {super_admin.lname}"
+            receiver_email = super_admin.email
+
+    elif receiver_role and receiver_role.name.lower() == "landlord":
+        user = db.query(User).filter(User.landlord_id == ticket.receiver_id).filter(User.is_landlord == True).first()
+        if user:
+            receiver_name = f"{user.fname} {user.lname}"
+            receiver_email = user.email
+
+    # Render the email
+    html_content = render_template(
+        "ticket_created.html",
+        {
+            "sender_name": sender_name,
+            "receiver_name": receiver_name,
+            "subject": ticket.subject,
+            "message": ticket.message,
+            "images": ticket.images,
+            "date": datetime.now().strftime("%d %B %Y"),
+        },
+    )
+
+    # Send the email
+    send_email(
+        to_email=receiver_email,
+        subject=ticket.subject,
+        html_content=html_content,
+    )
 
     return SupportTicketOut.model_validate(ticket, from_attributes=True).model_dump(
         by_alias=True
@@ -235,6 +285,23 @@ def get_tickets_by_user(
     return tickets, total
 
 
+# def update_ticket_status_service(db: Session, data: SupportTicketStatusUpdate):
+#     ticket = db.query(SupportTicket).filter(SupportTicket.id == data.ticket_id).first()
+
+#     if not ticket:
+#         raise HTTPException(status_code=404, detail="Support ticket not found")
+
+#     ticket.status = data.status
+#     db.commit()
+#     db.refresh(ticket)
+
+#     return {
+#         "success": True,
+#         "message": f"Ticket status updated to '{ticket.status}' successfully",
+#         "ticket_id": str(ticket.id),
+#         "new_status": ticket.status,
+#     }
+
 def update_ticket_status_service(db: Session, data: SupportTicketStatusUpdate):
     ticket = db.query(SupportTicket).filter(SupportTicket.id == data.ticket_id).first()
 
@@ -244,6 +311,43 @@ def update_ticket_status_service(db: Session, data: SupportTicketStatusUpdate):
     ticket.status = data.status
     db.commit()
     db.refresh(ticket)
+    # --- Get sender's name and email ---
+    sender_name = "User"
+    sender_email = "noreply@example.com"  # fallback
+
+    sender_role = db.query(Role).filter(Role.id == ticket.sender_role_id).first()
+    ticket_type = "Support Ticket"
+    if sender_role.name.lower() == "user":
+        ticket_type = "Maintenance Request"
+    if sender_role and sender_role.name.lower() in ["user", "manager"]:
+        sender_user = db.query(User).filter(User.id == ticket.sender_id).first()
+        if sender_user:
+            sender_name = f"{sender_user.fname} {sender_user.lname}"
+            sender_email = sender_user.email
+
+    elif sender_role and sender_role.name.lower() == "landlord":
+        user = db.query(User).filter(User.landlord_id == ticket.receiver_id).filter(User.is_landlord == True).first()
+        if user:
+            sender_name = f"{user.fname} {user.lname}"
+            sender_email = user.email
+
+    html_content = render_template(
+        "ticket_status_updated.html",
+        {
+            "sender_name": sender_name,
+            "subject": ticket.subject,
+            "status": ticket.status,
+            "date": datetime.now().strftime("%d %B %Y"),
+            "ticket_type": ticket_type,
+        },
+    )
+
+    send_email(
+        to_email=sender_email,
+        subject=f"{ticket_type} Status Updated: {ticket.subject}",
+        html_content=html_content,
+    )
+
 
     return {
         "success": True,
@@ -251,6 +355,7 @@ def update_ticket_status_service(db: Session, data: SupportTicketStatusUpdate):
         "ticket_id": str(ticket.id),
         "new_status": ticket.status,
     }
+
 
 
 def get_landlord_reported_tickets_from_subusers(
@@ -483,3 +588,4 @@ def delete_ticket(db: Session, ticket_id: str):
     ticket.is_active = False
     db.commit()
     return {"success": True, "message": "Ticket deleted successfully"}
+

@@ -50,7 +50,7 @@ def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
         },
     )
     send_email(
-        to_email="testapp.mailed@gmail.com",
+        to_email=user.user.email,
         subject="Your Invoice has been created",
         html_content=html_content,
     )

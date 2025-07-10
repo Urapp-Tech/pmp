@@ -68,7 +68,6 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
         user_agent=request.headers.get("user-agent", "unknown"),
     )
     log_security_event(db, user_id=user.id, log_data=log_data)
-
     user_out = UserLoggedInOut.model_validate(user)
     user_out.access_token = access_token
     user_out.refresh_token = refresh_token
