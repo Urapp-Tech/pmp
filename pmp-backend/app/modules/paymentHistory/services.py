@@ -5,8 +5,9 @@ from sqlalchemy.orm import Session
 from app.models.invoices import Invoice
 from app.models.payment_history import PaymentHistory, PaymentStatus
 from app.models.users import User
+
 # from app.modules.paymentHistory.schemas import PaymentCreate
-from app.utils.myfatoorah_service import create_invoice
+# from app.utils.myfatoorah_service import create_invoice
 from uuid import UUID
 import requests
 from app.core.config import settings
@@ -25,7 +26,7 @@ MYFATOORAH_API_KEY = settings.MYFATOORAH_API_KEY
 #     property: str,
 #     property_unit: str,
 #     user_name: str,
-#     user_email: str, 
+#     user_email: str,
 #     user_phone: str,
 #     amount: float,
 # ):
@@ -100,6 +101,7 @@ MYFATOORAH_API_KEY = settings.MYFATOORAH_API_KEY
 
 #         return payment
 
+
 #     except requests.RequestException as e:
 #         # Log error and raise custom exception
 #         print("Payment API call failed:", e)
@@ -121,7 +123,9 @@ def create_payment(
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise Exception(f"User with ID {user_id} does not exist. Cannot create payment.")
+        raise Exception(
+            f"User with ID {user_id} does not exist. Cannot create payment."
+        )
 
     # Prepare MyFatoorah payload
     payload = {
@@ -157,7 +161,9 @@ def create_payment(
 
     try:
         # 🧾 Call MyFatoorah API
-        response = requests.post(MYFATOORAH_API_URL, json=payload, headers=headers)
+        response = requests.post(
+            f"{MYFATOORAH_API_URL}/SendPayment", json=payload, headers=headers
+        )
         response.raise_for_status()
         payment_data = response.json()
         invoice_url = payment_data["Data"]["InvoiceURL"]
@@ -203,6 +209,7 @@ def create_payment(
         print("Payment API call failed:", e)
         raise Exception(f"MyFatoorah API Error: {e}")
 
+
 def process_payment_callback(payment_id: str, db: Session) -> str:
     # Step 1: Get payment status from MyFatoorah
     payment_info = get_payment_status_from_myfatoorah(payment_id)
@@ -219,12 +226,16 @@ def process_payment_callback(payment_id: str, db: Session) -> str:
     payment_data = payment_info  # Full payload
 
     # Step 2: Find payment
-    payment = db.query(PaymentHistory).filter(PaymentHistory.invoice_id == invoice_id).first()
+    payment = (
+        db.query(PaymentHistory).filter(PaymentHistory.invoice_id == invoice_id).first()
+    )
     if not payment:
         raise HTTPException(status_code=404, detail="Payment record not found")
 
     # Step 3: Update payment
-    payment.status = PaymentStatus.SUCCESS if invoice_status == "Paid" else PaymentStatus.FAILED
+    payment.status = (
+        PaymentStatus.SUCCESS if invoice_status == "Paid" else PaymentStatus.FAILED
+    )
     payment.payload = payment_data
     user = payment.user
 
@@ -243,14 +254,19 @@ def process_payment_callback(payment_id: str, db: Session) -> str:
             },
         )
         send_email(
-            to_email=user.email, subject="Your Invoice has been paid", html_content=html_content
+            to_email=user.email,
+            subject="Your Invoice has been paid",
+            html_content=html_content,
         )
 
     db.commit()
 
     return invoice_status
 
-def generate_payment_error_redirect(payment_id: str, reference_id: str, reason: str) -> str:
+
+def generate_payment_error_redirect(
+    payment_id: str, reference_id: str, reason: str
+) -> str:
     query_params = {
         "paymentId": payment_id,
         "Id": reference_id,
@@ -263,12 +279,9 @@ def get_payment_status_from_myfatoorah(payment_id: str):
     url = "https://apitest.myfatoorah.com/v2/GetPaymentStatus"
     headers = {
         "Authorization": f"Bearer {settings.MYFATOORAH_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
-    payload = {
-        "Key": payment_id,
-        "KeyType": "PaymentId"
-    }
+    payload = {"Key": payment_id, "KeyType": "PaymentId"}
 
     response = requests.post(url, headers=headers, json=payload)
     response.raise_for_status()  # raises exception for HTTP errors
