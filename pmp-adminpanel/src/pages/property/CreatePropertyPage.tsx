@@ -150,15 +150,15 @@ const CreatePropertyPage = () => {
       if (response.data.success) {
         // toast({ description: 'Property created successfully!' });/
         toast({
-                  description: response.data.message,
-                  className: cn(
-                    'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-                  ),
-                  style: {
-                    backgroundColor: '#5CB85C',
-                    color: 'white',
-                  },
-                });
+          description: response.data.message,
+          className: cn(
+            'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+          ),
+          style: {
+            backgroundColor: '#5CB85C',
+            color: 'white',
+          },
+        });
         reset();
         navigate('/admin-panel/property/list');
         setPropertyPicturesPreview([]);
@@ -315,6 +315,8 @@ const CreatePropertyPage = () => {
                 'latitude',
                 'longitude',
                 'status',
+                'email',
+                'phone',
                 'bank_name',
                 'account_no',
                 'account_name',
@@ -362,13 +364,21 @@ const CreatePropertyPage = () => {
                         {...form.register('status', {
                           required: 'This field is required',
                         })}
-                        label='Status'
+                        label="Status"
                         control={form.control}
                         placeholder="Select Status"
                         items={[
                           { name: 'Available', id: 'available' },
                           { name: 'Not Available', id: 'not_available' },
                         ]}
+                      />
+                    ) : field === 'email' ? (
+                      <Input
+                        type="email"
+                        {...form.register(field as any, {
+                          required: 'This field is required',
+                        })}
+                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
                       />
                     ) : (
                       <Input
@@ -384,7 +394,11 @@ const CreatePropertyPage = () => {
                       !['type', 'property_type', 'status'].includes(field) && (
                         <>
                           <FormMessage>
-                            *{(form.formState.errors[field as keyof Fields]?.message) as string}
+                            *
+                            {
+                              form.formState.errors[field as keyof Fields]
+                                ?.message as string
+                            }
                           </FormMessage>
                         </>
                       )}
@@ -631,7 +645,9 @@ const CreatePropertyPage = () => {
                                   className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
                                 />
                               )}
-                              {errors.units?.[index]?.[unitField as keyof typeof errors.units[number]] &&
+                              {errors.units?.[index]?.[
+                                unitField as keyof (typeof errors.units)[number]
+                              ] &&
                                 ![
                                   'description',
                                   'status',
@@ -642,7 +658,7 @@ const CreatePropertyPage = () => {
                                     {
                                       (
                                         errors?.units?.[index]?.[
-                                          unitField as keyof typeof errors.units[number]
+                                          unitField as keyof (typeof errors.units)[number]
                                         ] as { message?: string }
                                       )?.message
                                     }
