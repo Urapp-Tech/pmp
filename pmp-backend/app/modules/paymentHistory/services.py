@@ -157,7 +157,7 @@ def create_payment(
 
     try:
         # 🧾 Call MyFatoorah API
-        response = requests.post(MYFATOORAH_API_URL, json=payload, headers=headers)
+        response = requests.post(f"{MYFATOORAH_API_URL}/SendPayment", json=payload, headers=headers)
         response.raise_for_status()
         payment_data = response.json()
         invoice_url = payment_data["Data"]["InvoiceURL"]

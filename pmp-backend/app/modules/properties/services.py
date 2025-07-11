@@ -19,7 +19,11 @@ from sqlalchemy.orm import joinedload, selectinload
 from app.utils.uploader import save_uploaded_file, is_upload_file
 from app.utils.logger import error_log, debug_log
 from uuid import UUID
-
+import requests
+from app.core.config import settings
+from urllib.parse import urlencode
+MYFATOORAH_API_URL = settings.MYFATOORAH_API_URL
+MYFATOORAH_API_KEY = settings.MYFATOORAH_API_KEY
 
 def create_property(db: Session, body: PropertyCreate):
     try:
@@ -90,12 +94,38 @@ def create_property(db: Session, body: PropertyCreate):
             longitude=body.longitude,
             status=body.status,
             unit_counts=body.unit_counts,
+            email=body.email,
+            phone=body.phone,
             bank_name=body.bank_name,
             account_no=body.account_no,
             account_name=body.account_name,
         )
         db.add(property_data)
+        supplier_payload = {
+            "SupplierName": property_data.name,
+            "Mobile": property_data.phone,
+            "Email": property_data.email,
+            "BankAccountHolderName": property_data.account_name,
+            "Iban": property_data.account_no,
+            "IsActive": "true",
+            "BusinessType": 2
+        }
 
+        headers = {
+            "Authorization": f"Bearer {settings.MYFATOORAH_API_KEY}",
+            "Content-Type": "application/json",
+        }
+
+        # 📌 Correct endpoint for registering supplier"
+
+        response = requests.post(f"{MYFATOORAH_API_URL}/SendSupplier", json=supplier_payload, headers=headers)
+
+        if response.ok:
+            print("✅ Supplier registered successfully")
+            print(response.json())
+        else:
+            print("❌ Failed to register supplier")
+            print(response.status_code, response.text)
         # Process units
         units = []
         unit_nos = set()
@@ -331,6 +361,8 @@ def update_property(db: Session, property_id: UUID, body):
             "status",
             "is_active",
             "unit_counts",
+            "email",
+            "phone",
             "bank_name",
             "account_no",
             "account_name",
