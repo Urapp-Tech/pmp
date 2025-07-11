@@ -315,6 +315,8 @@ const CreatePropertyPage = () => {
                 'latitude',
                 'longitude',
                 'status',
+                'email',
+                'phone',
                 'bank_name',
                 'account_no',
                 'account_name',
@@ -369,6 +371,14 @@ const CreatePropertyPage = () => {
                           { name: 'Available', id: 'available' },
                           { name: 'Not Available', id: 'not_available' },
                         ]}
+                      />
+                    ) : field === 'email' ? (
+                      <Input
+                        type="email"
+                        {...form.register(field as any, {
+                          required: 'This field is required',
+                        })}
+                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
                       />
                     ) : (
                       <Input

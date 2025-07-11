@@ -33,6 +33,8 @@ export interface Fields {
   estimate_value: string;
   latitude: string;
   longitude: string;
+  email: string;
+  phone: string;
   bank_name: string;
   account_no: string;
   account_name: string;

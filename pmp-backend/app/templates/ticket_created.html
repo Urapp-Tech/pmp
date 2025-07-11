@@ -1,16 +1,107 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Ticket Created</title>
-  </head>
-  <body>
-    <h2>Hello {{ name }},</h2>
-    <p>
-      Your maintenance ticket titled "<strong>{{ ticket_title }}</strong>" has
-      been created.
-    </p>
-    <p>Status: <strong>{{ status }}</strong></p>
-    <p>We will notify you of any updates.</p>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Support Ticket Created</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+      color: #333333;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+      padding: 30px;
+    }
+
+    .header h2 {
+      margin: 0 0 10px;
+      color: #2c3e50;
+      font-size: 22px;
+    }
+
+    .ticket-info p {
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 5px 0;
+    }
+
+    .message-box {
+      background-color: #f0f4f8;
+      border-left: 4px solid #3498db;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+      font-style: italic;
+    }
+
+    .images-preview img {
+      max-width: 100px;
+      margin-right: 10px;
+      margin-top: 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+
+    .footer {
+      font-size: 13px;
+      color: #888888;
+      margin-top: 30px;
+      text-align: center;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>New request from {{ sender_name }}</h2>
+    </div>
+
+    <div class="ticket-info">
+      <p><strong>From:</strong> {{ sender_name }}</p>
+      <p><strong>To:</strong> {{ receiver_name }}</p>
+      <p><strong>Date:</strong> {{ date }}</p>
+      <p><strong>Subject:</strong> {{ subject }}</p>
+    </div>
+
+    <div class="message-box">
+      {{ message }}
+    </div>
+
+{% if images %}
+<div class="images-preview">
+  <p><strong>Attached Files:</strong></p>
+  {% for img in images %}
+    {% set ext = img.split('.')[-1]|lower %}
+    {% if ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+      <img src="/{{ img }}" alt="Ticket Image" style="max-width: 100px; margin: 5px;" />
+    {% else %}
+      <p>
+        <a href="/{{ img }}" target="_blank" style="color: #3498db; text-decoration: underline;">
+          View File: {{ img.split('/')[-1] }}
+        </a>
+      </p>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+
+    <div class="footer">
+      &copy; {{ date[-4:] }} Your Company Name. All rights reserved.
+    </div>
+  </div>
+</body>
+
 </html>
