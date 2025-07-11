@@ -177,7 +177,7 @@ const CreatePropertyPage = () => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: function (results) {
+      complete: function (results: any) {
         const { data, meta } = results;
 
         const REQUIRED_COLUMNS = [
@@ -276,7 +276,7 @@ const CreatePropertyPage = () => {
 
         ToastHandler('CSV uploaded successfully.');
       },
-      error: function (err) {
+      error: function (err: any) {
         ToastHandler(`CSV Parse Error: ${err.message}`);
       },
     });

@@ -178,7 +178,7 @@ const PropertyDetailModal = ({
                         <strong>Account Name:</strong> {unit.account_name}
                       </div>
                       <div>
-                        <strong>Account No:</strong> {unit.account_no}
+                        <strong>Account IBAN No:</strong> {unit.account_no}
                       </div>
                     </div>
                   </AccordionContent>
