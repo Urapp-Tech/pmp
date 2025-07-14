@@ -93,6 +93,9 @@ const InvoiceCreateDialog = ({
     form.setValue('total_amount', selectedTenant?.rent_price, {
       shouldValidate: true,
     });
+    form.setValue('invoice_date', new Date().toISOString().slice(0, 10), {
+      shouldValidate: true,
+    });
     const cycleRaw = selectedTenant?.payment_cycle || 'monthly';
     const cycle = cycleRaw.toLowerCase();
     const cycleMonths = cycleMap[cycle] || 1;

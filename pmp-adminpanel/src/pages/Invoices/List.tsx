@@ -112,6 +112,7 @@ const Invoices = () => {
         invoice_id: row.id,
         property_unit_id: row.tenant.property_unit.id,
         property: row.tenant.property_unit.property.name,
+        supplier_code: row.tenant.property_unit.property.supplier_code,
         property_unit: row.tenant.property_unit.unit_no,
         user_name: row.tenant.user.fname + ' ' + row.tenant.user.lname,
         user_email: row.tenant.user.email,
@@ -350,10 +351,13 @@ const Invoices = () => {
                 
               )} */}
               {hasPending ? (
-                <CreditCard
-                  className="cursor-pointer text-green-600 w-[20px] h-[20px]"
+                <Button
+                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                  variant={'outline'}
                   onClick={() => handleCreatePayment(row.original)}
-                />
+                >
+                  Pay Now
+                </Button>
               ) : (
                 'payment done'
               )}

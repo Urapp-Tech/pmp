@@ -266,6 +266,8 @@ const UpdatePropertyPage = () => {
                 'latitude',
                 'longitude',
                 'status',
+                'phone',
+                'email',
                 'bank_name',
                 'account_no',
                 'account_name',

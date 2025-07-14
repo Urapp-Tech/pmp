@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
 
     # Register both jobs
     schedule_invoice_generation()
-    schedule_payout_processing()
+    # schedule_payout_processing()
 
     # Start scheduler
     scheduler.start()
