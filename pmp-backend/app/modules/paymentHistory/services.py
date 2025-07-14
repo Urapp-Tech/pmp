@@ -1,5 +1,7 @@
 from datetime import datetime
 import json
+
+from typing import Optional
 from fastapi import HTTPException, Request
 from sqlalchemy.orm import Session, joinedload, load_only
 from app.models.invoices import Invoice
@@ -112,6 +114,7 @@ def create_payment(
     invoice_id: UUID,
     property_unit_id: UUID,
     property: str,
+    supplier_code: Optional[str],
     property_unit: str,
     user_name: str,
     user_email: str,
@@ -135,6 +138,8 @@ def create_payment(
         raise Exception(
             f"User with ID {user_id} does not exist. Cannot create payment."
         )
+
+    # print("supplier_code found:", type(supplier_code), Number(supplier_code))
 
     # Prepare MyFatoorah payload
     payload = {
@@ -160,6 +165,13 @@ def create_payment(
                 "Depth": 0,
             }
         ],
+        "Suppliers": [
+            {
+            "SupplierCode": supplier_code,
+            "ProposedShare": None,
+            "InvoiceShare":  amount,
+            }
+        ],
         "ProcessingDetails": {"AutoCapture": True, "Bypass3DS": True},
     }
 
@@ -173,14 +185,15 @@ def create_payment(
         response = requests.post(
             f"{MYFATOORAH_API_URL}/SendPayment", json=payload, headers=headers
         )
+        print("✅  res", response.json())
         response.raise_for_status()
         payment_data = response.json()
         invoice_url = payment_data["Data"]["InvoiceURL"]
         payment_id = payment_data["Data"]["InvoiceId"]
 
-        print("res", response, payment_id)
+        # print("✅  res", response, payment_id)
         # ✅ Check if payment already exists
-        print("Checking for existing pending payment...", invoice_id)
+        # print("Checking for existing pending payment...", invoice_id)
         existing_payment = (
             db.query(PaymentHistory)
             .filter(PaymentHistory.invoice_id == invoice_id)

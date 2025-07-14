@@ -35,6 +35,7 @@ class InvoiceBase(BaseModel):
 class Property(BaseModel):
     id: UUID4
     name: str
+    supplier_code: Optional[str] = None
 
 class PropertyUnit(BaseModel):
     id: UUID4

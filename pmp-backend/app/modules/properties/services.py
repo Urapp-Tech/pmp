@@ -28,32 +28,25 @@ MYFATOORAH_API_KEY = settings.MYFATOORAH_API_KEY
 
 
 def create_supplier_in_fatoorah(property_obj):
-    """
-    Create a supplier in MyFatoorah for the given property.
-    """
-
-    # if "apitest" in MYFATOORAH_API_URL:
-    #     print("⚠️ Sandbox mode: Skipping Supplier API call.")
-    #     return f"TEST_SUPPLIER_{property_obj.id}"
-
+    print("✅ Creating supplier in MyFatoorah for property:", MYFATOORAH_API_KEY)
     payload = {
-        "SupplierName": property_obj.name,  # Property name as supplier
-        "Mobile": 98765544,  # Optional
-        "Email": "suppliertwo@gmail.com",  # Optional
-        "IsPercentageOfNetValue": True,  # Whether commission is percentage based
-        "CommissionValue": 0,  # No fixed commission
-        "CommissionPercentage": 0,  # No percentage commission
-        "DepositTerms": "Daily",  # Or "Daily", "Weekly" if needed
-        "DepositDay": "",  # Only if DepositTerms != "Instant"
-        "BankId": 1,  # ✅ Replace with valid BankId (e.g., 1 for "Kuwait - Test NBK")
+        "SupplierName": property_obj.name,
+        "Mobile": property_obj.phone,
+        "Email": property_obj.email,
+        "IsPercentageOfNetValue": True,
+        "CommissionValue": 0,
+        "CommissionPercentage": 0,
+        "DepositTerms": "Daily",   # ✅ OK
+        # "DepositDay" should be removed if not needed
+        # "BankId": 1,                # ✅ Replace if real BankId is different
         "BankAccountHolderName": property_obj.account_name,
-        "BankAccount": property_obj.account_no,
-        "Iban": "",  # Optional if you don’t use IBAN
+        "BankAccount": property_obj.account_no.replace(" ", "").replace("-", ""),
+        # Remove "Iban" field if you don’t have it
         "IsActive": True,
-        "LogoFile": None,  # Optional: send property logo here
+        # Remove LogoFile if None
         "BusinessName": property_obj.name,
-        "BusinessType": 1,  # Example: 1 = Individual, 2 = Company
-        "DisplaySupplierDetails": True,  # Show supplier details on invoice
+        "BusinessType": 1,
+        "DisplaySupplierDetails": True,
     }
 
     headers = {
@@ -461,10 +454,6 @@ def update_property(db: Session, property_id: UUID, body):
                 unit.bathrooms = unit_data["bathrooms"]
                 unit.water_meter = unit_data["water_meter"]
                 unit.electricity_meter = unit_data["electricity_meter"]
-
-                unit.account_name = unit_data["account_name"]
-                unit.account_no = unit_data["account_no"]
-                unit.bank_name = unit_data["bank_name"]
                 unit.status = unit_data["status"]
                 new_unit_ids.add(unit_id)
             else:
@@ -481,9 +470,6 @@ def update_property(db: Session, property_id: UUID, body):
                     bedrooms=unit_data["bedrooms"],
                     bathrooms=unit_data["bathrooms"],
                     water_meter=unit_data["water_meter"],
-                    account_name=unit_data["account_name"],
-                    account_no=unit_data["account_no"],
-                    bank_name=unit_data["bank_name"],
                     electricity_meter=unit_data["electricity_meter"],
                     status=unit_data["status"],
                 )

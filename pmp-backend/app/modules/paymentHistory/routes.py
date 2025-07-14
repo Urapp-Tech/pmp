@@ -32,6 +32,7 @@ def create_payment_endpoint(
             property=payment_data.property,
             property_unit=payment_data.property_unit,
             user_email=payment_data.user_email,
+            supplier_code=payment_data.supplier_code,
             # user_phone=payment_data.user_phone,
             user_name=payment_data.user_name,
             amount=payment_data.amount,

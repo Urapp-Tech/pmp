@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 from uuid import UUID
 from enum import Enum
@@ -16,6 +17,7 @@ class CreatePaymentRequest(BaseModel):
     property: str
     property_unit: str
     user_email: str
+    supplier_code: Optional[str] = None
     # user_phone: str
     user_name: str
     amount: float
