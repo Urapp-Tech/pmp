@@ -104,6 +104,8 @@ const Invoices = () => {
     }
   };
   const handleCreatePayment = async (row: any) => {
+    console.log('row', row);
+
     try {
       const payload = {
         user_id: row.tenant.user.id,

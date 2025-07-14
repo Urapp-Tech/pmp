@@ -22,8 +22,78 @@ from uuid import UUID
 import requests
 from app.core.config import settings
 from urllib.parse import urlencode
+
 MYFATOORAH_API_URL = settings.MYFATOORAH_API_URL
 MYFATOORAH_API_KEY = settings.MYFATOORAH_API_KEY
+
+
+def create_supplier_in_fatoorah(property_obj):
+    """
+    Create a supplier in MyFatoorah for the given property.
+    """
+
+    # if "apitest" in MYFATOORAH_API_URL:
+    #     print("⚠️ Sandbox mode: Skipping Supplier API call.")
+    #     return f"TEST_SUPPLIER_{property_obj.id}"
+
+    payload = {
+        "SupplierName": property_obj.name,  # Property name as supplier
+        "Mobile": 98765544,  # Optional
+        "Email": "suppliertwo@gmail.com",  # Optional
+        "IsPercentageOfNetValue": True,  # Whether commission is percentage based
+        "CommissionValue": 0,  # No fixed commission
+        "CommissionPercentage": 0,  # No percentage commission
+        "DepositTerms": "Daily",  # Or "Daily", "Weekly" if needed
+        "DepositDay": "",  # Only if DepositTerms != "Instant"
+        "BankId": 1,  # ✅ Replace with valid BankId (e.g., 1 for "Kuwait - Test NBK")
+        "BankAccountHolderName": property_obj.account_name,
+        "BankAccount": property_obj.account_no,
+        "Iban": "",  # Optional if you don’t use IBAN
+        "IsActive": True,
+        "LogoFile": None,  # Optional: send property logo here
+        "BusinessName": property_obj.name,
+        "BusinessType": 1,  # Example: 1 = Individual, 2 = Company
+        "DisplaySupplierDetails": True,  # Show supplier details on invoice
+    }
+
+    headers = {
+        "Authorization": f"Bearer {MYFATOORAH_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    print("📤 Creating supplier in MyFatoorah with payload:", payload)
+
+    # ✅ Correct endpoint for creating supplier
+    response = requests.post(
+        f"{MYFATOORAH_API_URL}/CreateSupplier", json=payload, headers=headers
+    )
+
+    print("🔗 MyFatoorah Supplier API response:", response.status_code, response.text)
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=500,
+            detail=f"MyFatoorah Supplier creation failed: {response.status_code} - {response.text}",
+        )
+
+    try:
+        supplier_data = response.json()
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail=f"MyFatoorah returned non-JSON response: {response.text}",
+        )
+
+    supplier_code = supplier_data.get("Data", {}).get("SupplierCode")
+    if not supplier_code:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to get SupplierCode from MyFatoorah response",
+        )
+
+    print("✅ Supplier created with code:", supplier_code)
+    return supplier_code
+
 
 def create_property(db: Session, body: PropertyCreate):
     try:
@@ -100,32 +170,12 @@ def create_property(db: Session, body: PropertyCreate):
             account_no=body.account_no,
             account_name=body.account_name,
         )
+
+        supplier_code = create_supplier_in_fatoorah(property_data)
+        property_data.supplier_code = supplier_code
+
         db.add(property_data)
-        supplier_payload = {
-            "SupplierName": property_data.name,
-            "Mobile": property_data.phone,
-            "Email": property_data.email,
-            "BankAccountHolderName": property_data.account_name,
-            "Iban": property_data.account_no,
-            "IsActive": "true",
-            "BusinessType": 2
-        }
 
-        headers = {
-            "Authorization": f"Bearer {settings.MYFATOORAH_API_KEY}",
-            "Content-Type": "application/json",
-        }
-
-        # 📌 Correct endpoint for registering supplier"
-
-        response = requests.post(f"{MYFATOORAH_API_URL}/SendSupplier", json=supplier_payload, headers=headers)
-
-        if response.ok:
-            print("✅ Supplier registered successfully")
-            print(response.json())
-        else:
-            print("❌ Failed to register supplier")
-            print(response.status_code, response.text)
         # Process units
         units = []
         unit_nos = set()

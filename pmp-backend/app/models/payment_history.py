@@ -28,8 +28,8 @@ class PaymentHistory(Base):
         ForeignKey("invoices.id", ondelete="CASCADE"),
         nullable=False,
     )
-    payment_id=Column(String(222), nullable=True)
-    payload=Column(JSON, nullable=True)
+    payment_id = Column(String(222), nullable=True)
+    payload = Column(JSON, nullable=True)
     amount = Column(Float, nullable=False)
     currency = Column(String(10), nullable=False, default="KWD")
     payment_type = Column(
@@ -40,6 +40,17 @@ class PaymentHistory(Base):
         Enum("PENDING", "PAID", "FAILED", name="paymentstatus"),
         nullable=False,
         default="PENDING",
+    )
+    payout_status = Column(
+        String(10),
+        nullable=False,
+        default="pending",
+        comment="Tracks payout state: pending, success, failed",
+    )
+    payout_error = Column(
+        String(255),
+        nullable=True,
+        comment="Stores error message if payout failed",
     )
     created_at = Column(DateTime, server_default="now()")
     updated_at = Column(DateTime, server_default="now()", onupdate="now()")

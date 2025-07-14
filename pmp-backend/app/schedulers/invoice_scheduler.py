@@ -1,21 +1,16 @@
-from apscheduler.schedulers.background import BackgroundScheduler
+from app.schedulers.scheduler import scheduler
 from app.jobs.generate_invoice import generate_and_send_invoices
 
-# Create global scheduler instance
-scheduler = BackgroundScheduler()
 
-
-# testing
-def start_scheduler():
+def schedule_invoice_generation():
     scheduler.add_job(
         func=generate_and_send_invoices,
         trigger="interval",
-        days=1,  # ✅ Run every 1 day
+        days=1,  # Every day
         id="invoice_generation_job",
         replace_existing=True,
     )
-    scheduler.start()
-    print("✅ Scheduler started and job scheduled for daily once a day")
+    print("✅ Invoice generation job scheduled")
 
 
 # production

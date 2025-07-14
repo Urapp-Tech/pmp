@@ -22,8 +22,9 @@ from app.utils.uploader import get_file_base_url
 from app.modules.dashboardActivities.routes import router as dashboard_activity_router
 from app.modules.reports.routes import router as report_router
 
-from app.schedulers.invoice_scheduler import start_scheduler, scheduler
-from app.jobs.generate_invoice import generate_and_send_invoices
+from app.schedulers.scheduler import scheduler
+from app.schedulers.invoice_scheduler import schedule_invoice_generation
+from app.schedulers.payment_scheduler import schedule_payout_processing
 from contextlib import asynccontextmanager
 
 # from app.schedulers.invoice_scheduler import start_scheduler
@@ -35,14 +36,18 @@ from app.utils.email_service import template_env
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     print("🚀 Starting scheduler...")
+
+    # Register both jobs
+    schedule_invoice_generation()
+    schedule_payout_processing()
+
+    # Start scheduler
     scheduler.start()
-    print("✅ Production cron job scheduled (daily)")
+    print("✅ All cron jobs scheduled")
 
     yield
 
-    # Shutdown
     print("🛑 Stopping scheduler...")
     scheduler.shutdown()
 
@@ -159,8 +164,6 @@ app.include_router(
     prefix="/admin/payments",
     tags=["Admin - Payments"],
 )
-
-
 
 
 app.add_middleware(
