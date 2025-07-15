@@ -98,7 +98,7 @@ class PropertyBase(BaseModel):
     supplier_code: Optional[str] = Field(None, example="SUP12345")
     bank_name: Optional[str] = Field(None, example="Gulf Bank")
     account_no: Optional[str] = Field(None, example="GB123456789")
-    ibn_no: Optional[str] = Field(None, example="IBN123456789")
+    iban_no: Optional[str] = Field(None, example="IBN123456789")
     account_name: Optional[str] = Field(None, example="Sunrise Property Ltd.")
 
 

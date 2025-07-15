@@ -270,7 +270,7 @@ const UpdatePropertyPage = () => {
                 'email',
                 'bank_name',
                 'account_no',
-                'ibn_no',
+                'iban_no',
                 'account_name',
               ].map((field) => (
                 <FormControl key={field} className="mb-4">
@@ -332,7 +332,7 @@ const UpdatePropertyPage = () => {
                         })}
                         className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
                       />
-                    ) : field === 'ibn_no' ? (
+                    ) : field === 'iban_no' ? (
                       <Input
                         type="text"
                         {...form.register(field as any, {

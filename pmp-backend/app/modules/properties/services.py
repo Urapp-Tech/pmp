@@ -159,7 +159,7 @@ def create_property(db: Session, body: PropertyCreate):
             unit_counts=body.unit_counts,
             email=body.email,
             phone=body.phone,
-            ibn_no=body.ibn_no,
+            iban_no=body.iban_no,
             bank_name=body.bank_name,
             account_no=body.account_no,
             account_name=body.account_name,
@@ -409,7 +409,7 @@ def update_property(db: Session, property_id: UUID, body):
             "phone",
             "bank_name",
             "account_no",
-            "ibn_no",
+            "iban_no",
             "account_name",
         ]
         for field in updatable_fields:

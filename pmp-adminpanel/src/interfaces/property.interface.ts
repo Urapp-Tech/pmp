@@ -38,7 +38,7 @@ export interface Fields {
   bank_name: string;
   account_no: string;
   account_name: string;
-  ibn_no: string;
+  iban_no: string;
   unit_count: number;
   status: string;
   pictures: File[]; // handled in React state
