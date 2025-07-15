@@ -157,7 +157,7 @@ const ContractRequest = () => {
       header: 'Unit no',
       cell: ({ row }) => {
         const unit = row.original.unitDetail;
-        
+
         return <div className="capitalize">{unit?.unitNo}</div>;
       },
     },
@@ -306,7 +306,7 @@ const ContractRequest = () => {
             'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
           ),
           style: {
-            backgroundColor: '#FF5733',
+            backgroundColor: '#5CB85C',
             color: 'white',
           },
         });

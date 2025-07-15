@@ -421,7 +421,7 @@ const TenantUsers = () => {
   };
 
   const createContractHandler = (data: any) => {
-    console.log('dadad', data);
+    // console.log('dadad', data);
 
     setIsLoader(true);
     const formData = new FormData();

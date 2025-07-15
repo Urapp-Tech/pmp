@@ -319,6 +319,7 @@ const CreatePropertyPage = () => {
                 'phone',
                 'bank_name',
                 'account_no',
+                'ibn_no',
                 'account_name',
               ].map((field) => (
                 <FormControl key={field} className="mb-4">
@@ -377,6 +378,44 @@ const CreatePropertyPage = () => {
                         type="email"
                         {...form.register(field as any, {
                           required: 'This field is required',
+                        })}
+                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
+                      />
+                    ) : field === 'ibn_no' ? (
+                      <Input
+                        type="text"
+                        {...form.register(field as any, {
+                          required: 'This field is required',
+                          pattern: {
+                            value: /^QA\d{2}[A-Z]{4}\d{21}$/,
+                            message:
+                              'IBAN must start with QA, have 2 check digits, 4-letter bank code, and 21-digit account number',
+                          },
+                        })}
+                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
+                      />
+                    ) : field === 'phone' ? (
+                      <Input
+                        type="number"
+                        {...form.register(field as any, {
+                          required: 'This field is required',
+                          pattern: {
+                            value: /^[9654]\d{7}$/,
+                            message:
+                              'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
+                          },
+                        })}
+                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
+                      />
+                    ) : field === 'account_no' ? (
+                      <Input
+                        type="text"
+                        {...form.register(field as any, {
+                          required: 'This field is required',
+                          pattern: {
+                            value: /^\d{21}$/,
+                            message: 'Account number must be exactly 21 digits',
+                          },
                         })}
                         className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
                       />
@@ -632,6 +671,14 @@ const CreatePropertyPage = () => {
                                     { name: 'Residential', id: 'residential' },
                                     { name: 'Commercial', id: 'commercial' },
                                   ]}
+                                />
+                              ) : unitField === 'rent' ? (
+                                <Input
+                                  type="number"
+                                  {...register(
+                                    `units.${index}.${unitField}` as any
+                                  )}
+                                  className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
                                 />
                               ) : (
                                 <Input
