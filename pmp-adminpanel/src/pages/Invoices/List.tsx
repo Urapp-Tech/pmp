@@ -159,7 +159,8 @@ const Invoices = () => {
       if (resp.data.success) {
         setList(resp.data.items);
         setTotal(resp.data.total);
-      } else ToastHandler(resp.data.message);
+        ToastHandler(resp.data.message);
+      }
     } catch (err) {
       console.error(err);
       ToastHandler('Failed to fetch invoices');
