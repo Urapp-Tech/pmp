@@ -133,32 +133,35 @@ def get_all_invoices(
         )
 
     elif role_id == "User":
-        tenant = db.query(Tenant).filter(Tenant.user_id == user_id).first()
-        if not tenant:
+        tenants = (
+            db.query(Tenant)
+            .filter(
+                Tenant.user_id == user_id,
+                Tenant.is_approved == True,
+                Tenant.contract_start <= now,
+                Tenant.contract_end >= now,
+            )
+            .all()
+        )
+
+        if not tenants:
             return {
                 "success": True,
-                "message": "Tenant not found.",
+                "message": "No active tenant contracts found for user.",
                 "total": 0,
                 "page": page,
                 "size": limit,
                 "items": [],
             }
 
-        query = query.filter(Invoice.tenant_id == tenant.id)
+        tenant_ids = [t.id for t in tenants]
 
-    # else:
-    #     return {
-    #         "success": True,
-    #         "message": "Invalid role.",
-    #         "total": 0,
-    #         "page": page,
-    #         "size": limit,
-    #         "items": [],
-    #     }
+        # Filter invoices for all valid tenants
+        query = query.filter(Invoice.tenant_id.in_(tenant_ids))
 
+    # Apply search filter if provided
     if search:
         query = query.filter(Invoice.invoice_no.ilike(f"%{search.lower()}%"))
-
     total = query.distinct().count()
     items = query.order_by(Invoice.created_at.desc()).offset(skip).limit(limit).all()
 
