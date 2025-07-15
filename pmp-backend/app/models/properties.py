@@ -41,6 +41,7 @@ class Property(Base):
     supplier_code = Column(String(255), nullable=True)
     bank_name = Column(String(255), nullable=True)
     account_no = Column(String(255), nullable=True)
+    ibn_no = Column(String(255), nullable=True)
     account_name = Column(String(255), nullable=True)
     status = Column(String(255), nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
