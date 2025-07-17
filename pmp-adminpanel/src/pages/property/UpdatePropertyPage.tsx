@@ -199,7 +199,7 @@ const UpdatePropertyPage = () => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: function (results) {
+      complete: function (results: any) {
         const parsedUnits = results.data.map((row: any) => ({
           name: row.name || '',
           unit_no: row.unit_no || '',
@@ -222,7 +222,7 @@ const UpdatePropertyPage = () => {
         setUnitPicturesPreview((prev) => {
           const updated = { ...prev };
           const startIndex = fields.length;
-          parsedUnits.forEach((_, i) => {
+          parsedUnits.forEach((_: any, i: number) => {
             updated[startIndex + i] = [];
           });
           return updated;

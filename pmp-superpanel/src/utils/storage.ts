@@ -7,7 +7,7 @@ type Key =
   | 'LAST_ACTIVITY';
 
 function addKeyPrefix(key: string) {
-  const prefix = 'WEB_ADMIN';
+  const prefix = 'WEB_SUPER_ADMIN';
   return `${prefix}_${key}`;
 }
 

@@ -80,7 +80,9 @@ def get_super_admin_activity_summary(db: Session):
 def get_landlord_activity_summary(db: Session, landlord_id: UUID):
     # Step 1: Count Total Properties
     total_properties = (
-        db.query(Property).filter(Property.landlord_id == landlord_id).count()
+        db.query(func.count(Property.id))
+        .filter(Property.landlord_id == landlord_id)
+        .scalar()
     )
 
     # Step 2: Get 'User' Role ID (Tenant)
@@ -89,35 +91,35 @@ def get_landlord_activity_summary(db: Session, landlord_id: UUID):
 
     # Step 3: Count Active Tenants (Verified, Active, role = User)
     active_tenants = (
-        db.query(User)
+        db.query(func.count(User.id))
         .filter(
             User.landlord_id == landlord_id,
             User.role_id == user_role_id,
             User.is_active == True,
         )
-        .count()
+        .scalar()
     )
 
     # Step 4: Count Pending Invoices
     pending_invoices = (
-        db.query(Invoice)
+        db.query(func.count(Invoice.id))
         .filter(
             Invoice.landlord_id == landlord_id,
             Invoice.status == InvoiceStatus.un_paid,
         )
-        .count()
+        .scalar()
     )
 
     # Step 5: Count Unresolved Support Tickets (Receiver is landlord)
     unresolved_tickets = (
-        db.query(SupportTicket)
+        db.query(func.count(SupportTicket.id))
         .filter(
             SupportTicket.receiver_id == landlord_id,
             SupportTicket.status.in_(
                 [SupportTicketStatus.open, SupportTicketStatus.in_progress]
             ),
         )
-        .count()
+        .scalar()
     )
 
     # Final Response

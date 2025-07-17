@@ -23,6 +23,7 @@ const UpdateRolePermissionPage = lazy(
 );
 const PropertyManagers = lazy(() => import('@/pages/property-managers/List'));
 const Property = lazy(() => import('@/pages/property/List'));
+const ProfilePage = lazy(() => import('@/pages/profile'));
 const TenantUsers = lazy(() => import('@/pages/tenant-users/users-list/List'));
 const Invoices = lazy(() => import('@/pages/Invoices/List'));
 const Receipts = lazy(() => import('@/pages/receipts/List'));
@@ -116,6 +117,23 @@ export const routeObjects: RouteObject[] = [
                 <RoleBasedDashboard />
               </Suspense>
             ),
+          },
+          {
+            path: 'profile',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ProfilePage />
+                  </Suspense>
+                ),
+              },
+            ],
           },
           {
             path: 'property-managers',
