@@ -312,7 +312,7 @@ export function MainSidebar({
   return (
     <Sidebar className="bg-transparent" collapsible="icon" {...props}>
       <SidebarHeader className=" flex items-center justify-center mt-0 mb-2  bg-[#1b46e0]">
-        <div className="text-white max-w-[110px] ml-5 mr-auto mt-2 py-3">
+        <div className="text-white max-w-[110px] ml-5 mr-auto mt-12 py-3">
           PMP - LOGO
           {/* <img
             src={assets.images.whiteLogo}

@@ -159,7 +159,7 @@ const Invoices = () => {
       if (resp.data.success) {
         setList(resp.data.items);
         setTotal(resp.data.total);
-        ToastHandler(resp.data.message);
+        // ToastHandler(resp.data.message);
       }
     } catch (err) {
       console.error(err);
@@ -351,7 +351,9 @@ const Invoices = () => {
                 />
                 
               )} */}
-              {hasPending ? (
+              {hasPending && userDetails?.role?.name === 'Landlord' ? (
+                'payment remaining'
+              ) : hasPending ? (
                 <Button
                   className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                   variant={'outline'}
