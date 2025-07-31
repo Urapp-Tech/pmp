@@ -40,7 +40,7 @@ const PropertyDetailModal = ({
         </DialogHeader>
 
         {/* Property Fields */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-5 text-sm text-gray-700 mt-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-5 text-sm text-gray-700 mt-6">
           <div>
             <strong>City:</strong> {property.city}
           </div>
@@ -82,6 +82,15 @@ const PropertyDetailModal = ({
           </div>
           <div>
             <strong>Longitude:</strong> {property.longitude}
+          </div>
+          <div>
+            <strong>Bank Name:</strong> {property.bank_name}
+          </div>
+          <div>
+            <strong>Account Name:</strong> {property.account_name}
+          </div>
+          <div>
+            <strong>Account No:</strong> {property.account_no}
           </div>
           {/* <div>
             <strong>Status:</strong>{' '}
@@ -141,10 +150,14 @@ const PropertyDetailModal = ({
                   </AccordionTrigger>
 
                   <AccordionContent className="bg-gray-50 rounded-b-2xl px-6 py-5">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-gray-700 capitalize">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4 text-sm text-gray-700 capitalize">
                       <div>
                         <strong>Assigned User:</strong>{' '}
-                        {unit.assignedUnitUserName ?? 'Not Assigned Yet'}
+                        {unit.assignedUnitUserName ?? 'Not Assigned'}
+                      </div>
+                      <div>
+                        <strong>Assigned Manager:</strong>{' '}
+                        {unit.assignedManagerName ?? 'Not Assigned'}
                       </div>
                       <div>
                         <strong>Type:</strong> {unit.unit_type}
@@ -170,15 +183,6 @@ const PropertyDetailModal = ({
                       </div>
                       <div>
                         <strong>Water Meter:</strong> {unit.water_meter}
-                      </div>
-                      <div>
-                        <strong>Bank Name:</strong> {unit.bank_name}
-                      </div>
-                      <div>
-                        <strong>Account Name:</strong> {unit.account_name}
-                      </div>
-                      <div>
-                        <strong>Account IBAN No:</strong> {unit.account_no}
                       </div>
                     </div>
                   </AccordionContent>

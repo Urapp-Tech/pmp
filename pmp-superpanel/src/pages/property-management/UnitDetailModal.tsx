@@ -157,7 +157,7 @@ const UnitDetailsModal = ({
                       </div>
                       <div>
                         <strong>Assigned Manager:</strong>{' '}
-                        {unit.assignedManagerUser ?? 'Not Assigned'}
+                        {unit.assignedManagerName ?? 'Not Assigned'}
                       </div>
                       <div>
                         <strong>Type:</strong> {unit.unit_type}

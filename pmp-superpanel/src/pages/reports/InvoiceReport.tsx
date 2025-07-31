@@ -57,31 +57,31 @@ const InvoiceReport = () => {
 
     setIsLoading(true);
     // try {
-      const payload = {
-        id: userDetails.id,
-        role: 'super admin',
-        from_date: from,
-        to_date: to,
-        status: statusFilter, // optional
-      };
+    const payload = {
+      id: userDetails.id,
+      role: 'super admin',
+      from_date: from,
+      to_date: to,
+      status: statusFilter, // optional
+    };
 
-      const res = await reportsService.getReport(payload);
-      if (res?.data?.success) {
-        const data = res.data.items;
-        setReportList(data);
-        const total = data.reduce(
-          (sum: number, inv: any) =>
-            sum + Math.floor(Number(inv.total_amount) || 0),
-          0
-        );
-        setTotalPaid(total);
-      } else {
-        toast({ description: res.data.message || 'Failed to fetch report' });
-      }
+    const res = await reportsService.getReport(payload);
+    if (res?.data?.success) {
+      const data = res.data.items;
+      setReportList(data);
+      const total = data.reduce(
+        (sum: number, inv: any) =>
+          sum + Math.floor(Number(inv.total_amount) || 0),
+        0
+      );
+      setTotalPaid(total);
+    } else {
+      toast({ description: res.data.message || 'Failed to fetch report' });
+    }
     // } catch (err) {
     //   toast({ description: 'Something went wrong while fetching report.' });
     // } finally {
-      setIsLoading(false);
+    setIsLoading(false);
     // }
   };
 
@@ -247,7 +247,7 @@ const InvoiceReport = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Invoice No</TableHead>
+                    <TableHead>Receipt No</TableHead>
                     <TableHead>Tenant</TableHead>
                     <TableHead>Property</TableHead>
                     <TableHead>Unit No</TableHead>
