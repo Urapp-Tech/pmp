@@ -1,10 +1,14 @@
 from fastapi import HTTPException, status, Request, UploadFile
 from sqlalchemy.orm import Session, joinedload, load_only
 from app.models.users import User
+from app.models.properties import Property
+from app.models.tenants import Tenant
+from app.models.users import User
 from app.models.roles import Role, RolePermission
 from app.models.managers import Manager
 from app.models.property_units import PropertyUnit
 from typing import Optional, List
+from collections import defaultdict
 
 # import uuid
 import uuid
@@ -251,7 +255,6 @@ def delete_user(db: Session, user_id: UUID):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    
     if not user.is_active:
         raise HTTPException(status_code=400, detail="User is already inactive")
 
@@ -466,6 +469,56 @@ def get_assigned_units_managers(
 #     }
 
 
+# def get_users_by_landlord(
+#     db: Session,
+#     landlord_id: UUID,
+#     page: int = 1,
+#     size: int = 10,
+#     search: Optional[str] = None,
+# ):
+#     query = (
+#         db.query(User)
+#         .join(Role, User.role_id == Role.id)
+#         .options(joinedload(User.role))
+#         .filter(
+#             User.is_active == True,
+#             User.landlord_id == landlord_id,
+#             User.is_landlord == False,
+#             Role.name == "User",
+#         )
+#     )
+
+#     if search:
+#         search_term = f"%{search.strip()}%"
+#         query = query.filter(
+#             or_(
+#                 User.fname.ilike(search_term),
+#                 User.lname.ilike(search_term),
+#                 User.email.ilike(search_term),
+#             )
+#         )
+
+#     total = query.count()
+#     users = query.offset((page - 1) * size).limit(size).all()
+
+#     result = []
+#     for u in users:
+#         user_dict = UserOut.model_validate(u).model_dump(by_alias=True)
+#         user_dict["createdAt"] = u.created_at.isoformat() if u.created_at else None
+#         user_dict["updatedAt"] = u.updated_at.isoformat() if u.updated_at else None
+#         user_dict["roleId"] = str(u.role_id)
+#         user_dict["roleName"] = u.role.name if u.role else None
+#         result.append(user_dict)
+
+#     return {
+#         "success": True,
+#         "total": total,
+#         "page": page,
+#         "size": size,
+#         "items": result,
+#     }
+
+
 def get_users_by_landlord(
     db: Session,
     landlord_id: UUID,
@@ -473,6 +526,26 @@ def get_users_by_landlord(
     size: int = 10,
     search: Optional[str] = None,
 ):
+    # Step 1: Get all approved rentals
+    tenant_data = (
+        db.query(
+            Tenant.user_id,
+            Property.name.label("property_name"),
+            PropertyUnit.name.label("unit_name"),
+        )
+        .join(PropertyUnit, Tenant.property_unit_id == PropertyUnit.id)
+        .join(Property, PropertyUnit.property_id == Property.id)
+        .filter(Tenant.is_approved == True)
+        .all()
+    )
+
+    # Step 2: Group property/unit names by user_id
+    rental_map = defaultdict(lambda: {"properties": set(), "units": set()})
+    for t in tenant_data:
+        rental_map[t.user_id]["properties"].add(t.property_name)
+        rental_map[t.user_id]["units"].add(t.unit_name)
+
+    # Step 3: Build user query
     query = (
         db.query(User)
         .join(Role, User.role_id == Role.id)
@@ -485,19 +558,31 @@ def get_users_by_landlord(
         )
     )
 
+    # Step 4: Optional search (on User + property/unit names)
     if search:
         search_term = f"%{search.strip()}%"
+        matched_user_ids = set()
+        for user_id, data in rental_map.items():
+            if any(
+                search.strip().lower() in (name or "").lower()
+                for name in data["properties"].union(data["units"])
+            ):
+                matched_user_ids.add(user_id)
+
         query = query.filter(
             or_(
                 User.fname.ilike(search_term),
                 User.lname.ilike(search_term),
                 User.email.ilike(search_term),
+                User.id.in_(matched_user_ids),
             )
         )
 
+    # Step 5: Pagination and final fetch
     total = query.count()
     users = query.offset((page - 1) * size).limit(size).all()
 
+    # Step 6: Format final output
     result = []
     for u in users:
         user_dict = UserOut.model_validate(u).model_dump(by_alias=True)
@@ -505,6 +590,11 @@ def get_users_by_landlord(
         user_dict["updatedAt"] = u.updated_at.isoformat() if u.updated_at else None
         user_dict["roleId"] = str(u.role_id)
         user_dict["roleName"] = u.role.name if u.role else None
+
+        rentals = rental_map.get(u.id, {"properties": set(), "units": set()})
+        user_dict["assignedProperty"] = list(rentals["properties"])
+        user_dict["assignedPropertyUnit"] = list(rentals["units"])
+
         result.append(user_dict)
 
     return {
@@ -568,12 +658,16 @@ def get_users_lov_by_landlord(landlord_id: UUID, db: Session) -> List[UserLOV]:
 
 
 def get_all_active_users_service(
-    db: Session, page: int = 1, limit: int = 10, search: Optional[str] = None
+    db: Session,
+    page: int = 1,
+    limit: int = 10,
+    search: Optional[str] = None,
+    role_filter: Optional[str] = None,
 ):
     skip = (page - 1) * limit
-
     query = db.query(User).options(joinedload(User.role))
 
+    # Search filter
     if search:
         query = query.filter(
             or_(
@@ -584,14 +678,53 @@ def get_all_active_users_service(
             )
         )
 
+    # Role filter (exclude 'All')
+    if role_filter and role_filter.lower() != "all":
+        query = query.join(User.role).filter(Role.name.ilike(role_filter))
+
     total = query.count()
+
     users = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
 
-    # Prepare output with roleName
     items = []
+
     for user in users:
-        user_data = user.to_dict() if hasattr(user, "to_dict") else user.__dict__.copy()
-        user_data["roleName"] = user.role.name if user.role else None
+        user_data = {
+            "id": str(user.id),
+            "fname": user.fname,
+            "lname": user.lname,
+            "email": user.email,
+            "phone": user.phone,
+            "isLandlord": user.is_landlord,
+            "landlordId": str(user.landlord_id) if user.landlord_id else None,
+            "roleId": str(user.role_id) if user.role_id else None,
+            "roleName": user.role.name if user.role else None,
+            "profilePic": user.profile_pic,
+            "gender": user.gender,
+            "isActive": user.is_active,
+            "isVerified": user.is_verified,
+            "createdAt": user.created_at.isoformat(),
+            "updatedAt": user.updated_at.isoformat(),
+            "userProperty": None,
+            "userPropertyUnit": None,
+        }
+
+        # Only for users with role "user"
+        if user_data.get("roleName", "").lower() == "user":
+            tenant = (
+                db.query(Tenant)
+                .filter(Tenant.user_id == user.id, Tenant.is_approved == True)
+                .first()
+            )
+            if tenant:
+                unit = (
+                    db.query(PropertyUnit).filter_by(id=tenant.property_unit_id).first()
+                )
+                if unit:
+                    prop = db.query(Property).filter_by(id=unit.property_id).first()
+                    user_data["userProperty"] = prop.name if prop else None
+                    user_data["userPropertyUnit"] = unit.name if unit else None
+
         items.append(user_data)
 
     return {

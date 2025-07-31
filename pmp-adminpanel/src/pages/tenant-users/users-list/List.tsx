@@ -76,6 +76,8 @@ export type Users = {
   createdAt: string; // ISO date string for creation timestamp
   updatedAt: string; // ISO date string for update timestamp
   status: 'Active' | 'InActive';
+  assignedProperty?: string[];
+  assignedPropertyUnit?: string[];
 };
 
 const TenantUsers = () => {
@@ -161,6 +163,32 @@ const TenantUsers = () => {
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('phone')}</div>
       ),
+    },
+    {
+      accessorKey: 'assignedProperty',
+      header: 'Property',
+      cell: ({ row }) => {
+        const value = row.getValue('assignedProperty') as string[] | undefined;
+        return (
+          <div>
+            {Array.isArray(value) && value.length > 0 ? value.join(', ') : '-'}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'assignedPropertyUnit',
+      header: 'Assigned Unit',
+      cell: ({ row }) => {
+        const value = row.getValue('assignedPropertyUnit') as
+          | string[]
+          | undefined;
+        return (
+          <div>
+            {Array.isArray(value) && value.length > 0 ? value.join(', ') : '-'}
+          </div>
+        );
+      },
     },
     {
       accessorKey: 'isActive',
@@ -439,13 +467,19 @@ const TenantUsers = () => {
     formData.append('paymentCycle', data.paymentCycle || '');
     formData.append('language', data.language || '');
     if (data.agreementDoc) formData.append('agreementDoc', data.agreementDoc);
+    if (userDetails.role.name === 'Landlord')
+      formData.append('isApproved', 'true');
     contreactService
       .create(formData)
       .then((item) => {
         if (item.data.success) {
           setContractOpen(false);
           setIsLoader(false);
-          ToastHandler(item.data.message);
+          ToastHandler(
+            userDetails.role.name === 'Landlord'
+              ? 'Contract Successfully Created'
+              : item.data.message
+          );
           // setList([item.data.items, ...list]);
           // let newtotal = total;
           // setTotal((newtotal += 1));

@@ -351,8 +351,10 @@ const Invoices = () => {
                 />
                 
               )} */}
-              {hasPending && userDetails?.role?.name === 'Landlord' ? (
-                'payment remaining'
+              {hasPending &&
+              (userDetails?.role?.name === 'Landlord' ||
+                userDetails?.role?.name === 'Manager') ? (
+                'payment pending'
               ) : hasPending ? (
                 <Button
                   className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"

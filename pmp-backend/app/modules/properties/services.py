@@ -36,7 +36,7 @@ def create_supplier_in_fatoorah(property_obj):
         "IsPercentageOfNetValue": True,
         "CommissionValue": 0,
         "CommissionPercentage": 0,
-        "DepositTerms": "Daily",   # ✅ OK
+        "DepositTerms": "Daily",  # ✅ OK
         # "DepositDay" should be removed if not needed
         # "BankId": 1,                # ✅ Replace if real BankId is different
         "BankAccountHolderName": property_obj.account_name,
@@ -678,11 +678,43 @@ def get_properties(
             units = [unit for unit in units if unit.id in assigned_unit_ids]
 
         # Enrich each unit
-        validated_units = [enrich_unit_with_tenant_info(db, unit) for unit in units]
+        # Get landlord name
+        landlord_user = (
+            db.query(User).filter(User.landlord_id == prop.landlord_id).first()
+        )
+        landlord_name = (
+            f"{landlord_user.fname} {landlord_user.lname}" if landlord_user else None
+        )
 
-        # Build final PropertyOut dict
+        enriched_units = []
+        for unit in units:
+            unit_out = enrich_unit_with_tenant_info(db, unit)
+
+            # Get assigned manager name from manager_user_id
+            manager = (
+                db.query(Manager)
+                .filter(Manager.assign_property_unit == unit.id)
+                .first()
+            )
+            assigned_manager_name = None
+            if manager:
+                manager_user = (
+                    db.query(User).filter(User.id == manager.manager_user_id).first()
+                )
+                if manager_user:
+                    assigned_manager_name = f"{manager_user.fname} {manager_user.lname}"
+
+            # Create a new PropertyUnitOut with assignedManagerName added
+            unit_out = unit_out.copy(
+                update={"assignedManagerName": assigned_manager_name}
+            )
+            enriched_units.append(unit_out)
+
+        # Create property dict and add landlord_name
         prop_dict = prop.__dict__.copy()
-        prop_dict["units"] = validated_units
+        prop_dict["units"] = enriched_units
+        prop_dict["landlord_name"] = landlord_name
+
         results.append(PropertyOut(**prop_dict))
 
     return {
@@ -692,6 +724,106 @@ def get_properties(
         "size": size,
         "items": results,
     }
+
+
+# def get_properties_super_admin_view(
+#     db: Session,
+#     user_id: Optional[str] = None,
+#     role_id: Optional[str] = None,
+#     page: int = 1,
+#     size: int = 20,
+#     search: Optional[str] = None,
+# ):
+#     query = db.query(PropertyModel).options(selectinload(PropertyModel.units))
+
+#     # For Manager role, collect assigned unit ids first
+#     assigned_unit_ids = []
+#     if role_id == "Manager":
+#         managers = (
+#             db.query(Manager)
+#             .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
+#             .all()
+#         )
+#         for m in managers:
+#             if m.assign_property_unit:
+#                 assigned_unit_ids.append(m.assign_property_unit)
+#         assigned_unit_ids = list(set(assigned_unit_ids))
+
+#         if not assigned_unit_ids:
+#             return {
+#                 "success": True,
+#                 "total": 0,
+#                 "page": page,
+#                 "size": size,
+#                 "items": [],
+#             }
+
+#         allowed_property_ids = (
+#             db.query(PropertyUnitModel.property_id)
+#             .filter(
+#                 PropertyUnitModel.id.in_(assigned_unit_ids),
+#                 # PropertyUnitModel.is_active == True,
+#             )
+#             .distinct()
+#             .all()
+#         )
+
+#         allowed_property_ids = [pid[0] for pid in allowed_property_ids]
+#         query = query.filter(PropertyModel.id.in_(allowed_property_ids))
+
+#     elif role_id == "Landlord":
+#         user = db.query(User).filter(User.id == user_id).first()
+#         if not user or not user.landlord_id:
+#             return {
+#                 "success": True,
+#                 "total": 0,
+#                 "page": page,
+#                 "size": size,
+#                 "items": [],
+#             }
+#         landlord_id = user.landlord_id
+#         query = query.filter(PropertyModel.landlord_id == landlord_id)
+
+#     if search:
+#         search_term = f"%{search}%"
+#         query = query.filter(
+#             PropertyModel.name.ilike(search_term)
+#             | PropertyModel.address.ilike(search_term)
+#         )
+
+#     total = query.count()
+#     properties = (
+#         query.order_by(PropertyModel.created_at.desc())
+#         .offset((page - 1) * size)
+#         .limit(size)
+#         .all()
+#     )
+
+#     results = []
+
+#     for prop in properties:
+#         # Filter active units
+#         # units = [unit for unit in prop.units if unit.is_active]
+#         units = prop.units
+
+#         if role_id == "Manager":
+#             units = [unit for unit in units if unit.id in assigned_unit_ids]
+
+#         # Enrich each unit
+#         validated_units = [enrich_unit_with_tenant_info(db, unit) for unit in units]
+
+#         # Build final PropertyOut dict
+#         prop_dict = prop.__dict__.copy()
+#         prop_dict["units"] = validated_units
+#         results.append(PropertyOut(**prop_dict))
+
+#     return {
+#         "success": True,
+#         "total": total,
+#         "page": page,
+#         "size": size,
+#         "items": results,
+#     }
 
 
 def get_properties_super_admin_view(
@@ -728,14 +860,10 @@ def get_properties_super_admin_view(
 
         allowed_property_ids = (
             db.query(PropertyUnitModel.property_id)
-            .filter(
-                PropertyUnitModel.id.in_(assigned_unit_ids),
-                # PropertyUnitModel.is_active == True,
-            )
+            .filter(PropertyUnitModel.id.in_(assigned_unit_ids))
             .distinct()
             .all()
         )
-
         allowed_property_ids = [pid[0] for pid in allowed_property_ids]
         query = query.filter(PropertyModel.id.in_(allowed_property_ids))
 
@@ -770,19 +898,48 @@ def get_properties_super_admin_view(
     results = []
 
     for prop in properties:
-        # Filter active units
-        # units = [unit for unit in prop.units if unit.is_active]
         units = prop.units
 
         if role_id == "Manager":
             units = [unit for unit in units if unit.id in assigned_unit_ids]
 
-        # Enrich each unit
-        validated_units = [enrich_unit_with_tenant_info(db, unit) for unit in units]
+        # Enrich each unit with tenant info + assigned manager name
+        validated_units = []
+        for unit in units:
+            unit_data = enrich_unit_with_tenant_info(db, unit)
+            manager = (
+                db.query(Manager)
+                .filter(
+                    Manager.assign_property_unit == unit.id, Manager.is_active == True
+                )
+                .first()
+            )
+            assigned_manager_name = None
+            if manager:
+                manager_user = (
+                    db.query(User).filter(User.id == manager.manager_user_id).first()
+                )
+                if manager_user:
+                    assigned_manager_name = f"{manager_user.fname} {manager_user.lname}"
+            unit_data = unit_data.copy(
+                update={"assignedManagerName": assigned_manager_name}
+            )
+            validated_units.append(unit_data)
 
-        # Build final PropertyOut dict
+        # Get landlord name
+        landlord_name = None
+        if prop.landlord_id:
+            landlord_user = (
+                db.query(User).filter(User.landlord_id == prop.landlord_id).first()
+            )
+            if landlord_user:
+                landlord_name = f"{landlord_user.fname} {landlord_user.lname}"
+
+        # Build property dict with landlord_name
         prop_dict = prop.__dict__.copy()
         prop_dict["units"] = validated_units
+        prop_dict["landlord_name"] = landlord_name
+
         results.append(PropertyOut(**prop_dict))
 
     return {

@@ -20,11 +20,17 @@ const unverifiedList = (search: string, page: number, size: number) => {
   });
 };
 
-const tenantUserList = (search: string, page: number, size: number) => {
+const tenantUserList = (
+  search: string,
+  page: number,
+  size: number,
+  role: string
+) => {
   return network.get(`${TENANT_USERS}/tenant-users/list`, {
     search,
     page,
     size,
+    role,
   });
 };
 

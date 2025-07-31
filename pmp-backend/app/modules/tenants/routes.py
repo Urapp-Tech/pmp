@@ -81,7 +81,7 @@ def create_contract(
     )
     return {
         "success": True,
-        "message": "Contract successfully created, need approval landlord",
+        "message": "Contract successfully created, need landlord approval",
         "data": contract,
     }
 

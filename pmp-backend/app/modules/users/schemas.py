@@ -196,6 +196,8 @@ class TenantUserOut(BaseModel):
     is_verified: bool = Field(..., alias="isVerified")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
+    assignedProperty: List[str]
+    assignedPropertyUnit: List[str]
 
     class Config:
         from_attributes = True

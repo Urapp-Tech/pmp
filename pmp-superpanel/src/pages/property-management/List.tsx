@@ -316,6 +316,7 @@ const PropertyList = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Landlord Name</TableHead>
                   <TableHead>Address</TableHead>
                   {/* <TableHead>Status</TableHead> */}
                   {/* <TableHead>Units</TableHead> */}
@@ -327,6 +328,7 @@ const PropertyList = () => {
                   list.map((item: any) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
+                      <TableCell>{item.landlord_name}</TableCell>
                       <TableCell>{item.address}</TableCell>
                       {/* <TableCell>{item.status}</TableCell> */}
                       {/* <TableCell>

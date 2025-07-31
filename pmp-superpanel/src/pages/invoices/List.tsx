@@ -13,7 +13,15 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowUpDown, Loader2, Pencil, Trash2, Plus, Eye } from 'lucide-react';
+import {
+  ArrowUpDown,
+  Loader2,
+  Pencil,
+  Trash2,
+  Plus,
+  Eye,
+  Download,
+} from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import DeleteDialog from '@/components/DeletePopup';
 import { Paginator } from '@/components/Paginator';
@@ -40,6 +48,8 @@ import InvoiceItemActionDialog from './InvoiceItemActionDialog';
 // import InvoiceItemCreateDialog from './InvoiceItemCreateDialog';
 import { getItem } from '@/utils/storage';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const Invoices = () => {
   const { toast } = useToast();
@@ -154,14 +164,64 @@ const Invoices = () => {
   };
 
   const handleAction = (
-    type: 'edit' | 'delete' | 'view',
+    type: 'edit' | 'download' | 'view',
     inv: InvoiceFields
   ) => {
-    //  if (type === 'delete') {
-    //   setDeleteOpen(true);
-    // } else
     if (type === 'view') {
       navigate(`/super-admin/invoices/detail/${inv.id}`);
+    }
+
+    if (type === 'download') {
+      const doc: any = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.text('Invoice Detail', 14, 16);
+
+      doc.setFontSize(12);
+      // Tenant Details - LEFT side
+      const leftX = 14;
+      let tenantY = 28;
+      doc.setFontSize(12);
+      doc.text('Tenant Details:', leftX, tenantY);
+      tenantY += 7;
+      doc.setFontSize(11);
+      if (inv.tenant?.user) {
+        doc.text(
+          `Name: ${inv.tenant.user.fname} ${inv.tenant.user.lname}`,
+          leftX,
+          tenantY
+        );
+        tenantY += 6;
+        doc.text(`Email: ${inv.tenant.user.email}`, leftX, tenantY);
+        // tenantY += 6;
+        // doc.text(`Phone: ${inv.tenant.user.phone}`, leftX, tenantY);
+        tenantY += 6;
+        doc.text(
+          `Contract No: ${inv.tenant.contract_number || 'N/A'}`,
+          leftX,
+          tenantY
+        );
+      } else {
+        doc.text('No tenant info.', leftX, tenantY);
+      }
+
+      // Invoice Info - RIGHT side
+      const rightX = 110;
+      let y = 20;
+      doc.setFontSize(12);
+      y += 7;
+      doc.setFontSize(11);
+      doc.text(`Invoice No: ${inv.invoice_no}`, rightX, y);
+      y += 6;
+      doc.text(`Invoice Date: ${inv.invoice_date}`, rightX, y);
+      y += 6;
+      doc.text(`Due Date: ${inv.due_date}`, rightX, y);
+      y += 6;
+      doc.text(`Status: ${inv.status}`, rightX, y);
+      y += 6;
+      doc.text(`Total Amount: ${inv.total_amount.toString()}`, rightX, y);
+
+      doc.save(`invoice_${inv.invoice_no}.pdf`);
     }
   };
 
@@ -267,7 +327,7 @@ const Invoices = () => {
 
           return (
             <div className="flex gap-2 items-center">
-              {hasPending ? 'payment remaining' : 'payment done'}
+              {hasPending ? 'payment pending' : 'payment done'}
             </div>
           );
         },
@@ -288,11 +348,11 @@ const Invoices = () => {
                 />
               )}
               {can(PERMISSIONS.INVOICE.DELETE) && (
-                <Trash2
-                  className="cursor-pointer text-red-500"
-                  onClick={() => handleAction('delete', inv)}
-                />
-              )} */}
+                )} */}
+              <Download
+                className="cursor-pointer text-gray-600 pr-1"
+                onClick={() => handleAction('download', inv)}
+              />
               <Eye
                 className="cursor-pointer text-gray-600"
                 onClick={() => handleAction('view', inv)}

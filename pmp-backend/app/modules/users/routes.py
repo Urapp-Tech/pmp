@@ -234,6 +234,9 @@ def get_tenant_users(
     page: int = 1,
     limit: int = 10,
     search: Optional[str] = Query(None),
+    role: Optional[str] = Query("All"),
     db: Session = Depends(get_db),
 ):
-    return get_all_active_users_service(db=db, page=page, limit=limit, search=search)
+    return get_all_active_users_service(
+        db=db, page=page, limit=limit, search=search, role_filter=role
+    )

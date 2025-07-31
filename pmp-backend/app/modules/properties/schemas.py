@@ -60,6 +60,7 @@ class PropertyUnitOut(PropertyUnitBase):
 
     assignedUnitUserId: Optional[str] = None
     assignedUnitUserName: Optional[str] = None
+    assignedManagerName: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -116,6 +117,7 @@ class PropertyOut(PropertyBase):
     landlord_id: UUID4 | str = Field(
         ..., example="e8c31774-b165-43f6-9a51-a6cf3a6e57f9"
     )
+    landlord_name: Optional[str] = Field(None, example="John Doe")
     units: List[PropertyUnitOut] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime

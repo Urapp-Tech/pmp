@@ -55,6 +55,8 @@ import { getInitials, handleErrorMessage } from '@/utils/helper';
 import { ASSET_BASE_URL } from '@/utils/constants';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import OfficeUserCreateDialog from './CreateDialog';
+import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
+import { useForm } from 'react-hook-form';
 // import OfficeUserCreateDialog from './CreateDialog';
 
 export type Users = {
@@ -86,6 +88,9 @@ const TenantUsers = () => {
   const { toast } = useToast();
   // const { can } = usePermission();
 
+  const form = useForm<any>({ defaultValues: { userfilter: 'All' } });
+  const { control, watch } = form;
+
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize] = React.useState(10);
@@ -98,7 +103,7 @@ const TenantUsers = () => {
   const [rowSelection, setRowSelection] = useState({});
 
   const [isLoader, setIsLoader] = useState(false);
-  const [mainIsLoader, setMainIsLoader] = useState(true);
+  const [mainIsLoader, setMainIsLoader] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -260,8 +265,16 @@ const TenantUsers = () => {
   };
 
   const fetchUsers = async () => {
+    setMainIsLoader(true);
+    const constantPage = 1;
+    setPage(constantPage);
     try {
-      const users = await usersService.tenantUserList(search, page, pageSize);
+      const users = await usersService.tenantUserList(
+        search,
+        constantPage,
+        pageSize,
+        watch('userfilter')
+      );
       if (users.data.success) {
         setMainIsLoader(false);
         setList(users.data.items);
@@ -288,26 +301,31 @@ const TenantUsers = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [watch('userfilter')]);
 
   const handlePageChange = async (newPage: any) => {
+    setMainIsLoader(true);
     const nextPage = newPage + 1;
     table.setPageIndex(nextPage);
     try {
       const users = await userService.tenantUserList(
         search,
         nextPage,
-        pageSize
+        pageSize,
+        watch('userfilter')
       );
       if (users.data.success) {
         setPage(nextPage);
         setList(users.data.items);
         setTotal(users.data.total);
+        setMainIsLoader(false);
       } else {
+        setMainIsLoader(false);
         ToastHandler(users.data.message);
         // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
+      setMainIsLoader(false);
       // console.log('error: ', error);
     }
   };
@@ -451,13 +469,29 @@ const TenantUsers = () => {
               All Users
             </h2>
             <div className="flex gap-3 items-center">
-              <Input
-                placeholder="Search users..."
-                value={search}
-                onChange={handleChange}
-                onKeyPress={handleKeyPress}
-                className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
-              />
+              <div className="w-[200px]">
+                <SingleSelectDropDown
+                  control={control}
+                  name="userfilter"
+                  label=""
+                  items={[
+                    { id: 'All', name: 'All' },
+                    { id: 'User', name: 'User' },
+                    { id: 'Manager', name: 'Manager' },
+                    { id: 'Landlord', name: 'Landlord' },
+                  ]}
+                  placeholder="Choose an option"
+                />
+              </div>
+              <div className="flex items-center w-[461px]">
+                <Input
+                  placeholder="Search users..."
+                  value={search}
+                  onChange={handleChange}
+                  onKeyPress={handleKeyPress}
+                  className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
+                />
+              </div>
               <DropdownMenu>
                 <Button
                   onClick={() => setIsOpen(true)}
