@@ -186,6 +186,32 @@ const TenantUsers = () => {
         </div>
       ),
     },
+    // {
+    //   accessorKey: 'assignedProperty',
+    //   header: 'Property',
+    //   cell: ({ row }) => {
+    //     const value = row.getValue('assignedProperty') as string[] | undefined;
+    //     return (
+    //       <div>
+    //         {Array.isArray(value) && value.length > 0 ? value.join(', ') : '-'}
+    //       </div>
+    //     );
+    //   },
+    // },
+    // {
+    //   accessorKey: 'assignedPropertyUnit',
+    //   header: 'Assigned Unit',
+    //   cell: ({ row }) => {
+    //     const value = row.getValue('assignedPropertyUnit') as
+    //       | string[]
+    //       | undefined;
+    //     return (
+    //       <div>
+    //         {Array.isArray(value) && value.length > 0 ? value.join(', ') : '-'}
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       id: 'status',
       header: 'Actions',

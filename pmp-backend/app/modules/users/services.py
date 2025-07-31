@@ -709,21 +709,25 @@ def get_all_active_users_service(
             "userPropertyUnit": None,
         }
 
+        user_data["assignedProperty"] = []
+        user_data["assignedPropertyUnit"] = []
+
         # Only for users with role "user"
         if user_data.get("roleName", "").lower() == "user":
-            tenant = (
+            tenants = (
                 db.query(Tenant)
                 .filter(Tenant.user_id == user.id, Tenant.is_approved == True)
-                .first()
+                .all()
             )
-            if tenant:
+            for tenant in tenants:
                 unit = (
                     db.query(PropertyUnit).filter_by(id=tenant.property_unit_id).first()
                 )
                 if unit:
                     prop = db.query(Property).filter_by(id=unit.property_id).first()
-                    user_data["userProperty"] = prop.name if prop else None
-                    user_data["userPropertyUnit"] = unit.name if unit else None
+                    if prop:
+                        user_data["assignedProperty"].append(prop.name)
+                        user_data["assignedPropertyUnit"].append(unit.name)
 
         items.append(user_data)
 
