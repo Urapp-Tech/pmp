@@ -24,6 +24,10 @@ def get_super_admin_activity_summary(db: Session):
             "active_requests": 0,
             "current_month_unpaid_invoices": 0,
             "current_month_paid_receipts": 0,
+            "activeLandlords": 0,
+            "activeManagers": 0,
+            "pendingInvoices": 0,
+            "unresolvedTickets": 0,
         }
 
     # Current month boundaries
@@ -69,11 +73,36 @@ def get_super_admin_activity_summary(db: Session):
         .count()
     )
 
+    active_landlords = (
+        db.query(User)
+        .filter(
+            User.is_landlord == True, User.is_verified == True, User.is_active == True
+        )
+        .count()
+    )
+
+    active_managers = (
+        db.query(User)
+        .join(Role, Role.id == User.role_id)
+        .filter(Role.name == "Manager", User.is_active == True)
+        .count()
+    )
+
+    pending_invoices = db.query(Invoice).filter(Invoice.status == "unpaid").count()
+
+    unresolved_tickets = (
+        db.query(SupportTicket).filter(SupportTicket.status != "closed").count()
+    )
+
     return {
         "activeTenants": active_tenants,
         "activeRequests": active_requests,
         "currentMonthUnpaidInvoices": current_month_unpaid_invoices,
         "currentMonthPaidReceipts": current_month_paid_receipts,
+        "activeLandlords": active_landlords,
+        "activeManagers": active_managers,
+        "pendingInvoices": pending_invoices,
+        "unresolvedTickets": unresolved_tickets,
     }
 
 

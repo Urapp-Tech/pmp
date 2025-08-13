@@ -19,17 +19,27 @@ dayjs.extend(utcPlugin);
 type DatePickerWithRangeProps = {
   className?: string;
   onDateRangeChange?: (startDate: string, endDate: string) => void;
+  initialFrom?: string; // ISO string
+  initialTo?: string;
 };
 
 export function DatePickerWithRange({
   className,
   onDateRangeChange,
+  initialFrom,
+  initialTo,
 }: DatePickerWithRangeProps) {
   const today = new Date();
 
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: today,
-    to: today,
+  const [date, setDate] = React.useState<DateRange | undefined>(() => {
+    if (initialFrom && initialTo) {
+      return {
+        from: new Date(initialFrom),
+        to: new Date(initialTo),
+      };
+    }
+    const today = new Date();
+    return { from: today, to: today };
   });
   const [selectedYear, setSelectedYear] = React.useState<number>(
     new Date().getFullYear()
@@ -60,12 +70,14 @@ export function DatePickerWithRange({
 
   useEffect(() => {
     if (date?.from && date?.to) {
-      const formattedStartDate = dayjs(date.from).startOf('day')
-      // .utc()
-      .format('YYYY-MM-DD HH:mm:ss');
-      const formattedEndDate = dayjs(date.to).endOf('day')
-      // .utc()
-      .format('YYYY-MM-DD HH:mm:ss');
+      const formattedStartDate = dayjs(date.from)
+        .startOf('day')
+        // .utc()
+        .format('YYYY-MM-DD HH:mm:ss');
+      const formattedEndDate = dayjs(date.to)
+        .endOf('day')
+        // .utc()
+        .format('YYYY-MM-DD HH:mm:ss');
 
       if (onDateRangeChange) {
         onDateRangeChange(formattedStartDate, formattedEndDate);

@@ -23,11 +23,13 @@ import {
   CircleX,
   Pencil,
   Trash2,
+  FileText,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { Checkbox } from '@/components/ui/checkbox';
 import DeleteDialog from '@/components/DeletePopup';
 import { Paginator } from '@/components/Paginator';
+import contractService from '@/services/adminapp/contracts';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,10 +55,11 @@ import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
 // import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/utils/helper';
+import { getInitials, handleErrorMessage } from '@/utils/helper';
 import { usePermission } from '@/utils/hasPermission';
 import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
 import dayjs from 'dayjs';
+import UpdateContractDialog from './UpdateDialog';
 
 export type Users = {
   id: string; // UUID
@@ -96,7 +99,7 @@ const ApprovedContracts = () => {
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
-  const [editFormData, setEditFormData] = useState();
+  const [editFormData, setEditFormData] = useState<any>();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -126,8 +129,9 @@ const ApprovedContracts = () => {
     {
       accessorKey: 'userDetail.fname',
       header: 'Name',
-      cell: ({ row }) => {
+      cell: ({ row }: any) => {
         const user = row.original.userDetail;
+        const tenantType = row.original?.tenantType || '';
         return (
           <div className="flex items-center gap-3">
             <Avatar>
@@ -137,8 +141,11 @@ const ApprovedContracts = () => {
               />
               <AvatarFallback>{getInitials(user?.fname || '')}</AvatarFallback>
             </Avatar>
-            <div className="capitalize font-semibold">
-              {user?.fname} {user?.lname}
+            <div className="">
+              <div className="capitalize font-semibold">
+                {user?.fname} {user?.lname}
+              </div>
+              <span className="text-gray-700 text-xs">({tenantType})</span>
             </div>
           </div>
         );
@@ -154,11 +161,16 @@ const ApprovedContracts = () => {
     },
     {
       accessorKey: 'unit_no',
-      header: 'Unit no',
+      header: 'Unit name / no.',
       cell: ({ row }) => {
         const unit = row.original.unitDetail;
-        
-        return <div className="capitalize">{unit?.unitNo}</div>;
+
+        return (
+          <div className="capitalize">
+            {unit?.name}
+            <span className="text-gray-500 text-xs"> ({unit?.unitNo})</span>
+          </div>
+        );
       },
     },
     {
@@ -196,11 +208,97 @@ const ApprovedContracts = () => {
       ),
     },
     {
-      accessorKey: 'tenantType',
-      header: 'Tenant Type',
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('tenantType')}</div>
-      ),
+      accessorKey: 'agreement_doc',
+      header: 'Agreement Document',
+      cell: ({ row }) => {
+        const [showTooltip, setShowTooltip] = useState(false);
+
+        const docs: any = row.getValue('agreement_doc');
+
+        if (!docs || docs?.length === 0) return <span>No file</span>;
+
+        // Ensure it's always an array
+        const fileList = Array.isArray(docs) ? docs : [docs];
+
+        const getFileType = (fileName: any) => {
+          const ext = fileName.split('.').pop().toLowerCase();
+          if (['pdf', 'doc', 'docx', 'xls', 'xlsx'].includes(ext))
+            return 'document';
+          if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext))
+            return 'image';
+          return 'other';
+        };
+
+        return (
+          <div className="flex items-center gap-2">
+            {fileList.slice(0, 2).map((file, idx) => {
+              const type = getFileType(file);
+              return (
+                <a
+                  key={idx}
+                  href={ASSET_BASE_URL + file}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center"
+                >
+                  {type === 'document' ? (
+                    <FileText className="text-lunar-bg" size={20} />
+                  ) : type === 'image' ? (
+                    <img
+                      src={ASSET_BASE_URL + file}
+                      alt="doc"
+                      className="w-8 h-8 object-cover rounded border"
+                    />
+                  ) : (
+                    <FileText className="text-gray-500 text-lg" />
+                  )}
+                </a>
+              );
+            })}
+            {fileList.length > 2 && (
+              <div className="relative">
+                <span
+                  className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full cursor-pointer"
+                  onClick={() => setShowTooltip(!showTooltip)}
+                >
+                  +{fileList.length - 2}
+                </span>
+
+                {showTooltip && (
+                  <div className="absolute bottom-[-15px] mb-2 left-[50px] -translate-x-1/2 bg-white border shadow-lg p-2 rounded z-500 overflow-y-auto">
+                    <div className="flex gap-2 flex-wrap max-w-[500px] max-h-[100px] overflow-y-auto">
+                      {fileList.slice(2).map((file, idx) => {
+                        const type = getFileType(file);
+                        return (
+                          <a
+                            key={idx}
+                            href={ASSET_BASE_URL + file}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center"
+                          >
+                            {type === 'document' ? (
+                              <FileText className="text-lunar-bg" size={20} />
+                            ) : type === 'image' ? (
+                              <img
+                                src={ASSET_BASE_URL + file}
+                                alt="doc"
+                                className="w-8 h-8 object-cover rounded border"
+                              />
+                            ) : (
+                              <FileText className="text-gray-500 text-lg" />
+                            )}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: 'actions',
@@ -210,7 +308,7 @@ const ApprovedContracts = () => {
         const { id } = row.original;
         return (
           <div className="flex justify-center items-center">
-            {/* {can(PERMISSIONS.USER_CONTRACT.UPDATE) && (
+            {can(PERMISSIONS.USER_CONTRACT.UPDATE) && (
               <div>
                 <Pencil
                   className="text-lunar-bg cursor-pointer"
@@ -219,6 +317,7 @@ const ApprovedContracts = () => {
                 />
               </div>
             )}
+            {/* 
             {can(PERMISSIONS.USER_CONTRACT.DELETE) && (
               <div className="pl-3">
                 <Trash2
@@ -393,46 +492,63 @@ const ApprovedContracts = () => {
   //     });
   // };
 
-  const updateEmployeeHandler = (data: any) => {
-    const formData = new FormData();
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
-    formData.append('email', data.email);
-    formData.append('username', data.email);
-    formData.append('phone', data.phone);
-    formData.append('password', data.password);
-    formData.append('address', data.address);
-    formData.append('role', data.role);
-    if (data.avatar) formData.append('avatar', data.avatar);
+  const updateContractHandler = (data: any) => {
     setIsLoader(true);
-    userService
-      .update(data.id, formData)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
+    const formData = new FormData();
+    // console.log('data: ', data);
+
+    // Append all fields
+    formData.append('contractId', editFormData?.id);
+    formData.append('propertyUnitId', data.propertyUnitId);
+    formData.append('civilId', data.civilId || '');
+    formData.append('nationality', data.nationality || '');
+    formData.append('rentPrice', String(data.rentPrice));
+    formData.append('rentPayDay', String(data.rentPayDay));
+    formData.append('tenantType', data.tenantType || '');
+    formData.append('legalCase', String(data.legalCase) || 'false');
+    formData.append('contractStart', data.contractStart);
+    formData.append('contractEnd', data.contractEnd);
+    formData.append('leavingDate', data.leavingDate || '');
+    formData.append('paymentCycle', data.paymentCycle || '');
+    formData.append('language', data.language || '');
+
+    if (data.agreementDoc) {
+      formData.append('agreementDoc', data.agreementDoc);
+    }
+
+    contractService
+      .update(editFormData?.id, formData)
+      .then((item: any) => {
+        if (item.data.success) {
+          console.log('item: ', item.data.data);
+
+          const updatedItem = {
+            ...item.data.data,
+            propertyUnitId: item.data.data.propertyUnitId,
+            agreement_doc: Array.isArray(item.data.data.agreementDoc)
+              ? item.data.data.agreementDoc
+              : (item.data.data.agreementDoc || '').split(','),
+          };
+
+          setList((prev: any) =>
+            prev.map((contract: any) =>
+              contract.id === editFormData?.id
+                ? { ...contract, ...updatedItem }
+                : contract
+            )
+          );
+
           setEditOpen(false);
+          setEditFormData(undefined);
           setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.map((item: any) => {
-              if (item.id === updateItem.data.data.id) {
-                item.firstName = updateItem.data.data.firstName;
-                item.lastName = updateItem.data.data.lastName;
-                item.email = updateItem.data.data.email;
-                item.phone = updateItem.data.data.phone;
-                item.address = updateItem.data.data.address;
-                item.avatar = updateItem.data.data.avatar;
-              }
-              return { ...item };
-            });
-          });
-          ToastHandler(updateItem.data.message);
-        } else {
-          setIsLoader(false);
-          ToastHandler(updateItem.data.message);
+          ToastHandler('Contract Successfully Updated');
         }
       })
       .catch((err: Error | any) => {
-        console.log('error: ', err);
-        ToastHandler(err?.response?.data?.message);
+        const error = handleErrorMessage(err);
+        console.log('error: ', error);
+
+        ToastHandler(error);
         setIsLoader(false);
       });
   };
@@ -572,12 +688,12 @@ const ApprovedContracts = () => {
         />
       )} */}
       {editOpen && (
-        <OfficeUserUpdateDialog
+        <UpdateContractDialog
           isLoader={isLoader}
           isOpen={editOpen}
           setIsOpen={setEditOpen}
           formData={editFormData}
-          callback={updateEmployeeHandler}
+          callback={updateContractHandler}
         />
       )}
       {deleteOpen && (

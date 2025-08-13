@@ -124,7 +124,7 @@ const EmployeeUpdateDialog = ({
                           htmlFor="email"
                           className="text-sm font-medium"
                         >
-                          Eamil
+                          Email
                         </FormLabel>
                         <Input
                           className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"

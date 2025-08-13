@@ -106,12 +106,12 @@ export function MainSidebar({
         icon: assets.images.pagesSidebarIcon,
         items: [],
       },
-      {
-        title: 'Role Permissions',
-        url: '/super-admin/role-permissions',
-        icon: assets.images.pagesSidebarIcon,
-        items: [],
-      },
+      // {
+      //   title: 'Role Permissions',
+      //   url: '/super-admin/role-permissions',
+      //   icon: assets.images.pagesSidebarIcon,
+      //   items: [],
+      // },
       {
         title: 'Support Tickets',
         url: '/super-admin/support-and-feedback',

@@ -252,6 +252,8 @@ const InvoiceReport = () => {
                     <TableHead>Property</TableHead>
                     <TableHead>Unit No</TableHead>
                     <TableHead>Invoice Date</TableHead>
+                    <TableHead>Payment Date</TableHead>
+                    <TableHead>Payment Method</TableHead>
                     <TableHead>Paid Amount</TableHead>
                     {/* <TableHead>Status</TableHead> */}
                   </TableRow>
@@ -300,6 +302,8 @@ const InvoiceReport = () => {
                           {inv.tenant?.property_unit?.unit_no || 'N/A'}
                         </TableCell>
                         <TableCell>{inv.invoice_date || '—'}</TableCell>
+                        <TableCell>{inv.payment_date || '—'}</TableCell>
+                        <TableCell>{inv.payment_method || '—'}</TableCell>
                         <TableCell>{inv.total_amount || 0}</TableCell>
                         {/* <TableCell>{inv.status || 'N/A'}</TableCell> */}
                       </TableRow>

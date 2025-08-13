@@ -329,16 +329,16 @@ const TenantUsers = () => {
   };
 
   const handlePageChange = async (newPage: any) => {
-    table.setPageIndex(newPage);
+    table.setPageIndex(newPage + 1);
     try {
       const users = await userService.userslist(
         userDetails?.landlordId,
         search,
-        newPage,
+        newPage + 1,
         pageSize
       );
       if (users.data.success) {
-        setPage(newPage);
+        setPage(newPage + 1);
         setList(users.data.items);
         setTotal(users.data.total);
       } else {
@@ -606,7 +606,7 @@ const TenantUsers = () => {
               <div className="my-5 flex justify-center w-full">
                 <Paginator
                   pageSize={pageSize}
-                  currentPage={page}
+                  currentPage={page - 1}
                   totalPages={total}
                   onPageChange={(pageNumber) => handlePageChange(pageNumber)}
                   showPreviousNext

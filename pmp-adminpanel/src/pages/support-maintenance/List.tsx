@@ -158,9 +158,13 @@ const SupportMaintenance = () => {
           return <span className="text-gray-400 text-xs">No files</span>;
         }
 
+        const maxVisible = 2;
+        const visibleFiles = images.slice(0, maxVisible);
+        const extraCount = images.length - maxVisible;
+
         return (
-          <div className="flex gap-2 flex-wrap">
-            {images.map((url, idx) => {
+          <div className="flex gap-2 flex-wrap items-center">
+            {visibleFiles.map((url, idx) => {
               const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
               const isPDF = /\.pdf$/i.test(url);
               const isDoc = /\.(docx?|txt)$/i.test(url);
@@ -180,22 +184,20 @@ const SupportMaintenance = () => {
                       alt={`attachment-${idx}`}
                       className="w-full h-full object-cover"
                     />
-                  ) : isPDF ? (
-                    <FileText
-                      className="text-lunar-bg cursor-pointer"
-                      size={50}
-                    />
-                  ) : isDoc ? (
-                    <FileText
-                      className="text-lunar-bg cursor-pointer"
-                      size={20}
-                    />
+                  ) : isPDF || isDoc ? (
+                    <FileText className="text-lunar-bg" size={20} />
                   ) : (
                     <span className="text-xs text-gray-500">File</span>
                   )}
                 </a>
               );
             })}
+
+            {extraCount > 0 && (
+              <div className="w-12 h-12 border border-gray-200 rounded flex items-center justify-center bg-gray-100 text-sm font-medium text-gray-700">
+                +{extraCount}
+              </div>
+            )}
           </div>
         );
       },

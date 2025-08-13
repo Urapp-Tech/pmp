@@ -17,24 +17,34 @@ import { Input } from '@/components/ui/input';
 // import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Fields } from '@/interfaces/back-office-user.interface';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { FileText, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import DragDropFile from '@/components/DragDropImgFile';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
-import service from '@/services/adminapp/role-permissions';
+import service from '@/services/adminapp/property';
+import { SingleSelectGroupDropdown } from '@/components/DropDown/SingleSelectGroupedDropDown';
+import { getItem } from '@/utils/storage';
+import { DatePickerWithRange } from '@/components/DateRange';
+import dayjs from 'dayjs';
+import { ASSET_BASE_URL } from '@/utils/constants';
 
 type Props = {
   isLoader: boolean;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   callback: (...args: any[]) => any;
-  formData: any;
+  formData?: any;
 };
 
-const OfficeUserUpdateDialog = ({
+type GroupedOption = {
+  label: string;
+  options: { id: string; name: string }[];
+};
+
+const UpdateContractDialog = ({
   isOpen,
   setIsOpen,
   callback,
@@ -43,12 +53,21 @@ const OfficeUserUpdateDialog = ({
 }: Props) => {
   const form = useForm<Fields>({
     defaultValues: {
-      password: '',
-      avatar: formData.avatar || '',
-      role: formData.role || '',
+      propertyUnitId: formData?.unitDetail?.id || '',
+      civilId: formData?.civilId || '',
+      nationality: formData?.nationality || '',
+      rentPrice: formData?.rentPrice || '',
+      rentPayDay: formData?.rentPayDay || '',
+      tenantType: formData?.tenantType || '',
+      legalCase: formData?.legalCase || '',
+      contractStart: dayjs(formData?.contractStart).format('YYYY-MM-DD'),
+      contractEnd: dayjs(formData?.contractEnd).format('YYYY-MM-DD'),
+      leavingDate: dayjs(formData?.leavingDate).format('YYYY-MM-DD'),
+      paymentCycle: formData?.paymentCycle || '',
+      language: formData?.language || '',
     },
   });
-
+  const userDetails: any = getItem('USER');
   const ToastHandler = (text: string) => {
     return toast({
       description: text,
@@ -63,53 +82,103 @@ const OfficeUserUpdateDialog = ({
     });
   };
 
+  console.log('formData', formData);
+
   const [file, setFile] = useState<any>(null);
   const [selectedImg, setSelectedImg] = useState<any>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [roleLov, setRoleLov] = useState([]);
+  const [unitList, setUnitList] = useState<GroupedOption[]>([]);
 
   const {
     register,
     handleSubmit,
     getValues,
+    setValue,
     control,
+    watch,
     formState: { errors },
   } = form;
 
   const onSubmit = async (data: Fields) => {
-    if (file) data.avatar = file;
-    data.userType = 'USER';
-    data.id = formData.id;
-    callback(data);
-    // console.log('s', data);
+    let obj: Fields = {
+      propertyUnitId: data.propertyUnitId || formData?.unitDetail?.id,
+      civilId: data.civilId,
+      nationality: data.nationality,
+      rentPrice: Number(data.rentPrice),
+      rentPayDay: Number(data.rentPayDay),
+      tenantType: data.tenantType,
+      legalCase: data.legalCase,
+      contractStart: dayjs(data.contractStart).format('YYYY-MM-DD'),
+      contractEnd: dayjs(data.contractEnd).format('YYYY-MM-DD'),
+      leavingDate: dayjs(data.leavingDate).format('YYYY-MM-DD'),
+      paymentCycle: data.paymentCycle,
+      language: data.language,
+    };
+    if (file) obj.agreementDoc = file;
+    // console.log('s', obj);
+    callback(obj);
   };
+
+  useEffect(() => {
+    if (formData) {
+      setValue('contractStart', formData.contractStart);
+      setValue('contractEnd', formData.contractEnd);
+    }
+  }, [formData, setValue]);
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
-  const fetchRoleLov = async () => {
+  const fetchUnitsLOV = async () => {
     try {
-      const roles = await service.lov();
-      if (roles.data.success) {
-        const lov = roles.data.data.map((el: any) => {
-          return {
-            name: el.name,
-            id: el.id,
-          };
-        });
-        setRoleLov(lov);
-      } else {
-        console.log('error: ', roles.data.message);
-      }
-    } catch (error: Error | unknown) {
-      console.log('error: ', error);
+      const res = await service.availableLov(userDetails?.landlordId);
+      // console.log('raw response', res);
+      const groupedUnits = res.data.map(
+        (building: { name: string; items: any[] }) => ({
+          label: building.name,
+          options: building.items.map((unit) => ({
+            id: unit.id,
+            name: unit.name,
+            rent: unit.rent,
+          })),
+        })
+      );
+
+      setUnitList(groupedUnits);
+    } catch (error) {
+      toast({
+        description: 'Failed to load units',
+        className: cn(
+          'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
+        ),
+        style: {
+          backgroundColor: '#FF5733',
+          color: 'white',
+        },
+      });
     }
   };
 
   useEffect(() => {
-    fetchRoleLov();
+    fetchUnitsLOV();
   }, []);
+
+  useEffect(() => {
+    const selectedUnitId = watch('propertyUnitId');
+
+    if (selectedUnitId) {
+      const selectedUnit: any = unitList
+        .flatMap((group) => group.options)
+        .find((unit) => unit.id === selectedUnitId);
+
+      if (selectedUnit?.rent) {
+        setValue('rentPrice', selectedUnit.rent);
+      }
+    }
+  }, [watch('propertyUnitId'), unitList, setValue]);
+
+  console.log('selected unit', selectedImg, file);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -118,182 +187,256 @@ const OfficeUserUpdateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Update Admin User</DialogTitle>
+          <DialogTitle className="capitalize">
+            Update Contract for {formData?.userDetail?.fname}{' '}
+            {formData?.userDetail?.lname}{' '}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="custom-form-section">
               <div className="form-group w-full flex gap-3">
+                <div className="w-full m-1 mt-[8px]">
+                  <FormLabel
+                    htmlFor="firstName"
+                    className="text-sm font-medium"
+                  >
+                    Select Unit
+                  </FormLabel>
+                  <SingleSelectGroupDropdown
+                    control={control}
+                    name="propertyUnitId"
+                    label="Select Property Units"
+                    items={unitList}
+                    placeholder="Choose units"
+                    rules={{ required: 'Please select at least one unit' }}
+                  />
+                </div>
                 <FormControl className="m-1 w-full">
                   <div className="">
                     <FormLabel
-                      htmlFor="firstName"
+                      htmlFor="rentPrice"
                       className="text-sm font-medium"
                     >
-                      First Name
+                      Rent Price
                     </FormLabel>
                     <Input
                       className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="firstName"
-                      placeholder="john"
+                      id="rentPrice"
+                      placeholder="1500"
+                      type="number"
+                      {...register('rentPrice')}
+                    />
+                    {errors.rentPrice && (
+                      <FormMessage>*{errors.rentPrice.message}</FormMessage>
+                    )}
+                  </div>
+                </FormControl>
+              </div>
+              <div className="form-group w-full flex items-center justify-center gap-5 m-1">
+                <div className="w-full">
+                  <FormLabel
+                    htmlFor="tenantType"
+                    className="text-sm font-medium my-2 block"
+                  >
+                    Tenant Type
+                  </FormLabel>
+                  <SingleSelectDropDown
+                    control={control}
+                    name="tenantType"
+                    label=""
+                    items={[
+                      { id: 'individual', name: 'Individual' },
+                      { id: 'company', name: 'Company' },
+                    ]}
+                    placeholder="Choose an option"
+                    rules={{ required: 'This field is required' }}
+                  />
+                </div>
+                <div className="w-full">
+                  <FormLabel
+                    htmlFor="paymentCycle"
+                    className="text-sm font-medium my-2 block"
+                  >
+                    Payment Cycle
+                  </FormLabel>
+                  <SingleSelectDropDown
+                    control={control}
+                    name="paymentCycle"
+                    label=""
+                    items={[
+                      { id: 'Monthly', name: 'Monthly' },
+                      { id: 'Quarterly', name: 'Quarterly' },
+                      { id: 'Yearly', name: 'Yearly' },
+                    ]}
+                    placeholder="Choose an option"
+                    rules={{ required: 'This field is required' }}
+                  />
+                </div>
+              </div>
+              <div className="form-group w-full flex items-center justify-center gap-5 m-1">
+                <FormControl className="m-1 w-full">
+                  <div className="">
+                    <FormLabel
+                      htmlFor="nationality"
+                      className="text-sm font-medium"
+                    >
+                      Nationality
+                    </FormLabel>
+                    <Input
+                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                      id="nationality"
+                      placeholder="Pakistani"
                       type="text"
-                      {...register('firstName', {
-                        value: formData?.firstName,
+                      {...register('nationality', {
                         required: 'Please enter your first name',
                       })}
                     />
-                    {errors.firstName && (
-                      <FormMessage>*{errors.firstName.message}</FormMessage>
+                    {errors.nationality && (
+                      <FormMessage>*{errors.nationality.message}</FormMessage>
                     )}
                   </div>
                 </FormControl>
                 <FormControl className="m-1 w-full">
                   <div className="">
                     <FormLabel
-                      htmlFor="lastName"
+                      htmlFor="language"
                       className="text-sm font-medium"
                     >
-                      Last Name
+                      Language
                     </FormLabel>
                     <Input
                       className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="lastName"
-                      placeholder="doe"
+                      id="language"
+                      placeholder="English"
                       type="text"
-                      {...register('lastName', {
-                        value: formData?.lastName,
+                      {...register('language', {
+                        required: 'Please enter your first name',
                       })}
                     />
-                    {/* {errors.lastName && (
-                      <FormMessage>*{errors.lastName.message}</FormMessage>
-                    )} */}
+                    {errors.language && (
+                      <FormMessage>*{errors.language.message}</FormMessage>
+                    )}
+                  </div>
+                </FormControl>
+              </div>
+              <div className="form-group w-full flex items-center justify-center gap-5 m-1">
+                <FormControl className="m-1 w-full">
+                  <div className="">
+                    <FormLabel
+                      htmlFor="rentPayDay"
+                      className="text-sm font-medium"
+                    >
+                      Rent Payment Day
+                    </FormLabel>
+                    <Input
+                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                      id="rentPayDay"
+                      placeholder="Ex: write integer number (1 - 31)"
+                      type="number"
+                      {...register('rentPayDay')}
+                    />
+                    {errors.rentPayDay && (
+                      <FormMessage>*{errors.rentPayDay.message}</FormMessage>
+                    )}
+                  </div>
+                </FormControl>
+                <FormControl className="m-1 w-full">
+                  <div className="">
+                    <FormLabel
+                      htmlFor="civilId"
+                      className="text-sm font-medium"
+                    >
+                      Civil Id
+                    </FormLabel>
+                    <Input
+                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                      id="civilId"
+                      placeholder="23473724"
+                      type="number"
+                      {...register('civilId')}
+                    />
+                    {errors.civilId && (
+                      <FormMessage>*{errors.civilId.message}</FormMessage>
+                    )}
+                  </div>
+                </FormControl>
+              </div>
+              <div className="form-group w-full flex items-center justify-center gap-5 m-1">
+                <FormControl className="m-1 w-full">
+                  <div className="">
+                    <FormLabel
+                      htmlFor="leavingDate"
+                      className="text-sm font-medium"
+                    >
+                      Leaving Date
+                    </FormLabel>
+                    <Input
+                      id="leavingDate"
+                      type="date"
+                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                      {...register('leavingDate', {
+                        required: 'Please select leaving date',
+                      })}
+                    />
+                    {errors.leavingDate && (
+                      <FormMessage>*{errors.leavingDate.message}</FormMessage>
+                    )}
+                  </div>
+                </FormControl>
+                <FormControl className="flex w-full items-center gap-2 mt-1">
+                  <div>
+                    <input
+                      type="checkbox"
+                      id="legalCase"
+                      {...register('legalCase')}
+                      className="h-[16px] w-[16px] cursor-pointer accent-bg-primary-bg"
+                    />
+                    <FormLabel
+                      htmlFor="legalCase"
+                      className="text-sm font-medium mt-[2px]"
+                    >
+                      Legal Case
+                    </FormLabel>
                   </div>
                 </FormControl>
               </div>
               <div className="form-group w-full flex gap-3">
                 <FormControl className="m-1 w-full">
                   <div className="">
-                    <FormLabel htmlFor="email" className="text-sm font-medium">
-                      Eamil
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="email"
-                      placeholder="johndoe@gmail.com"
-                      type="text"
-                      {...register('email', {
-                        value: formData?.email,
-                        required: 'Please enter your email',
-                      })}
-                    />
-                    {errors.email && (
-                      <FormMessage>*{errors.email.message}</FormMessage>
-                    )}
-                  </div>
-                </FormControl>
-                {/* <div className="form-group w-full"> */}
-                <FormControl className="m-1 w-full">
-                  <div className="">
                     <FormLabel
-                      htmlFor="password"
-                      className="text-sm font-medium"
+                      htmlFor="contractStart"
+                      className="text-sm font-medium my-2 block"
                     >
-                      Password
+                      Contract Dates
                     </FormLabel>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        placeholder="********"
-                        type={passwordVisible ? 'text' : 'password'}
-                        className="text-sm pr-10 mt-2"
-                        {...register('password', {
-                          required: 'Please enter your password.',
-                          value: '',
-                        })}
-                      />
-                      <Button
-                        variant="ghost"
-                        type="button"
-                        className="bg-transparent absolute inset-y-0 right-0 flex items-center pr-3 mt-[11px]"
-                        onClick={togglePasswordVisibility}
-                      >
-                        {passwordVisible ? (
-                          <EyeOff color="black" />
-                        ) : (
-                          <Eye color="black" />
-                        )}
-                      </Button>
-                      {errors.password && (
-                        <FormMessage>*{errors.password.message}</FormMessage>
-                      )}
-                    </div>
-                  </div>
-                </FormControl>
-                {/* </div> */}
-              </div>
-              <div className="form-group w-full flex items-center justify-center gap-3 m-1">
-                <div className="w-full">
-                  <FormLabel
-                    htmlFor="phone"
-                    className="text-sm font-medium my-2 block"
-                  >
-                    Roles
-                  </FormLabel>
-                  <SingleSelectDropDown
-                    control={control}
-                    name="role"
-                    label=""
-                    items={roleLov}
-                    // value={formData.role}
-                    placeholder="Choose an option"
-                    rules={{ required: 'This field is required' }}
-                  />
-                </div>
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel htmlFor="phone" className="text-sm font-medium">
-                      Phone
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="phone"
-                      placeholder="876543215"
-                      type="number"
-                      {...register('phone', {
-                        required: 'Please enter your phone',
-                        value: formData.phone,
-                      })}
+                    <DatePickerWithRange
+                      initialFrom={formData.contractStart}
+                      initialTo={formData.contractEnd}
+                      onDateRangeChange={(
+                        startDate: string,
+                        endDate: string
+                      ) => {
+                        setValue('contractStart', startDate);
+                        setValue('contractEnd', endDate);
+                      }}
                     />
-                    {errors.phone && (
-                      <FormMessage>*{errors.phone.message}</FormMessage>
+                    {errors.contractStart && (
+                      <FormMessage>*{errors.contractStart.message}</FormMessage>
+                    )}
+                    {errors.contractEnd && (
+                      <FormMessage>*{errors.contractEnd.message}</FormMessage>
                     )}
                   </div>
                 </FormControl>
               </div>
-              <FormControl className="m-1 w-full">
-                <div className="">
-                  <FormLabel htmlFor="address" className="text-sm font-medium">
-                    Address
-                  </FormLabel>
-                  <Input
-                    className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                    id="address"
-                    placeholder="Street 55"
-                    type="text"
-                    {...register('address', { value: formData.address })}
-                  />
-                  {errors.address && (
-                    <FormMessage>*{errors.address.message}</FormMessage>
-                  )}
-                </div>
-              </FormControl>
-              <div>
+              {/* <div>
                 <div className="flex justify-between">
                   <FormLabel
                     htmlFor="address"
                     className="text-sm font-medium my-3"
                   >
-                    Upload Avatar
+                    Upload Docs
                   </FormLabel>
                 </div>
                 <div className="grid grid-cols-12 items-center">
@@ -306,22 +449,120 @@ const OfficeUserUpdateDialog = ({
                   </div>
                   {selectedImg ? (
                     <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
-                      <img
-                        className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                        src={selectedImg}
-                        alt="Shop Logo"
-                      />
+                      {/^data:image\//.test(selectedImg) ||
+                      /\.(jpg|jpeg|png|webp|gif)$/i.test(selectedImg) ? (
+                        <img
+                          className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
+                          src={selectedImg}
+                          alt="Doc Uploaded"
+                        />
+                      ) : (
+                        <div>{file?.name}</div>
+                      )}
                     </div>
-                  ) : getValues('avatar') ? (
+                  ) : getValues('agreementDoc') ? (
                     <div className="col-span-6 flex items-center justify-center  xl:justify-center 2xl:justify-start">
                       <img
                         className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                        src={getValues('avatar')}
-                        alt="Shop Logo"
+                        src={getValues('agreementDoc')}
+                        alt="agreementDoc"
                       />
                     </div>
                   ) : null}
                 </div>
+              </div> */}
+              <div>
+                <div className="flex justify-between">
+                  <FormLabel
+                    htmlFor="address"
+                    className="text-sm font-medium my-3"
+                  >
+                    Upload Docs
+                  </FormLabel>
+                </div>
+
+                <div className="grid grid-cols-12 items-center">
+                  {/* Upload input */}
+                  <div className="col-span-5 mb-1">
+                    <DragDropFile
+                      setFile={setFile}
+                      setImg={setSelectedImg}
+                      setIsNotify={ToastHandler}
+                    />
+                  </div>
+
+                  {/* Preview uploaded file */}
+                  {selectedImg ? (
+                    <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
+                      {/^data:image\//.test(selectedImg) ||
+                      /\.(jpg|jpeg|png|webp|gif)$/i.test(selectedImg) ? (
+                        <img
+                          className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
+                          src={selectedImg}
+                          alt="Doc Uploaded"
+                        />
+                      ) : (
+                        <div>{file?.name}</div>
+                      )}
+                    </div>
+                  ) : getValues('agreementDoc') ? (
+                    <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
+                      <img
+                        className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
+                        src={getValues('agreementDoc')}
+                        alt="agreementDoc"
+                      />
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Show existing pictures from unitDetail */}
+                {formData?.agreement_doc?.length > 0 && (
+                  <div className="mt-4 gap-2 flex flex-col">
+                    <div>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Previous picture / doc will be shown below. You can
+                        upload new file to replace it.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {formData?.agreement_doc?.map(
+                        (pic: string, idx: number) => {
+                          const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(
+                            pic
+                          );
+                          const isPDF = /\.pdf$/i.test(pic);
+                          const isDoc = /\.(docx?|txt)$/i.test(pic);
+
+                          return (
+                            <a
+                              key={idx}
+                              href={ASSET_BASE_URL + pic}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-16 h-16 border border-gray-200 rounded overflow-hidden flex items-center justify-center"
+                              title={pic.split('/').pop()}
+                            >
+                              {isImage ? (
+                                <img
+                                  src={ASSET_BASE_URL + pic}
+                                  alt={`unit-picture-${idx}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : isPDF || isDoc ? (
+                                <FileText className="text-lunar-bg" size={20} />
+                              ) : (
+                                <span className="text-xs text-gray-500">
+                                  File
+                                </span>
+                              )}
+                            </a>
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               <DialogFooter className="mt-3">
                 <Button
@@ -340,4 +581,4 @@ const OfficeUserUpdateDialog = ({
   );
 };
 
-export default OfficeUserUpdateDialog;
+export default UpdateContractDialog;

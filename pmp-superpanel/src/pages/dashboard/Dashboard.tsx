@@ -23,44 +23,84 @@ function Dashboard() {
       <SidebarInset>
         <TopBar title="Dashboard" />
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+          <div className="grid auto-rows-min gap-4 md:grid-cols-4">
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
-              <Label className="text-xl" htmlFor="activeCabin">
+              <Label className="text-sm" htmlFor="activeCabin">
                 <Users /> Active Tenant Users
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
-                <span className="text-4xl font-semibold">
+                <span className="text-4xl text-lunar-bg font-semibold">
                   {data?.activeTenants}
                 </span>
               </div>
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
-              <Label className="text-xl" htmlFor="activeCabin">
+              <Label className="text-sm" htmlFor="activeCabin">
                 <MonitorCheck /> Active Requests
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
-                <span className="text-4xl font-semibold">
+                <span className="text-4xl text-neptune-bg font-semibold">
                   {data?.activeRequests}
                 </span>
               </div>
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
-              <Label className="text-xl" htmlFor="activeCabin">
+              <Label className="text-sm" htmlFor="activeCabin">
                 <Monitor /> Current Month Invoices
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
-                <span className="text-4xl font-semibold">
+                <span className="text-4xl text-mars-bg font-semibold">
                   {data?.currentMonthUnpaidInvoices}
                 </span>
               </div>
             </div>
             <div className="aspect-video p-3 rounded-xl bg-muted/50">
-              <Label className="text-xl" htmlFor="activeCabin">
+              <Label className="text-sm" htmlFor="activeCabin">
                 <MonitorCheck /> Current Month Receipts
               </Label>
               <div className="flex items-center justify-center mt-[15%]">
-                <span className="text-4xl font-semibold">
+                <span className="text-4xl text-saturn-bg font-semibold">
                   {data?.currentMonthPaidReceipts}
+                </span>
+              </div>
+            </div>
+            <div className="aspect-video p-3 rounded-xl bg-muted/50">
+              <Label className="text-sm" htmlFor="activeCabin">
+                <MonitorCheck /> Active Landlords
+              </Label>
+              <div className="flex items-center justify-center mt-[15%]">
+                <span className="text-4xl text-venus-bg font-semibold">
+                  {data?.activeLandlords}
+                </span>
+              </div>
+            </div>
+            <div className="aspect-video p-3 rounded-xl bg-muted/50">
+              <Label className="text-sm" htmlFor="activeCabin">
+                <MonitorCheck /> Active Managers
+              </Label>
+              <div className="flex items-center justify-center mt-[15%]">
+                <span className="text-4xl text-tertiary-bg font-semibold">
+                  {data?.activeManagers}
+                </span>
+              </div>
+            </div>
+            <div className="aspect-video p-3 rounded-xl bg-muted/50">
+              <Label className="text-sm" htmlFor="activeCabin">
+                <MonitorCheck /> Pending Invoices
+              </Label>
+              <div className="flex items-center justify-center mt-[15%]">
+                <span className="text-4xl text-quaternary-bg font-semibold">
+                  {data?.pendingInvoices}
+                </span>
+              </div>
+            </div>
+            <div className="aspect-video p-3 rounded-xl bg-muted/50">
+              <Label className="text-sm" htmlFor="activeCabin">
+                <MonitorCheck /> Unresolved Tickets
+              </Label>
+              <div className="flex items-center justify-center mt-[15%]">
+                <span className="text-4xl text-jupiter-bg font-semibold">
+                  {data?.unresolvedTickets}
                 </span>
               </div>
             </div>

@@ -1,8 +1,6 @@
 import { TopBar } from '@/components/TopBar';
-import { Button } from '@/components/ui/button';
 import { SidebarInset } from '@/components/ui/sidebar';
 
-import usersService from '@/services/adminapp/users';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -16,13 +14,12 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import {
-  ArrowUpDown,
-  Loader2,
   // ChevronDown,
   Airplay,
-  Pencil,
-  Trash2,
+  Eye,
   FileText,
+  Loader2,
+  Trash2,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { Checkbox } from '@/components/ui/checkbox';
@@ -31,10 +28,6 @@ import { Paginator } from '@/components/Paginator';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  //   DropdownMenuLabel,
-  //   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
@@ -48,16 +41,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import service from '@/services/adminapp/support-maintenance';
+import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
+import { usePermission } from '@/utils/hasPermission';
+import { handleErrorMessage } from '@/utils/helper';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
 import OfficeUsersCreationDialog from './CreateDialog';
-import OfficeUserUpdateDialog from './UpdateDialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials, handleErrorMessage } from '@/utils/helper';
-import { usePermission } from '@/utils/hasPermission';
-import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
-import SupportTicketUpdateDialog from './UpdateDialog';
 import StatusChangeDialog from './StatusDialog';
+import ViewDialog from './ViewDialog';
 
 export type Users = {
   id: string; // UUID
@@ -165,9 +156,13 @@ const ReportedTicketsList = () => {
           return <span className="text-gray-400 text-xs">No files</span>;
         }
 
+        const maxVisible = 2;
+        const visibleFiles = images.slice(0, maxVisible);
+        const extraCount = images.length - maxVisible;
+
         return (
-          <div className="flex gap-2 flex-wrap">
-            {images.map((url, idx) => {
+          <div className="flex gap-2 flex-wrap items-center">
+            {visibleFiles.map((url, idx) => {
               const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
               const isPDF = /\.pdf$/i.test(url);
               const isDoc = /\.(docx?|txt)$/i.test(url);
@@ -178,7 +173,7 @@ const ReportedTicketsList = () => {
                   href={ASSET_BASE_URL + url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block w-12 h-12 border border-gray-200 rounded overflow-hidden items-center justify-center"
+                  className="flex w-16 h-12 border border-gray-200 rounded overflow-hidden items-center justify-center"
                   title={url.split('/').pop()}
                 >
                   {isImage ? (
@@ -187,22 +182,20 @@ const ReportedTicketsList = () => {
                       alt={`attachment-${idx}`}
                       className="w-full h-full object-cover"
                     />
-                  ) : isPDF ? (
-                    <FileText
-                      className="text-lunar-bg cursor-pointer"
-                      size={50}
-                    />
-                  ) : isDoc ? (
-                    <FileText
-                      className="text-lunar-bg cursor-pointer"
-                      size={20}
-                    />
+                  ) : isPDF || isDoc ? (
+                    <FileText className="text-lunar-bg" size={20} />
                   ) : (
                     <span className="text-xs text-gray-500">File</span>
                   )}
                 </a>
               );
             })}
+
+            {extraCount > 0 && (
+              <div className="w-12 h-12 border border-gray-200 rounded flex items-center justify-center bg-gray-100 text-sm font-medium text-gray-700">
+                +{extraCount}
+              </div>
+            )}
           </div>
         );
       },
@@ -235,9 +228,9 @@ const ReportedTicketsList = () => {
             )}
             {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
               <div>
-                <Pencil
+                <Eye
                   className="text-lunar-bg cursor-pointer"
-                  onClick={() => handleActionMenu('edit', id)}
+                  onClick={() => handleActionMenu('view', id)}
                   size={20}
                 />
               </div>
@@ -264,7 +257,7 @@ const ReportedTicketsList = () => {
       setEditFormData(editData);
       setStatusOpen(true);
     }
-    if (type === 'edit') {
+    if (type === 'view') {
       const editData = list.find((item: any) => item.id === actionId);
       setEditFormData(editData);
       setEditOpen(true);
@@ -634,7 +627,7 @@ const ReportedTicketsList = () => {
         />
       )}
       {editOpen && (
-        <SupportTicketUpdateDialog
+        <ViewDialog
           isLoader={isLoader}
           isOpen={editOpen}
           setIsOpen={setEditOpen}

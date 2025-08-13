@@ -2,15 +2,21 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from app.models.tenants import Tenant
 from app.models.users import User
+from app.models.properties import Property
 from app.models.roles import Role
 from app.models.property_units import PropertyUnit
 from fastapi import HTTPException, UploadFile
 from app.utils.uploader import is_upload_file, save_uploaded_file
+from datetime import datetime
 from app.modules.tenants.schemas import (
     ContractCreate,
+    ContractUpdate,
     ContractListOut,
     ContractCreateOut,
     UnitDetailOut,
+    ContractStandardUpdateResponse,
+    PropertyInfo,
+    UnitDetail,
 )
 from datetime import date
 import uuid
@@ -95,6 +101,183 @@ def create_contract_for_user(
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
+def update_contract_for_user(
+    db: Session,
+    contract_id: UUID,
+    data: ContractUpdate,
+    agreement_doc: Optional[UploadFile] = None,
+):
+    try:
+        # 1. Find existing contract
+        tenant_contract = db.query(Tenant).filter(Tenant.id == contract_id).first()
+        if not tenant_contract:
+            raise HTTPException(status_code=404, detail="Contract not found")
+
+        old_unit_id: Optional[UUID] = tenant_contract.property_unit_id
+
+        # 2. Keep existing docs as list (from comma-separated string)
+        existing_docs = []
+        if tenant_contract.agreement_doc:
+            existing_docs = tenant_contract.agreement_doc.split(",")
+
+        # 3. If new agreement_doc is uploaded, save and append
+        if is_upload_file(agreement_doc):
+            new_file_url = save_uploaded_file(
+                agreement_doc, upload_dir="uploads/agreement_docs"
+            )
+            existing_docs.append(new_file_url)
+
+        # 4. Update fields from incoming data
+        # tenant_contract.user_id = data.user_id
+        tenant_contract.property_unit_id = data.property_unit_id
+        tenant_contract.tenant_type = data.tenant_type
+        tenant_contract.civil_id = data.civil_id
+        tenant_contract.nationality = data.nationality
+        tenant_contract.legal_case = data.legal_case
+        # tenant_contract.is_approved = data.is_approved
+        tenant_contract.language = data.language
+        tenant_contract.contract_start = data.contract_start
+        tenant_contract.contract_end = data.contract_end
+        tenant_contract.rent_price = data.rent_price
+        tenant_contract.rent_pay_day = data.rent_pay_day
+        tenant_contract.payment_cycle = data.payment_cycle
+        tenant_contract.leaving_date = data.leaving_date
+        tenant_contract.updated_at = datetime.utcnow()
+
+        # 5. Save updated list as comma-separated string
+        tenant_contract.agreement_doc = ",".join(existing_docs)
+
+        new_unit_id: Optional[UUID] = data.property_unit_id
+
+        def set_available(unit_obj):
+            # supports either a string 'status' or boolean 'is_occupied'
+            if hasattr(unit_obj, "status"):
+                unit_obj.status = "available"
+            if hasattr(unit_obj, "is_occupied"):
+                unit_obj.is_occupied = False
+
+        def set_occupied(unit_obj):
+            if hasattr(unit_obj, "status"):
+                unit_obj.status = "occupied"
+            if hasattr(unit_obj, "is_occupied"):
+                unit_obj.is_occupied = True
+
+        unit = None  # we'll reuse this for response building
+
+        if new_unit_id and new_unit_id != old_unit_id:
+            # 6a) Release old unit
+            if old_unit_id:
+                prev_unit = (
+                    db.query(PropertyUnit)
+                    .filter(PropertyUnit.id == old_unit_id)
+                    .first()
+                )
+                if prev_unit:
+                    set_available(prev_unit)
+
+            # 6b) Occupy new unit
+            unit = db.query(PropertyUnit).filter(PropertyUnit.id == new_unit_id).first()
+            if not unit:
+                db.rollback()
+                raise HTTPException(
+                    status_code=404, detail="New property unit not found"
+                )
+
+            set_occupied(unit)
+        else:
+            # No change or no new unit id; fetch current unit for response (if any)
+            if tenant_contract.property_unit_id:
+                unit = (
+                    db.query(PropertyUnit)
+                    .filter(PropertyUnit.id == tenant_contract.property_unit_id)
+                    .first()
+                )
+
+        db.commit()
+        db.refresh(tenant_contract)
+
+        # 6. Fetch unit details for the response
+        # unit = (
+        #     db.query(PropertyUnit)
+        #     .filter(PropertyUnit.id == tenant_contract.property_unit_id)
+        #     .first()
+        # )
+        property_info = None
+        if unit and unit.property_id:
+            property_row = (
+                db.query(Property).filter(Property.id == unit.property_id).first()
+            )
+            if property_row:
+                property_info = PropertyInfo(id=property_row.id, name=property_row.name)
+
+        unit_detail = None
+        if unit:
+            unit_detail = UnitDetail(
+                id=unit.id,
+                name=unit.name,
+                unitNo=unit.unit_no,
+                unitType=unit.unit_type,
+                size=unit.size,
+                electricityMeter=unit.electricity_meter,
+                waterMeter=unit.water_meter,
+                pictures=(
+                    unit.pictures.split(",") if getattr(unit, "pictures", None) else []
+                ),
+                rent=str(unit.rent),
+                property=property_info,
+            )
+
+            # 7. Build response ContractUpdate object
+            contract_update_response = ContractUpdate(
+                property_unit_id=tenant_contract.property_unit_id,
+                contract_start=tenant_contract.contract_start,
+                contract_end=tenant_contract.contract_end,
+                rent_price=(
+                    float(tenant_contract.rent_price)
+                    if tenant_contract.rent_price is not None
+                    else 0.0
+                ),
+                rent_pay_day=(
+                    int(tenant_contract.rent_pay_day)
+                    if tenant_contract.rent_pay_day is not None
+                    else 0
+                ),
+                payment_cycle=tenant_contract.payment_cycle,
+                leaving_date=tenant_contract.leaving_date,
+                civil_id=tenant_contract.civil_id,
+                tenant_type=tenant_contract.tenant_type,
+                nationality=tenant_contract.nationality,
+                legal_case=(
+                    bool(tenant_contract.legal_case)
+                    if tenant_contract.legal_case is not None
+                    else False
+                ),
+                is_approved=(
+                    bool(tenant_contract.is_approved)
+                    if tenant_contract.is_approved is not None
+                    else False
+                ),
+                language=tenant_contract.language,
+                agreement_doc=existing_docs,
+                unit_detail=unit_detail,
+            )
+
+        return ContractStandardUpdateResponse(
+            success=True,
+            message="Contract updated successfully",
+            data=contract_update_response,
+        )
+
+        # return ContractCreateOut.model_validate(tenant_contract)
+
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
 def approve_contract_unit(
     db: Session, user_id: UUID, property_unit_id: UUID, is_approved: bool
 ):
@@ -153,15 +336,17 @@ def list_contracts_by_landlord(
         }
     query = (
         db.query(Tenant)
-    .options(
-        joinedload(Tenant.user),  # Eager load related User
-        joinedload(Tenant.property_unit).joinedload(PropertyUnit.property)  # Nested eager load PropertyUnit → Property
-    )
-    .filter(
-        Tenant.user_id.in_(user_ids),       # Filter by user_ids
-        Tenant.is_approved == is_approved,  # Approved status filter
-        Tenant.is_active == True            # Only active tenants
-    )
+        .options(
+            joinedload(Tenant.user),  # Eager load related User
+            joinedload(Tenant.property_unit).joinedload(
+                PropertyUnit.property
+            ),  # Nested eager load PropertyUnit → Property
+        )
+        .filter(
+            Tenant.user_id.in_(user_ids),  # Filter by user_ids
+            Tenant.is_approved == is_approved,  # Approved status filter
+            Tenant.is_active == True,  # Only active tenants
+        )
     )
     if search:
         search_term = f"%{search.strip()}%"
@@ -198,6 +383,8 @@ def list_contracts_by_landlord(
         if unit:
             unit_data = UnitDetailOut.model_validate(unit)
         contract_out = ContractListOut.model_validate(contract)
+        if contract.agreement_doc:
+            contract_out.agreement_doc = contract.agreement_doc.split(",")
         contract_out.user_detail = user_data
         contract_out.unit_detail = unit_data
         result.append(contract_out)

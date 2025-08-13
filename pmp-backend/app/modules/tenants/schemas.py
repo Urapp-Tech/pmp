@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_serializer, field_validator
 from typing import List, Optional
 from uuid import UUID
 from datetime import date, datetime
@@ -9,6 +9,24 @@ class PaymentCycle(str, Enum):
     monthly = "Monthly"
     quarterly = "Quarterly"
     yearly = "Yearly"
+
+
+class PropertyInfo(BaseModel):
+    id: Optional[UUID] = None
+    name: Optional[str] = None
+
+
+class UnitDetail(BaseModel):
+    id: UUID
+    name: Optional[str] = None
+    unitNo: Optional[str] = None
+    unitType: Optional[str] = None
+    size: Optional[str] = None
+    electricityMeter: Optional[str] = None
+    waterMeter: Optional[str] = None
+    pictures: List[str] = Field(default_factory=list)
+    rent: Optional[str] = None
+    property: Optional[PropertyInfo] = None
 
 
 class ContractCreate(BaseModel):
@@ -53,6 +71,54 @@ class ContractCreate(BaseModel):
     )
 
 
+class ContractUpdate(BaseModel):
+    property_unit_id: UUID = Field(..., alias="propertyUnitId")
+    contract_start: date = Field(..., alias="contractStart")
+    contract_end: date = Field(..., alias="contractEnd")
+    rent_price: float = Field(..., alias="rentPrice")
+    rent_pay_day: int = Field(..., alias="rentPayDay")
+    payment_cycle: PaymentCycle = Field(..., alias="paymentCycle")
+    leaving_date: Optional[date] = Field(None, alias="leavingDate")
+    civil_id: Optional[str] = Field(None, alias="civilId")
+    tenant_type: Optional[str] = Field(None, alias="tenantType")
+    nationality: Optional[str]
+    legal_case: Optional[bool] = Field(False, alias="legalCase")
+    is_approved: Optional[bool] = Field(False, alias="isApproved")
+    language: Optional[str]
+    agreement_doc: Optional[List[str]] = Field(None, alias="agreementDoc")
+    unit_detail: Optional[UnitDetail] = Field(None, alias="unitDetail")
+
+    @field_validator("agreement_doc", mode="before")
+    def parse_docs(cls, v):
+        if isinstance(v, str):
+            return v.split(",") if v else []
+        return v
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "propertyUnitId": "a1b2c3d4-5678-9012-3456-7890abcdef12",
+                    "contractStart": "2025-07-01",
+                    "contractEnd": "2026-06-30",
+                    "rentPrice": 1200.50,
+                    "rentPayDay": 5,
+                    "paymentCycle": "Monthly",
+                    "leavingDate": None,
+                    "civilId": "123456789",
+                    "tenantType": "individual",
+                    "nationality": "Pakistani",
+                    "legalCase": False,
+                    "isApproved": False,
+                    "language": "English",
+                }
+            ]
+        },
+    )
+
+
 class ContractCreateOut(BaseModel):
     id: UUID
     user_id: UUID = Field(..., alias="userId")
@@ -69,10 +135,17 @@ class ContractCreateOut(BaseModel):
     nationality: Optional[str]
     legal_case: Optional[bool] = Field(False, alias="legalCase")
     language: Optional[str]
-    agreement_doc: Optional[str] = (Field(None, alias="agreementDoc"),)
+    agreement_doc: Optional[List[str]] = Field(None, alias="agreementDoc")
+    # unit_detail: Optional[UnitDetail] = Field(None, alias="unitDetail")
     is_active: bool = Field(..., alias="isActive")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
+
+    @field_validator("agreement_doc", mode="before")
+    def parse_docs(cls, v):
+        if isinstance(v, str):
+            return v.split(",") if v else []
+        return v
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -139,13 +212,15 @@ class UserDetailOut(BaseModel):
         from_attributes = True
         populate_by_name = True
 
+
 class PropertyOut(BaseModel):
     id: UUID
     name: str
+
     class Config:
         from_attributes = True
         populate_by_name = True
-    
+
 
 class UnitDetailOut(BaseModel):
     id: UUID
@@ -158,6 +233,7 @@ class UnitDetailOut(BaseModel):
     pictures: Optional[List[str]] = None
     rent: Optional[str]
     property: Optional[PropertyOut]
+
     class Config:
         from_attributes = True
         populate_by_name = True
@@ -181,8 +257,16 @@ class ContractListOut(BaseModel):
     language: Optional[str]
     is_active: bool = Field(..., alias="isActive")
     is_approved: bool = Field(..., alias="isApproved")
+    agreement_doc: Optional[List[str]] = None
     user_detail: Optional[UserDetailOut] = Field(None, alias="userDetail")
     unit_detail: Optional[UnitDetailOut] = Field(None, alias="unitDetail")
+
+    @field_validator("agreement_doc", mode="before")
+    @classmethod
+    def split_agreement_doc(cls, v):
+        if isinstance(v, str):
+            return v.split(",") if v else []
+        return v
 
     class Config:
         from_attributes = True
@@ -201,3 +285,9 @@ class ContractStandardResponse(BaseModel):
     success: bool
     message: str
     data: ContractCreateOut
+
+
+class ContractStandardUpdateResponse(BaseModel):
+    success: bool
+    message: str
+    data: ContractUpdate

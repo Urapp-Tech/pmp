@@ -40,7 +40,7 @@ const create = (data: any) => {
 };
 
 const update = (id: string, data: any) => {
-  return network.postMultipart(`${SUB_USER_PREFIX}/update/${id}`, data);
+  return network.postMultipart(`${TENANTS_PREFIX}/contract-update/${id}`, data);
 };
 
 const deleteUser = (id: string) => {
