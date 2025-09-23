@@ -10,8 +10,8 @@
   :root {
     /* Sports Var Start */
 
-    --custom-primary: 255, 225, 230;
-    --custom-secondary: 255, 48, 79;
+    --custom-primary: 36, 36, 96;
+    --custom-secondary: 186, 229, 214;
     --custom-tertiary: 7, 15, 43;
     --custom-grey: 102, 102, 102;
     --custom-white: 255, 255, 255;
@@ -25,8 +25,15 @@
     --custom-placeholder: 197, 201, 213;
     /* Sports Var End */
 
+    --body-background: 157 49% 92%;
     --background: 0 0% 100%;
+    --body-table: 159 45% 81%;
+    --table-header: 240 45% 26%;
     --foreground: 224 71.4% 4.1%;
+    --scrollbar: 161, 43%, 56%;
+    --offground: 358, 83%, 35%;
+    --text-inv: 0, 0%, 42%;
+    --dialog-bg: 0, 0%, 100%;
     --card: 0 0% 100%;
     --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
@@ -50,12 +57,12 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 240 45% 26%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent: 240deg 24.85% 62.48%;
+    --sidebar-accent-foreground: 160, 84%, 85%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
@@ -85,7 +92,7 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
+    --sidebar-background: 240 45% 26%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -102,22 +109,22 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
   }
 }
 
 .bg-wrap {
-  background-image: url('assets/images/dashboard-bg.webp');
-  background-repeat: no-repeat;
+  /* background-image: url('assets/images/dashboard-bg.webp'); */
+  /* background-repeat: no-repeat;
   background-size: cover;
-  background-position: center;
+  background-position: center; */
 }
 
 .sign-bg-wrap {
-  background-image: url('assets/images/sign-bg.webp');
+  /* background-image: url('assets/images/sign-bg.webp');
   background-repeat: no-repeat;
   background-size: cover;
-  background-position: center;
+  background-position: center; */
 }
 
 .side--border {
@@ -129,10 +136,11 @@
 }
 
 .bg-panel {
-  background: url('assets/images/dashboard-bg.webp');
+  background: var(--body-background) !important;
+  /* background: url('assets/images/dashboard-bg.webp');
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-position: center;
+  background-position: center; */
 }
 
 /* form fields */
@@ -141,7 +149,7 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 18px;
-  @apply text-tertiary-bg;
+  @apply text-primary-bg;
 }
 
 .custom-form-section textarea {
@@ -151,7 +159,7 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 18px;
-  @apply text-tertiary-bg;
+  @apply text-primary-bg;
   padding: 10px 12px;
   border: none;
 }
@@ -160,11 +168,11 @@
 .custom-form-section select {
   height: 60px;
   border-radius: 20px;
-  @apply bg-earth-bg;
+  @apply bg-secondary-bg;
   font-size: 14px;
   font-weight: 600;
   line-height: 18px;
-  @apply text-tertiary-bg;
+  @apply text-primary-bg;
   padding: 10px 12px;
   border: none;
 }
@@ -178,7 +186,7 @@
 
 .custom-form-section input::placeholder,
 .custom-form-section textarea::placeholder {
-  @apply text-palceholder-bg;
+  @apply text-gray-400;
 }
 
 /* .select-field button:focus {
@@ -193,18 +201,30 @@
 
 .select-field button {
   height: 60px;
-  border-radius: 20px;
-  @apply bg-earth-bg;
+  border-radius: 3px;
+  @apply bg-secondary-bg;
   font-size: 14px;
   font-weight: 600;
   line-height: 18px;
-  @apply text-tertiary-bg;
+  @apply text-primary-bg;
+  padding: 10px 12px;
+  border: none;
+}
+
+.custom-filter-select-field button {
+  height: 38px;
+  border-radius: 3px;
+  @apply bg-secondary-bg;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  @apply text-primary-bg;
   padding: 10px 12px;
   border: none;
 }
 
 .select-field button::placeholder {
-  @apply text-palceholder-bg;
+  @apply text-primary-bg;
 }
 
 .select-field option {
@@ -212,7 +232,22 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 18px;
-  @apply text-tertiary-bg;
+  @apply text-primary-bg;
+}
+
+*::-webkit-scrollbar {
+  width: 18px; /* height for horizontal bars */
+}
+*::-webkit-scrollbar-track {
+  background: white; /* track color */
+}
+*::-webkit-scrollbar-thumb {
+  @apply bg-scrollbar; /* thumb color */
+  border-radius: 9999px;
+  border: 5px solid #cceef4;
+}
+*::-webkit-scrollbar-thumb:hover {
+  @apply bg-scrollbar;
 }
 
 .cs-dialog-box {
@@ -224,7 +259,7 @@
 .cs-dialog-box::-webkit-scrollbar {
   width: 18px;
   border-radius: 20px;
-  @apply bg-earth-bg;
+  @apply bg-secondary-bg;
 }
 
 .cs-dialog-box::-webkit-scrollbar-track {
@@ -233,7 +268,7 @@
 
 .cs-dialog-box::-webkit-scrollbar-thumb {
   width: 24px;
-  @apply bg-mars-bg;
+  @apply bg-secondary-bg;
   border: 5px solid #cceef4;
   border-radius: 15px;
 }
@@ -278,6 +313,16 @@
   @apply bg-lunar-bg !important;
 }
 
-.cs-main-wrap {
+/* .cs-main-wrap {
   border-radius: 20px;
+} */
+
+/* Mint skin for shadcn Select trigger inside this dialog */
+.cs-dialog-box .select-trigger,
+.cs-dialog-box [data-slot='trigger'] {
+  @apply h-10 rounded-md text-sm text-primary-bg/80 border-0 outline-none ring-0;
+}
+.cs-dialog-box .select-trigger:focus,
+.cs-dialog-box [data-slot='trigger']:focus {
+  @apply ring-0 outline-none;
 }

@@ -18,6 +18,7 @@ type Props = {
   placeholder?: string;
   rules?: object;
   disabled?: boolean;
+  customClassName?: any;
 };
 
 export const SingleSelectDropDown = ({
@@ -26,7 +27,7 @@ export const SingleSelectDropDown = ({
   items,
   label,
   disabled,
-
+  customClassName,
   placeholder = 'Select an option',
   rules,
 }: Props) => {
@@ -36,7 +37,7 @@ export const SingleSelectDropDown = ({
       control={control}
       rules={rules}
       render={({ field: { onChange, value }, fieldState: { error } }) => (
-        <div className="select-field w-full my-1">
+        <div className={`${customClassName ?? 'select-field w-full my-1'}`}>
           <Select onValueChange={onChange} value={value}>
             <SelectTrigger className="w-full ring-0 focus:ring-0 focus:border-none">
               <SelectValue placeholder={placeholder} />

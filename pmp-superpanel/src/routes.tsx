@@ -18,6 +18,9 @@ import UnverifiedUsers from './pages/tenant-users/UnverifiedList';
 import InvoiceDetail from './pages/reports/InvoiceDetail';
 import TenantUsers from './pages/tenant-users/List';
 import InvoiceReport from './pages/reports/InvoiceReport';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import NewPassword from './pages/auth/NewPassword';
+import ReportGraphPage from './pages/reports/ReportGraphPage';
 
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
 const RolePermissions = lazy(
@@ -47,6 +50,23 @@ export const routeObjects: RouteObject[] = [
             element: (
               <Suspense fallback={<div>Loading...</div>}>
                 <Login />
+              </Suspense>
+            ),
+          },
+
+          {
+            path: 'forgot-password',
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <ForgotPassword />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'new-password',
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <NewPassword />
               </Suspense>
             ),
           },
@@ -190,6 +210,14 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <InvoiceReport />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'analytics',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ReportGraphPage />
                   </Suspense>
                 ),
               },

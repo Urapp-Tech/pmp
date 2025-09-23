@@ -23,6 +23,7 @@ import { usePermission } from '@/utils/hasPermission';
 import { PERMISSIONS } from '@/utils/constants';
 import { getItem } from '@/utils/storage';
 import PropertyDetailModal from './PropertyDetail';
+import assets from '@/assets/images';
 const PropertyList = () => {
   const userDetails: any = getItem('USER');
   const navigate = useNavigate();
@@ -136,22 +137,23 @@ const PropertyList = () => {
     }
   };
   return (
-    <div className="bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Property List" />
+    <div className="p-2 mt-5">
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
         <div className="flex justify-between items-center py-4">
-          <h2 className="text-xl font-semibold text-tertiary-bg">Properties</h2>
+          <h2 className="text-3xl font-bold text-tertiary-bg">
+            PROPERTY MANAGEMENT
+          </h2>
           <div className="flex gap-3 items-center">
             <Input
               placeholder="Search properties..."
               value={search}
               onKeyUp={handleSearchKey}
-              className="w-[300px] rounded-full bg-mars-bg/50"
+              className="w-[350px] rounded-full bg-mars-bg/50"
             />
             {can(PERMISSIONS.PROPERTY.CREATE) && (
               <Button
                 onClick={() => navigate('/admin-panel/property/add')}
-                className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                 variant={'outline'}
               >
                 + Add New
@@ -169,11 +171,11 @@ const PropertyList = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Address</TableHead>
-                  {/* <TableHead>Status</TableHead> */}
-                  {/* <TableHead>Units</TableHead> */}
-                  <TableHead className="text-center">Actions</TableHead>
+                  <TableHead>NAME</TableHead>
+                  <TableHead>ADDRESS</TableHead>
+                  {/* <TableHead>STATUS</TableHead> */}
+                  {/* <TableHead>UNITS</TableHead> */}
+                  <TableHead className="text-center">ACTIONS</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -204,29 +206,44 @@ const PropertyList = () => {
                         <div className="flex justify-center items-center">
                           {can(PERMISSIONS.PROPERTY.VIEW) && (
                             <div className="pr-3">
-                              <Eye
-                                className="text-lunar-bg cursor-pointer"
+                              <img
+                                onClick={() => handleActionMenu('view', item)}
+                                src={assets.images.coloredEye}
+                                className="text-primary-bg cursor-pointer h-6 w-6"
+                              />
+                              {/* <Eye
+                                className="text-primary-bg cursor-pointer"
                                 onClick={() => handleActionMenu('view', item)}
                                 // size={20}
-                              />
+                              /> */}
                             </div>
                           )}
                           {can(PERMISSIONS.PROPERTY.UPDATE) && (
                             <div className="pl-3">
-                              <Pencil
-                                className="text-lunar-bg cursor-pointer"
+                              <img
+                                onClick={() => handleActionMenu('view', item)}
+                                src={assets.images.editPencil}
+                                className="text-primary-bg cursor-pointer h-6 w-6"
+                              />
+                              {/* <Pencil
+                                className="text-primary-bg cursor-pointer"
                                 onClick={() => handleActionMenu('edit', item)}
                                 size={20}
-                              />
+                              /> */}
                             </div>
                           )}
                           {can(PERMISSIONS.PROPERTY.DELETE) && (
                             <div className="pl-3">
-                              <Trash2
-                                className="text-lunar-bg cursor-pointer"
+                              <img
+                                onClick={() => handleActionMenu('view', item)}
+                                src={assets.images.deleted}
+                                className="text-primary-bg cursor-pointer h-6 w-6"
+                              />
+                              {/* <Trash2
+                                className="text-primary-bg cursor-pointer"
                                 size={20}
                                 onClick={() => handleActionMenu('delete', item)}
-                              />
+                              /> */}
                             </div>
                           )}
                         </div>

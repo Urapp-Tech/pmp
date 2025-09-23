@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { InvoiceFields } from '@/interfaces/invoice.interface';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
 import service from '@/services/adminapp/invoice';
@@ -70,128 +70,150 @@ const InvoiceUpdateDialog = ({
     };
     fetchTenants();
   }, []);
-// useEffect(() => {
-//         const selectedTenant:any = contracts.find((t:any) => t.id === form.watch('tenant_id'));
-//         if (selectedTenant) {
-//           setValue('contract_number', selectedTenant.contractNumber);
-//         }
-//   },[form.watch('tenant_id')])
+  // useEffect(() => {
+  //         const selectedTenant:any = contracts.find((t:any) => t.id === form.watch('tenant_id'));
+  //         if (selectedTenant) {
+  //           setValue('contract_number', selectedTenant.contractNumber);
+  //         }
+  //   },[form.watch('tenant_id')])
   const onSubmit = (data: InvoiceFields) => {
     callback({ ...data, id: formData.id });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[600px] max-h-[70vh] overflow-y-auto  cs-dialog-box" onOpenAutoFocus={(e) => e.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle>Update Invoice</DialogTitle>
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl !bg-transparent [&>button]:hidden"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="p-0 w-full">
+          {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
+          <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
+              Update Invoice
+            </DialogTitle>
+            {/* 3) Custom rounded close button */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </DialogHeader>
+        <div className="bg-white rounded-bl-3xl px-6 pb-6 pt-5">
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="custom-form-section">
+                <div className="form-group w-full flex ">
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Contract No </FormLabel>
+                      <SingleSelectDropDown
+                        name="tenant_id"
+                        items={tenants}
+                        control={control}
+                        disabled={true}
+                        label="Contract No"
+                        placeholder="Select Contract No"
+                      />
+                    </div>
+                  </FormControl>
 
-        <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="custom-form-section">
-              <div className="form-group w-full flex ">
-                <FormControl className="m-1 w-full">
-                  <div>
-                    <FormLabel>Contract No  </FormLabel>
-                    <SingleSelectDropDown
-                      name="tenant_id"
-                      items={tenants}
-                      control={control}
-                      disabled={true}
-
-                      label='Contract No'
-
-                      placeholder="Select Contract No"
-                    />
-                  </div>
-                </FormControl>
-
-                <FormControl className="m-1 w-full">
-                  <div>
-                    <FormLabel>Total Amount</FormLabel>
-                    <Input {...register('total_amount', { required: 'Required' })} />
-                  </div>
-                </FormControl>
-              </div>
-
-              <div className="form-group w-full flex gap-3">
-                <FormControl className="m-1 w-full">
-                  <div>
-                    <FormLabel>Status</FormLabel>
-                    <SingleSelectDropDown
-                      control={control}
-                      name="status"
-                      label='Status'
-                      items={[
-                        { name: 'Paid', id: 'paid' },
-                        { name: 'Unpaid', id: 'unpaid' },
-                        // { name: 'Partial', id: 'partial' },
-                        { name: 'Overdue', id: 'overdue' },
-                      ]}
-                      placeholder="Select Status"
-                      rules={{ required: 'Required' }}
-                    />
-                  </div>
-                </FormControl>
-                <FormControl className="m-1 w-full">
-                  <div>
-                    <FormLabel>Payment Method</FormLabel>
-                    <SingleSelectDropDown
-                      control={control}
-                      label='Payment Method'
-                      name="payment_method"
-                      items={[
-                        { name: 'Cash', id: 'cash' },
-                        { name: 'Bank', id: 'bank' },
-                        { name: 'Online', id: 'online' },
-                      ]}
-                      placeholder="Select Method"
-                      rules={{ required: 'Required' }}
-                    />
-                  </div>
-                </FormControl>
-              </div>
-
-              <div className="form-group w-full flex gap-3">
-                <FormControl className="m-1 w-full">
-                  <div>
-                    <FormLabel>Quantity</FormLabel>
-                    <Input {...register('qty')} />
-                  </div>
-                </FormControl>
-
-                <FormControl className="m-1 w-full">
-                  <div>
-                    <FormLabel>Due Date</FormLabel>
-                    <Input type="date" {...register('due_date')} />
-                  </div>
-                </FormControl>
-
-                <FormControl className="m-1 w-full">
-                  <div>
-                    <FormLabel>Invoice Date</FormLabel>
-                    <Input type="date" {...register('invoice_date')} />
-                  </div>
-                </FormControl>
-              </div>
-
-              <FormControl className="m-1 w-full">
-                <div>
-                  <FormLabel>Description</FormLabel>
-                  <Input {...register('description')} />
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Total Amount</FormLabel>
+                      <Input
+                        {...register('total_amount', { required: 'Required' })}
+                      />
+                    </div>
+                  </FormControl>
                 </div>
-              </FormControl>
 
-              <DialogFooter className="mt-3">
-                <Button disabled={isLoader} type="submit">
-                  {isLoader && <Loader2 className="animate-spin mr-2" />}
-                  Update Invoice
-                </Button>
-              </DialogFooter>
-            </div>
-          </form>
-        </Form>
+                <div className="form-group w-full flex gap-3">
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Status</FormLabel>
+                      <SingleSelectDropDown
+                        control={control}
+                        name="status"
+                        label="Status"
+                        items={[
+                          { name: 'Paid', id: 'paid' },
+                          { name: 'Unpaid', id: 'unpaid' },
+                          // { name: 'Partial', id: 'partial' },
+                          { name: 'Overdue', id: 'overdue' },
+                        ]}
+                        placeholder="Select Status"
+                        rules={{ required: 'Required' }}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Payment Method</FormLabel>
+                      <SingleSelectDropDown
+                        control={control}
+                        label="Payment Method"
+                        name="payment_method"
+                        items={[
+                          { name: 'Cash', id: 'cash' },
+                          { name: 'Bank', id: 'bank' },
+                          { name: 'Online', id: 'online' },
+                        ]}
+                        placeholder="Select Method"
+                        rules={{ required: 'Required' }}
+                      />
+                    </div>
+                  </FormControl>
+                </div>
+
+                <div className="form-group w-full flex gap-3">
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Quantity</FormLabel>
+                      <Input {...register('qty')} />
+                    </div>
+                  </FormControl>
+
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Due Date</FormLabel>
+                      <Input type="date" {...register('due_date')} />
+                    </div>
+                  </FormControl>
+
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Invoice Date</FormLabel>
+                      <Input type="date" {...register('invoice_date')} />
+                    </div>
+                  </FormControl>
+                </div>
+
+                <FormControl className="m-1 w-full">
+                  <div>
+                    <FormLabel>Description</FormLabel>
+                    <Input {...register('description')} />
+                  </div>
+                </FormControl>
+
+                <DialogFooter className="mt-3">
+                  <Button
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
+                    disabled={isLoader}
+                    type="submit"
+                  >
+                    {isLoader && <Loader2 className="animate-spin mr-2" />}
+                    Update Invoice
+                  </Button>
+                </DialogFooter>
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

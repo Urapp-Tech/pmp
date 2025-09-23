@@ -21,6 +21,7 @@ import {
   Trash2,
   Plus,
   Eye,
+  Download,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import DeleteDialog from '@/components/DeletePopup';
@@ -48,6 +49,9 @@ import { PERMISSIONS } from '@/utils/constants';
 import InvoiceItemCreateDialog from './InvoiceItemCreateDialog';
 import { getItem } from '@/utils/storage';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import assets from '@/assets/images';
 
 const Invoices = () => {
   const { toast } = useToast();
@@ -188,7 +192,7 @@ const Invoices = () => {
   };
 
   const handleAction = (
-    type: 'edit' | 'delete' | 'view',
+    type: 'edit' | 'delete' | 'view' | 'download',
     inv: InvoiceFields
   ) => {
     if (type === 'edit') {
@@ -198,6 +202,58 @@ const Invoices = () => {
       setDeleteOpen(true);
     } else if (type === 'view') {
       navigate(`/admin-panel/invoices/detail/${inv.id}`);
+    }
+    if (type === 'download') {
+      const doc: any = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.text('Invoice Detail', 14, 16);
+
+      doc.setFontSize(12);
+      // Tenant Details - LEFT side
+      const leftX = 14;
+      let tenantY = 28;
+      doc.setFontSize(12);
+      doc.text('Tenant Details:', leftX, tenantY);
+      tenantY += 7;
+      doc.setFontSize(11);
+      if (inv.tenant?.user) {
+        doc.text(
+          `Name: ${inv.tenant.user.fname} ${inv.tenant.user.lname}`,
+          leftX,
+          tenantY
+        );
+        tenantY += 6;
+        doc.text(`Email: ${inv.tenant.user.email}`, leftX, tenantY);
+        // tenantY += 6;
+        // doc.text(`Phone: ${inv.tenant.user.phone}`, leftX, tenantY);
+        tenantY += 6;
+        doc.text(
+          `Contract No: ${inv.tenant.contract_number || 'N/A'}`,
+          leftX,
+          tenantY
+        );
+      } else {
+        doc.text('No tenant info.', leftX, tenantY);
+      }
+
+      // Invoice Info - RIGHT side
+      const rightX = 110;
+      let y = 20;
+      doc.setFontSize(12);
+      y += 7;
+      doc.setFontSize(11);
+      doc.text(`Invoice No: ${inv.invoice_no}`, rightX, y);
+      y += 6;
+      doc.text(`Invoice Date: ${inv.invoice_date}`, rightX, y);
+      y += 6;
+      doc.text(`Due Date: ${inv.due_date}`, rightX, y);
+      y += 6;
+      doc.text(`Status: ${inv.status}`, rightX, y);
+      y += 6;
+      doc.text(`Total Amount: ${inv.total_amount.toString()}`, rightX, y);
+
+      doc.save(`invoice_${inv.invoice_no}.pdf`);
     }
   };
 
@@ -267,10 +323,40 @@ const Invoices = () => {
 
   const columns = React.useMemo<ColumnDef<InvoiceFields>[]>(
     () => [
-      { accessorKey: 'invoice_no', header: 'Invoice' },
+      {
+        accessorKey: 'invoice_no',
+        header: 'INVOICE',
+        cell: ({ row }) => {
+          const invoiceItems = row.original.invoice_items || [];
+          const hasPending =
+            row.original.status !== 'paid' &&
+            (invoiceItems.length === 0 ||
+              invoiceItems.every((item) => item.status !== 'pending'));
+
+          return (
+            <div className="flex gap-4 w-[115px] items-center justify-center">
+              {hasPending ? (
+                <>
+                  <div className="inline-block h-2 w-2 rounded-full bg-scrollbar" />
+                  <span className="text-textinv">
+                    {row.original.invoice_no}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="inline-block h-2 w-2 rounded-full bg-offground" />
+                  <span className="text-textinv">
+                    {row.original.invoice_no}
+                  </span>
+                </>
+              )}
+            </div>
+          );
+        },
+      },
       {
         accessorKey: 'contract_no',
-        header: 'Tenant',
+        header: 'TENANT',
         cell: ({ row }) => {
           const tenant = row.original.tenant;
           const user = tenant?.user;
@@ -293,19 +379,19 @@ const Invoices = () => {
       },
       {
         accessorKey: 'property',
-        header: 'Property',
+        header: 'PROP.',
         cell: ({ row }) =>
           row.original.tenant?.property_unit?.property?.name || '--',
       },
       {
         accessorKey: 'unit_no',
-        header: 'Unit No',
+        header: 'UNIT NO.',
         cell: ({ row }) => row.original.tenant?.property_unit?.unit_no || '--',
       },
       // { accessorKey: 'invoice_no', header: 'Contract no' },
-      { accessorKey: 'total_amount', header: 'Total' },
-      { accessorKey: 'due_date', header: 'Due' },
-      { accessorKey: 'status', header: 'Status' },
+      { accessorKey: 'total_amount', header: 'TOTAL' },
+      { accessorKey: 'due_date', header: 'DUE' },
+      { accessorKey: 'status', header: 'STATUS' },
       // {
       //   accessorKey: 'invoice_date',
       //   header: 'Invoice Date',
@@ -316,7 +402,7 @@ const Invoices = () => {
       // },
       {
         id: 'Submitted',
-        header: 'Payment',
+        header: 'PAYMENT',
         cell: ({ row }) => {
           const invoiceItems = row.original.invoice_items || [];
           // const id = row.original.id;
@@ -357,7 +443,7 @@ const Invoices = () => {
                 'payment pending'
               ) : hasPending ? (
                 <Button
-                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                  className="ml-auto w-[100px] hover:bg-scrollbar h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                   variant={'outline'}
                   onClick={() => handleCreatePayment(row.original)}
                 >
@@ -371,30 +457,45 @@ const Invoices = () => {
         },
       },
       {
-        id: 'actions',
-        header: 'Actions',
+        id: '1actions',
+        header: 'ACTIONS',
 
-        enableHiding: true,
+        enableHiding: false,
         cell: ({ row }) => {
           const inv = row.original;
           return (
-            <div className="flex gap-2">
-              {can(PERMISSIONS.INVOICE.UPDATE) && inv.status !== 'paid' && (
-                <Pencil
-                  className="cursor-pointer text-blue-500"
-                  onClick={() => handleAction('edit', inv)}
-                />
-              )}
-              {can(PERMISSIONS.INVOICE.DELETE) && inv.status !== 'paid' && (
-                <Trash2
-                  className="cursor-pointer text-red-500"
-                  onClick={() => handleAction('delete', inv)}
-                />
-              )}
-              <Eye
-                className="cursor-pointer text-gray-600"
+            <div className="flex gap-2 items-center justify-center">
+              <img
                 onClick={() => handleAction('view', inv)}
+                src={assets.images.coloredEye}
+                className="text-primary-bg cursor-pointer h-6 w-6"
               />
+              {/* <Eye
+                className="cursor-pointer text-primary-bg"
+                onClick={() => handleAction('view', inv)}
+              /> */}
+            </div>
+          );
+        },
+      },
+      {
+        id: '2actions',
+        header: 'DOWNLOAD',
+
+        enableHiding: false,
+        cell: ({ row }) => {
+          const inv = row.original;
+          return (
+            <div className="flex gap-2 items-center justify-center">
+              <img
+                onClick={() => handleAction('download', inv)}
+                src={assets.images.download}
+                className="text-primary-bg cursor-pointer h-6 w-6"
+              />
+              {/* <Download
+                className="cursor-pointer text-primary-bg pr-1"
+                onClick={() => handleAction('download', inv)}
+              /> */}
             </div>
           );
         },
@@ -418,12 +519,21 @@ const Invoices = () => {
   });
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow mt-5">
-      <TopBar title="Invoices" />
+    <div className="p-4 mt-5">
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
         <div className="flex items-center py-4 justify-between">
-          <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-            Invoices
+          <h2 className="text-primary-bg font-semibold text-[33px] leading-normal capitalize">
+            INVOICES
+            <div className="flex gap-2">
+              <span className="block text-sm text-scrollbar text-center">
+                <div className="inline-block h-2 w-2 rounded-full bg-scrollbar mx-1" />
+                PAID
+              </span>
+              <span className="block text-sm text-offground text-center">
+                <div className="inline-block h-2 w-2 rounded-full bg-offground mx-1" />
+                OVERDUE
+              </span>
+            </div>
           </h2>
           <div className="flex items-center gap-3">
             <Input
@@ -443,7 +553,7 @@ const Invoices = () => {
             {can(PERMISSIONS.INVOICE.CREATE) && (
               <Button
                 onClick={() => setCreateOpen(true)}
-                className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                 variant={'outline'}
               >
                 + Add Invoice
@@ -459,9 +569,12 @@ const Invoices = () => {
             </div>
           ) : (
             <Table>
-              <TableHeader>
+              <TableHeader className="[&_tr]:border-b-2 [&_tr]:border-b-primary-bg">
                 {table.getHeaderGroups().map((hg) => (
-                  <TableRow key={hg.id}>
+                  <TableRow
+                    className="!border-b-2 !border-b-[#242460]"
+                    key={hg.id}
+                  >
                     {hg.headers.map((h) => (
                       <TableHead key={h.id}>
                         {h.isPlaceholder ? null : (
@@ -480,7 +593,7 @@ const Invoices = () => {
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody>
+              <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg">
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>

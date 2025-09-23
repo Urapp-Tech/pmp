@@ -18,15 +18,18 @@ import { getItem } from '@/utils/storage';
 import { useSelector } from 'react-redux';
 import { PERMISSIONS } from '@/utils/constants';
 import { hasPermission } from '@/utils/hasPermission';
+import { useAppSelector } from '@/redux/redux-hooks';
 
 export function MainSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const collapsedSidebar = useAppSelector(
+    (state) => state.appState.collapsedSidebar
+  );
   const authState: any = useSelector((state: any) => state.authState);
   const appState: any = useSelector((state: any) => state.appState);
   const shop: any = getItem('SHOP_TENANT');
   const userRoles: any = getItem('USER');
-  const { logo, media } = appState;
   // console.log('authState', userRoles?.role);
 
   const rolePermissions = userRoles?.role?.permissions || [];
@@ -35,23 +38,23 @@ export function MainSidebar({
 
   const navItems = [
     {
-      title: 'Dashboard',
+      title: 'DASHBOARD',
       url: '/admin-panel/dashboard',
-      icon: assets.images.dashboardSidebarIcon,
+      icon: assets.images.homeIcon,
       permission: null,
       items: [],
     },
     {
-      title: 'Property Managers',
+      title: 'PROPERTY MANAGERS',
       url: '/admin-panel/property-managers',
-      icon: assets.images.usersSidebarIcon,
+      icon: assets.images.usersIcon,
       permission: PERMISSIONS.MANAGER.VIEW,
       items: [],
     },
     {
-      title: 'Tenant',
+      title: 'TENANT',
       url: '/admin-panel/tenant-users',
-      icon: assets.images.adminUsersSidebarIcon,
+      icon: assets.images.usersIcon,
       permission: PERMISSIONS.USER.VIEW,
       items: [
         {
@@ -72,9 +75,9 @@ export function MainSidebar({
       ],
     },
     {
-      title: 'Properties',
+      title: 'PROPERTIES',
       url: '/admin-panel/property',
-      icon: assets.images.rolePermissionsSidebarIcon,
+      icon: assets.images.propIcon,
       permission: PERMISSIONS.PROPERTY.VIEW,
       items: [
         {
@@ -98,7 +101,7 @@ export function MainSidebar({
     //   items: [],
     // },
     {
-      title: 'Plan Flexibility',
+      title: 'PLAN FLEXIBILITY',
       url: '/admin-panel/feedback',
       icon: assets.images.helpFeedbackSidebarIcon,
       permission: PERMISSIONS.PLAN_FLEXIBILITY.VIEW,
@@ -107,67 +110,47 @@ export function MainSidebar({
     {
       title:
         userRoles?.role?.name === 'User'
-          ? 'Maintenance Requests'
-          : 'Support Tickets',
+          ? 'MAINTENANCE REQUESTS'
+          : 'SUPPORT TICKETS',
       url: '/admin-panel/support-tickets',
-      icon: assets.images.notificationSidebarIcon,
+      icon: assets.images.suppTicketIcon,
       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
       items: [],
     },
     {
-      title: 'Maintenance Requests',
+      title: 'MAINTENANCE REQUESTS',
       url: '/admin-panel/reported-tickets',
-      icon: assets.images.helpFeedbackSidebarIcon,
+      icon: assets.images.MaintenanceIcon,
       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
       role: ['Landlord', 'Manager'],
       items: [],
     },
-    // {
-    //   title: 'Maintenance Requests',
-    //   url: '/admin-panel/support-maintenance',
-    //   icon: assets.images.notificationSidebarIcon,
-    //   permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
-    //   items: [
-    //     {
-    //       title: 'Created List',
-    //       url: '/admin-panel/support-maintenance/list',
-    //       // role: 'Landlord',
-    //       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
-    //     },
-    //     {
-    //       title: 'Reported Tickets',
-    //       url: '/admin-panel/support-maintenance/tenant-tickets',
-    //       permission: PERMISSIONS.MAINTENANCE_REQUEST.VIEW,
-    //       role: ['Landlord', 'Manager'],
-    //     },
-    //   ],
-    // },
     {
-      title: 'Bank and Settlement Tracking',
+      title: 'BANK AND SETTLEMENTS TRACKING',
       url: '/admin-panel/feedback',
       icon: assets.images.helpFeedbackSidebarIcon,
       permission: PERMISSIONS.BANK_SETTLEMENT.VIEW,
       items: [],
     },
     {
-      title: 'Receipts',
+      title: 'RECEIPTS',
       url: '/admin-panel/receipts',
-      icon: assets.images.pagesSidebarIcon,
+      icon: assets.images.receiptIcon,
       permission: PERMISSIONS.RECEIPT.VIEW,
       items: [],
     },
     {
-      title: 'Invoices',
+      title: 'INVOICES',
       url: '/admin-panel/invoices',
-      icon: assets.images.rolePermissionsSidebarIcon,
+      icon: assets.images.invoiceIcon,
       permission: PERMISSIONS.INVOICE.VIEW,
       items: [],
       role: ['Landlord', 'Manager'],
     },
     {
-      title: 'Receipts',
+      title: 'RECEIPTS',
       url: '/admin-panel/reports/invoices',
-      icon: assets.images.pagesSidebarIcon,
+      icon: assets.images.receiptIcon,
       permission: PERMISSIONS.FINANCIAL_REPORT.VIEW,
       items: [],
     },
@@ -179,9 +162,9 @@ export function MainSidebar({
     //   items: [],
     // },
     {
-      title: 'My Rental Invoices',
+      title: 'MY RENTAL INVOICES',
       url: '/admin-panel/invoices',
-      icon: assets.images.rolePermissionsSidebarIcon,
+      icon: assets.images.invoiceIcon,
       permission: PERMISSIONS.TENANT_RENTAL.VIEW,
       items: [],
       role: ['User'],
@@ -310,27 +293,34 @@ export function MainSidebar({
   };
 
   return (
-    <Sidebar className="bg-transparent" collapsible="icon" {...props}>
-      <SidebarHeader className=" flex items-center justify-center mt-0 mb-2  bg-[#1b46e0]">
-        <div className="text-white max-w-[110px] ml-5 mr-auto mt-12 py-3">
-          PMP - LOGO
-          {/* <img
-            src={assets.images.whiteLogo}
-            className="max-w-full w-full h-full object-contain"
-          /> */}
-        </div>
-        <div className="text-white">{userRoles?.role?.name} Panel</div>
+    <Sidebar
+      contentEditable="false"
+      className="bg-sidebar-background text-white"
+      collapsible="icon"
+      {...props}
+    >
+      <SidebarHeader className="flex items-center justify-center mt-0 mb-2">
+        {collapsedSidebar && (
+          <div className="text-white max-w-[110px] ml-5 m-auto mt-8">
+            <img
+              src={assets.images.companyIcon}
+              className="max-w-full w-full h-full object-contain"
+            />
+          </div>
+        )}
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent
+        className={`${collapsedSidebar ? 'mt-5 border-t' : 'mt-[72px] border-t'}`}
+      >
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter className="my-3">
+      {/* <SidebarFooter className="my-3">
         <FooterNavUser
-          media={shop ? shop?.media : media ? media : {}}
+          // media={shop ? shop?.media : media ? media : {}}
           user={data.user}
         />
-      </SidebarFooter>
-      <SidebarRail />
+      </SidebarFooter> */}
+      {/* <SidebarRail /> */}
     </Sidebar>
   );
 }

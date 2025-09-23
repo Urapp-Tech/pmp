@@ -93,7 +93,7 @@ function DragDropFile({
         onChange={handleChange}
       />
       <div
-        className={`p-4 border-dashed border-0 flex items-center justify-center rounded-[20px] cursor-pointer bg-earth-bg w-[180px] h-[150px] ${
+        className={`border-dashed border-0 flex items-center justify-center cursor-pointer w-[290px] h-[200px] ${
           dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
         }`}
         onClick={onButtonClick}
@@ -104,12 +104,19 @@ function DragDropFile({
       >
         <div className="flex flex-col items-center justify-center text-center">
           {/* <FileImage className="" size={60} /> */}
-          <div className="w-[44px] h-[44px]">
+          <div className="w-full h-[35px]">
             <img
               src={assets.images.skelImg}
               alt="icon"
               className="w-full h-full object-contain"
             />
+            <span className="text-scrollbar font-semiBold text-sm">
+              Click to upload
+            </span>
+            <span className="font-semiBold"> or drag and drop</span>
+            <p className="text-xs mt-[2px]">
+              Images should be in JPG, JPEG, or PNG format 
+            </p>
           </div>
           {/* <Button className="ml-2 hover:underline" variant="link" type="button">
             Drag & drop files

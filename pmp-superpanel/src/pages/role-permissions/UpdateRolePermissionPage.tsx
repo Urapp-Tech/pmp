@@ -188,7 +188,7 @@ const UpdateRolePermissionPage = () => {
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="">
               <div className="form-group w-full gap-3">
-                <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
+                <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
                   Roles & Permissions
                 </h2>
                 <h5 className="text-lunar-bg font-semibold text-[14px] leading-normal capitalize mt-8 mb-4">

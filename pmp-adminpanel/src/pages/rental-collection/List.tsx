@@ -395,7 +395,7 @@ const RentalCollection = () => {
   // };
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
+    <div className=" p-2 mt-5">
       <TopBar title="Rental Collection" />
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
@@ -415,7 +415,7 @@ const RentalCollection = () => {
               <DropdownMenu>
                 {/* <Button
                   onClick={() => setIsOpen(true)}
-                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                  className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                   variant={'outline'}
                 >
                   + Add New
@@ -467,7 +467,7 @@ const RentalCollection = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow

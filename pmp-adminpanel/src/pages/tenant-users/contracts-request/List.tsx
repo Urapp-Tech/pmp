@@ -125,7 +125,7 @@ const ContractRequest = () => {
   const columns: ColumnDef<Users>[] = [
     {
       accessorKey: 'userDetail.fname',
-      header: 'Name',
+      header: 'NAME',
       cell: ({ row }) => {
         const user = row.original.userDetail;
         return (
@@ -146,7 +146,7 @@ const ContractRequest = () => {
     },
     {
       accessorKey: 'property',
-      header: 'Property Name',
+      header: 'PROPERTY NAME',
       cell: ({ row }) => {
         const unit = row.original.unitDetail;
         return <div className="capitalize">{unit?.property?.name}</div>;
@@ -154,7 +154,7 @@ const ContractRequest = () => {
     },
     {
       accessorKey: 'unit_no',
-      header: 'Unit no',
+      header: 'UNIT NO.',
       cell: ({ row }) => {
         const unit = row.original.unitDetail;
 
@@ -163,14 +163,14 @@ const ContractRequest = () => {
     },
     {
       accessorKey: 'contractNumber',
-      header: 'Contract Number',
+      header: 'CONTRACT NUMBER',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('contractNumber')}</div>
       ),
     },
     {
       accessorKey: 'contractStart',
-      header: 'Contract Start',
+      header: 'CONTRACT START',
       cell: ({ row }) => (
         <div className="capitalize">
           {dayjs(row.getValue('contractStart')).format('YYYY-MM-DD')}
@@ -179,7 +179,7 @@ const ContractRequest = () => {
     },
     {
       accessorKey: 'contractEnd',
-      header: 'Contract End',
+      header: 'CONTRACT END',
       cell: ({ row }) => (
         <div className="capitalize">
           {dayjs(row.getValue('contractEnd')).format('YYYY-MM-DD')}
@@ -188,7 +188,7 @@ const ContractRequest = () => {
     },
     {
       accessorKey: 'tenantType',
-      header: 'Tenant Type',
+      header: 'TENANT TYPE',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('tenantType')}</div>
       ),
@@ -247,7 +247,7 @@ const ContractRequest = () => {
             {/* {can(PERMISSIONS.USER.UPDATE) && (
               <div className="pr-3">
                 <Pencil
-                  className="text-lunar-bg cursor-pointer"
+                  className="text-primary-bg cursor-pointer"
                   onClick={() => handleActionMenu('edit', id, {})}
                   size={20}
                 />
@@ -256,7 +256,7 @@ const ContractRequest = () => {
             {can(PERMISSIONS.USER.DELETE) && (
               <div className="pl-3">
                 <CircleCheck
-                  className="text-lunar-bg cursor-pointer"
+                  className="text-primary-bg cursor-pointer"
                   size={20}
                   onClick={() =>
                     handleActionMenu('accept', id, { propertyUnitId, userId })
@@ -267,7 +267,7 @@ const ContractRequest = () => {
             {can(PERMISSIONS.USER.DELETE) && (
               <div className="pl-3">
                 <CircleX
-                  className="text-lunar-bg cursor-pointer"
+                  className="text-primary-bg cursor-pointer"
                   size={20}
                   onClick={() =>
                     handleActionMenu('reject', id, { propertyUnitId, userId })
@@ -527,14 +527,13 @@ const ContractRequest = () => {
   };
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Tenant Users" />
+    <div className="p-2 mt-5">
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Pending Contracts Request
+            <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
+              PENDING CONTRACTS REQUESTS
             </h2>
             <div className="flex gap-3 items-center">
               <Input
@@ -548,7 +547,7 @@ const ContractRequest = () => {
                 {/* {can(PERMISSIONS.USER.CREATE) && (
                   <Button
                     onClick={() => setIsOpen(true)}
-                    className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                     variant={'outline'}
                   >
                     + Add New
@@ -601,7 +600,7 @@ const ContractRequest = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow

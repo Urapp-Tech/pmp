@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useForm, Controller } from 'react-hook-form';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
 
 type StatusChangeForm = {
@@ -73,45 +73,62 @@ const StatusChangeDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="sm:max-w-[400px] sm:max-h-[300px] cs-dialog-box"
+        className="sm:max-w-[500px] !bg-transparent [&>button]:hidden"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle>Change Status</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <FormLabel
-              htmlFor="status"
-              className="text-sm font-medium my-2 block"
-            >
+        <DialogHeader className="p-0 w-full rounded-t-3xl">
+          {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
+          <div className="h-16 rounded-t-3xl relative flex items-center justify-center">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
               Change Status
-            </FormLabel>
-            <div>
-              <SingleSelectDropDown
-                control={control}
-                name="status"
-                label="Select Status"
-                items={statusOptions}
-                placeholder="Choose an option"
-                rules={{ required: 'This field is required' }}
-              />
-            </div>
+            </DialogTitle>
 
-            <DialogFooter>
-              <Button
-                disabled={isLoader}
-                type="submit"
-                className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+            {/* 3) Custom rounded close button */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </DialogHeader>
+        <div className="bg-white rounded-b-3xl px-6 pb-6 pt-5">
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <FormLabel
+                htmlFor="status"
+                className="text-sm font-medium my-2 block"
               >
-                {isLoader && (
-                  <Loader2 className="animate-spin mr-1" size={16} />
-                )}
-                Update
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                Change Status
+              </FormLabel>
+              <div>
+                <SingleSelectDropDown
+                  control={control}
+                  name="status"
+                  label="Select Status"
+                  items={statusOptions}
+                  placeholder="Choose an option"
+                  rules={{ required: 'This field is required' }}
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  disabled={isLoader}
+                  type="submit"
+                  className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
+                >
+                  {isLoader && (
+                    <Loader2 className="animate-spin mr-1" size={16} />
+                  )}
+                  Update
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

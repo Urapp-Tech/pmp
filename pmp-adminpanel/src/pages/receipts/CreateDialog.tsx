@@ -106,7 +106,9 @@ const InvoiceItemCreateDialog = ({
 
               <FormControl className="w-full">
                 <div>
-                  <FormLabel className="text-sm font-medium">Currency</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    Currency
+                  </FormLabel>
                   <Input
                     placeholder="$"
                     {...register('currency')}
@@ -117,7 +119,9 @@ const InvoiceItemCreateDialog = ({
 
               <FormControl className="w-full">
                 <div>
-                  <FormLabel className="text-sm font-medium">Payment Method</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    Payment Method
+                  </FormLabel>
                   <Input
                     placeholder="Cash / Bank"
                     {...register('payment_method', {
@@ -133,7 +137,9 @@ const InvoiceItemCreateDialog = ({
 
               <FormControl className="w-full">
                 <div>
-                  <FormLabel className="text-sm font-medium">Payment Date</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    Payment Date
+                  </FormLabel>
                   <Input
                     type="date"
                     {...register('payment_date', {
@@ -150,7 +156,9 @@ const InvoiceItemCreateDialog = ({
 
             <FormControl className="w-full">
               <div>
-                <FormLabel className="text-sm font-medium">Description</FormLabel>
+                <FormLabel className="text-sm font-medium">
+                  Description
+                </FormLabel>
                 <Textarea
                   placeholder="Description of payment..."
                   {...register('description')}
@@ -172,7 +180,9 @@ const InvoiceItemCreateDialog = ({
 
             <FormControl className="w-full">
               <div>
-                <FormLabel className="text-sm font-medium">Attachment (optional)</FormLabel>
+                <FormLabel className="text-sm font-medium">
+                  Attachment (optional)
+                </FormLabel>
                 <Input
                   type="file"
                   accept="image/*,application/pdf"

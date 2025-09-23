@@ -6,7 +6,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 
 type Props = {
   title: string;
@@ -29,13 +29,27 @@ const DeleteDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Delete {title}</DialogTitle>
+      <DialogContent className="sm:max-w-[600px] !bg-transparent [&>button]:hidden">
+        <DialogHeader className="p-0 w-full rounded-t-3xl">
+          {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
+          <div className="h-16 rounded-t-3xl relative flex items-center justify-center">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide capitalize">
+              Delete {title}
+            </DialogTitle>
+            {/* 3) Custom rounded close button */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </DialogHeader>
-        <div className="">
+        <div className="bg-white rounded-b-3xl px-6 pb-6 pt-5">
           <div>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-primary-bg font-medium">
               Are you sure you want to delete this {title}?
             </p>
           </div>
@@ -52,7 +66,7 @@ const DeleteDialog = ({
             <Button
               disabled={isLoader}
               onClick={() => callback({ id: formData.id, text: 'yes' })}
-              className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+              className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
             >
               {isLoader && <Loader2 className="animate-spin" />} Delete
             </Button>

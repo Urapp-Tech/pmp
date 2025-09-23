@@ -72,7 +72,7 @@ export function NavMain({
                   to={item.url}
                   onClick={() => handleSubItemClick(item.title)}
                   className={({ isActive }) =>
-                    `${isActive ? 'text-quinary-bg text-[12px] mx-2 font-semibold' : 'text-[12px]'}`
+                    `${isActive ? 'text-white text-[12px] mx-2 font-semibold' : 'text-[12px] mx-2 text-white'}`
                   }
                 >
                   <span className="text-mars-bg font-medium ">
@@ -88,20 +88,36 @@ export function NavMain({
                 className="group/collapsible"
               >
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title}>
-                    {item.icon && <img src={item.icon} />}
-                    {/* {item.icon && <item.icon />} */}
-                    {/* <span>{item.title}</span> */}
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.title}
+                    className="p-0 bg-transparent"
+                  >
                     <NavLink
                       key={item.url}
                       to={item.url}
-                      // className={({ isActive }) =>
-                      //   `${isActive ? 'text-blue-900 font-bold' : ''}`
-                      // }
+                      className={[
+                        'group flex items-center gap-3 rounded-xl px-3 py-3 mx-2 my-2',
+                        'transition-all duration-150',
+                        'text-white/80 hover:text-white',
+                        'hover:bg-white/10 hover:ring-1 hover:ring-white/10 hover:translate-x-[2px]',
+                        openCollapsibles.has(item.title)
+                          ? 'bg-white/10 ring-1 ring-white/15 text-white'
+                          : '',
+                      ].join(' ')}
                     >
-                      <span className="text-mars-bg">{item.title}</span>
+                      {item.icon && (
+                        <img
+                          src={item.icon}
+                          className="h-6 w-6 opacity-90 group-hover:opacity-100"
+                        />
+                      )}
+                      <span className="text-sm font-medium tracking-wide">
+                        {item.title}
+                      </span>
+
+                      <ChevronRight className="ml-auto h-4 w-4 text-white/80 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </NavLink>
-                    <ChevronRight className="ml-auto text-white transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 {/* Render child items if available */}
@@ -110,19 +126,28 @@ export function NavMain({
                     <SidebarMenuSub>
                       {item.items.map((subItem: any) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
+                          <SidebarMenuSubButton
+                            asChild
+                            className="p-0 bg-transparent"
+                          >
                             <NavLink
                               key={subItem.url}
                               to={subItem.url}
                               onClick={() => handleSubItemClick(subItem.title)}
-                              className={`${openSubItemUrl === subItem.title ? 'text-blue-900 font-bold' : ''}`}
+                              className={({ isActive }) =>
+                                [
+                                  'group flex items-center gap-2 rounded-lg px-3 py-2 mx-4 my-1',
+                                  'transition-all duration-150',
+                                  'text-white/75 hover:text-white',
+                                  'hover:bg-white/10 hover:ring-1 hover:ring-white/10 hover:translate-x-[2px]',
+                                  isActive
+                                    ? 'bg-white/10 ring-1 ring-white/15 text-white'
+                                    : '',
+                                ].join(' ')
+                              }
                             >
-                              <span className="text-mars-bg">
-                                {subItem.title}
-                              </span>
+                              <span className="text-sm">{subItem.title}</span>
                             </NavLink>
-                            {/* <a href={subItem.url}>
-                            </a> */}
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}

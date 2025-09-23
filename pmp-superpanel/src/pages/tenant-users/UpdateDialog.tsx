@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 // import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Fields } from '@/interfaces/back-office-user.interface';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import DragDropFile from '@/components/DragDropImgFile';
@@ -176,129 +176,148 @@ const OfficeUserUpdateDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="sm:max-w-[600px] cs-dialog-box"
+        className="sm:max-w-[600px] !bg-transparent [&>button]:hidden"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle>Update User</DialogTitle>
+        <DialogHeader className="p-0 w-full rounded-t-3xl">
+          {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
+          <div className="h-16 relative flex items-center justify-center">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
+              Update User
+            </DialogTitle>
+
+            {/* 3) Custom rounded close button */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="custom-form-section">
-              <div className="form-group w-full flex gap-3">
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel
-                      htmlFor="firstName"
-                      className="text-sm font-medium"
-                    >
-                      First Name
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="firstName"
-                      placeholder="john"
-                      type="text"
-                      {...register('firstName', {
-                        value: formData?.fname,
-                        required: 'Please enter your first name',
-                      })}
-                    />
-                    {errors.firstName && (
-                      <FormMessage>*{errors.firstName.message}</FormMessage>
-                    )}
-                  </div>
-                </FormControl>
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel
-                      htmlFor="lastName"
-                      className="text-sm font-medium"
-                    >
-                      Last Name
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="lastName"
-                      placeholder="doe"
-                      type="text"
-                      {...register('lastName', {
-                        value: formData?.lname,
-                      })}
-                    />
-                    {/* {errors.lastName && (
-                      <FormMessage>*{errors.lastName.message}</FormMessage>
-                    )} */}
-                  </div>
-                </FormControl>
-              </div>
-              <div className="form-group w-full flex gap-3">
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel htmlFor="email" className="text-sm font-medium">
-                      Email
-                    </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="email"
-                      placeholder="johndoe@gmail.com"
-                      type="text"
-                      {...register('email', {
-                        value: formData?.email,
-                        required: 'Please enter your email',
-                      })}
-                    />
-                    {errors.email && (
-                      <FormMessage>*{errors.email.message}</FormMessage>
-                    )}
-                  </div>
-                </FormControl>
-                {/* <div className="form-group w-full"> */}
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel
-                      htmlFor="password"
-                      className="text-sm font-medium"
-                    >
-                      Password
-                    </FormLabel>
-                    <div className="relative">
+        <div className="bg-white rounded-b-3xl px-6 pb-6 pt-5">
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="custom-form-section">
+                <div className="form-group w-full flex gap-3">
+                  <FormControl className="m-1 w-full">
+                    <div className="">
+                      <FormLabel
+                        htmlFor="firstName"
+                        className="text-sm font-medium"
+                      >
+                        First Name
+                      </FormLabel>
                       <Input
-                        id="password"
-                        placeholder="********"
-                        type={passwordVisible ? 'text' : 'password'}
-                        className="text-sm pr-10 mt-2"
-                        {...register('password', {
-                          pattern: {
-                            value:
-                              /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
-                            message:
-                              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
-                          },
+                        className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                        id="firstName"
+                        placeholder="john"
+                        type="text"
+                        {...register('firstName', {
+                          value: formData?.fname,
+                          required: 'Please enter your first name',
                         })}
                       />
-                      <Button
-                        variant="ghost"
-                        type="button"
-                        className="bg-transparent absolute inset-y-0 right-0 flex items-center pr-3 mt-[11px]"
-                        onClick={togglePasswordVisibility}
-                      >
-                        {passwordVisible ? (
-                          <EyeOff color="black" />
-                        ) : (
-                          <Eye color="black" />
-                        )}
-                      </Button>
-                      {errors.password && (
-                        <FormMessage>*{errors.password.message}</FormMessage>
+                      {errors.firstName && (
+                        <FormMessage>*{errors.firstName.message}</FormMessage>
                       )}
                     </div>
-                  </div>
-                </FormControl>
-                {/* </div> */}
-              </div>
-              <div className="form-group w-full flex items-center justify-center gap-3 m-1">
-                {/* <div className="w-full">
+                  </FormControl>
+                  <FormControl className="m-1 w-full">
+                    <div className="">
+                      <FormLabel
+                        htmlFor="lastName"
+                        className="text-sm font-medium"
+                      >
+                        Last Name
+                      </FormLabel>
+                      <Input
+                        className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                        id="lastName"
+                        placeholder="doe"
+                        type="text"
+                        {...register('lastName', {
+                          value: formData?.lname,
+                        })}
+                      />
+                      {/* {errors.lastName && (
+                      <FormMessage>*{errors.lastName.message}</FormMessage>
+                    )} */}
+                    </div>
+                  </FormControl>
+                </div>
+                <div className="form-group w-full flex gap-3">
+                  <FormControl className="m-1 w-full">
+                    <div className="">
+                      <FormLabel
+                        htmlFor="email"
+                        className="text-sm font-medium"
+                      >
+                        Email
+                      </FormLabel>
+                      <Input
+                        className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                        id="email"
+                        placeholder="johndoe@gmail.com"
+                        type="text"
+                        {...register('email', {
+                          value: formData?.email,
+                          required: 'Please enter your email',
+                        })}
+                      />
+                      {errors.email && (
+                        <FormMessage>*{errors.email.message}</FormMessage>
+                      )}
+                    </div>
+                  </FormControl>
+                  {/* <div className="form-group w-full"> */}
+                  <FormControl className="m-1 w-full">
+                    <div className="">
+                      <FormLabel
+                        htmlFor="password"
+                        className="text-sm font-medium"
+                      >
+                        Password
+                      </FormLabel>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          placeholder="********"
+                          type={passwordVisible ? 'text' : 'password'}
+                          className="text-sm pr-10 mt-2"
+                          {...register('password', {
+                            pattern: {
+                              value:
+                                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
+                              message:
+                                'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+                            },
+                          })}
+                        />
+                        <Button
+                          variant="ghost"
+                          type="button"
+                          className="bg-transparent absolute inset-y-0 right-0 flex items-center pr-3 mt-[11px]"
+                          onClick={togglePasswordVisibility}
+                        >
+                          {passwordVisible ? (
+                            <EyeOff color="black" />
+                          ) : (
+                            <Eye color="black" />
+                          )}
+                        </Button>
+                        {errors.password && (
+                          <FormMessage>*{errors.password.message}</FormMessage>
+                        )}
+                      </div>
+                    </div>
+                  </FormControl>
+                  {/* </div> */}
+                </div>
+                <div className="form-group w-full flex items-center justify-center gap-3 m-1">
+                  {/* <div className="w-full">
                   <FormLabel
                     htmlFor="phone"
                     className="text-sm font-medium my-2 block"
@@ -334,50 +353,53 @@ const OfficeUserUpdateDialog = ({
                     />
                   </div>
                 )} */}
-                <div className="w-full">
-                  <FormLabel
-                    htmlFor="gender"
-                    className="text-sm font-medium my-2 block"
-                  >
-                    Gender
-                  </FormLabel>
-                  <SingleSelectDropDown
-                    control={control}
-                    name="gender"
-                    label=""
-                    items={[
-                      { id: 'male', name: 'Male' },
-                      { id: 'female', name: 'Female' },
-                      { id: 'other', name: 'Other' },
-                    ]}
-                    placeholder="Choose an option"
-                    // rules={{ required: 'This field is required' }}
-                  />
-                </div>
-              </div>
-              <div>
-                <FormControl className="m-1 w-full">
-                  <div className="">
-                    <FormLabel htmlFor="phone" className="text-sm font-medium">
-                      Phone
+                  <div className="w-full">
+                    <FormLabel
+                      htmlFor="gender"
+                      className="text-sm font-medium my-2 block"
+                    >
+                      Gender
                     </FormLabel>
-                    <Input
-                      className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                      id="phone"
-                      placeholder="876543215"
-                      type="number"
-                      {...register('phone', {
-                        required: 'Please enter your phone',
-                        value: formData.phone,
-                      })}
+                    <SingleSelectDropDown
+                      control={control}
+                      name="gender"
+                      label=""
+                      items={[
+                        { id: 'male', name: 'Male' },
+                        { id: 'female', name: 'Female' },
+                        { id: 'other', name: 'Other' },
+                      ]}
+                      placeholder="Choose an option"
+                      // rules={{ required: 'This field is required' }}
                     />
-                    {errors.phone && (
-                      <FormMessage>*{errors.phone.message}</FormMessage>
-                    )}
                   </div>
-                </FormControl>
-              </div>
-              {/* <FormControl className="m-1 w-full">
+                </div>
+                <div>
+                  <FormControl className="m-1 w-full">
+                    <div className="">
+                      <FormLabel
+                        htmlFor="phone"
+                        className="text-sm font-medium"
+                      >
+                        Phone
+                      </FormLabel>
+                      <Input
+                        className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                        id="phone"
+                        placeholder="876543215"
+                        type="number"
+                        {...register('phone', {
+                          required: 'Please enter your phone',
+                          value: formData.phone,
+                        })}
+                      />
+                      {errors.phone && (
+                        <FormMessage>*{errors.phone.message}</FormMessage>
+                      )}
+                    </div>
+                  </FormControl>
+                </div>
+                {/* <FormControl className="m-1 w-full">
                 <div className="">
                   <FormLabel htmlFor="address" className="text-sm font-medium">
                     Address
@@ -394,7 +416,7 @@ const OfficeUserUpdateDialog = ({
                   )}
                 </div>
               </FormControl> */}
-              {/* <div>
+                {/* <div>
                 <div className="flex justify-between">
                   <FormLabel
                     htmlFor="address"
@@ -430,18 +452,19 @@ const OfficeUserUpdateDialog = ({
                   ) : null}
                 </div>
               </div> */}
-              <DialogFooter className="mt-6">
-                <Button
-                  disabled={isLoader}
-                  type="submit"
-                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
-                >
-                  {isLoader && <Loader2 className="animate-spin" />} Update
-                </Button>
-              </DialogFooter>
-            </div>
-          </form>
-        </Form>
+                <DialogFooter className="mt-6">
+                  <Button
+                    disabled={isLoader}
+                    type="submit"
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                  >
+                    {isLoader && <Loader2 className="animate-spin" />} Update
+                  </Button>
+                </DialogFooter>
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

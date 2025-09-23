@@ -151,7 +151,7 @@ const EmployeeCreationDialog = ({
                         id="password"
                         placeholder="********"
                         type={passwordVisible ? 'text' : 'password'}
-                        className="text-sm pr-10 mt-2 text-tertiary-bg"
+                        className="text-sm pr-10 mt-2 text-primary-bg"
                         {...register('password', {
                           required: 'Please enter your password.',
                         })}

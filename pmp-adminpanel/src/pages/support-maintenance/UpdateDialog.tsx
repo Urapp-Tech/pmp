@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Loader2, X, FileText } from 'lucide-react';
+import { Loader2, X, FileText, UploadIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
@@ -166,250 +166,264 @@ const SupportTicketUpdateDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[900px] cs-dialog-box">
-        <DialogHeader>
-          <DialogTitle>Update Support Ticket</DialogTitle>
-        </DialogHeader>
-        <div className="grid grid-cols-12 gap-3">
-          <div className="col-span-6">
-            <Form {...form}>
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="custom-form-section">
-                  {/* Subject */}
-                  <div className="form-group w-full flex gap-3">
-                    <FormControl className="m-1 w-full">
-                      <div>
-                        <FormLabel
-                          htmlFor="title"
-                          className="text-sm font-medium"
-                        >
-                          Title
-                        </FormLabel>
-                        <Input
-                          className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                          id="subject"
-                          placeholder="Rent listing issues"
-                          type="text"
-                          {...register('subject', {
-                            required: 'Please enter your title name',
-                          })}
-                        />
-                        {typeof errors.subject?.message === 'string' && (
-                          <FormMessage>*{errors.subject.message}</FormMessage>
-                        )}
-                      </div>
-                    </FormControl>
-                  </div>
-
-                  {/* Description */}
-                  <div className="form-group w-full flex">
-                    <FormControl className="m-1 w-full">
-                      <div>
-                        <FormLabel
-                          htmlFor="message"
-                          className="text-sm font-medium"
-                        >
-                          Description
-                        </FormLabel>
-                        <Textarea
-                          className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                          id="message"
-                          placeholder="Type your report here."
-                          {...register('message')}
-                        />
-                      </div>
-                    </FormControl>
-                  </div>
-
-                  {/* File Upload */}
-                  <div>
-                    <div className="flex justify-between">
-                      <FormLabel
-                        htmlFor="images"
-                        className="text-sm font-medium my-3"
-                      >
-                        Upload Docs / Images
-                        <span className="text-xs font-normal">
-                          {' '}
-                          ( Images should be in JPG, JPEG, or PNG format )
-                        </span>
-                      </FormLabel>
-                    </div>
-                    <div className="FormField">
-                      <div className="ImageBox">
-                        <Controller
-                          name="images"
-                          control={control}
-                          render={({ field: { onChange } }) => (
-                            <>
-                              <div className="w-full flex h-[50px] items-center">
-                                <input
-                                  accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
-                                  style={{ display: 'none' }}
-                                  id="raised-button-files"
-                                  type="file"
-                                  multiple
-                                  onChange={(event) =>
-                                    handleFileChange(onChange, event)
-                                  }
-                                  onClick={handleFileOnClick}
-                                />
-                                <span className="bg-lunar-bg w-full rounded-2xl">
-                                  <label
-                                    htmlFor="raised-button-files"
-                                    className="ImageLabel text-white flex h-[50px] justify-center items-center w-full "
-                                  >
-                                    <img
-                                      width={22}
-                                      src={assets.images.uploadIcon}
-                                      alt="upload-icon"
-                                    />
-                                    <span className="text-white px-1">
-                                      Upload
-                                    </span>
-                                  </label>
-                                </span>
-                              </div>
-                            </>
-                          )}
-                        />
-                        {errors.images && (
-                          <FormMessage>*{errors.images?.message}</FormMessage>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Footer */}
-                  <DialogFooter className="mt-3">
-                    <Button
-                      disabled={isLoader}
-                      type="submit"
-                      className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
-                    >
-                      {isLoader && <Loader2 className="animate-spin" />} Update
-                    </Button>
-                  </DialogFooter>
-                </div>
-              </form>
-            </Form>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl !bg-transparent [&>button]:hidden">
+        <DialogHeader className="p-0 w-full">
+          {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
+          <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
+              Update Support Ticket
+            </DialogTitle>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <div>
-            {existingFiles?.length > 0 && (
-              <div className="mt-6">
-                <Label
-                  htmlFor="existing-files"
-                  className="text-sm underline underline-offset-2 font-medium my-3"
-                >
-                  Existing Uploaded Files
-                </Label>
-                <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
-                  {existingFiles.map((file: string, index: number) => {
-                    const isImage = /\.(jpg|jpeg|png)$/i.test(file);
-                    // const isPdf = /\.pdf$/i.test(file);
-                    // const isDoc = /\.(doc|docx)$/i.test(file);
-                    // const isXls = /\.(xls|xlsx)$/i.test(file);
-                    const fileUrl = `${ASSET_BASE_URL}${file}`;
-                    const fileName = file.split('/').pop();
+        </DialogHeader>
+        <div className="bg-white rounded-bl-3xl px-6 pb-6 pt-5">
+          <div className="grid grid-cols-12 gap-3">
+            <div className="col-span-6">
+              <Form {...form}>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="custom-form-section">
+                    {/* Subject */}
+                    <div className="form-group w-full flex gap-3">
+                      <FormControl className="m-1 w-full">
+                        <div>
+                          <FormLabel
+                            htmlFor="title"
+                            className="text-sm font-medium"
+                          >
+                            Title
+                          </FormLabel>
+                          <Input
+                            className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                            id="subject"
+                            placeholder="Rent listing issues"
+                            type="text"
+                            {...register('subject', {
+                              required: 'Please enter your title name',
+                            })}
+                          />
+                          {typeof errors.subject?.message === 'string' && (
+                            <FormMessage>*{errors.subject.message}</FormMessage>
+                          )}
+                        </div>
+                      </FormControl>
+                    </div>
 
-                    return (
-                      <div
-                        key={index}
-                        className="ShowFileItem p-1 flex items-center relative"
-                      >
-                        <div className="p-4 border-dashed flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]">
-                          <div className="flex flex-col items-center justify-center text-center">
-                            <div className="w-[88px] h-[88px] flex items-center justify-center">
-                              {isImage ? (
-                                <img
-                                  src={fileUrl}
-                                  alt="preview"
-                                  className="w-full h-full object-contain"
-                                />
-                              ) : (
-                                <a
-                                  href={fileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  title={fileName}
-                                >
-                                  <FileText
-                                    className="text-lunar-bg cursor-pointer"
-                                    size={50}
+                    {/* Description */}
+                    <div className="form-group w-full flex">
+                      <FormControl className="m-1 w-full">
+                        <div>
+                          <FormLabel
+                            htmlFor="message"
+                            className="text-sm font-medium"
+                          >
+                            Description
+                          </FormLabel>
+                          <Textarea
+                            className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                            id="message"
+                            placeholder="Type your report here."
+                            {...register('message')}
+                          />
+                        </div>
+                      </FormControl>
+                    </div>
+
+                    {/* File Upload */}
+                    <div>
+                      <div className="flex justify-between">
+                        <FormLabel
+                          htmlFor="images"
+                          className="text-sm font-medium my-3"
+                        >
+                          Upload Docs / Images
+                          <span className="text-xs font-normal">
+                            {' '}
+                            ( Images should be in JPG, JPEG, or PNG format )
+                          </span>
+                        </FormLabel>
+                      </div>
+                      <div className="FormField">
+                        <div className="ImageBox">
+                          <Controller
+                            name="images"
+                            control={control}
+                            render={({ field: { onChange } }) => (
+                              <>
+                                <div className="w-full flex h-[50px] items-center">
+                                  <input
+                                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+                                    style={{ display: 'none' }}
+                                    id="raised-button-files"
+                                    type="file"
+                                    multiple
+                                    onChange={(event) =>
+                                      handleFileChange(onChange, event)
+                                    }
+                                    onClick={handleFileOnClick}
                                   />
-                                </a>
-                              )}
-                            </div>
-                            <div className="text-xs mt-1 line-clamp-1 w-[100px]">
-                              {fileName}
+                                  <span className="border-2 border-primary-bg w-full rounded-2xl">
+                                    <label
+                                      htmlFor="raised-button-files"
+                                      className="ImageLabel text-primary-bg flex h-[50px] justify-center items-center w-full"
+                                    >
+                                      <UploadIcon size={18} />
+                                      <span className="text-primary-bg px-1">
+                                        Upload
+                                      </span>
+                                    </label>
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                          />
+                          {errors.images && (
+                            <FormMessage>*{errors.images?.message}</FormMessage>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <DialogFooter className="mt-3">
+                      <Button
+                        disabled={isLoader}
+                        type="submit"
+                        className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
+                      >
+                        {isLoader && <Loader2 className="animate-spin" />}{' '}
+                        Update
+                      </Button>
+                    </DialogFooter>
+                  </div>
+                </form>
+              </Form>
+            </div>
+            <div>
+              {existingFiles?.length > 0 && (
+                <div className="mt-6">
+                  <Label
+                    htmlFor="existing-files"
+                    className="text-sm underline text-primary-bg underline-offset-2 font-medium my-3"
+                  >
+                    Existing Uploaded Files
+                  </Label>
+                  <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
+                    {existingFiles.map((file: string, index: number) => {
+                      const isImage = /\.(jpg|jpeg|png)$/i.test(file);
+                      // const isPdf = /\.pdf$/i.test(file);
+                      // const isDoc = /\.(doc|docx)$/i.test(file);
+                      // const isXls = /\.(xls|xlsx)$/i.test(file);
+                      const fileUrl = `${ASSET_BASE_URL}${file}`;
+                      const fileName = file.split('/').pop();
+
+                      return (
+                        <div
+                          key={index}
+                          className="ShowFileItem p-1 flex items-center relative"
+                        >
+                          <div className="p-4 border-dashed flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]">
+                            <div className="flex flex-col items-center justify-center text-center">
+                              <div className="w-[88px] h-[88px] flex items-center justify-center">
+                                {isImage ? (
+                                  <img
+                                    src={fileUrl}
+                                    alt="preview"
+                                    className="w-full h-full object-contain"
+                                  />
+                                ) : (
+                                  <a
+                                    href={fileUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title={fileName}
+                                  >
+                                    <FileText
+                                      className="text-lunar-bg cursor-pointer"
+                                      size={50}
+                                    />
+                                  </a>
+                                )}
+                              </div>
+                              <div className="text-xs mt-1 line-clamp-1 w-[100px]">
+                                {fileName}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="col-span-6">
-            <Controller
-              name="images"
-              control={control}
-              render={({ field: { onChange } }) => (
-                <div>
-                  <Label className="text-sm underline font-medium my-3">
-                    Uploaded Files
-                  </Label>
-                  {selectedPlanImages.length > 0 ? (
-                    <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
-                      {selectedPlanImages.map((item: any, index: number) => {
-                        const isImage =
-                          typeof item === 'string' &&
-                          item.startsWith('data:image/');
-                        return (
-                          <div
-                            key={index}
-                            className="ShowFileItem p-1 flex items-center relative"
-                          >
-                            <X
-                              size={20}
-                              className="absolute top-1 right-[-1px] cursor-pointer text-white bg-red-500 rounded-full p-1"
-                              onClick={() => handleRemoveFile(index, onChange)}
-                            />
-                            <div className="p-4 bg-blue-50 rounded-[20px] w-[180px] h-[150px] flex items-center justify-center">
-                              {isImage ? (
-                                <img
-                                  src={item}
-                                  alt="Uploaded"
-                                  className="w-full h-full object-contain"
-                                />
-                              ) : (
-                                <div className="flex flex-col items-center justify-center text-center">
-                                  <FileText
-                                    className="text-lunar-bg"
-                                    size={50}
-                                  />
-                                  <p className="text-xs mt-1 w-[100px] break-all text-center">
-                                    {item?.name ||
-                                      item?.split?.('/')?.pop() ||
-                                      'Document'}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="flex justify-center items-center text-sm w-full h-[300px]">
-                      No files uploaded.
-                    </div>
-                  )}
+                      );
+                    })}
+                  </div>
                 </div>
               )}
-            />
+            </div>
+            <div className="col-span-6">
+              <Controller
+                name="images"
+                control={control}
+                render={({ field: { onChange } }) => (
+                  <div>
+                    <Label className="text-sm underline text-primary-bg font-medium my-3">
+                      Uploaded Files
+                    </Label>
+                    {selectedPlanImages.length > 0 ? (
+                      <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
+                        {selectedPlanImages.map((item: any, index: number) => {
+                          const isImage =
+                            typeof item === 'string' &&
+                            item.startsWith('data:image/');
+                          return (
+                            <div
+                              key={index}
+                              className="ShowFileItem p-1 flex items-center relative"
+                            >
+                              <X
+                                size={20}
+                                className="absolute top-1 right-[-1px] cursor-pointer text-white bg-red-500 rounded-full p-1"
+                                onClick={() =>
+                                  handleRemoveFile(index, onChange)
+                                }
+                              />
+                              <div className="p-4 bg-blue-50 rounded-[20px] w-[180px] h-[150px] flex items-center justify-center">
+                                {isImage ? (
+                                  <img
+                                    src={item}
+                                    alt="Uploaded"
+                                    className="w-full h-full object-contain"
+                                  />
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center text-center">
+                                    <FileText
+                                      className="text-lunar-bg"
+                                      size={50}
+                                    />
+                                    <p className="text-xs mt-1 w-[100px] break-all text-center">
+                                      {item?.name ||
+                                        item?.split?.('/')?.pop() ||
+                                        'Document'}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-center text-sm w-full h-[300px] text-primary-bg">
+                        No files uploaded.
+                      </div>
+                    )}
+                  </div>
+                )}
+              />
+            </div>
           </div>
         </div>
       </DialogContent>

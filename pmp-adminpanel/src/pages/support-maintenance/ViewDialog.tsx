@@ -1,343 +1,159 @@
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { Loader2, X, FileText } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { Label } from '@/components/ui/label';
-import assets from '@/assets/images';
-import { Fields } from '@/interfaces/support-tickets.interface';
-import { getItem } from '@/utils/storage';
+import { X, FileText } from 'lucide-react';
 import { ASSET_BASE_URL } from '@/utils/constants';
 
 type Props = {
-  isLoader: boolean;
   isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  callback: (...args: any[]) => any;
+  setIsOpen: (open: boolean) => void;
   formData: any;
 };
 
-const ViewDialog = ({
-  isOpen,
-  setIsOpen,
-  callback,
-  isLoader,
-  formData,
-}: Props) => {
-  const userDetails: any = getItem('USER');
+const isImage = (p: string) => /\.(png|jpe?g|webp|gif)$/i.test(p);
+const isDoc = (p: string) => /\.(pdf|docx?|xls[x]?|csv|pptx?)$/i.test(p);
+const fname = (p: string) => p.split('/').pop() || p;
 
-  const form = useForm({
-    defaultValues: {
-      subject: formData?.subject || '',
-      message: formData?.message || '',
-      images: [],
-    },
-  });
+function ViewDialog({ isOpen, setIsOpen, formData }: Props) {
+  const files = Array.isArray(formData?.images) ? formData.images : [];
 
-  const ToastHandler = (text: string) => {
-    return toast({
-      description: text,
-      className: cn(
-        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
-      ),
-      style: {
-        backgroundColor: '#5CB85C',
-        color: 'white',
-        zIndex: 9999,
-      },
-    });
-  };
-
-  const [planFiles, setPlanFiles] = useState<any>([]);
-  const [selectedPlanImages, setSelectedPlanImages] = useState<any>([]);
-  const [existingFiles, setExistingFiles] = useState<string[]>([]);
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    control,
-    formState: { errors },
-  } = form;
-
-  const onSubmit = async (data: Fields | any) => {
-    let obj: any = {
-      id: formData.id,
-      senderId:
-        userDetails?.role?.name === 'Landlord'
-          ? userDetails?.landlordId
-          : userDetails?.id,
-      senderRoleId: userDetails?.role?.id,
-      subject: data.subject,
-      message: data.message,
-    };
-    if (data?.images?.length > 0) obj.images = data.images;
-    console.log('data', obj);
-    callback(obj);
-  };
-
-  useEffect(() => {
-    if (formData?.images?.length) {
-      setExistingFiles(formData.images);
-    }
-  }, [formData]);
-
-  const handleFileChange = async (
-    onChange: any,
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const selectedFiles = Array.from(event.target.files || []);
-    const allowedTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/jpg',
-      'application/pdf',
-      'application/msword', // .doc
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-      'application/vnd.ms-excel', // .xls
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-    ];
-
-    const validFiles: File[] = [];
-    const previews: (string | { name: string; type: string })[] = [];
-
-    await Promise.all(
-      selectedFiles.map(async (file) => {
-        if (!allowedTypes.includes(file.type)) {
-          ToastHandler('Only images or supported document types allowed.');
-          return;
-        }
-
-        validFiles.push(file);
-
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader();
-          const result = await new Promise<string>((resolve) => {
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-          });
-          previews.push(result);
-        } else {
-          previews.push({ name: file.name, type: file.type });
-        }
-      })
-    );
-
-    // Update file states
-    if (validFiles.length > 0) {
-      setPlanFiles((prev: File[]) => [...prev, ...validFiles]);
-      setSelectedPlanImages((prev: any[]) => [...prev, ...previews]);
-      onChange(validFiles);
-    }
-  };
-
-  const handleRemoveFile = (index: number, onChange: any) => {
-    const newImages = [...selectedPlanImages];
-    const newFiles = [...planFiles];
-    newImages.splice(index, 1);
-    newFiles.splice(index, 1);
-    setSelectedPlanImages(newImages);
-    setPlanFiles(newFiles);
-    onChange(newFiles);
-  };
-
-  const handleFileOnClick = (event: any) => {
-    event.target.value = null;
-    setPlanFiles([]);
-    setSelectedPlanImages([]);
-    setValue('images', []);
-  };
+  const imageFiles = files.filter(isImage);
+  const docFiles = files.filter(isDoc);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[900px] cs-dialog-box">
-        <DialogHeader>
-          <DialogTitle>View Support Ticket</DialogTitle>
+      {/* transparent shell so we can do rounded card ourselves */}
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl !bg-transparent [&>button]:hidden">
+        {/* Card */}
+        {/* Header (blur/soft) */}
+        <DialogHeader className="!h-[100px] !px-2 p-0 w-full">
+          {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
+          <div className="px-4 rounded-tl-3xl relative text-center">
+            <DialogTitle className="text-primary-bg text-4xl mt-2 font-extrabold tracking-wide">
+              Maintenance Reported Request
+            </DialogTitle>
+            {/* 3) Custom rounded close button */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </DialogHeader>
-        <div className="grid grid-cols-12 gap-3">
-          <div className="col-span-6">
-            <Form {...form}>
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="custom-form-section">
-                  {/* Subject */}
-                  <div className="form-group w-full flex gap-3">
-                    <FormControl className="m-1 w-full">
-                      <div>
-                        <FormLabel
-                          htmlFor="title"
-                          className="text-sm font-medium"
-                        >
-                          Title
-                        </FormLabel>
-                        <Input
-                          disabled
-                          className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                          id="subject"
-                          placeholder="Rent listing issues"
-                          type="text"
-                          {...register('subject', {
-                            required: 'Please enter your title name',
-                          })}
-                        />
-                        {typeof errors.subject?.message === 'string' && (
-                          <FormMessage>*{errors.subject.message}</FormMessage>
-                        )}
-                      </div>
-                    </FormControl>
-                  </div>
 
-                  {/* Description */}
-                  <div className="form-group w-full flex">
-                    <FormControl className="m-1 w-full">
-                      <div>
-                        <FormLabel
-                          htmlFor="message"
-                          className="text-sm font-medium"
-                        >
-                          Description
-                        </FormLabel>
-                        <Textarea
-                          disabled
-                          className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                          id="message"
-                          placeholder="Type your report here."
-                          {...register('message')}
-                        />
-                      </div>
-                    </FormControl>
-                  </div>
-                </div>
-              </form>
-            </Form>
+        {/* Body */}
+        <div className="bg-white rounded-bl-3xl px-6 pb-6 pt-5">
+          {/* Top 3 columns */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              {existingFiles?.length > 0 && (
-                <div className="">
-                  <Label
-                    htmlFor="existing-files"
-                    className="text-sm underline underline-offset-2 font-medium my-3"
-                  >
-                    Existing Uploaded Files
-                  </Label>
-                  <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
-                    {existingFiles?.filter((file: string) =>
-                      /\.(doc|docx|pdf|msword)$/i.test(file)
-                    ).length > 0 && ( // ✅ only doc/docx/pdf
-                      <div className="">
-                        <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
-                          {existingFiles
-                            .filter((file: string) =>
-                              /\.(doc|docx|pdf|msword)$/i.test(file)
-                            ) // ✅ filtered here too
-                            .map((file: string, index: number) => {
-                              const fileUrl = `${ASSET_BASE_URL}${file}`;
-                              const fileName = file.split('/').pop();
+              <div className="text-sm font-semibold text-primary-bg/80">
+                Title
+              </div>
+              <div className="mt-2 text-[17px] font-medium text-primary-bg">
+                {formData?.subject || '—'}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-primary-bg/80">
+                Reporter Name
+              </div>
+              <div className="mt-2 text-[17px] font-medium text-primary-bg">
+                {formData?.first_name + ' ' + formData?.last_name || '—'}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-primary-bg/80">
+                Status
+              </div>
+              <div className="mt-2 text-[17px] font-medium text-primary-bg">
+                {formData?.status || '—'}
+              </div>
+            </div>
+          </div>
 
-                              return (
-                                <div
-                                  key={index}
-                                  className="ShowFileItem p-1 flex items-center relative"
-                                >
-                                  <div className="p-4 border-dashed flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]">
-                                    <div className="flex flex-col items-center justify-center text-center">
-                                      <div className="w-[88px] h-[88px] flex items-center justify-center">
-                                        <a
-                                          href={fileUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          title={fileName}
-                                        >
-                                          <FileText
-                                            className="text-lunar-bg cursor-pointer"
-                                            size={50}
-                                          />
-                                        </a>
-                                      </div>
-                                      <div className="text-xs mt-1 line-clamp-1 w-[100px]">
-                                        {fileName}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                        </div>
+          {/* Description */}
+          <div className="mt-8">
+            <div className="text-sm font-semibold text-primary-bg/80">
+              Description
+            </div>
+            <p className="mt-2 text-[17px] leading-7 text-primary-bg">
+              {formData?.message || '—'}
+            </p>
+          </div>
+
+          {/* Attachments: Images */}
+          {imageFiles.length > 0 && (
+            <div className="mt-6">
+              <div className="text-sm font-semibold text-primary-bg/80 mb-3">
+                Images
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {imageFiles.map((p: any, i: number) => {
+                  const url = `${ASSET_BASE_URL}${p}`;
+                  return (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-2xl bg-[#f4f7ff] p-2 shadow-sm hover:shadow-md transition"
+                      title={fname(p)}
+                    >
+                      <img
+                        src={url}
+                        alt={fname(p)}
+                        className="h-44 w-full object-contain rounded-xl"
+                      />
+                      <div className="mt-2 line-clamp-1 text-xs text-primary-bg/70 px-1">
+                        {fname(p)}
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                    </a>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-          <div className="col-span-6">
-            <div className="w-full">
-              {existingFiles?.filter((file: string) =>
-                /\.(jpg|jpeg|png)$/i.test(file)
-              ).length > 0 && (
-                <div className="mt-6">
-                  <Label
-                    htmlFor="existing-files"
-                    className="text-sm underline w-full underline-offset-2 font-medium my-3"
-                  >
-                    Existing Uploaded Images
-                  </Label>
-                  <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
-                    {existingFiles
-                      ?.filter((file: string) =>
-                        /\.(jpg|jpeg|png)$/i.test(file)
-                      ) // ✅ Only images
-                      .map((file: string, index: number) => {
-                        const fileUrl = `${ASSET_BASE_URL}${file}`;
-                        const fileName = file.split('/').pop();
+          )}
 
-                        return (
-                          <div
-                            key={index}
-                            className="ShowFileItem p-1 flex items-center relative"
-                          >
-                            <div className="p-4 border-dashed flex items-center justify-center rounded-[20px] bg-earth-bg w-[380px] h-[350px]">
-                              <a
-                                href={fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title={fileName}
-                                className="w-full h-full flex items-center justify-center"
-                              >
-                                <img
-                                  src={fileUrl}
-                                  alt={fileName || 'preview'}
-                                  className="w-full h-full object-contain"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              )}
+          {/* Attachments: Documents */}
+          {docFiles.length > 0 && (
+            <div className="mt-6">
+              <div className="text-sm font-semibold text-primary-bg/80 mb-3">
+                Documents
+              </div>
+              <div className="flex flex-col gap-3">
+                {docFiles.map((p: any, i: number) => {
+                  const url = `${ASSET_BASE_URL}${p}`;
+                  return (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 rounded-2xl bg-[#f4f7ff] px-4 py-3 shadow-sm hover:shadow-md transition"
+                      title={fname(p)}
+                    >
+                      <div className="shrink-0 grid h-10 w-10 place-items-center rounded-lg bg-white">
+                        <FileText className="h-5 w-5 text-primary-bg" />
+                      </div>
+                      <span className="text-sm text-primary-bg">
+                        {fname(p)}
+                      </span>
+                    </a>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-          <div className="col-span-6"></div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
-};
+}
 
 export default ViewDialog;

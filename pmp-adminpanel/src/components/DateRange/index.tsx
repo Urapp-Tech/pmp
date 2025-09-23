@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/popover';
 
 import utcPlugin from 'dayjs/plugin/utc';
+import assets from '@/assets/images';
 dayjs.extend(utcPlugin);
 
 type DatePickerWithRangeProps = {
@@ -93,11 +94,12 @@ export function DatePickerWithRange({
             id="date"
             variant={'outline'}
             className={cn(
-              'w-[300px] justify-start text-left font-normal',
+              'w-full justify-start text-left font-normal',
               !date && 'text-muted-foreground'
             )}
           >
-            <CalendarIcon />
+            <img src={assets.images.calender} />
+            {/* <CalendarIcon /> */}
             {date?.from ? (
               date.to ? (
                 <>

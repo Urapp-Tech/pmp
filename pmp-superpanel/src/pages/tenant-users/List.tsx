@@ -57,6 +57,7 @@ import OfficeUserUpdateDialog from './UpdateDialog';
 import OfficeUserCreateDialog from './CreateDialog';
 import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
 import { useForm } from 'react-hook-form';
+import assets from '@/assets/images';
 // import OfficeUserCreateDialog from './CreateDialog';
 
 export type Users = {
@@ -126,7 +127,7 @@ const TenantUsers = () => {
   const columns: ColumnDef<Users>[] = [
     {
       accessorKey: 'fname',
-      header: 'Name',
+      header: 'NAME',
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-3">
@@ -154,7 +155,7 @@ const TenantUsers = () => {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            Email
+            EMAIL
             <ArrowUpDown />
           </Button>
         );
@@ -165,24 +166,26 @@ const TenantUsers = () => {
     },
     {
       accessorKey: 'phone',
-      header: 'Phone',
+      header: 'PHONE',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('phone')}</div>
       ),
     },
     {
       accessorKey: 'roleName',
-      header: 'Role',
+      header: 'ROLE',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('roleName')}</div>
       ),
     },
     {
       accessorKey: 'isActive',
-      header: 'Status',
+      header: 'STATUS',
       cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[60px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
-          {row.getValue('isActive') ? 'Active' : 'Deactive'}
+        <div
+          className={`capitalize ${row.getValue('isActive') ? 'bg-scrollbar' : 'bg-primary-bg !text-[#BBF9E4]'} flex items-center justify-center rounded-[3px] text-center w-[75px] h-[30px] text-[12px] leading-normal font-semibold text-primary-bg py-[1px]`}
+        >
+          {row.getValue('isActive') ? 'Active' : 'inactive'}
         </div>
       ),
     },
@@ -214,7 +217,7 @@ const TenantUsers = () => {
     // },
     {
       id: 'status',
-      header: 'Actions',
+      header: 'ACTIONS',
       cell: ({ row }) => {
         const { id, isActive } = row.original;
 
@@ -225,7 +228,7 @@ const TenantUsers = () => {
 
         return (
           <div className="flex justify-center items-center">
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label className="inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 className="sr-only peer"
@@ -233,22 +236,29 @@ const TenantUsers = () => {
                 onChange={handleToggle}
               />
               <div
-                className="w-11 h-6 bg-gray-300 rounded-full
-               peer peer-checked:bg-lunar-bg
-               transition-colors duration-300"
-              />
-              <div
-                className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full
-               transition-transform duration-300 ease-in-out
-               transform peer-checked:translate-x-5"
+                className="
+      relative w-16 h-8 rounded-[5px] bg-[#424256]
+      transition-colors duration-300
+      peer-checked:bg-primary-bg
+      after:content-[''] after:absolute after:top-1 after:left-1
+      after:h-6 after:w-6 after:bg-white after:rounded-full
+      after:transition-transform after:duration-300 after:ease-in-out
+      after:shadow-sm
+      peer-checked:after:translate-x-8
+    "
               />
             </label>
             <div className="pl-4">
-              <Pencil
-                className="text-lunar-bg cursor-pointer"
+              <img
+                onClick={() => handleActionMenu('edit', id)}
+                src={assets.images.editPencil}
+                className="text-primary-bg cursor-pointer h-8 w-8"
+              />
+              {/* <Pencil
+                className="text-primary-bg cursor-pointer"
                 onClick={() => handleActionMenu('edit', id)}
                 size={20}
-              />
+              /> */}
             </div>
             {/* <div className="pl-3">
               <Trash2
@@ -485,17 +495,17 @@ const TenantUsers = () => {
   });
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Tenant Users" />
-      <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <div className="p-2 mt-5">
+      {/* <TopBar title="Tenant Users" /> */}
+      <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0 m-5">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
+            <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
               All Users
             </h2>
             <div className="flex gap-3 items-center">
-              <div className="w-[200px]">
+              <div className="w-[150px]">
                 <SingleSelectDropDown
                   control={control}
                   name="userfilter"
@@ -507,6 +517,7 @@ const TenantUsers = () => {
                     { id: 'Landlord', name: 'Landlord' },
                   ]}
                   placeholder="Choose an option"
+                  mainClassName="custom-filter-select-field"
                 />
               </div>
               <div className="flex items-center w-[461px]">
@@ -515,13 +526,13 @@ const TenantUsers = () => {
                   value={search}
                   onChange={handleChange}
                   onKeyPress={handleKeyPress}
-                  className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
+                  className="w-[461px] h-[35px] rounded bg-mars-bg/50"
                 />
               </div>
               <DropdownMenu>
                 <Button
                   onClick={() => setIsOpen(true)}
-                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                  className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded text-[12px] leading-[16px] font-semibold text-quinary-bg"
                   variant={'outline'}
                 >
                   + Add New
@@ -573,7 +584,7 @@ const TenantUsers = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow

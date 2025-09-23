@@ -1,82 +1,144 @@
 import { useEffect, useState } from 'react';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { TopBar } from '@/components/TopBar';
 import { Label } from '@/components/ui/label';
-// import { Input } from '@/components/ui/input';
 import dashboardService from '@/services/adminapp/admin';
-import { Building2, Users, FileWarning, Wrench } from 'lucide-react';
+import assets from '@/assets/images';
 import { getItem } from '@/utils/storage';
 
 function LandlordDashboard() {
+  const user: any = getItem('USER');
   const [data, setData] = useState<any>();
-  const userDetails: any = getItem('USER');
 
   useEffect(() => {
     const fetchActivity = async () => {
-      const activity = await dashboardService.activity(userDetails?.landlordId);
-      // if (activity.data.success) {
+      const activity = await dashboardService.activity(user?.landlordId);
       setData(activity.data);
-      // }
     };
     fetchActivity();
   }, []);
 
+  // helper to keep card style consistent
+  const cardBase =
+    'rounded-2xl shadow-sm ring-1 ring-black/5 px-4 py-3 sm:px-5 sm:py-4 h-46 sm:h-50 flex flex-col';
+  const cardLight = 'bg-secondary-bg'; // light mint (matches mock)
+  const cardDark = 'bg-secondary-bg'; // slightly darker mint (for alternates)
+  const labelCls =
+    'text-base text-primary-bg flex items-center gap-2 font-bold';
+
   return (
-    <div className="bg-white p-2 rounded-[20px] mt-5">
+    <div
+      className="min-h-screen"
+      style={{ background: 'var(--body-background)' }}
+    >
       <SidebarInset>
-        <TopBar title="Dashboard" />
-        <div className="flex flex-col gap-6 p-4 pt-0">
-          {/* Search Bar */}
-          <div className="w-full max-w-md">
-            <Label htmlFor="propertySearch" className="text-lg font-medium">
-              Activities
-            </Label>
-            {/* <Input
-              id="propertySearch"
-              placeholder="Enter property name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="mt-1"
-            /> */}
+        {/* CONTENT WRAP */}
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8 py-6">
+          {/* HERO ROW: left welcome, right image */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-36 items-start mb-6">
+            <div className="rounded-2xl px-6 py-8">
+              <h1 className="text-primary-bg text-3xl sm:text-4xl font-extrabold leading-snug">
+                Hello {user?.fname},
+                <br />
+                Welcome to your
+                <br />
+                dashboard overview.
+              </h1>
+              <p className="mt-3 text-sm text-primary-bg px-10">
+                Track and manage the listed properties
+              </p>
+            </div>
+
+            <div className="rounded-2xl overflow-hidden m-3">
+              {/* Replace src with your actual image */}
+              <img
+                src={assets.images.dashboardHomeImg}
+                alt="Building"
+                className="w-full h-[320px] object-contain"
+              />
+            </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid auto-rows-min gap-4 md:grid-cols-4">
-            <div className="aspect-video p-4 rounded-xl bg-muted/50">
-              <Label className="text-lg flex items-center gap-2">
-                <Building2 /> Total Properties
-              </Label>
-              <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                {data?.total_properties}
+          {/* METRIC CARDS: 4 x 2 grid */}
+          <div className="grid gap-10 2xl::grid-cols-4 sm:grid-cols-2">
+            {/* 1 */}
+            <div className={`${cardBase} ${cardLight}`}>
+              <div className="flex items-end justify-start">
+                <span className="text-[95px] font-semibold text-primary-bg">
+                  {data?.total_properties ?? 0}
+                </span>
               </div>
+              <Label className={labelCls}>TOTAL PROPERTIES</Label>
             </div>
 
-            <div className="aspect-video p-4 rounded-xl bg-muted/50">
-              <Label className="text-lg flex items-center gap-2">
-                <Users /> Active Tenants
-              </Label>
-              <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                {data?.active_tenant_users}
+            {/* 2 */}
+            <div className={`${cardBase} ${cardDark}`}>
+              <div className="flex-1 flex items-end justify-start mt-6">
+                <span className="text-[95px] font-semibold text-primary-bg">
+                  {data?.active_tenant_users ?? 0}
+                </span>
               </div>
+              <Label className={labelCls}>ACTIVE TENANTS</Label>
             </div>
 
-            <div className="aspect-video p-4 rounded-xl bg-muted/50">
-              <Label className="text-lg flex items-center gap-2">
-                <FileWarning /> Pending Invoices
-              </Label>
-              <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                {data?.pending_invoices}
+            {/* 3 */}
+            <div className={`${cardBase} ${cardLight}`}>
+              <div className="flex-1 flex items-end justify-start mt-0">
+                <span className="text-[95px] font-semibold text-primary-bg">
+                  {data?.pending_invoices ?? 0}
+                </span>
               </div>
+              <Label className={labelCls}>PENDING INVOICES</Label>
             </div>
 
-            <div className="aspect-video p-4 rounded-xl bg-muted/50">
-              <Label className="text-lg flex items-center gap-2">
-                <Wrench /> Unresolved Tickets
-              </Label>
-              <div className="flex justify-center items-center h-full text-4xl font-semibold">
-                {data?.unresolved_tickets}
+            {/* 4 */}
+            <div className={`${cardBase} ${cardDark}`}>
+              <div className="flex-1 flex items-end justify-start mt-0">
+                <span className="text-[95px] font-semibold text-primary-bg">
+                  {data?.unresolved_tickets ?? 0}
+                </span>
               </div>
+              <Label className={labelCls}>UNRESOLVED TICKETS</Label>
             </div>
+
+            {/* 5 */}
+            {/* <div className={`${cardBase} ${cardLight}`}>
+              <Label className={labelCls}>ACTIVE LANDLORDS</Label>
+              <div className="flex-1 flex items-end justify-start mt-6">
+                <span className="text-[64px] font-semibold text-primary-bg">
+                  {data?.activeLandlords ?? 0}
+                </span>
+              </div>
+            </div> */}
+
+            {/* 6 */}
+            {/* <div className={`${cardBase} ${cardDark}`}>
+              <Label className={labelCls}>ACTIVE MANAGERS</Label>
+              <div className="flex-1 flex items-end justify-start mt-6">
+                <span className="text-[64px] font-semibold text-primary-bg">
+                  {data?.activeManagers ?? 0}
+                </span>
+              </div>
+            </div> */}
+
+            {/* 7 */}
+            {/* <div className={`${cardBase} ${cardLight}`}>
+              <Label className={labelCls}>PENDING INVOICES</Label>
+              <div className="flex-1 flex items-end justify-start mt-6">
+                <span className="text-[64px] font-semibold text-primary-bg">
+                  {data?.pendingInvoices ?? 0}
+                </span>
+              </div>
+            </div> */}
+
+            {/* 8 */}
+            {/* <div className={`${cardBase} ${cardDark}`}>
+              <Label className={labelCls}>UNRESOLVED TICKETS</Label>
+              <div className="flex-1 flex items-end justify-start mt-6">
+                <span className="text-[64px] font-semibold text-primary-bg">
+                  {data?.unresolvedTickets ?? 0}
+                </span>
+              </div>
+            </div> */}
           </div>
         </div>
       </SidebarInset>

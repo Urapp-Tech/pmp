@@ -57,6 +57,7 @@ import { getInitials, handleErrorMessage } from '@/utils/helper';
 import { usePermission } from '@/utils/hasPermission';
 import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
 import SupportTicketUpdateDialog from './UpdateDialog';
+import assets from '@/assets/images';
 
 export type Users = {
   id: string; // UUID
@@ -125,7 +126,7 @@ const SupportMaintenance = () => {
   const columns: ColumnDef<Users>[] = [
     {
       accessorKey: 'subject',
-      header: 'Subject',
+      header: 'SUBJECT',
       cell: ({ row }) => (
         <div className="capitalize font-semibold">
           {row.getValue('subject')}
@@ -134,7 +135,7 @@ const SupportMaintenance = () => {
     },
     {
       accessorKey: 'message',
-      header: 'Description',
+      header: 'DESCRIPTION',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('message')}</div>
       ),
@@ -143,14 +144,16 @@ const SupportMaintenance = () => {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[80px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
+        <div
+          className={`capitalize ${row.getValue('status') === 'open' ? 'bg-scrollbar text-primary-bg' : row.getValue('status') === 'in_progress' ? 'bg-primary-bg text-white' : 'bg-primary-bg text-white'} text-center w-[75px] h-[30px]  flex items-center justify-center rounded-[3px]  text-[10px] leading-normal font-semibold py-[1px] border-secondary-bg border-2`}
+        >
           {row.getValue('status')}
         </div>
       ),
     },
     {
       accessorKey: 'images',
-      header: 'Attachments',
+      header: 'ATTACHMENTS',
       cell: ({ row }) => {
         const images = row.getValue('images') as string[] | null;
 
@@ -185,7 +188,7 @@ const SupportMaintenance = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : isPDF || isDoc ? (
-                    <FileText className="text-lunar-bg" size={20} />
+                    <FileText className="text-primary-bg" size={20} />
                   ) : (
                     <span className="text-xs text-gray-500">File</span>
                   )}
@@ -212,20 +215,30 @@ const SupportMaintenance = () => {
           <div className="flex justify-center items-center">
             {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
               <div>
-                <Pencil
-                  className="text-lunar-bg cursor-pointer"
+                <img
+                  onClick={() => handleActionMenu('edit', id)}
+                  src={assets.images.editPencil}
+                  className="text-primary-bg cursor-pointer h-6 w-6"
+                />
+                {/* <Pencil
+                  className="text-primary-bg cursor-pointer"
                   onClick={() => handleActionMenu('edit', id)}
                   size={20}
-                />
+                /> */}
               </div>
             )}
             {can(PERMISSIONS.MAINTENANCE_REQUEST.DELETE) && (
               <div className="pl-3">
-                <Trash2
-                  className="text-lunar-bg cursor-pointer"
+                <img
+                  onClick={() => handleActionMenu('delete', id)}
+                  src={assets.images.deleted}
+                  className="text-primary-bg cursor-pointer h-6 w-6"
+                />
+                {/* <Trash2
+                  className="text-primary-bg cursor-pointer"
                   size={20}
                   onClick={() => handleActionMenu('delete', id)}
-                />
+                /> */}
               </div>
             )}
           </div>
@@ -464,16 +477,15 @@ const SupportMaintenance = () => {
   };
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Support Tickets" />
+    <div className="p-2 mt-5">
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
+            <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
               {userDetails?.role?.name === 'User'
-                ? 'Maintenance Requests'
-                : 'Support Tickets'}
+                ? 'MAINTENANCE REQUESTS'
+                : 'SUPPORT TICKETS'}
             </h2>
             <div className="flex gap-3 items-center">
               <Input
@@ -487,7 +499,7 @@ const SupportMaintenance = () => {
                 {can(PERMISSIONS.MAINTENANCE_REQUEST.CREATE) && (
                   <Button
                     onClick={() => setIsOpen(true)}
-                    className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                     variant={'outline'}
                   >
                     + Add New
@@ -540,7 +552,7 @@ const SupportMaintenance = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow

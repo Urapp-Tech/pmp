@@ -427,13 +427,13 @@ const Users = () => {
   };
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
+    <div className=" p-2 rounded-[20px] shadow-2xl mt-5">
       <TopBar title="Users" />
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
+            <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
               All Landlord Users
             </h2>
             <div className="flex gap-3 items-center">
@@ -499,7 +499,7 @@ const Users = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow

@@ -140,7 +140,9 @@ const Blogs = () => {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[80px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
+        <div
+          className={`capitalize ${row.getValue('status') === 'open' ? 'bg-scrollbar text-primary-bg' : row.getValue('status') === 'in_progress' ? 'bg-primary-bg text-white' : 'bg-primary-bg text-white'} text-center w-[75px] h-[30px] rounded text-[10px] leading-normal flex items-center justify-center font-semibold py-[1px] border-secondary-bg border-2`}
+        >
           {row.getValue('status')}
         </div>
       ),
@@ -211,7 +213,7 @@ const Blogs = () => {
               <>
                 <div className="pr-6">
                   <Airplay
-                    className="text-lunar-bg cursor-pointer"
+                    className="text-primary-bg cursor-pointer"
                     size={20}
                     onClick={() => handleActionMenu('status', id)}
                   />
@@ -226,7 +228,7 @@ const Blogs = () => {
                 </div> */}
                 <div className="pl-3">
                   <Trash2
-                    className="text-lunar-bg cursor-pointer"
+                    className="text-primary-bg cursor-pointer"
                     size={20}
                     onClick={() => handleActionMenu('delete', id)}
                   />
@@ -500,13 +502,12 @@ const Blogs = () => {
   // };
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Support & Feedback" />
+    <div className="p-2 mt-5">
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
+            <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
               Support & Feedback
             </h2>
             <div className="flex gap-3 items-center">
@@ -572,7 +573,7 @@ const Blogs = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
@@ -637,7 +638,7 @@ const Blogs = () => {
           isLoader={isLoader}
           isOpen={deleteOpen}
           setIsOpen={setDeleteOpen}
-          title={'Blog'}
+          title={'ticket'}
           formData={editFormData}
           callback={deleteHandler}
         />

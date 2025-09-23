@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form';
 import { cn } from '@/lib/utils';
 import service from '@/services/adminapp/property';
 import { getItem } from '@/utils/storage';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { MultiSelectGroupedDropDown } from '@/components/DropDown/MultiSelectGroupedDropDown';
 
 type Lov = { id: string; name: string };
@@ -85,20 +85,35 @@ const AssignUserDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Assign Users</DialogTitle>
+      <DialogContent className="sm:max-w-[600px] !bg-transparent [&>button]:hidden">
+        <DialogHeader className="p-0 w-full rounded-t-3xl">
+          {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
+          <div className="h-16 rounded-t-3xl relative flex items-center justify-center">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
+              Assign Users
+            </DialogTitle>
+            {/* 3) Custom rounded close button */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <MultiSelectGroupedDropDown
-            control={control}
-            name="assignedUnits"
-            label="Select Property Units"
-            items={unitList}
-            placeholder="Choose units"
-            rules={{ required: 'Please select at least one unit' }}
-          />
-          {/* <MultiSelectDropDown
+        <div className="bg-white rounded-b-3xl px-6 pb-6 pt-5">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <MultiSelectGroupedDropDown
+              control={control}
+              name="assignedUnits"
+              label="Select Property Units"
+              items={unitList}
+              placeholder="Choose units"
+              rules={{ required: 'Please select at least one unit' }}
+            />
+            {/* <MultiSelectDropDown
             control={control}
             name="assignedUnits"
             label="Select Units"
@@ -109,16 +124,17 @@ const AssignUserDialog = ({
             placeholder="Choose units"
             rules={{ required: 'Please select at least one user' }}
           /> */}
-          <DialogFooter className="mt-4">
-            <Button
-              disabled={isLoader}
-              type="submit"
-              className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
-            >
-              {isLoader ? <Loader2 className="animate-spin" /> : 'Assign'}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter className="mt-4">
+              <Button
+                disabled={isLoader}
+                type="submit"
+                className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
+              >
+                {isLoader ? <Loader2 className="animate-spin" /> : 'Assign'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

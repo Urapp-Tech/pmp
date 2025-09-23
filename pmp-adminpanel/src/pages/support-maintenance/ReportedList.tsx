@@ -49,6 +49,7 @@ import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
 import OfficeUsersCreationDialog from './CreateDialog';
 import StatusChangeDialog from './StatusDialog';
 import ViewDialog from './ViewDialog';
+import assets from '@/assets/images';
 
 export type Users = {
   id: string; // UUID
@@ -117,7 +118,7 @@ const ReportedTicketsList = () => {
   const columns: ColumnDef<Users>[] = [
     {
       accessorKey: 'subject',
-      header: 'Subject',
+      header: 'SUBJECT',
       cell: ({ row }) => (
         <div className="capitalize font-semibold">
           {row.getValue('subject')}
@@ -126,14 +127,14 @@ const ReportedTicketsList = () => {
     },
     {
       accessorKey: 'message',
-      header: 'Description',
+      header: 'DESCRIPTION',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('message')}</div>
       ),
     },
     {
       accessorKey: 'first_name',
-      header: 'Reporter Name',
+      header: 'REPORTED BY',
       cell: ({ row }) => {
         const { first_name, last_name } = row.original;
         return <div className="capitalize">{first_name + ' ' + last_name}</div>;
@@ -141,14 +142,14 @@ const ReportedTicketsList = () => {
     },
     {
       accessorKey: 'role_name',
-      header: 'Role',
+      header: 'ROLE',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('role_name')}</div>
       ),
     },
     {
       accessorKey: 'images',
-      header: 'Attachments',
+      header: 'ATTACHMENTS',
       cell: ({ row }) => {
         const images = row.getValue('images') as string[] | null;
 
@@ -202,9 +203,11 @@ const ReportedTicketsList = () => {
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'STATUS',
       cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[80px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
+        <div
+          className={`capitalize ${row.getValue('status') === 'open' ? 'bg-scrollbar text-primary-bg' : row.getValue('status') === 'in_progress' ? 'bg-primary-bg text-white' : 'bg-primary-bg text-white'} text-center w-[75px] h-[30px]  flex items-center justify-center rounded-[3px]  text-[10px] leading-normal font-semibold py-[1px] border-secondary-bg border-2`}
+        >
           {row.getValue('status')}
         </div>
       ),
@@ -219,29 +222,44 @@ const ReportedTicketsList = () => {
           <div className="flex justify-center items-center">
             {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
               <div className="pr-6">
-                <Airplay
+                <img
+                  onClick={() => handleActionMenu('status', id)}
+                  src={assets.images.propManagers}
+                  className="text-primary-bg cursor-pointer h-6 w-6"
+                />
+                {/* <Airplay
                   className="text-lunar-bg cursor-pointer"
                   size={20}
                   onClick={() => handleActionMenu('status', id)}
-                />
+                /> */}
               </div>
             )}
             {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
               <div>
-                <Eye
+                <img
+                  onClick={() => handleActionMenu('view', id)}
+                  src={assets.images.editPencil}
+                  className="text-primary-bg cursor-pointer h-6 w-6"
+                />
+                {/* <Eye
                   className="text-lunar-bg cursor-pointer"
                   onClick={() => handleActionMenu('view', id)}
                   size={20}
-                />
+                /> */}
               </div>
             )}
             {can(PERMISSIONS.MAINTENANCE_REQUEST.DELETE) && (
               <div className="pl-3">
-                <Trash2
+                <img
+                  onClick={() => handleActionMenu('delete', id)}
+                  src={assets.images.deleted}
+                  className="text-primary-bg cursor-pointer h-6 w-6"
+                />
+                {/* <Trash2
                   className="text-lunar-bg cursor-pointer"
                   size={20}
                   onClick={() => handleActionMenu('delete', id)}
-                />
+                /> */}
               </div>
             )}
           </div>
@@ -493,14 +511,13 @@ const ReportedTicketsList = () => {
   };
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Maintenance & Dispute Request" />
+    <div className="p-2 mt-5">
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Maintenance Reported Request
+            <h2 className="text-tertiary-bg font-bold text-3xl leading-normal capitalize">
+              MAINTENANCE REPORTED REQUEST
             </h2>
             <div className="flex gap-3 items-center">
               <Input
@@ -514,7 +531,7 @@ const ReportedTicketsList = () => {
                 {/* {can(PERMISSIONS.MAINTENANCE_REQUEST.CREATE) && (
                   <Button
                     onClick={() => setIsOpen(true)}
-                    className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                     variant={'outline'}
                   >
                     + Add New
@@ -567,7 +584,7 @@ const ReportedTicketsList = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
@@ -628,11 +645,11 @@ const ReportedTicketsList = () => {
       )}
       {editOpen && (
         <ViewDialog
-          isLoader={isLoader}
+          // isLoader={isLoader}
           isOpen={editOpen}
           setIsOpen={setEditOpen}
           formData={editFormData}
-          callback={updateHandler}
+          // callback={updateHandler}
         />
       )}
       {statusOpen && (

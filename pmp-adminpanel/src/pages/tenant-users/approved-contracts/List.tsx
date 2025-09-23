@@ -60,6 +60,7 @@ import { usePermission } from '@/utils/hasPermission';
 import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
 import dayjs from 'dayjs';
 import UpdateContractDialog from './UpdateDialog';
+import assets from '@/assets/images';
 
 export type Users = {
   id: string; // UUID
@@ -128,7 +129,7 @@ const ApprovedContracts = () => {
   const columns: ColumnDef<Users>[] = [
     {
       accessorKey: 'userDetail.fname',
-      header: 'Name',
+      header: 'NAME',
       cell: ({ row }: any) => {
         const user = row.original.userDetail;
         const tenantType = row.original?.tenantType || '';
@@ -153,7 +154,7 @@ const ApprovedContracts = () => {
     },
     {
       accessorKey: 'property',
-      header: 'Property Name',
+      header: 'PROPERTY NAME',
       cell: ({ row }) => {
         const unit = row.original.unitDetail;
         return <div className="capitalize">{unit?.property?.name}</div>;
@@ -161,7 +162,7 @@ const ApprovedContracts = () => {
     },
     {
       accessorKey: 'unit_no',
-      header: 'Unit name / no.',
+      header: 'UNIT NO.',
       cell: ({ row }) => {
         const unit = row.original.unitDetail;
 
@@ -175,14 +176,14 @@ const ApprovedContracts = () => {
     },
     {
       accessorKey: 'contractNumber',
-      header: 'Contract Number',
+      header: 'CONTRACT NUMBER',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('contractNumber')}</div>
       ),
     },
     {
       accessorKey: 'contractStart',
-      header: 'Contract Start',
+      header: 'CONTRACT START',
       cell: ({ row }) => (
         <div className="capitalize">
           {dayjs(row.getValue('contractStart')).format('YYYY-MM-DD')}
@@ -191,7 +192,7 @@ const ApprovedContracts = () => {
     },
     {
       accessorKey: 'contractEnd',
-      header: 'Contract End',
+      header: 'CONTRACT END',
       cell: ({ row }) => (
         <div className="capitalize">
           {dayjs(row.getValue('contractEnd')).format('YYYY-MM-DD')}
@@ -200,7 +201,7 @@ const ApprovedContracts = () => {
     },
     {
       accessorKey: 'leavingDate',
-      header: 'Leaving Date',
+      header: 'LEAVING DATE',
       cell: ({ row }) => (
         <div className="capitalize">
           {dayjs(row.getValue('leavingDate')).format('YYYY-MM-DD')}
@@ -209,7 +210,7 @@ const ApprovedContracts = () => {
     },
     {
       accessorKey: 'agreement_doc',
-      header: 'Agreement Document',
+      header: 'AGREEMENT DOCS',
       cell: ({ row }) => {
         const [showTooltip, setShowTooltip] = useState(false);
 
@@ -242,7 +243,7 @@ const ApprovedContracts = () => {
                   className="flex items-center"
                 >
                   {type === 'document' ? (
-                    <FileText className="text-lunar-bg" size={20} />
+                    <FileText className="text-primary-bg" size={20} />
                   ) : type === 'image' ? (
                     <img
                       src={ASSET_BASE_URL + file}
@@ -250,7 +251,7 @@ const ApprovedContracts = () => {
                       className="w-8 h-8 object-cover rounded border"
                     />
                   ) : (
-                    <FileText className="text-gray-500 text-lg" />
+                    <FileText className="text-primary-bg text-lg" />
                   )}
                 </a>
               );
@@ -258,7 +259,7 @@ const ApprovedContracts = () => {
             {fileList.length > 2 && (
               <div className="relative">
                 <span
-                  className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full cursor-pointer"
+                  className="bg-primary-bg text-white text-xs px-2 py-1 rounded-full cursor-pointer"
                   onClick={() => setShowTooltip(!showTooltip)}
                 >
                   +{fileList.length - 2}
@@ -278,7 +279,7 @@ const ApprovedContracts = () => {
                             className="flex items-center"
                           >
                             {type === 'document' ? (
-                              <FileText className="text-lunar-bg" size={20} />
+                              <FileText className="text-primary-bg" size={20} />
                             ) : type === 'image' ? (
                               <img
                                 src={ASSET_BASE_URL + file}
@@ -310,10 +311,10 @@ const ApprovedContracts = () => {
           <div className="flex justify-center items-center">
             {can(PERMISSIONS.USER_CONTRACT.UPDATE) && (
               <div>
-                <Pencil
-                  className="text-lunar-bg cursor-pointer"
+                <img
                   onClick={() => handleActionMenu('edit', id)}
-                  size={20}
+                  src={assets.images.editPencil}
+                  className="text-primary-bg cursor-pointer h-24 w-24"
                 />
               </div>
             )}
@@ -554,14 +555,13 @@ const ApprovedContracts = () => {
   };
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Tenant Users" />
+    <div className=" p-2 mt-5">
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Approved Contracts
+            <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
+              APPROVED CONTRACTS
             </h2>
             <div className="flex gap-3 items-center">
               <Input
@@ -575,7 +575,7 @@ const ApprovedContracts = () => {
                 {/* {can(PERMISSIONS.USER.CREATE) && (
                   <Button
                     onClick={() => setIsOpen(true)}
-                    className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                     variant={'outline'}
                   >
                     + Add New
@@ -628,7 +628,7 @@ const ApprovedContracts = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow

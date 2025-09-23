@@ -11,7 +11,12 @@ const getInvoiceDetail = (invoiceId: string) => {
   return network.get(`${REPORT_PREFIX}/invoice/detail/${invoiceId}`);
 };
 
+const getReportOverview = (qp: any) => {
+  return network.get(`${REPORT_PREFIX}/overview`, qp);
+};
+
 export default {
   getReport,
   getInvoiceDetail,
+  getReportOverview,
 };

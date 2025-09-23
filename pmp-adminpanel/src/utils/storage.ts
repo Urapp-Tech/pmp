@@ -4,7 +4,8 @@ type Key =
   | 'REFRESH_TOKEN'
   | 'SHOP_TENANT'
   | 'SYSTEM_CONFIG'
-  | 'LAST_ACTIVITY';
+  | 'LAST_ACTIVITY'
+  | 'COLLAPSED_SIDEBAR';
 
 function addKeyPrefix(key: string) {
   const prefix = 'WEB_ADMIN';

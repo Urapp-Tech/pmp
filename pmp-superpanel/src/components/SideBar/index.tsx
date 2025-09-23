@@ -15,13 +15,16 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { getItem } from '@/utils/storage';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '@/redux/redux-hooks';
 
 export function MainSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
-  const authState: any = useSelector((state: any) => state.authState);
-  const appState: any = useSelector((state: any) => state.appState);
+  const collapsedSidebar = useAppSelector(
+    (state) => state.appState.collapsedSidebar
+  );
+  const authState: any = useAppSelector((state) => state.authState);
+  const appState: any = useAppSelector((state) => state.appState);
   const userRoles: any = getItem('USER');
   // console.log('userRoles', userRoles);
 
@@ -38,33 +41,39 @@ export function MainSidebar({
     },
     navMain: [
       {
-        title: 'Dashboard',
+        title: 'DASHBOARD',
         url: '/super-admin/dashboard',
-        icon: assets.images.dashboardSidebarIcon,
+        icon: assets.images.homeIcon,
         items: [],
       },
       {
-        title: 'Users',
+        title: 'USERS',
         url: '/super-admin/users',
-        icon: assets.images.usersSidebarIcon,
+        icon: assets.images.usersIcon,
         items: [],
       },
       {
-        title: 'Landlord Requests',
+        title: 'REPORTS',
+        url: '/super-admin/reports/analytics',
+        icon: assets.images.reportIcon,
+        items: [],
+      },
+      {
+        title: 'LANDLORD REQUESTS',
         url: '/super-admin/landlord-request',
-        icon: assets.images.usersSidebarIcon,
+        icon: assets.images.tenantIcon,
         items: [],
       },
       {
-        title: 'Invoices',
+        title: 'INVOICES',
         url: '/super-admin/invoices',
-        icon: assets.images.pagesSidebarIcon,
+        icon: assets.images.invoiceIcon,
         items: [],
       },
       {
-        title: 'Receipts',
+        title: 'RECEIPTS',
         url: '/super-admin/reports/invoices',
-        icon: assets.images.pagesSidebarIcon,
+        icon: assets.images.receiptIcon,
         items: [],
       },
       // {
@@ -89,9 +98,9 @@ export function MainSidebar({
       //   items: [],
       // },
       {
-        title: 'Property Management',
+        title: 'PROPERTY MANAGEMENT',
         url: '/super-admin/property-management',
-        icon: assets.images.usersSidebarIcon,
+        icon: assets.images.propIcon,
         items: [],
       },
       // {
@@ -101,9 +110,9 @@ export function MainSidebar({
       //   items: [],
       // },
       {
-        title: 'Security and Logs',
+        title: 'SECURITY AND LOGS',
         url: '/super-admin/security-and-logs',
-        icon: assets.images.pagesSidebarIcon,
+        icon: assets.images.secLogsIcon,
         items: [],
       },
       // {
@@ -113,9 +122,9 @@ export function MainSidebar({
       //   items: [],
       // },
       {
-        title: 'Support Tickets',
+        title: 'SUPPORT TICKETS',
         url: '/super-admin/support-and-feedback',
-        icon: assets.images.pagesSidebarIcon,
+        icon: assets.images.suppTicketIcon,
         items: [],
       },
       // {
@@ -148,26 +157,34 @@ export function MainSidebar({
   };
 
   return (
-    <Sidebar className="bg-transparent" collapsible="icon" {...props}>
-      <SidebarHeader className=" flex items-center justify-center mt-0 mb-2  bg-[#1b46e0]">
-        <div className="text-white max-w-[110px] ml-5 mr-auto mt-2 py-3">
-          PMP - LOGO
-          {/* <img
-            src={assets.images.whiteLogo}
-            className="max-w-full w-full h-full object-contain"
-          /> */}
-        </div>
+    <Sidebar
+      contentEditable="false"
+      className="bg-sidebar-background text-white"
+      collapsible="icon"
+      {...props}
+    >
+      <SidebarHeader className="flex items-center justify-center mt-0 mb-2">
+        {collapsedSidebar && (
+          <div className="text-white max-w-[110px] ml-5 m-auto mt-8">
+            <img
+              src={assets.images.companyIcon}
+              className="max-w-full w-full h-full object-contain"
+            />
+          </div>
+        )}
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent
+        className={`${collapsedSidebar ? 'mt-5 border-t' : 'mt-[72px] border-t'}`}
+      >
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter className="my-3">
+      {/* <SidebarFooter className="my-3">
         <FooterNavUser
           // media={shop ? shop?.media : media ? media : {}}
           user={data.user}
         />
-      </SidebarFooter>
-      <SidebarRail />
+      </SidebarFooter> */}
+      {/* <SidebarRail /> */}
     </Sidebar>
   );
 }

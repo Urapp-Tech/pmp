@@ -1,4 +1,5 @@
 import { SidebarInset } from '@/components/ui/sidebar';
+import { Label } from '@/components/ui/label';
 import { TopBar } from '@/components/TopBar';
 import {
   Building2,
@@ -11,16 +12,17 @@ import {
 import { getItem } from '@/utils/storage';
 import dashboardService from '@/services/adminapp/admin';
 import { useEffect, useState } from 'react';
+import assets from '@/assets/images';
 
 function ManagerDashboard() {
+  const user: any = getItem('USER');
   const [data, setData] = useState<any>();
-  const userDetails: any = getItem('USER');
 
   useEffect(() => {
     const fetchActivity = async () => {
       const activity = await dashboardService.managerActivity(
-        userDetails?.landlordId,
-        userDetails?.id
+        user?.landlordId,
+        user?.id
       );
       // if (activity.data.success) {
       setData(activity.data.data);
@@ -40,73 +42,112 @@ function ManagerDashboard() {
     pendingPayments: 'PKR 0',
   };
 
+  // helper to keep card style consistent
+  const cardBase =
+    'rounded-2xl shadow-sm ring-1 ring-black/5 px-4 py-3 sm:px-5 sm:py-4 h-46 sm:h-50 flex flex-col';
+  const cardLight = 'bg-secondary-bg'; // light mint (matches mock)
+  const cardDark = 'bg-secondary-bg'; // slightly darker mint (for alternates)
+  const labelCls = 'text-2xl text-primary-bg flex items-center gap-2 font-bold';
+
   return (
-    <div className="bg-white rounded-[20px] mt-5">
+    <div
+      className="min-h-screen"
+      style={{ background: 'var(--body-background)' }}
+    >
       <SidebarInset>
-        <TopBar title="Manager Dashboard" />
-
-        <div className="flex flex-col gap-6 p-6">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl bg-muted/50 p-4">
-              <h2 className="text-lg font-semibold mb-2">
-                <Building2 className="inline mr-2" />
-                Properties Managed
-              </h2>
-              <p className="text-3xl font-bold">{data?.properties_managed}</p>
-            </div>
-
-            <div className="rounded-xl bg-muted/50 p-4">
-              <h2 className="text-lg font-semibold mb-2">
-                <ClipboardCheck className="inline mr-2" />
-                Units Overview
-              </h2>
-              <p>
-                Occupied: <strong>{data?.units?.occupied}</strong>
-              </p>
-              <p>
-                Vacant: <strong>{data?.units?.available}</strong>
-              </p>
-              <p>
-                Total Units: <strong>{data?.units?.total}</strong>
+        {/* CONTENT WRAP */}
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8 py-6">
+          {/* HERO ROW: left welcome, right image */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-36 items-start mb-6">
+            <div className="rounded-2xl px-6 py-8">
+              <h1 className="text-primary-bg text-3xl sm:text-4xl font-extrabold leading-snug">
+                Hello {user?.fname},
+                <br />
+                Welcome to your
+                <br />
+                dashboard overview.
+              </h1>
+              <p className="mt-3 text-sm text-primary-bg px-10">
+                Track and manage the listed properties
               </p>
             </div>
 
-            <div className="rounded-xl bg-muted/50 p-4">
-              <h2 className="text-lg font-semibold mb-2">
-                <Users className="inline mr-2" />
-                Tenants Assigned
-              </h2>
-              <p className="text-3xl font-bold">{data?.tenants_assigned}</p>
+            <div className="rounded-2xl text-primary-bg overflow-hidden m-3">
+              {/* Replace src with your actual image */}
+              <div className={`${cardBase} ${cardLight}`}>
+                <div className="rounded-xl p-1">
+                  {' '}
+                  <h2 className="text-xl font-bold mb-2">Manager Info </h2>{' '}
+                  <p className="font-medium">
+                    Name : {user?.fname} {user?.lname}{' '}
+                  </p>
+                  <p className="font-medium">Gender : {user?.gender}</p>
+                  <p className="font-medium">Phone : {user?.phone}</p>
+                  <p className="font-medium">Email : {user?.email}</p>{' '}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl bg-muted/50 p-4">
-              <h2 className="text-lg font-semibold mb-2">
-                <DollarSign className="inline mr-2" />
-                Rent Summary
-              </h2>
-              <p>
-                Total Collected: <strong>{manager.totalCollected}</strong>
-              </p>
-              <p>
-                Pending Payments: <strong>{manager.pendingPayments}</strong>
-              </p>
+          {/* METRIC CARDS: 4 x 2 grid */}
+          <div className="grid gap-6 2xl::grid-cols-4 sm:grid-cols-2">
+            {/* 1 */}
+            <div className={`${cardBase} ${cardDark}`}>
+              <Label className={labelCls}>Properties Managed</Label>
+              <div className="flex-1 flex items-end justify-start mt-6">
+                <span className="text-[74px] font-semibold text-primary-bg">
+                  {data?.properties_managed ?? 0}
+                </span>
+              </div>
+            </div>
+            {/* 2 */}
+            <div className={`${cardBase} ${cardDark}`}>
+              <Label className={labelCls}>Tenants Assigned</Label>
+              <div className="flex-1 flex items-end justify-start mt-6">
+                <span className="text-[74px] font-semibold text-primary-bg">
+                  {data?.tenants_assigned ?? 0}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-6 2xl::grid-cols-4 sm:grid-cols-2">
+            <div className="rounded-2xl text-primary-bg overflow-hidden mt-6">
+              {/* Replace src with your actual image */}
+              <div className={`${cardBase} ${cardLight}`}>
+                <div className="rounded-xl p-1">
+                  {' '}
+                  <h2 className="text-xl font-bold mb-10">
+                    Units Overview
+                  </h2>{' '}
+                  <p className="font-medium italic">
+                    Occupied : {data?.units?.occupied}
+                  </p>
+                  <p className="font-medium italic">
+                    Vacant : {data?.units?.available}
+                  </p>
+                  <p className="font-medium italic">
+                    Total Units : {data?.units?.total}
+                  </p>{' '}
+                </div>
+              </div>
             </div>
 
-            <div className="rounded-xl bg-muted/50 p-4">
-              <h2 className="text-lg font-semibold mb-2">
-                <User className="inline mr-2" />
-                Manager Info
-              </h2>
-              <ul className="list-disc ml-6 mt-2 capitalize">
-                <li>
-                  Name : {userDetails?.fname} {userDetails?.lname}
-                </li>
-                <li>Gender : {userDetails?.gender}</li>
-                <li>Phone : {userDetails?.phone}</li>
-                <li>Email : {userDetails?.email}</li>
-              </ul>
+            <div className="rounded-2xl text-primary-bg overflow-hidden mt-6">
+              {/* Replace src with your actual image */}
+              <div className={`${cardBase} ${cardLight}`}>
+                <div className="rounded-xl p-1">
+                  {' '}
+                  <h2 className="text-xl font-bold mb-16">
+                    Rent Summary{' '}
+                  </h2>{' '}
+                  <p className="font-medium italic">
+                    Total Collected : {manager.totalCollected}{' '}
+                  </p>
+                  <p className="font-medium italic">
+                    Pending Payments : {manager.pendingPayments}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

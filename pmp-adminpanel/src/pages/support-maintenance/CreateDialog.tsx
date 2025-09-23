@@ -21,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { Fields } from '@/interfaces/support-tickets.interface';
 import { cn } from '@/lib/utils';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, UploadIcon, X } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
@@ -154,183 +154,201 @@ const BlogsCreateDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="sm:max-w-[800px] cs-dialog-box"
+        className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl !bg-transparent [&>button]:hidden"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle>Add New Request</DialogTitle>
+        <DialogHeader className="p-0 w-full">
+          {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
+          <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
+              Add New Request
+            </DialogTitle>
+            {/* 3) Custom rounded close button */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </DialogHeader>
-        <div className="grid grid-cols-12 gap-3">
-          <div className="col-span-6">
-            <Form {...form}>
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="custom-form-section">
-                  <div className="form-group w-full flex gap-3">
-                    <FormControl className="m-1 w-full">
-                      <div className="">
-                        <FormLabel
-                          htmlFor="title"
-                          className="text-sm font-medium"
-                        >
-                          Title
-                        </FormLabel>
-                        <Input
-                          className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                          id="subject"
-                          placeholder="Rent listing issues"
-                          type="text"
-                          {...register('subject', {
-                            required: 'Please enter your title name',
-                          })}
-                        />
-                        {errors.subject && (
-                          <FormMessage>*{errors.subject.message}</FormMessage>
-                        )}
-                      </div>
-                    </FormControl>
-                  </div>
-                  <div className="form-group w-full flex">
-                    <FormControl className="m-1 w-full">
-                      <div className="">
-                        <FormLabel
-                          htmlFor="message"
-                          className="text-sm font-medium"
-                        >
-                          Description
-                        </FormLabel>
-                        <Textarea
-                          className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
-                          id="message"
-                          placeholder="Type your report here."
-                          {...register('message')}
-                        />
-                      </div>
-                    </FormControl>
-                  </div>
-                  <div>
-                    <div className="flex justify-between">
-                      <FormLabel
-                        htmlFor="images"
-                        className="text-sm font-medium my-3"
-                      >
-                        Upload Docs / Images
-                        <span className="text-xs font-normal">
-                          {' '}
-                          ( Images should be in JPG, JPEG, or PNG format )
-                        </span>
-                      </FormLabel>
-                    </div>
-                    <div className="">
-                      <div className="FormField">
-                        <div className="ImageBox">
-                          <Controller
-                            name="images"
-                            control={control}
-                            // rules={{
-                            //   required: 'Required',
-                            // }}
-                            render={({ field: { onChange } }) => (
-                              <>
-                                <div className="w-full flex h-[50px] items-center">
-                                  <input
-                                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
-                                    style={{ display: 'none' }}
-                                    id="raised-button-files"
-                                    type="file"
-                                    multiple
-                                    onChange={(event) =>
-                                      handleFileChange(onChange, event)
-                                    }
-                                    onClick={handleFileOnClick}
-                                  />
-                                  <span className="bg-lunar-bg w-full rounded-2xl">
-                                    <label
-                                      htmlFor="raised-button-files"
-                                      className="ImageLabel text-white flex h-[50px] justify-center items-center w-full "
-                                    >
-                                      <img
-                                        width={22}
-                                        src={assets.images.uploadIcon}
-                                      />{' '}
-                                      <span className="text-white px-1">
-                                        Upload
-                                      </span>
-                                    </label>
-                                  </span>
-                                </div>
-                              </>
-                            )}
+        {/* <DialogHeader>
+          <DialogTitle>Add New Request</DialogTitle>
+        </DialogHeader> */}
+        <div className="bg-white rounded-bl-3xl px-6 pb-6 pt-5">
+          <div className="grid grid-cols-12 gap-3">
+            <div className="col-span-6">
+              <Form {...form}>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="custom-form-section">
+                    <div className="form-group w-full flex gap-3">
+                      <FormControl className="m-1 w-full">
+                        <div className="">
+                          <FormLabel
+                            htmlFor="title"
+                            className="text-sm font-medium"
+                          >
+                            Title
+                          </FormLabel>
+                          <Input
+                            className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                            id="subject"
+                            placeholder="Rent listing issues"
+                            type="text"
+                            {...register('subject', {
+                              required: 'Please enter your title name',
+                            })}
                           />
-                          {errors.images && (
-                            <FormMessage>*{errors.images?.message}</FormMessage>
+                          {errors.subject && (
+                            <FormMessage>*{errors.subject.message}</FormMessage>
                           )}
+                        </div>
+                      </FormControl>
+                    </div>
+                    <div className="form-group w-full flex">
+                      <FormControl className="m-1 w-full">
+                        <div className="">
+                          <FormLabel
+                            htmlFor="message"
+                            className="text-sm font-medium"
+                          >
+                            Description
+                          </FormLabel>
+                          <Textarea
+                            className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                            id="message"
+                            placeholder="Type your report here."
+                            {...register('message')}
+                          />
+                        </div>
+                      </FormControl>
+                    </div>
+                    <div>
+                      <div className="flex justify-between">
+                        <FormLabel
+                          htmlFor="images"
+                          className="text-sm font-medium my-3"
+                        >
+                          Upload Docs / Images
+                          <span className="text-xs font-normal">
+                            {' '}
+                            ( Images should be in JPG, JPEG, or PNG format )
+                          </span>
+                        </FormLabel>
+                      </div>
+                      <div className="">
+                        <div className="FormField">
+                          <div className="ImageBox">
+                            <Controller
+                              name="images"
+                              control={control}
+                              // rules={{
+                              //   required: 'Required',
+                              // }}
+                              render={({ field: { onChange } }) => (
+                                <>
+                                  <div className="w-full flex h-[50px] items-center">
+                                    <input
+                                      accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+                                      style={{ display: 'none' }}
+                                      id="raised-button-files"
+                                      type="file"
+                                      multiple
+                                      onChange={(event) =>
+                                        handleFileChange(onChange, event)
+                                      }
+                                      onClick={handleFileOnClick}
+                                    />
+                                    <span className="border-2 border-primary-bg w-full rounded-2xl">
+                                      <label
+                                        htmlFor="raised-button-files"
+                                        className="ImageLabel text-primary-bg flex h-[50px] justify-center items-center w-full"
+                                      >
+                                        <UploadIcon size={18} />
+                                        <span className="text-primary-bg px-1">
+                                          Upload
+                                        </span>
+                                      </label>
+                                    </span>
+                                  </div>
+                                </>
+                              )}
+                            />
+                            {errors.images && (
+                              <FormMessage>
+                                *{errors.images?.message}
+                              </FormMessage>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <DialogFooter className="mt-3">
-                    <Button
-                      disabled={isLoader}
-                      type="submit"
-                      className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
-                    >
-                      {isLoader && <Loader2 className="animate-spin" />} Add
-                    </Button>
-                  </DialogFooter>
-                </div>
-              </form>
-            </Form>
-          </div>
-          <div className="col-span-6">
-            <Controller
-              name="images"
-              control={control}
-              // rules={{
-              //   validate: () => {
-              //     if (planFiles?.length > 0) {
-              //       return true;
-              //     }
-              //     return 'At least one image is required';
-              //   },
-              // }}
-              render={({ field: { onChange } }) => (
-                <div>
-                  <Label
-                    htmlFor="address"
-                    className="text-sm underline underline-offset-2 font-medium my-3"
-                  >
-                    Images
-                  </Label>
-                  {selectedPlanImages?.map((file: any, index: number) => (
-                    <div
-                      key={index}
-                      className="ShowFileItem p-1 flex items-center relative"
-                    >
-                      <X
-                        size={20}
-                        className="absolute top-1 right-[-1px] cursor-pointer text-white bg-red-500 rounded-full p-1"
-                        onClick={() => handleRemoveFile(index, onChange)}
-                      />
-                      <div
-                        className={`p-4 border-dashed border-0 flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]`}
+                    <DialogFooter className="mt-3">
+                      <Button
+                        disabled={isLoader}
+                        type="submit"
+                        className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                       >
-                        {file.startsWith('data:image') ? (
-                          <img
-                            src={file}
-                            alt="preview"
-                            className="w-[88px] h-[88px] object-contain"
-                          />
-                        ) : (
-                          <span className="text-xs text-center break-all">
-                            {file}
-                          </span>
-                        )}
+                        {isLoader && <Loader2 className="animate-spin" />} Add
+                      </Button>
+                    </DialogFooter>
+                  </div>
+                </form>
+              </Form>
+            </div>
+            <div className="col-span-6">
+              <Controller
+                name="images"
+                control={control}
+                // rules={{
+                //   validate: () => {
+                //     if (planFiles?.length > 0) {
+                //       return true;
+                //     }
+                //     return 'At least one image is required';
+                //   },
+                // }}
+                render={({ field: { onChange } }) => (
+                  <div>
+                    <Label
+                      htmlFor="address"
+                      className="text-sm underline underline-offset-2 font-medium my-3"
+                    >
+                      Images
+                    </Label>
+                    {selectedPlanImages?.map((file: any, index: number) => (
+                      <div
+                        key={index}
+                        className="ShowFileItem p-1 flex items-center relative"
+                      >
+                        <X
+                          size={20}
+                          className="absolute top-1 right-[-1px] cursor-pointer text-white bg-primary-bg rounded-full p-1"
+                          onClick={() => handleRemoveFile(index, onChange)}
+                        />
+                        <div
+                          className={`p-4 border-dashed border-0 flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]`}
+                        >
+                          {file.startsWith('data:image') ? (
+                            <img
+                              src={file}
+                              alt="preview"
+                              className="w-[88px] h-[88px] object-contain"
+                            />
+                          ) : (
+                            <span className="text-xs text-center break-all">
+                              {file}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            />
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
           </div>
         </div>
       </DialogContent>

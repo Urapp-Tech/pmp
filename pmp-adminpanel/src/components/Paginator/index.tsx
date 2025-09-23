@@ -33,7 +33,7 @@ export const Paginator = ({
         {showPreviousNext && (
           <PaginationItem>
             <PaginationPrevious
-              className={`${cpage === 1 ? 'bg-mars-bg/50 text-lunar-bg rounded-[50%] hover:bg-mars-bg/50 hover:text-lunar-bg' : 'cursor-pointer bg-lunar-bg text-quinary-bg rounded-[50%] hover:bg-lunar-bg hover:text-quinary-bg'}`}
+              className={`${cpage === 1 ? 'bg-primary-bg text-white rounded-[50%] hover:bg-scrollbar hover:text-primary-bg' : 'cursor-pointer bg-primary-bg text-quinary-bg rounded-[50%] hover:bg-scrollbar hover:text-quinary-bg'}`}
               onClick={() => cpage !== 1 && onPageChange(currentPage - 1)}
             />
           </PaginationItem>
@@ -46,8 +46,8 @@ export const Paginator = ({
               <PaginationLink
                 className={`${
                   page === cpage
-                    ? 'bg-lunar-bg text-quinary-bg rounded-[50%] hover:bg-lunar-bg hover:text-quinary-bg'
-                    : 'cursor-pointer text-lunar-bg rounded-[50%] text-[14px] leading-5 font-semibold hover:bg-mars-bg/50 hover:text-lunar-bg'
+                    ? 'bg-scrollbar text-primary-bg !hover:bg-scrollbar !hover:text-primary-bg !rounded-full'
+                    : 'cursor-pointer text-primary-bg text-[14px] leading-5 font-semibold hover:bg-scrollbar !rounded-full hover:text-primary-bg'
                 }`}
                 onClick={() => page !== cpage && onPageChange(pageNumber)}
               >
@@ -60,7 +60,7 @@ export const Paginator = ({
         {showPreviousNext && (
           <PaginationItem>
             <PaginationNext
-              className={`${total === cpage ? 'bg-mars-bg/50 text-lunar-bg rounded-[50%] hover:bg-mars-bg/50 hover:text-lunar-bg' : 'cursor-pointer bg-lunar-bg text-quinary-bg rounded-[50%] hover:bg-lunar-bg hover:text-quinary-bg'}`}
+              className={`${total === cpage ? 'bg-primary-bg text-white rounded-[50%] hover:bg-scrollbar hover:text-lunar-bg' : 'cursor-pointer bg-primary-bg text-white rounded-[50%] hover:bg-scrollbar hover:text-primary-bg'}`}
               onClick={() => total !== cpage && onPageChange(currentPage + 1)}
             />
           </PaginationItem>

@@ -3,10 +3,12 @@ import { setItem } from '../../utils/storage';
 
 type AppState = {
   shopItems: any;
+  collapsedSidebar: boolean;
 };
 
 const initialState: AppState = {
   shopItems: null,
+  collapsedSidebar: true,
 };
 
 export const appSlice = createSlice({
@@ -23,10 +25,17 @@ export const appSlice = createSlice({
     setRemoveShopTenantState: (state) => {
       state.shopItems = null;
     },
+    setCollapsedSidebar: (state, action: PayloadAction<boolean>) => {
+      state.collapsedSidebar = action.payload;
+      setItem('COLLAPSED_SIDEBAR', state.collapsedSidebar);
+    },
   },
 });
 
-export const { setShopTenantState, setRemoveShopTenantState } =
-  appSlice.actions;
+export const {
+  setShopTenantState,
+  setRemoveShopTenantState,
+  setCollapsedSidebar,
+} = appSlice.actions;
 
 export default appSlice.reducer;

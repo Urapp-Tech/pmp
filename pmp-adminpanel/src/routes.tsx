@@ -8,6 +8,8 @@ import SystemConfiguration from '@/pages/setting/systemConfiguration';
 import { lazy, Suspense } from 'react';
 import { Navigate, RouteObject } from 'react-router';
 import Otp from './pages/auth/Otp';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import NewPassword from './pages/auth/NewPassword';
 
 const AddRolePermissionsPage = lazy(
   () => import('@/pages/role-permissions/AddRolePermissionsPage')
@@ -88,6 +90,22 @@ export const routeObjects: RouteObject[] = [
             element: (
               <Suspense fallback={<div>Loading...</div>}>
                 <Login />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'forgot-password',
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <ForgotPassword />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'new-password',
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <NewPassword />
               </Suspense>
             ),
           },

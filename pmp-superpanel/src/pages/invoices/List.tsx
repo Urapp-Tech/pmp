@@ -50,6 +50,7 @@ import { getItem } from '@/utils/storage';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import assets from '@/assets/images';
 
 const Invoices = () => {
   const { toast } = useToast();
@@ -268,10 +269,40 @@ const Invoices = () => {
 
   const columns = React.useMemo<ColumnDef<InvoiceFields>[]>(
     () => [
-      { accessorKey: 'invoice_no', header: 'Invoice' },
+      {
+        accessorKey: 'invoice_no',
+        header: 'INVOICE',
+        cell: ({ row }) => {
+          const invoiceItems = row.original.invoice_items || [];
+          const hasPending =
+            row.original.status !== 'paid' &&
+            (invoiceItems.length === 0 ||
+              invoiceItems.every((item) => item.status !== 'pending'));
+
+          return (
+            <div className="flex gap-4 w-[115px] items-center justify-center">
+              {hasPending ? (
+                <>
+                  <div className="inline-block h-2 w-2 rounded-full bg-scrollbar" />
+                  <span className="text-textinv">
+                    {row.original.invoice_no}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="inline-block h-2 w-2 rounded-full bg-offground" />
+                  <span className="text-textinv">
+                    {row.original.invoice_no}
+                  </span>
+                </>
+              )}
+            </div>
+          );
+        },
+      },
       {
         accessorKey: 'contract_no',
-        header: 'Tenant',
+        header: 'TENANT',
         cell: ({ row }) => {
           const tenant = row.original.tenant;
           const user = tenant?.user;
@@ -294,19 +325,19 @@ const Invoices = () => {
       },
       {
         accessorKey: 'property',
-        header: 'Property',
+        header: 'PROP.',
         cell: ({ row }) =>
           row.original.tenant?.property_unit?.property?.name || '--',
       },
       {
         accessorKey: 'unit_no',
-        header: 'Unit No',
+        header: 'UNIT N0.',
         cell: ({ row }) => row.original.tenant?.property_unit?.unit_no || '--',
       },
       // { accessorKey: 'invoice_no', header: 'Contract no' },
-      { accessorKey: 'total_amount', header: 'Total' },
-      { accessorKey: 'due_date', header: 'Due' },
-      { accessorKey: 'status', header: 'Status' },
+      { accessorKey: 'total_amount', header: 'TOT.' },
+      { accessorKey: 'due_date', header: 'DUE' },
+      { accessorKey: 'status', header: 'STATUS' },
       // {
       //   accessorKey: 'invoice_date',
       //   header: 'Invoice Date',
@@ -317,7 +348,7 @@ const Invoices = () => {
       // },
       {
         id: 'Submitted',
-        header: 'Payment',
+        header: 'PAY.',
         cell: ({ row }) => {
           const invoiceItems = row.original.invoice_items || [];
           const hasPending =
@@ -334,29 +365,44 @@ const Invoices = () => {
       },
       {
         id: '1actions',
-        header: 'Actions',
+        header: 'ACTIONS',
 
         enableHiding: false,
         cell: ({ row }) => {
           const inv = row.original;
           return (
-            <div className="flex gap-2">
-              {/* {can(PERMISSIONS.INVOICE.UPDATE) && (
-                <Pencil
-                  className="cursor-pointer text-blue-500"
-                  onClick={() => handleAction('edit', inv)}
-                />
-              )}
-              {can(PERMISSIONS.INVOICE.DELETE) && (
-                )} */}
-              <Download
-                className="cursor-pointer text-gray-600 pr-1"
-                onClick={() => handleAction('download', inv)}
-              />
-              <Eye
-                className="cursor-pointer text-gray-600"
+            <div className="flex gap-2 items-center justify-center">
+              <img
                 onClick={() => handleAction('view', inv)}
+                src={assets.images.coloredEye}
+                className="text-primary-bg cursor-pointer h-8 w-8"
               />
+              {/* <Eye
+                className="cursor-pointer text-primary-bg"
+                onClick={() => handleAction('view', inv)}
+              /> */}
+            </div>
+          );
+        },
+      },
+      {
+        id: '2actions',
+        header: 'DOWNLOAD',
+
+        enableHiding: false,
+        cell: ({ row }) => {
+          const inv = row.original;
+          return (
+            <div className="flex gap-2 items-center justify-center">
+              <img
+                onClick={() => handleAction('download', inv)}
+                src={assets.images.download}
+                className="text-primary-bg cursor-pointer h-8 w-8"
+              />
+              {/* <Download
+                className="cursor-pointer text-primary-bg pr-1"
+                onClick={() => handleAction('download', inv)}
+              /> */}
             </div>
           );
         },
@@ -380,12 +426,21 @@ const Invoices = () => {
   });
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow mt-5">
-      <TopBar title="Invoices" />
+    <div className="p-4 mt-5">
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
         <div className="flex items-center py-4 justify-between">
-          <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-            Invoices
+          <h2 className="text-primary-bg font-semibold text-[33px] leading-normal capitalize">
+            INVOICES
+            <div className="flex gap-2">
+              <span className="block text-sm text-scrollbar text-center">
+                <div className="inline-block h-2 w-2 rounded-full bg-scrollbar mx-1" />
+                PAID
+              </span>
+              <span className="block text-sm text-offground text-center">
+                <div className="inline-block h-2 w-2 rounded-full bg-offground mx-1" />
+                OVERDUE
+              </span>
+            </div>
           </h2>
           <div className="flex items-center gap-3">
             <Input
@@ -421,9 +476,12 @@ const Invoices = () => {
             </div>
           ) : (
             <Table>
-              <TableHeader>
+              <TableHeader className="[&_tr]:border-b-2 [&_tr]:border-b-primary-bg">
                 {table.getHeaderGroups().map((hg) => (
-                  <TableRow key={hg.id}>
+                  <TableRow
+                    className="!border-b-2 !border-b-[#242460]"
+                    key={hg.id}
+                  >
                     {hg.headers.map((h) => (
                       <TableHead key={h.id}>
                         {h.isPlaceholder ? null : (
@@ -442,7 +500,7 @@ const Invoices = () => {
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody>
+              <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg">
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>

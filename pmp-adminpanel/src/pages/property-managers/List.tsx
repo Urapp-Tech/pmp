@@ -57,6 +57,7 @@ import { getInitials, handleErrorMessage } from '@/utils/helper';
 import AssignUserDialog from './AssignedUnitDialog';
 import { usePermission } from '@/utils/hasPermission';
 import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
+import assets from '@/assets/images';
 
 export type Users = {
   id: string; // UUID
@@ -122,7 +123,7 @@ const PropertyManagers = () => {
   const columns: ColumnDef<Users>[] = [
     {
       accessorKey: 'fname',
-      header: 'Name',
+      header: 'NAME',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           <Avatar>
@@ -148,8 +149,7 @@ const PropertyManagers = () => {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            Email
-            <ArrowUpDown />
+            EMAIL
           </Button>
         );
       },
@@ -159,23 +159,25 @@ const PropertyManagers = () => {
     },
     {
       accessorKey: 'phone',
-      header: 'Phone',
+      header: 'PHONE',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('phone')}</div>
       ),
     },
     {
       accessorKey: 'isActive',
-      header: 'Status',
+      header: 'STATUS',
       cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[50px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
+        <div
+          className={`capitalize ${row.getValue('isActive') ? 'bg-scrollbar' : 'bg-primary-bg !text-[#BBF9E4]'} flex items-center justify-center rounded-[3px] text-center w-[75px] h-[30px] text-[12px] leading-normal font-semibold text-primary-bg py-[1px]`}
+        >
           {row.getValue('isActive') ? 'Active' : 'In-Active'}
         </div>
       ),
     },
     {
       accessorKey: 'assignedUnits',
-      header: 'Assigned Property Units',
+      header: 'ASSIGNED PROPERTY UNITS',
       cell: ({ row }) => {
         const users = row.getValue('assignedUnits') as {
           id: string;
@@ -194,9 +196,8 @@ const PropertyManagers = () => {
         const remainingCount = users.length > 3 ? users.length - 3 : 0;
 
         const colors = [
-          'bg-red-500',
-          'bg-green-500',
-          'bg-blue-500',
+          'bg-primary-bg',
+          'bg-scrollbar',
           'bg-yellow-500',
           'bg-purple-500',
           'bg-pink-500',
@@ -250,28 +251,43 @@ const PropertyManagers = () => {
             {can(PERMISSIONS.MANAGER.UPDATE) && (
               <>
                 <div>
-                  <UserRoundCheck
-                    className="text-lunar-bg cursor-pointer"
+                  <img
+                    onClick={() => handleActionMenu('assign', id)}
+                    src={assets.images.propManagers}
+                    className="text-primary-bg cursor-pointer h-8 w-8"
+                  />
+                  {/* <UserRoundCheck
+                    className="text-primary-bg cursor-pointer"
                     onClick={() => handleActionMenu('assign', id)}
                     size={20}
-                  />
+                  /> */}
                 </div>
                 <div className="pl-3">
-                  <Pencil
-                    className="text-lunar-bg cursor-pointer"
+                  <img
+                    onClick={() => handleActionMenu('edit', id)}
+                    src={assets.images.editPencil}
+                    className="text-primary-bg cursor-pointer h-8 w-8"
+                  />
+                  {/* <Pencil
+                    className="text-primary-bg cursor-pointer"
                     onClick={() => handleActionMenu('edit', id)}
                     size={20}
-                  />
+                  /> */}
                 </div>
               </>
             )}
             {can(PERMISSIONS.MANAGER.DELETE) && (
               <div className="pl-3">
-                <Trash2
-                  className="text-lunar-bg cursor-pointer"
+                <img
+                  onClick={() => handleActionMenu('delete', id)}
+                  src={assets.images.deleted}
+                  className="text-primary-bg cursor-pointer h-8 w-8"
+                />
+                {/* <Trash2
+                  className="text-primary-bg cursor-pointer"
                   size={20}
                   onClick={() => handleActionMenu('delete', id)}
-                />
+                /> */}
               </div>
             )}
           </div>
@@ -392,15 +408,16 @@ const PropertyManagers = () => {
 
   const handlePageChange = async (newPage: any) => {
     table.setPageIndex(newPage);
+    const nextPage = newPage + 1;
     try {
       const users = await userService.managerslist(
         userDetails?.landlordId,
         search,
-        newPage,
+        nextPage,
         pageSize
       );
       if (users.data.success) {
-        setPage(newPage);
+        setPage(nextPage);
         setList(users.data.data.list);
         setTotal(users.data.data.total);
       } else {
@@ -569,14 +586,13 @@ const PropertyManagers = () => {
   };
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Admin Users" />
+    <div className=" p-2 mt-5">
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Property Managers
+            <h2 className="text-tertiary-bg font-bold text-3xl leading-normal capitalize">
+              PROPERTY MANAGERS
             </h2>
             <div className="flex gap-3 items-center">
               <Input
@@ -590,7 +606,7 @@ const PropertyManagers = () => {
                 {can(PERMISSIONS.MANAGER.CREATE) && (
                   <Button
                     onClick={() => setIsOpen(true)}
-                    className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                     variant={'outline'}
                   >
                     + Add New
@@ -643,7 +659,7 @@ const PropertyManagers = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
@@ -682,7 +698,7 @@ const PropertyManagers = () => {
               <div className="my-5 flex justify-center w-full">
                 <Paginator
                   pageSize={pageSize}
-                  currentPage={page}
+                  currentPage={page - 1}
                   totalPages={total}
                   onPageChange={(pageNumber) => handlePageChange(pageNumber)}
                   showPreviousNext

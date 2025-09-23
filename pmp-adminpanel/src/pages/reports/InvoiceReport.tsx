@@ -19,6 +19,7 @@ import reportsService from '@/services/adminapp/reports';
 import { getItem } from '@/utils/storage';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import assets from '@/assets/images';
 
 /**
  * InvoiceReport
@@ -178,63 +179,195 @@ const InvoiceReport = () => {
     doc.save('invoice_report.pdf');
   };
 
-  return (
-    <div className="bg-white p-4 rounded shadow mt-5">
-      <TopBar title="Invoice Report" />
-      <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
-        <div className="flex gap-4 flex-wrap items-end">
-          <Input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="w-[200px]"
-            placeholder="From date"
-          />
-          <Input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="w-[200px]"
-            placeholder="To date"
-          />
-          <Button
-            variant="outline"
-            onClick={() => {
-              const start = dayjs().startOf('month').format('YYYY-MM-DD');
-              const end = dayjs().endOf('month').format('YYYY-MM-DD');
-              setFromDate(start);
-              setToDate(end);
+  const downloadSpecificPDF = (invoice: any) => {
+    const doc: any = new jsPDF();
 
-              fetchReport(start, end);
-            }}
-          >
-            Current Month
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              const start = dayjs()
-                .subtract(1, 'month')
-                .startOf('month')
-                .format('YYYY-MM-DD');
-              const end = dayjs()
-                .subtract(1, 'month')
-                .endOf('month')
-                .format('YYYY-MM-DD');
-              setFromDate(start);
-              setToDate(end);
-              // setStatusFilter('paid');
-              fetchReport(start, end);
-            }}
-          >
-            Previous Month
-          </Button>
-          <Button onClick={() => fetchReport()}>Generate</Button>
-          {reportList?.length > 0 && (
-            <Button variant="outline" onClick={downloadPDF}>
-              <Download className="mr-2 h-4 w-4" /> PDF
+    doc.setFontSize(16);
+    doc.text('Invoice Detail', 14, 16);
+
+    doc.setFontSize(12);
+    // Tenant Details - LEFT side
+    const leftX = 14;
+    let tenantY = 28;
+    doc.setFontSize(12);
+    doc.text('Tenant Details:', leftX, tenantY);
+    tenantY += 7;
+    doc.setFontSize(11);
+    if (invoice.tenant?.user) {
+      doc.text(
+        `Name: ${invoice.tenant.user.fname} ${invoice.tenant.user.lname}`,
+        leftX,
+        tenantY
+      );
+      tenantY += 6;
+      doc.text(`Email: ${invoice.tenant.user.email}`, leftX, tenantY);
+      tenantY += 6;
+      doc.text(`Phone: ${invoice.tenant.user.phone}`, leftX, tenantY);
+      tenantY += 6;
+      doc.text(
+        `Contract No: ${invoice.tenant.contract_number || 'N/A'}`,
+        leftX,
+        tenantY
+      );
+    } else {
+      doc.text('No tenant info.', leftX, tenantY);
+    }
+
+    // Invoice Info - RIGHT side
+    const rightX = 110;
+    let y = 20;
+    doc.setFontSize(12);
+    y += 7;
+    doc.setFontSize(11);
+    doc.text(`Invoice No: ${invoice.invoice_no}`, rightX, y);
+    y += 6;
+    doc.text(`Invoice Date: ${invoice.invoice_date}`, rightX, y);
+    y += 6;
+    doc.text(`Due Date: ${invoice.due_date}`, rightX, y);
+    y += 6;
+    doc.text(`Status: ${invoice.status}`, rightX, y);
+    y += 6;
+    doc.text(`Total Amount: ${invoice.total_amount.toString()}`, rightX, y);
+
+    doc.save(`invoice_${invoice.invoice_no}.pdf`);
+  };
+
+  return (
+    <div className="p-4 mt-5">
+      <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
+        <div className="flex gap-4 flex-wrap items-center justify-between">
+          <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
+            RECEIPTS
+          </h2>
+          <div className="flex gap-4 flex-wrap items-center">
+            <div className="relative w-[200px]">
+              <Input
+                id="fromDate"
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="
+      w-full border-primary-bg pr-10
+      appearance-none
+      focus-visible:ring-0
+      [&::-webkit-calendar-picker-indicator]:opacity-0
+      [&::-webkit-clear-button]:hidden
+      [&::-ms-reveal]:hidden
+      [&::-ms-clear]:hidden
+    "
+                placeholder="From date"
+              />
+              <button
+                type="button"
+                aria-label="Open date picker"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                onClick={() => {
+                  const el = document.getElementById(
+                    'fromDate'
+                  ) as HTMLInputElement | null;
+                  // @ts-ignore - not in all TS libs
+                  if (el && typeof el.showPicker === 'function')
+                    el.showPicker();
+                  else el?.focus();
+                }}
+              >
+                <img
+                  src={assets.images.calender}
+                  alt="Calendar"
+                  className="h-4 w-4 pointer-events-none"
+                />
+              </button>
+            </div>
+
+            {/* To date */}
+            <div className="relative w-[200px]">
+              <Input
+                id="toDate"
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="
+      w-full border-primary-bg pr-10
+      appearance-none
+      focus-visible:ring-0
+      [&::-webkit-calendar-picker-indicator]:opacity-0
+      [&::-webkit-clear-button]:hidden
+      [&::-ms-reveal]:hidden
+      [&::-ms-clear]:hidden
+    "
+                placeholder="To date"
+              />
+              <button
+                type="button"
+                aria-label="Open date picker"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                onClick={() => {
+                  const el = document.getElementById(
+                    'toDate'
+                  ) as HTMLInputElement | null;
+                  // @ts-ignore
+                  if (el && typeof el.showPicker === 'function')
+                    el.showPicker();
+                  else el?.focus();
+                }}
+              >
+                <img
+                  src={assets.images.calender}
+                  alt="Calendar"
+                  className="h-4 w-4 pointer-events-none"
+                />
+              </button>
+            </div>
+            <Button
+              className="border-primary-bg"
+              variant="outline"
+              onClick={() => {
+                const start = dayjs().startOf('month').format('YYYY-MM-DD');
+                const end = dayjs().endOf('month').format('YYYY-MM-DD');
+                setFromDate(start);
+                setToDate(end);
+
+                fetchReport(start, end);
+              }}
+            >
+              Current Month
             </Button>
-          )}
+            <Button
+              variant="outline"
+              className="bg-primary-bg text-white"
+              onClick={() => {
+                const start = dayjs()
+                  .subtract(1, 'month')
+                  .startOf('month')
+                  .format('YYYY-MM-DD');
+                const end = dayjs()
+                  .subtract(1, 'month')
+                  .endOf('month')
+                  .format('YYYY-MM-DD');
+                setFromDate(start);
+                setToDate(end);
+                // setStatusFilter('paid');
+                fetchReport(start, end);
+              }}
+            >
+              Previous Month
+            </Button>
+            <Button
+              onClick={() => fetchReport()}
+              className="bg-primary-bg text-white"
+            >
+              Generate
+            </Button>
+            {reportList?.length > 0 && (
+              <Button
+                variant="outline"
+                className="bg-primary-bg text-white"
+                onClick={downloadPDF}
+              >
+                <Download className="mr-2 h-4 w-4" /> PDF
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="mt-4">
@@ -245,24 +378,25 @@ const InvoiceReport = () => {
           ) : (
             <>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Receipt No</TableHead>
-                    <TableHead>Tenant</TableHead>
-                    <TableHead>Property</TableHead>
-                    <TableHead>Unit No</TableHead>
-                    <TableHead>Invoice Date</TableHead>
-                    <TableHead>Paid Date</TableHead>
-                    <TableHead>Paid Method</TableHead>
-                    <TableHead>Paid Amount</TableHead>
+                <TableHeader className="[&_tr]:border-b-2 [&_tr]:border-b-primary-bg">
+                  <TableRow className="!border-b-2 !border-b-[#242460]">
+                    <TableHead>RECEIPT NO.</TableHead>
+                    <TableHead>TENANT</TableHead>
+                    <TableHead>PROPERTY</TableHead>
+                    <TableHead>UNIT NO.</TableHead>
+                    <TableHead>INVOICE DATE</TableHead>
+                    <TableHead>PAYMENT DATE</TableHead>
+                    <TableHead>PAYMENT METHOD</TableHead>
+                    <TableHead>PAID AMOUNT</TableHead>
+                    <TableHead>DOWNLOAD</TableHead>
                     {/* <TableHead>Status</TableHead> */}
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg">
                   {reportList.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={7}
+                        colSpan={8}
                         className="text-center py-4 text-gray-500"
                       >
                         No invoices found for selected filter.
@@ -273,9 +407,9 @@ const InvoiceReport = () => {
                       <TableRow key={inv.id}>
                         <TableCell>
                           <span
-                            className="text-blue-600 underline cursor-pointer"
+                            className="text-scrollbar underline cursor-pointer"
                             onClick={() =>
-                              navigate(`/admin-panel/invoices/detail/${inv.id}`)
+                              navigate(`/super-admin/invoices/detail/${inv.id}`)
                             }
                           >
                             {inv.invoice_no}
@@ -304,8 +438,18 @@ const InvoiceReport = () => {
                         <TableCell>{inv.invoice_date || '—'}</TableCell>
                         <TableCell>{inv.payment_date || '—'}</TableCell>
                         <TableCell>{inv.payment_method || '—'}</TableCell>
-                        <TableCell className="w-[55px]">
-                          {inv.total_amount || 0}
+                        <TableCell>{inv.total_amount || 0}</TableCell>
+                        <TableCell className="flex items-end mt-6 justify-center">
+                          {' '}
+                          <img
+                            onClick={() => downloadSpecificPDF(inv)}
+                            src={assets.images.download}
+                            className="text-primary-bg cursor-pointer h-6 w-6"
+                          />
+                          {/* <Download
+                            onClick={() => downloadSpecificPDF(inv)}
+                            className="w-6 cursor-pointer h-6 text-center text-primary-bg"
+                          /> */}
                         </TableCell>
                         {/* <TableCell>{inv.status || 'N/A'}</TableCell> */}
                       </TableRow>

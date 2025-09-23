@@ -25,6 +25,7 @@ import { getItem } from '@/utils/storage';
 import UnitListModal from './UnitListModal';
 import UnitDetailsModal from './UnitDetailModal';
 import { handleErrorMessage } from '@/utils/helper';
+import assets from '@/assets/images';
 
 const PropertyList = () => {
   const userDetails: any = getItem('USER');
@@ -275,11 +276,10 @@ const PropertyList = () => {
   };
 
   return (
-    <div className="bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Property List" />
+    <div className="p-2 mt-5">
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
         <div className="flex justify-between items-center py-4">
-          <h2 className="text-xl font-semibold text-tertiary-bg">Properties</h2>
+          <h2 className="text-3xl font-semibold text-primary-bg">PROPERTIES</h2>
           <div className="flex gap-3 items-center">
             <Input
               placeholder="Search properties..."
@@ -346,7 +346,7 @@ const PropertyList = () => {
                               size={20}
                               onClick={() => handleActionMenu('delete', item)}
                             /> */}
-                            <label className="relative inline-flex items-center cursor-pointer">
+                            <label className="inline-flex items-center cursor-pointer">
                               <input
                                 type="checkbox"
                                 className="sr-only peer"
@@ -356,25 +356,55 @@ const PropertyList = () => {
                                 }
                               />
                               <div
-                                className="w-11 h-6 bg-gray-300 rounded-full
-                                    peer peer-checked:bg-lunar-bg
+                                className="
+      relative w-16 h-8 rounded-[5px] bg-[#424256]
+      transition-colors duration-300
+      peer-checked:bg-primary-bg
+      after:content-[''] after:absolute after:top-1 after:left-1
+      after:h-6 after:w-6 after:bg-white after:rounded-full
+      after:transition-transform after:duration-300 after:ease-in-out
+      after:shadow-sm
+      peer-checked:after:translate-x-8
+    "
+                              />
+                            </label>
+                            {/* <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={item.is_active}
+                                onChange={() =>
+                                  handleStatusToggle(item.id, !item.is_active)
+                                }
+                              />
+                              <div
+                                className="w-11 h-6 bg-bodyBackground rounded-full
+                                    peer peer-checked:bg-primary-bg
                                     transition-colors duration-300"
                               />
                               <div
-                                className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full
+                                className="absolute left-1 top-1 w-4 h-4 bg-primary-bg peer-checked:bg-white rounded-full
                                       transition-transform duration-300 ease-in-out
                                       transform peer-checked:translate-x-5"
                               />
-                            </label>
+                            </label> */}
                           </div>
                           <div>
-                            <Eye
-                              className="pl-3 cursor-pointer text-blue-500 w-[40px] h-[40px]"
+                            <img
                               onClick={() => {
                                 setSelectedProperty(item); // not item.id
                                 setUnitModalOpen(true);
                               }}
+                              src={assets.images.coloredEye}
+                              className="ml-16 text-primary-bg cursor-pointer h-8 w-8"
                             />
+                            {/* <Eye
+                              className="pl-3 cursor-pointer text-primary-bg w-[40px] h-[40px]"
+                              onClick={() => {
+                                setSelectedProperty(item); // not item.id
+                                setUnitModalOpen(true);
+                              }}
+                            /> */}
                           </div>
                         </div>
                       </TableCell>

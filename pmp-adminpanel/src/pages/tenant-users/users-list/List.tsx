@@ -53,6 +53,7 @@ import { getInitials, handleErrorMessage } from '@/utils/helper';
 import { usePermission } from '@/utils/hasPermission';
 import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
 import OfficeUserCreateDialog from './CreateDialog';
+import assets from '@/assets/images';
 
 export type Users = {
   id: string; // UUID
@@ -120,7 +121,7 @@ const TenantUsers = () => {
   const columns: ColumnDef<Users>[] = [
     {
       accessorKey: 'fname',
-      header: 'Name',
+      header: 'NAME',
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-3">
@@ -148,7 +149,7 @@ const TenantUsers = () => {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            Email
+            EMAIL
             <ArrowUpDown />
           </Button>
         );
@@ -159,14 +160,14 @@ const TenantUsers = () => {
     },
     {
       accessorKey: 'phone',
-      header: 'Phone',
+      header: 'PHONE',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('phone')}</div>
       ),
     },
     {
       accessorKey: 'assignedProperty',
-      header: 'Property',
+      header: 'PROPERTY',
       cell: ({ row }) => {
         const value = row.getValue('assignedProperty') as string[] | undefined;
         return (
@@ -178,7 +179,7 @@ const TenantUsers = () => {
     },
     {
       accessorKey: 'assignedPropertyUnit',
-      header: 'Assigned Unit',
+      header: 'ASSIGNED UNITS',
       cell: ({ row }) => {
         const value = row.getValue('assignedPropertyUnit') as
           | string[]
@@ -192,9 +193,11 @@ const TenantUsers = () => {
     },
     {
       accessorKey: 'isActive',
-      header: 'Status',
+      header: 'STATUS',
       cell: ({ row }) => (
-        <div className="capitalize bg-neptune-bg/30 text-center w-[50px] h-[22px] rounded-[30px] text-[10px] leading-normal font-semibold text-saturn-bg py-[1px] border-neptune-bg border-2">
+        <div
+          className={`capitalize ${row.getValue('isActive') ? 'bg-scrollbar' : 'bg-primary-bg !text-[#BBF9E4]'} flex items-center justify-center rounded-[3px] text-center w-[75px] h-[30px] text-[12px] leading-normal font-semibold text-primary-bg py-[1px]`}
+        >
           {row.getValue('isActive') ? 'Active' : 'In-Active'}
         </div>
       ),
@@ -209,29 +212,44 @@ const TenantUsers = () => {
           <div className="flex justify-center items-center">
             {can(PERMISSIONS.USER.UPDATE) && (
               <div>
-                <MapPinHouse
+                <img
+                  onClick={() => handleActionMenu('contract', id)}
+                  src={assets.images.tenantAssign}
+                  className="text-primary-bg cursor-pointer h-12 w-12"
+                />
+                {/* <MapPinHouse
                   className="text-lunar-bg cursor-pointer"
                   onClick={() => handleActionMenu('contract', id)}
                   size={20}
-                />
+                /> */}
               </div>
             )}
             {can(PERMISSIONS.USER.UPDATE) && (
               <div className="pl-3">
-                <Pencil
+                <img
+                  onClick={() => handleActionMenu('edit', id)}
+                  src={assets.images.editPencil}
+                  className="text-primary-bg cursor-pointer h-12 w-12"
+                />
+                {/* <Pencil
                   className="text-lunar-bg cursor-pointer"
                   onClick={() => handleActionMenu('edit', id)}
                   size={20}
-                />
+                /> */}
               </div>
             )}
             {can(PERMISSIONS.USER.DELETE) && (
               <div className="pl-3">
-                <Trash2
+                <img
+                  onClick={() => handleActionMenu('delete', id)}
+                  src={assets.images.deleted}
+                  className="text-primary-bg cursor-pointer h-12 w-12"
+                />
+                {/* <Trash2
                   className="text-lunar-bg cursor-pointer"
                   size={20}
                   onClick={() => handleActionMenu('delete', id)}
-                />
+                /> */}
               </div>
             )}
           </div>
@@ -493,14 +511,13 @@ const TenantUsers = () => {
   };
 
   return (
-    <div className=" bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Tenant Users" />
+    <div className="p-2 mt-5">
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-semibold text-[20px] leading-normal capitalize">
-              Tenant Users
+            <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
+              TENANT USERS
             </h2>
             <div className="flex gap-3 items-center">
               <Input
@@ -514,7 +531,7 @@ const TenantUsers = () => {
                 {can(PERMISSIONS.USER.CREATE) && (
                   <Button
                     onClick={() => setIsOpen(true)}
-                    className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
                     variant={'outline'}
                   >
                     + Add New
@@ -567,7 +584,7 @@ const TenantUsers = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="bg-earth-bg">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow

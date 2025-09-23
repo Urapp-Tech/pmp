@@ -17,6 +17,8 @@ type Props = {
   label: string;
   placeholder?: string;
   rules?: object;
+  className?: string;
+  mainClassName?: string;
 };
 
 export const SingleSelectDropDown = ({
@@ -24,31 +26,54 @@ export const SingleSelectDropDown = ({
   name,
   items,
   label,
-  placeholder = 'Select an option',
+  placeholder = 'Choose an option',
   rules,
+  className = '',
+  mainClassName,
 }: Props) => {
+  const triggerBase =
+    'h-10 w-full rounded bg-bodyTable text-sm text-primary-bg ' + // <-- added space at end
+    'data-[placeholder]:text-primary-bg ' +
+    'border-0 outline-none ring-0 focus:outline-none focus:ring-0';
+
   return (
     <Controller
       name={name}
       control={control}
       rules={rules}
       render={({ field: { onChange, value }, fieldState: { error } }) => (
-        <div className="select-field w-full my-1">
-          <Select onValueChange={onChange} value={value}>
-            <SelectTrigger className="w-full ring-0 focus:ring-0 focus:border-none">
+        <div className={`${mainClassName ?? 'select-field'} w-full my-1`}>
+          <Select onValueChange={onChange} value={value ?? undefined}>
+            <SelectTrigger className={`${triggerBase} ${className}`}>
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
-            <SelectContent className="overflow-auto max-h-[250px] bg-mars-bg select-contents">
+
+            <SelectContent
+              className="max-h-[260px] overflow-auto rounded border-0 shadow-md
+                         bg-white text-primary-bg"
+            >
               <SelectGroup>
-                <SelectLabel>{label}</SelectLabel>
+                {label ? (
+                  <SelectLabel className="px-3 py-2 text-xs text-primary-bg/60">
+                    {label}
+                  </SelectLabel>
+                ) : null}
+
                 {items?.map((el) => (
-                  <SelectItem key={el.id} value={el.id}>
+                  <SelectItem
+                    key={el.id}
+                    value={el.id}
+                    className="cursor-pointer text-sm text-primary-bg
+                               focus:bg-primary-bg/10 focus:text-primary-bg
+                               data-[state=checked]:bg-primary-bg/10"
+                  >
                     {el.name}
                   </SelectItem>
                 ))}
               </SelectGroup>
             </SelectContent>
           </Select>
+
           {error && <FormMessage>*{error.message}</FormMessage>}
         </div>
       )}

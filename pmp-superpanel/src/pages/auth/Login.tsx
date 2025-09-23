@@ -65,6 +65,7 @@ const Login = () => {
 
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoader, setIsLoader] = useState(false);
+  const [remember, setRemember] = useState(false);
 
   const {
     register,
@@ -103,153 +104,153 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-wrap w-full">
-      <div className="flex items-center">
-        <div className="max-w-[695px] h-full">
-          <img
-            src={assets.images.signBanner}
-            alt="banner"
-            className="w-full max-w-full h-full object-contain"
-          />
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* background image */}
+      <img
+        src={assets.images.authBg}
+        alt="background"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+
+      {/* subtle overlay to match mock tone */}
+      <div className="absolute inset-0 bg-[#0B1437]/20" />
+
+      {/* page frame */}
+      <div className="relative mx-auto flex min-h-screen w-full max-w-[1280px] items-center justify-between px-6 md:px-10">
+        {/* LEFT: logo + hero text */}
+        <div className="hidden w-full max-w-[520px] md:block">
+          <div className="mb-6">
+            <img
+              src={assets.images.whiteCompLogo /* (image two: white logo) */}
+              alt="logo"
+              className="h-[40px] w-[210px] object-contain"
+            />
+          </div>
+
+          <h1 className="font-bold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
+            Your Gateway
+            <br /> to Smarter
+            <br /> Rentals
+          </h1>
+
+          <p className="mt-4 max-w-[420px] text-white/80">
+            Where smart property management begins. Log in and elevate your
+            workflow.
+          </p>
         </div>
-        <div className="w-full max-w-[528px] min-h-[476px] mx-auto  p-[30px] bg-quinary-bg rounded-[20px] sign-bg-wrap">
-          <div className="w-full max-w-[122px] h-[40px] mx-auto">
-            {/* <img
-              src={assets.images.mainLogo}
-              alt="login avatar"
-              className="w-full max-w-full h-full object-contain"
-            /> */}{' '}
-            PMP - LOGO
-          </div>
-          <div className=" max-w-[242px] mx-auto mt-[100px] mb-5">
-            <h1 className="text-[48px] font-semibold capitalize text-center leading-[normal] mb-4 text-tertiary-bg">
-              sign in
-            </h1>
-            <p className="text-[10px] leading-normal text-center font-normal text-quaternary-bg">
-              By signing in, you agree to our{' '}
-              <NavLink to="" className="font-semibold text-tertiary-bg">
-                Privacy Policy
-              </NavLink>{' '}
-              and{' '}
-              <NavLink to="" className="font-semibold text-tertiary-bg">
-                Terms and Conditions
-              </NavLink>
-            </p>
-          </div>
-          <div className="">
+
+        {/* RIGHT: glass card */}
+        <div className="w-full max-w-[500px]">
+          <div
+            className="
+              rounded-3xl h-[550px] border border-white/20 bg-white/50 p-6 shadow-2xl backdrop-blur-xl
+              md:p-8
+            "
+          >
+            <div className="mb-6 text-center mt-12">
+              <h2 className="text-3xl font-bold text-primary-bg">Sign-in</h2>
+            </div>
+
             <Form {...form}>
-              <form onSubmit={handleSubmit(loginHandler)}>
-                <div className="">
-                  <div className="form-group w-full">
-                    <FormLabel
-                      htmlFor="password"
-                      className="text-[14px] font-medium ml-1 text-tertiary-bg"
-                    >
-                      Email / Phone
-                    </FormLabel>
-                    <FormControl className="m-1 w-full">
-                      <div className="mb-2">
-                        <Input
-                          className="rounded-[20px] h-[60px] px-2 bg-primary-bg text-secondary-bg mt-2 text-[14px] font-medium outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[0] focus-visible:ring-0"
-                          id="email"
-                          placeholder="Enter email or phone"
-                          type="text"
-                          {...register('email', {
-                            required: 'Please enter your email or phone.',
-                          })}
-                          //   disableUnderline
-                        />
-                        {errors.email && (
-                          <FormMessage>*{errors.email.message}</FormMessage>
-                        )}
-                      </div>
-                    </FormControl>
-                  </div>
-                  <div className="form-group w-full">
-                    <FormItem>
-                      <FormLabel
-                        htmlFor="password"
-                        className="text-[14px] font-medium ml-1 text-tertiary-bg"
-                      >
-                        Password
-                      </FormLabel>
-                      {/* <FormControl> */}
-                      <div className="relative">
-                        <Input
-                          id="password"
-                          placeholder="********"
-                          type={passwordVisible ? 'text' : 'password'}
-                          className="h-[60px] px-2 bg-primary-bg text-secondary-bg mt-2 text-[14px] font-medium outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[0] focus-visible:ring-0 rounded-[20px]"
-                          {...register('password', {
-                            required: 'Please enter your password.',
-                          })}
-                        />
-                        <Button
-                          variant="ghost"
-                          type="button"
-                          className="bg-transparent absolute inset-y-0 top-[6px] right-[6px] flex items-center pr-3 hover:bg-primary-bg"
-                          onClick={togglePasswordVisibility}
-                        >
-                          {passwordVisible ? (
-                            <EyeOff color="black" />
-                          ) : (
-                            <Eye color="black" />
-                          )}
-                        </Button>
-                        {errors.password && (
-                          <FormMessage>*{errors.password.message}</FormMessage>
-                        )}
-                      </div>
-                      {/* </FormControl> */}
-                    </FormItem>
-                  </div>
-                  <div className="form-group text-end">
-                    <NavLink
-                      className="font-open-sans text-[12px] font-medium text-tertiary-bg hover:underline"
-                      to="../forgot-password"
-                    >
-                      Forget Password?
-                    </NavLink>
-                  </div>
-                  <div className="mt-8 w-full ">
+              <form onSubmit={handleSubmit(loginHandler)} className="space-y-5">
+                {/* Email */}
+                <FormItem>
+                  <FormLabel className="text-base font-medium text-primary-bg">
+                    Email Address
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      id="email"
+                      type="text"
+                      placeholder="urapptech@gmail.com"
+                      className="
+                        mt-2 h-12 rounded-xl border-0 outline-none bg-white/50 shadow-sm
+                        placeholder:text-primary-bg focus-visible:ring-0 focus-visible:ring-offset-0
+                      "
+                      {...register('email', {
+                        required: 'Please enter your email or phone.',
+                      })}
+                    />
+                  </FormControl>
+                  {errors.email && (
+                    <FormMessage>*{errors.email.message}</FormMessage>
+                  )}
+                </FormItem>
+
+                {/* Password */}
+                <FormItem>
+                  <FormLabel className="text-base font-medium text-primary-bg">
+                    Password
+                  </FormLabel>
+                  <div className="relative mt-2">
+                    <Input
+                      id="password"
+                      placeholder="⋆⋆⋆⋆⋆⋆⋆⋆⋆"
+                      type={passwordVisible ? 'text' : 'password'}
+                      className="
+                        h-12 rounded-xl border-0 bg-white/50 pr-12 shadow-sm
+                        placeholder:text-primary-bg focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
+                      "
+                      {...register('password', {
+                        required: 'Please enter your password.',
+                      })}
+                    />
                     <Button
-                      disabled={!!isLoader}
-                      className="btn-black-fill w-full bg-primary p-0 py-2 text-quinary-bg bg-secondary-bg/75 h-[60px] text-[16px] font-semibold hover:bg-secondary-bg rounded-[20px]"
-                      color="inherit"
-                      title="Login"
-                      type="submit"
+                      variant="ghost"
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute right-1 top-1.5 h-9 w-9 rounded-full bg-transparent hover:bg-transparent text-primary-bg"
                     >
-                      {isLoader && <Loader2 className="animate-spin" />}
-                      {'Login'}
+                      {passwordVisible ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </Button>
                   </div>
+                  {errors.password && (
+                    <FormMessage>*{errors.password.message}</FormMessage>
+                  )}
+                </FormItem>
+
+                {/* Remember + Reset */}
+                <div className="flex items-center justify-between">
+                  <label className="flex cursor-pointer items-center font-medium gap-2 text-sm text-[#1E2130]">
+                    <input
+                      type="checkbox"
+                      checked={remember}
+                      onChange={(e) => setRemember(e.target.checked)}
+                      className="h-4 w-4 rounded border-primary-bg text-primary-bg focus:ring-primary-bg"
+                    />
+                    Remember me
+                  </label>
+
+                  <NavLink
+                    to="../forgot-password"
+                    className="text-sm text-primary-bg font-bold"
+                  >
+                    Reset Password?
+                  </NavLink>
                 </div>
+
+                {/* Submit */}
+                <Button
+                  type="submit"
+                  disabled={!!isLoader}
+                  className="
+                    mt-1 h-12 w-full rounded-xl bg-secondary-bg text-primary-bg hover:bg-scrollbar
+                    font-semibold
+                  "
+                >
+                  {isLoader && <Loader2 className="mr-2 animate-spin" />}
+                  Log in
+                </Button>
               </form>
             </Form>
           </div>
         </div>
-
-        {/* {notification && (
-              <Notify
-                isOpen
-                setIsOpen={hideNotification}
-                displayMessage={notification}
-              />
-            )} */}
       </div>
     </div>
-    // <>
-    //   <div className='bg-wrap w-full'>
-    //     <div className='max-w-[795px] h-[889px]'>
-    //       <img src={assets.images.signBanner} alt='banner' className='w-full max-w-full h-full object-contain' />
-    //     </div>
-    //     <div className='max-w-[528px] min-h-[776px]'>
-    //       <div className='w-[122px] h-[40px]'>
-    //         <img src={assets.images.mainLogo} alt='logo' />
-    //       </div>
-    //     </div>
-    //   </div>
-    // </>
   );
 };
 
