@@ -310,12 +310,12 @@ const Invoices = () => {
           return (
             <div className="leading-tight">
               {user?.fname && user?.lname && (
-                <div className="text-sm font-semibold text-gray-800">
+                <div className="text-sm font-semibold text-primary-bg">
                   {user.fname} {user.lname}
                 </div>
               )}
               {tenant?.contract_number && (
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-xs text-primary-bg mt-0.5">
                   ({tenant.contract_number})
                 </div>
               )}
@@ -500,7 +500,7 @@ const Invoices = () => {
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg">
+              <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg !text-light !text-primary-bg">
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>

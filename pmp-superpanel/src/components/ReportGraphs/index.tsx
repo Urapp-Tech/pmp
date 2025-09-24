@@ -127,7 +127,10 @@ export default function ReportGraphs() {
   //   }
   // };
 
-  // useEffect(() => {}, []);
+  // useEffect(() => {
+  //   fetchReportOverview();
+  // }, []);
+
   return (
     <div
       className="min-h-screen w-full px-6 py-8 md:px-10"

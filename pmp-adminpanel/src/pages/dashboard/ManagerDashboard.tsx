@@ -60,7 +60,7 @@ function ManagerDashboard() {
           {/* HERO ROW: left welcome, right image */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-36 items-start mb-6">
             <div className="rounded-2xl px-6 py-8">
-              <h1 className="text-primary-bg text-3xl sm:text-4xl font-extrabold leading-snug">
+              <h1 className="text-primary-bg text-3xl sm:text-4xl font-semibold leading-snug">
                 Hello {user?.fname},
                 <br />
                 Welcome to your

@@ -118,7 +118,7 @@ const Blogs = () => {
       accessorKey: 'title',
       header: 'Title',
       cell: ({ row }) => (
-        <div className="capitalize font-semibold">{row.getValue('title')}</div>
+        <div className="capitalize">{row.getValue('title')}</div>
       ),
     },
     {

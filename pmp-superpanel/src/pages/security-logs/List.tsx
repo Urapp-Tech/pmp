@@ -108,7 +108,7 @@ const Receipts = () => {
               {getInitials(row.getValue('userName'))}
             </AvatarFallback>
           </Avatar>
-          <div className="capitalize font-semibold">
+          <div className="capitalize font-light">
             {row.getValue('userName')}
           </div>
         </div>
@@ -233,8 +233,8 @@ const Receipts = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
-              Security Logs
+            <h2 className="text-primary-bg font-semibold text-2xl leading-normal capitalize">
+              SECURITY LOGS
             </h2>
             <div className="flex gap-3 items-center">
               <Input

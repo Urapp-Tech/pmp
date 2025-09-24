@@ -47,6 +47,9 @@ import propManagers from './prop-m.svg';
 import tenantAssign from './tenant-assign.svg';
 import calender from './calender.svg';
 import signOut from './sign-out.svg';
+import avatarBg from './avatar-bg.svg';
+import coloredCompLogo from './colored-comp-bg.svg';
+import bgBanner from './bg-banner.png';
 
 const assets = {
   images: {
@@ -98,6 +101,9 @@ const assets = {
     tenantAssign,
     calender,
     signOut,
+    avatarBg,
+    coloredCompLogo,
+    bgBanner,
   },
 } as const;
 

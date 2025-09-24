@@ -52,7 +52,7 @@ export const TopBar = ({ title }: Props) => {
           <DropdownMenuTrigger asChild>
             <button className="group flex items-center gap-3 rounded-full bg-white/10 px-3 py-2 text-left">
               <img
-                src={assets.images.avatarIcon}
+                src={assets.images.avatarBg}
                 alt="Avatar"
                 className="w-8 h-8 rounded-full object-cover"
               />
@@ -112,7 +112,7 @@ export const TopBar = ({ title }: Props) => {
                   to="/profile"
                   className="flex items-center gap-3 text-[#242460]"
                 >
-                  <User2 className="h-5 w-5" />
+                  <img src={assets.images.propManagers} className="h-5 w-5" />
                   <span className="font-semibold">View Profile</span>
                 </Link>
               </DropdownMenuItem>
@@ -122,7 +122,7 @@ export const TopBar = ({ title }: Props) => {
                 className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460]"
               >
                 <div className="flex items-center gap-3 text-[#242460]">
-                  <LogOut className="h-5 w-5" />
+                  <img src={assets.images.signOut} className="h-5 w-5" />
                   <span className="font-semibold">Sign Out</span>
                 </div>
               </DropdownMenuItem>

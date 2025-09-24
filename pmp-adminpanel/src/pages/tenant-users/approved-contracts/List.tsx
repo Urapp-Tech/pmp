@@ -143,7 +143,7 @@ const ApprovedContracts = () => {
               <AvatarFallback>{getInitials(user?.fname || '')}</AvatarFallback>
             </Avatar>
             <div className="">
-              <div className="capitalize font-semibold">
+              <div className="capitalize">
                 {user?.fname} {user?.lname}
               </div>
               <span className="text-gray-700 text-xs">({tenantType})</span>
@@ -243,15 +243,24 @@ const ApprovedContracts = () => {
                   className="flex items-center"
                 >
                   {type === 'document' ? (
-                    <FileText className="text-primary-bg" size={20} />
-                  ) : type === 'image' ? (
+                    <img
+                      src={assets.images.tenantAssign}
+                      alt="doc"
+                      className="w-8 h-8 object-contain text rounded border"
+                    />
+                  ) : // <FileText className="text-primary-bg" size={20} />
+                  type === 'image' ? (
                     <img
                       src={ASSET_BASE_URL + file}
                       alt="doc"
                       className="w-8 h-8 object-cover rounded border"
                     />
                   ) : (
-                    <FileText className="text-primary-bg text-lg" />
+                    <img
+                      src={assets.images.tenantAssign}
+                      alt="docs"
+                      className="w-8 h-8 object-cover text rounded border"
+                    />
                   )}
                 </a>
               );
@@ -560,7 +569,7 @@ const ApprovedContracts = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
               APPROVED CONTRACTS
             </h2>
             <div className="flex gap-3 items-center">

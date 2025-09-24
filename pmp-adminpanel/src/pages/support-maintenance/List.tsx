@@ -128,9 +128,7 @@ const SupportMaintenance = () => {
       accessorKey: 'subject',
       header: 'SUBJECT',
       cell: ({ row }) => (
-        <div className="capitalize font-semibold">
-          {row.getValue('subject')}
-        </div>
+        <div className="capitalize">{row.getValue('subject')}</div>
       ),
     },
     {
@@ -482,7 +480,7 @@ const SupportMaintenance = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
               {userDetails?.role?.name === 'User'
                 ? 'MAINTENANCE REQUESTS'
                 : 'SUPPORT TICKETS'}

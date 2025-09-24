@@ -121,9 +121,7 @@ const RentalCollection = () => {
       accessorKey: 'subject',
       header: 'Subject',
       cell: ({ row }) => (
-        <div className="capitalize font-semibold">
-          {row.getValue('subject')}
-        </div>
+        <div className="capitalize">{row.getValue('subject')}</div>
       ),
     },
     {

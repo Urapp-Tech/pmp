@@ -31,7 +31,7 @@ const ProfilePage = () => {
           </div>
 
           {/* Name & Verified Badge */}
-          <h1 className="capitalize text-3xl font-extrabold text-primary-bg">
+          <h1 className="capitalize text-3xl font-semibold text-primary-bg">
             {user.fname} {user.lname}
           </h1>
           <p className="text-gray-500 text-lg mt-1">{user.email}</p>

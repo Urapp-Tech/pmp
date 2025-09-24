@@ -19,11 +19,11 @@ function LandlordDashboard() {
 
   // helper to keep card style consistent
   const cardBase =
-    'rounded-2xl shadow-sm ring-1 ring-black/5 px-4 py-3 sm:px-5 sm:py-4 h-46 sm:h-50 flex flex-col';
+    'rounded-2xl shadow-sm ring-1 ring-black/5 px-4 sm:px-5 sm:py-2 h-46 sm:h-50 flex flex-col';
   const cardLight = 'bg-secondary-bg'; // light mint (matches mock)
   const cardDark = 'bg-secondary-bg'; // slightly darker mint (for alternates)
   const labelCls =
-    'text-base text-primary-bg flex items-center gap-2 font-bold';
+    'text-base text-primary-bg flex pb-6 items-center font-semibold';
 
   return (
     <div
@@ -36,7 +36,7 @@ function LandlordDashboard() {
           {/* HERO ROW: left welcome, right image */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-36 items-start mb-6">
             <div className="rounded-2xl px-6 py-8">
-              <h1 className="text-primary-bg text-3xl sm:text-4xl font-extrabold leading-snug">
+              <h1 className="text-primary-bg text-3xl sm:text-4xl font-semibold leading-snug">
                 Hello {user?.fname},
                 <br />
                 Welcome to your
@@ -62,7 +62,7 @@ function LandlordDashboard() {
           <div className="grid gap-10 2xl::grid-cols-4 sm:grid-cols-2">
             {/* 1 */}
             <div className={`${cardBase} ${cardLight}`}>
-              <div className="flex items-end justify-start">
+              <div className="">
                 <span className="text-[95px] font-semibold text-primary-bg">
                   {data?.total_properties ?? 0}
                 </span>
@@ -72,7 +72,7 @@ function LandlordDashboard() {
 
             {/* 2 */}
             <div className={`${cardBase} ${cardDark}`}>
-              <div className="flex-1 flex items-end justify-start mt-6">
+              <div className="flex items-end justify-start">
                 <span className="text-[95px] font-semibold text-primary-bg">
                   {data?.active_tenant_users ?? 0}
                 </span>
@@ -82,7 +82,7 @@ function LandlordDashboard() {
 
             {/* 3 */}
             <div className={`${cardBase} ${cardLight}`}>
-              <div className="flex-1 flex items-end justify-start mt-0">
+              <div className="flex items-end justify-start">
                 <span className="text-[95px] font-semibold text-primary-bg">
                   {data?.pending_invoices ?? 0}
                 </span>
@@ -92,7 +92,7 @@ function LandlordDashboard() {
 
             {/* 4 */}
             <div className={`${cardBase} ${cardDark}`}>
-              <div className="flex-1 flex items-end justify-start mt-0">
+              <div className="flex items-end justify-start">
                 <span className="text-[95px] font-semibold text-primary-bg">
                   {data?.unresolved_tickets ?? 0}
                 </span>

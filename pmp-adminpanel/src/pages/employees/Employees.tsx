@@ -124,7 +124,7 @@ const Employees = () => {
             />
             <AvatarFallback>{getInitials(row.getValue('name'))}</AvatarFallback>
           </Avatar>
-          <div className="capitalize font-semibold">{row.getValue('name')}</div>
+          <div className="capitalize">{row.getValue('name')}</div>
         </div>
       ),
     },

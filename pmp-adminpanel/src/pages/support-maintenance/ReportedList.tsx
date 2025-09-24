@@ -120,9 +120,7 @@ const ReportedTicketsList = () => {
       accessorKey: 'subject',
       header: 'SUBJECT',
       cell: ({ row }) => (
-        <div className="capitalize font-semibold">
-          {row.getValue('subject')}
-        </div>
+        <div className="capitalize">{row.getValue('subject')}</div>
       ),
     },
     {
@@ -516,7 +514,7 @@ const ReportedTicketsList = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-bold text-3xl leading-normal capitalize">
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
               MAINTENANCE REPORTED REQUEST
             </h2>
             <div className="flex gap-3 items-center">

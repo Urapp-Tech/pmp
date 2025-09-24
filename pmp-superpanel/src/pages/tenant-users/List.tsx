@@ -140,7 +140,7 @@ const TenantUsers = () => {
                 {getInitials(row.getValue('fname'))}
               </AvatarFallback>
             </Avatar>
-            <div className="capitalize font-semibold">
+            <div className="capitalize">
               {row.getValue('fname')} {row.original?.lname}
             </div>
           </div>

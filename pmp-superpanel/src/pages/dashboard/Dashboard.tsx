@@ -22,7 +22,7 @@ function Dashboard() {
   const cardLight = 'bg-secondary-bg'; // light mint (matches mock)
   const cardDark = 'bg-secondary-bg'; // slightly darker mint (for alternates)
   const labelCls =
-    'text-base text-primary-bg flex items-center gap-2 font-bold';
+    'text-[14px] text-primary-bg flex items-center gap-2 font-semibold';
 
   return (
     <div
@@ -35,7 +35,7 @@ function Dashboard() {
           {/* HERO ROW: left welcome, right image */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-36 items-start mb-6">
             <div className="rounded-2xl px-6 py-8">
-              <h1 className="text-primary-bg text-3xl sm:text-4xl font-extrabold leading-snug">
+              <h1 className="text-primary-bg text-3xl sm:text-4xl font-semibold leading-snug">
                 Hello Fahad,
                 <br />
                 Welcome to your

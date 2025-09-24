@@ -294,7 +294,7 @@ const CreatePropertyPage = () => {
             {/* Hidden Landlord ID */}
             <input type="hidden" {...form.register('landlord_id')} />
 
-            <h2 className="text-4xl font-bold text-primary-bg mb-4">
+            <h2 className="text-4xl font-semibold text-primary-bg mb-4">
               Property Details
             </h2>
 
@@ -694,7 +694,7 @@ const CreatePropertyPage = () => {
               </div>
             </div>
 
-            <h2 className="text-2xl text-primary-bg font-bold mt-10 mb-4">
+            <h2 className="text-2xl text-primary-bg font-semibold mt-10 mb-4">
               Unit Details
             </h2>
             <div className="mb-6">
@@ -727,7 +727,7 @@ const CreatePropertyPage = () => {
                   value={`item-${index}`}
                   className="rounded-[18px] p-0 bg-secondary-bg border border-scrollbar mb-4 overflow-hidden"
                 >
-                  <AccordionTrigger className="px-5 pt-5 text-left text-xl font-bold bg-secondary-bg border-b border-scrollbar mx-4 text-primary-bg">
+                  <AccordionTrigger className="px-5 pt-5 text-left text-xl font-semibold bg-secondary-bg border-b border-scrollbar mx-4 text-primary-bg">
                     {`Unit ${index + 1}`}
                   </AccordionTrigger>
 

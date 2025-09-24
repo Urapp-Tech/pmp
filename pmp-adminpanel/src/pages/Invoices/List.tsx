@@ -364,7 +364,7 @@ const Invoices = () => {
           return (
             <div className="leading-tight">
               {user?.fname && user?.lname && (
-                <div className="text-sm font-semibold text-gray-800">
+                <div className="text-sm font-semibold text-primary-bg">
                   {user.fname} {user.lname}
                 </div>
               )}

@@ -140,7 +140,7 @@ const PropertyList = () => {
     <div className="p-2 mt-5">
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
         <div className="flex justify-between items-center py-4">
-          <h2 className="text-3xl font-bold text-tertiary-bg">
+          <h2 className="text-3xl font-semibold text-primary-bg">
             PROPERTY MANAGEMENT
           </h2>
           <div className="flex gap-3 items-center">
@@ -178,7 +178,7 @@ const PropertyList = () => {
                   <TableHead className="text-center">ACTIONS</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="!text-primary-bg !font-light">
                 {list.length > 0 ? (
                   list.map((item: any) => (
                     <TableRow key={item.id}>

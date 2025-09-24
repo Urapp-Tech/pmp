@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { User2, LogOut } from 'lucide-react';
 import { getItem } from '@/utils/storage';
 import { logout } from '@/redux/features/authSlice';
+import { ASSET_BASE_URL } from '@/utils/constants';
 
 type Props = { title?: string };
 
@@ -51,7 +52,11 @@ export const TopBar = ({ title }: Props) => {
           <DropdownMenuTrigger asChild>
             <button className="group flex items-center gap-3 rounded-full bg-white/10 px-3 py-2 text-left">
               <img
-                src={assets.images.avatarIcon}
+                src={
+                  user?.profilePic
+                    ? ASSET_BASE_URL + user?.profilePic
+                    : assets.images.avatarBg
+                }
                 alt="Avatar"
                 className="w-8 h-8 rounded-full object-cover"
               />
@@ -88,7 +93,7 @@ export const TopBar = ({ title }: Props) => {
                   {initial}
                 </div>
                 <div className="text-center">
-                  <div className="text-[#1b1b57] text-lg font-extrabold tracking-wide">
+                  <div className="text-[#1b1b57] text-lg font-semibold tracking-wide">
                     {name}
                   </div>
                   <div className="text-[#1b1b57]/70 text-xs font-semibold uppercase tracking-wide">

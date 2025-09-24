@@ -135,7 +135,7 @@ const PropertyManagers = () => {
               {getInitials(row.getValue('fname'))}
             </AvatarFallback>
           </Avatar>
-          <div className="capitalize font-semibold">
+          <div className="capitalize">
             {row.getValue('fname')} {row.original?.lname}
           </div>
         </div>
@@ -591,7 +591,7 @@ const PropertyManagers = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-tertiary-bg font-bold text-3xl leading-normal capitalize">
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
               PROPERTY MANAGERS
             </h2>
             <div className="flex gap-3 items-center">

@@ -236,7 +236,7 @@ const InvoiceReport = () => {
     <div className="p-4 mt-5">
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
         <div className="flex gap-4 flex-wrap items-center justify-between">
-          <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
+          <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
             RECEIPTS
           </h2>
           <div className="flex gap-4 flex-wrap items-center">
@@ -397,7 +397,7 @@ const InvoiceReport = () => {
                     <TableRow>
                       <TableCell
                         colSpan={8}
-                        className="text-center py-4 text-gray-500"
+                        className="text-center py-4 text-primary-bg"
                       >
                         No invoices found for selected filter.
                       </TableCell>
@@ -458,7 +458,7 @@ const InvoiceReport = () => {
                 </TableBody>
               </Table>
 
-              <div className="text-right mt-4 font-semibold text-lg">
+              <div className="text-right text-primary-bg mt-4 font-semibold text-lg">
                 Total Collection: {totalPaid}
               </div>
             </>

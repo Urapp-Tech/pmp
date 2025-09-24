@@ -170,7 +170,7 @@ const SupportTicketUpdateDialog = ({
         <DialogHeader className="p-0 w-full">
           {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
           <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
-            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-semibold tracking-wide">
               Update Support Ticket
             </DialogTitle>
             <button
@@ -226,7 +226,7 @@ const SupportTicketUpdateDialog = ({
                             Description
                           </FormLabel>
                           <Textarea
-                            className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                            className="!bg-secondary-bg mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
                             id="message"
                             placeholder="Type your report here."
                             {...register('message')}
