@@ -54,23 +54,23 @@ def send_pending_payouts():
                         f"Tenant {tenant.id} contract expired or not started."
                     )
 
-                property_ = (
-                    db.query(PropertyModel)
-                    .filter(PropertyModel.id == tenant.property_id)
-                    .first()
-                )
-                if not property_:
-                    raise Exception(f"Property not found for tenant {tenant.id}.")
+                # property_ = (
+                #     db.query(PropertyModel)
+                #     .filter(PropertyModel.id == tenant.property_id)
+                #     .first()
+                # )
+                # if not property_:
+                #     raise Exception(f"Property not found for tenant {tenant.id}.")
 
-                supplier_code = property_.supplier_code
-                if not supplier_code:
-                    raise Exception(
-                        f"Supplier code missing for property {property_.id}."
-                    )
+                # supplier_code = property_.supplier_code
+                # if not supplier_code:
+                #     raise Exception(
+                #         f"Supplier code missing for property {property_.id}."
+                #     )
 
                 # Prepare payout payload
                 payout_payload = {
-                    "SupplierCode": supplier_code,
+                    # "SupplierCode": supplier_code,post /v2/InitiatePayment
                     "Amount": invoice.total_amount,
                     "CurrencyIso": "KWD",
                     "Comments": f"Payout for invoice {invoice.invoice_no}",
@@ -81,9 +81,9 @@ def send_pending_payouts():
                     "Content-Type": "application/json",
                 }
 
-                print(
-                    f"🔗 Initiating payout to supplier {supplier_code} for {invoice.total_amount} KWD"
-                )
+                # print(
+                #     f"🔗 Initiating payout to supplier {supplier_code} for {invoice.total_amount} KWD"
+                # )
 
                 # Send payout request
                 response = requests.post(

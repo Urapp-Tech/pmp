@@ -17,7 +17,7 @@ class CreatePaymentRequest(BaseModel):
     property: str
     property_unit: str
     user_email: str
-    supplier_code: Optional[str] = None
+    # supplier_code: Optional[str] = None
     # user_phone: str
     user_name: str
     amount: float

@@ -21,6 +21,7 @@ from app.modules.invoiceItems.routes import router as invoice_item_router
 from app.utils.uploader import get_file_base_url
 from app.modules.dashboardActivities.routes import router as dashboard_activity_router
 from app.modules.reports.routes import router as report_router
+from app.modules.contact.routes import router as contact_router
 
 from app.schedulers.scheduler import scheduler
 from app.schedulers.invoice_scheduler import schedule_invoice_generation
@@ -84,6 +85,7 @@ async def log_exceptions_middleware(request: Request, call_next):
         )
 
 
+app.include_router(contact_router,prefix="/admin",tags=["Contact Us"])
 app.include_router(superuser_router, prefix="/super-users", tags=["Super Users"])
 app.include_router(
     permission_router,

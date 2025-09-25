@@ -1,0 +1,40 @@
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Thank You for your query</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 30px;
+        }
+
+        .email-container {
+            background: #ffffff;
+            padding: 20px 30px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .thank-you {
+            color: #2e7d32;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <h2 class="thank-you">Thank you, {{ name }}!</h2>
+        <p>
+            We have received your query and will get back to you shortly.
+        </p>
+        <br />
+        <p>Best regards,<br /><strong>Your Team</strong></p>
+    </div>
+</body>
+
+</html>

@@ -165,8 +165,8 @@ def create_property(db: Session, body: PropertyCreate):
             account_name=body.account_name,
         )
 
-        supplier_code = create_supplier_in_fatoorah(property_data)
-        property_data.supplier_code = supplier_code
+        # supplier_code = create_supplier_in_fatoorah(property_data)
+        # property_data.supplier_code = supplier_code
 
         db.add(property_data)
 
