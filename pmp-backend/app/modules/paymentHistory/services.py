@@ -114,7 +114,7 @@ def create_payment(
     invoice_id: UUID,
     property_unit_id: UUID,
     property: str,
-    supplier_code: Optional[str],
+    # supplier_code: Optional[str],
     property_unit: str,
     user_name: str,
     user_email: str,
@@ -143,6 +143,7 @@ def create_payment(
 
     # Prepare MyFatoorah payload
     payload = {
+        "PaymentMethodId": 2,  # 1 for KNET, 2 for Credit Card, etc.
         "CustomerName": user_name,
         "CustomerEmail": user_email,
         # "CustomerMobile": user_phone,
@@ -154,25 +155,25 @@ def create_payment(
         "WebhookUrl": f"{settings.BACKEND_BASE_URL}/api/v1/payment/webhook",
         "Language": "en",
         "InvoiceValue": amount,
-        "InvoiceItems": [
-            {
-                "ItemName": f"{property} - {property_unit} - rent",
-                "Quantity": 1,
-                "UnitPrice": amount,
-                "Weight": 0,
-                "Width": 0,
-                "Height": 0,
-                "Depth": 0,
-            }
-        ],
-        "Suppliers": [
-            {
-            "SupplierCode": supplier_code,
-            "ProposedShare": None,
-            "InvoiceShare":  amount,
-            }
-        ],
-        "ProcessingDetails": {"AutoCapture": True, "Bypass3DS": True},
+        # "InvoiceItems": [
+        #     {
+        #         "ItemName": f"{property} - {property_unit} - rent",
+        #         "Quantity": 1,
+        #         "UnitPrice": amount,
+        #         "Weight": 0,
+        #         "Width": 0,
+        #         "Height": 0,
+        #         "Depth": 0,
+        #     }
+        # ],
+            # "Suppliers": [
+            #     {
+            #     "SupplierCode": None,
+            #     "ProposedShare": None,
+            #     "InvoiceShare":  None,
+            #     }
+            # ],
+        # "ProcessingDetails": {"AutoCapture": True, "Bypass3DS": True},
     }
 
     headers = {
@@ -183,15 +184,15 @@ def create_payment(
     try:
         # 🧾 Call MyFatoorah API
         response = requests.post(
-            f"{MYFATOORAH_API_URL}/SendPayment", json=payload, headers=headers
+            f"{MYFATOORAH_API_URL}/ExecutePayment", json=payload, headers=headers
         )
         print("✅  res", response.json())
         response.raise_for_status()
         payment_data = response.json()
-        invoice_url = payment_data["Data"]["InvoiceURL"]
+        invoice_url = payment_data["Data"]["PaymentURL"]
         payment_id = payment_data["Data"]["InvoiceId"]
 
-        # print("✅  res", response, payment_id)
+        print("✅  res", response, payment_id)
         # ✅ Check if payment already exists
         # print("Checking for existing pending payment...", invoice_id)
         existing_payment = (

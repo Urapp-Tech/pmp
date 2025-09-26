@@ -210,20 +210,6 @@ def generate_invoice_no(db: Session, landlord_id: str) -> str:
 
 
 # for testing
-def get_tenants_with_upcoming_date(db, days_before_due: int = 7):
-    """
-    Fetch invoices whose due_date is within X days.
-    """
-    now_utc = datetime.now()
-    upcoming_date = now_utc + timedelta(days=days_before_due)
-
-    invoices = db.query(Invoice).all()  # 🔥 Fetch ALL invoices, no due_date check
-    print(f"📥 [TEST] Found {len(invoices)} invoices for daily generation")
-    return invoices
-
-
-# for production
-
 # def get_tenants_with_upcoming_date(db, days_before_due: int = 7):
 #     """
 #     Fetch invoices whose due_date is within X days.
@@ -231,11 +217,25 @@ def get_tenants_with_upcoming_date(db, days_before_due: int = 7):
 #     now_utc = datetime.now()
 #     upcoming_date = now_utc + timedelta(days=days_before_due)
 
-#     invoices = db.query(Invoice).filter(Invoice.due_date <= upcoming_date).all()
-#     print(
-#         f"📥 [PROD] Found {len(invoices)} invoices due in next {days_before_due} days"
-#     )
+#     invoices = db.query(Invoice).all()  # 🔥 Fetch ALL invoices, no due_date check
+#     print(f"📥 [TEST] Found {len(invoices)} invoices for daily generation")
 #     return invoices
+
+
+# for production
+
+def get_tenants_with_upcoming_date(db, days_before_due: int = 7):
+    """
+    Fetch invoices whose due_date is within X days.
+    """
+    now_utc = datetime.now()
+    upcoming_date = now_utc + timedelta(days=days_before_due)
+
+    invoices = db.query(Invoice).filter(Invoice.due_date <= upcoming_date).all()
+    print(
+        f"📥 [PROD] Found {len(invoices)} invoices due in next {days_before_due} days"
+    )
+    return invoices
 
 
 def create_next_invoice(db, previous_invoice: Invoice) -> Invoice:
