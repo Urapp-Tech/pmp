@@ -133,7 +133,7 @@ function Dashboard() {
                               {tenant.rent_pay_day}
                             </p>
                             {tenant.agreement_doc && (
-                              <div className="space-y-1 pt-4">
+                              <div className="space-y-1 pt-4                   ">
                                 <div className="text-xs font-medium text-muted-foreground">
                                   Agreement Docs
                                 </div>

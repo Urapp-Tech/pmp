@@ -399,7 +399,9 @@
   background-size: cover;
   background-position: center; */
 }
-
+.bg-primary-bg-dark{
+  background-color: #424256;
+}
 .side--border {
   border: none;
 }
