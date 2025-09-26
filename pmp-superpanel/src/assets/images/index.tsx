@@ -54,6 +54,7 @@ import avatarBg from './avatar-bg.svg';
 import calender from './calender.svg';
 import bgBanner from './bg-banner.png';
 import coloredCompLogo from './colored-comp-bg.svg';
+import doc from './doc.svg';
 
 const assets = {
   images: {
@@ -112,6 +113,7 @@ const assets = {
     calender,
     bgBanner,
     coloredCompLogo,
+    doc,
   },
 } as const;
 

@@ -435,7 +435,8 @@ const ApprovedContracts = () => {
     formData.append('language', data.language || '');
 
     if (data.agreementDoc) {
-      formData.append('agreementDoc', data.agreementDoc);
+      // formData.append('agreementDoc', data.agreementDoc);
+      data.agreementDoc.forEach((f: any) => formData.append('agreementDoc', f));
     }
 
     contractService

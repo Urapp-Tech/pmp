@@ -24,7 +24,7 @@ import {
   Eye,
   Download,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DeleteDialog from '@/components/DeletePopup';
 import { Paginator } from '@/components/Paginator';
 import { Input } from '@/components/ui/input';
@@ -93,6 +93,19 @@ const Invoices = () => {
   const [invoiceItemSize] = useState(5); // same as ITEMS_PER_PAGE
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
 
+  const COLORS = {
+    navy: '#242460',
+    mint: '#5EBFA1',
+    sheet: '#ffffff',
+    page: '#F3F4F6',
+    lines: '#242460',
+    white: '#ffffff',
+  };
+
+  const fmt = (v?: string | number, currency?: string) => {
+    const n = Number(v ?? 0);
+    return `${n.toLocaleString()} ${currency ?? ''}`.trim();
+  };
 
   const fetchInvoiceItems = async (invoiceId: string, page = 1) => {
     try {
@@ -160,73 +173,245 @@ const Invoices = () => {
     fetchList(search, 1);
   };
 
-  const handlePageChange = (newPage: number) => {
-    table.setPageIndex(newPage + 1);
-    // console.log('current page: ', newPage);
+  const currency = useMemo(() => 'KWD', []);
 
-    setPage(newPage + 1);
-    fetchList(search, newPage + 1);
-  };
-
-  const handleAction = (
+  const handleAction = async (
     type: 'edit' | 'download' | 'view',
-    inv: InvoiceFields
+    inv: InvoiceFields | any
   ) => {
     if (type === 'view') {
       navigate(`/super-admin/invoices/detail/${inv.id}`);
     }
 
     if (type === 'download') {
-      const doc: any = new jsPDF();
+      if (!inv) return;
 
-      doc.setFontSize(16);
-      doc.text('Invoice Detail', 14, 16);
+      const doc = new jsPDF('p', 'pt', 'a4'); // 595 x 842
+      const W = doc.internal.pageSize.getWidth();
+      const H = doc.internal.pageSize.getHeight();
 
-      doc.setFontSize(12);
-      // Tenant Details - LEFT side
-      const leftX = 14;
-      let tenantY = 28;
-      doc.setFontSize(12);
-      doc.text('Tenant Details:', leftX, tenantY);
-      tenantY += 7;
-      doc.setFontSize(11);
-      if (inv.tenant?.user) {
-        doc.text(
-          `Name: ${inv.tenant.user.fname} ${inv.tenant.user.lname}`,
-          leftX,
-          tenantY
+      // ---- layout constants
+      const MARGIN_L = 40;
+      const MARGIN_R = 40;
+      const CONTENT_W = W - MARGIN_L - MARGIN_R;
+
+      const HEADER_H = 160; // taller header band
+      // const CUT_R = 220; // big rounded-br radius (≈ rounded-br-[20rem])
+      const TITLE_Y = HEADER_H + 40;
+
+      // ---------------- Header (navy) with only bottom-right rounded
+      doc.setFillColor(COLORS.white);
+      doc.rect(0, 0, W, HEADER_H, 'F');
+
+      // 20rem radius in PDF points (1rem≈16px, 1px≈72/96 pt => 0.75pt)
+      const PT_PER_PX = 72 / 96;
+      const CUT_R = 0; // 20rem → 320px → 240pt
+
+      // Clip to the header band so the cut doesn't spill below it
+      doc.saveGraphicsState();
+      doc.rect(-1, HEADER_H - 1, W + 2, 2, 'F');
+      (doc as any).clip(); // use current path as clip; TS may need cast
+
+      // "Cut" the bottom-right corner with a white quarter circle.
+      // Center at (pageRight, headerBottom) so only the bottom-right is rounded.
+      doc.setFillColor(COLORS.sheet);
+      // doc.circle(W, HEADER_H, CUT_R, 'F');
+      doc.circle(W - CUT_R, HEADER_H - CUT_R, CUT_R, 'F');
+
+      doc.restoreGraphicsState();
+
+      // ---------------- High-quality logo (no pixelation)
+      // Draw at or below the image’s natural resolution + disable compression.
+      const loadImg = (src: string) =>
+        new Promise<HTMLImageElement>((resolve, reject) => {
+          const im = new Image();
+          im.crossOrigin = 'anonymous';
+          im.onload = () => resolve(im);
+          im.onerror = reject;
+          im.src = src as any;
+        });
+
+      try {
+        const logo = await loadImg(assets.images.bgBanner as any);
+        const iw = 1500;
+        const ih = 400;
+
+        // Never upscale (that causes blur). Cap to a sensible max width for the header.
+        const MAX_W = 596; // adjust if you want it larger/smaller
+        const drawW = Math.min(MAX_W, iw);
+        const drawH = ih * (drawW / iw);
+
+        // Vertically center the logo inside the navy band
+        const logoX = 0;
+        const logoY = HEADER_H / 2 - drawH / 2;
+
+        // Use 'NONE' compression for best sharpness
+        doc.addImage(
+          logo,
+          'PNG',
+          logoX,
+          logoY,
+          drawW,
+          drawH,
+          undefined,
+          'NONE'
         );
-        tenantY += 6;
-        doc.text(`Email: ${inv.tenant.user.email}`, leftX, tenantY);
-        // tenantY += 6;
-        // doc.text(`Phone: ${inv.tenant.user.phone}`, leftX, tenantY);
-        tenantY += 6;
-        doc.text(
-          `Contract No: ${inv.tenant.contract_number || 'N/A'}`,
-          leftX,
-          tenantY
-        );
-      } else {
-        doc.text('No tenant info.', leftX, tenantY);
+      } catch {
+        // ignore logo errors
       }
 
-      // Invoice Info - RIGHT side
-      const rightX = 110;
-      let y = 20;
-      doc.setFontSize(12);
-      y += 7;
-      doc.setFontSize(11);
-      doc.text(`Invoice No: ${inv.invoice_no}`, rightX, y);
-      y += 6;
-      doc.text(`Invoice Date: ${inv.invoice_date}`, rightX, y);
-      y += 6;
-      doc.text(`Due Date: ${inv.due_date}`, rightX, y);
-      y += 6;
-      doc.text(`Status: ${inv.status}`, rightX, y);
-      y += 6;
-      doc.text(`Total Amount: ${inv.total_amount.toString()}`, rightX, y);
+      // ---------------- Titles
+      doc.setTextColor(COLORS.mint);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('PROPERTY RENT', MARGIN_L, TITLE_Y);
 
-      doc.save(`invoice_${inv.invoice_no}.pdf`);
+      doc.setTextColor(COLORS.navy);
+      doc.setFontSize(28);
+      doc.text('INVOICE', MARGIN_L, TITLE_Y + 25);
+
+      // Right-aligned amount block
+      const rightEdge = W - MARGIN_R;
+      doc.setTextColor(COLORS.mint);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('INVOICE AMOUNT', rightEdge, TITLE_Y, { align: 'right' });
+
+      doc.setTextColor(COLORS.navy);
+      doc.setFontSize(14);
+      doc.text(`${fmt(inv.total_amount, currency)}`, rightEdge, TITLE_Y + 25, {
+        align: 'right',
+      });
+
+      // ---------------- Three-column info blocks
+      const COL_W = CONTENT_W / 2;
+      const COL1_X = MARGIN_L;
+      const COL2_X = MARGIN_L + COL_W;
+      const COL3_X = MARGIN_L + COL_W * 1.5;
+      const BASE_Y = TITLE_Y + 60;
+
+      doc.setTextColor(COLORS.navy);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text('INVOICE DETAILS', COL1_X, BASE_Y);
+      doc.text('OWNER NAME', COL2_X, BASE_Y);
+      doc.text('TENANT NAME', COL3_X, BASE_Y);
+
+      // Left: labels + values aligned
+      const LBL_W = 90;
+      let y = BASE_Y + 20;
+      const leftRows: Array<[string, string]> = [
+        ['INV#', `${inv.invoice_no ?? '—'}`],
+        ['DATE', `${inv.invoice_date ?? '—'}`],
+        ['VALID DATE', `${inv.due_date ?? '—'}`],
+        ['FINAL AMOUNT', `${fmt(inv.total_amount, currency)}`],
+      ];
+      doc.setFontSize(10);
+      leftRows.forEach(([k, v]) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(k, COL1_X, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(v, COL1_X + LBL_W + 10, y);
+        y += 16;
+      });
+
+      // Middle: owner
+      const ownerName = (() => {
+        const u = inv?.landlord?.user;
+        return u
+          ? `${u.fname ?? ''} ${u.lname ?? ''}`.trim()
+          : inv?.tenant?.property_unit?.property?.name || '—';
+      })();
+      const ownerContact = (() => {
+        const u = inv?.landlord?.user;
+        const bits = [u?.email, u?.phone].filter(Boolean) as string[];
+        return bits.length ? bits.join(' | ') : '—';
+      })();
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(ownerName, COL2_X, BASE_Y + 20);
+      doc.setFont('helvetica', 'normal');
+      doc.text(ownerContact, COL2_X, BASE_Y + 36);
+
+      // Right: tenant (wrap within col width)
+      const tenantUser = inv?.tenant?.user;
+      const tenantName = tenantUser
+        ? `${tenantUser.fname ?? ''} ${tenantUser.lname ?? ''}`.trim()
+        : '—';
+      const tenantContactRaw =
+        [tenantUser?.email, tenantUser?.phone].filter(Boolean).join(' | ') ||
+        '—';
+      const tenantWrapped = doc.splitTextToSize(tenantContactRaw, COL_W - 4);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(tenantName, COL3_X, BASE_Y + 20);
+      doc.setFont('helvetica', 'normal');
+      doc.text(tenantWrapped, COL3_X, BASE_Y + 36);
+
+      // ---------------- Table header
+      const tLeft = MARGIN_L;
+      const tRight = W - MARGIN_R;
+      let ty = BASE_Y + 80;
+
+      doc.setFillColor(COLORS.navy);
+      doc.setTextColor('#FFFFFF');
+      doc.rect(tLeft, ty, tRight - tLeft, 26, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+
+      const colXs = [tLeft + 14, tLeft + 180, tLeft + 290, tRight - 90];
+      ['UNIT', 'RENT', 'MAINTAINANCE', 'PRICE'].forEach((h, i) =>
+        doc.text(h, colXs[i], ty + 17)
+      );
+
+      // Row + underlines (same as before)
+      ty += 26 + 24;
+      doc.setTextColor(COLORS.navy);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+
+      const unitNo = inv?.tenant?.property_unit?.unit_no ?? '—';
+      const unitRent = inv?.tenant?.property_unit?.rent ?? '—';
+      const maintenance = '—';
+      const price = inv?.total_amount ?? '—';
+
+      doc.text(String(unitNo), colXs[0], ty);
+      doc.text(fmt(unitRent, inv?.currency || 'KWD'), colXs[1], ty);
+      doc.text(String(maintenance), colXs[2], ty);
+      doc.text(fmt(price, inv?.currency || 'KWD'), colXs[3], ty);
+
+      const lineYs = [ty + 12, ty + 56, ty + 100];
+      doc.setDrawColor(COLORS.navy);
+      doc.setLineWidth(0.6);
+      lineYs.forEach((ly) => doc.line(tLeft, ly, tRight, ly));
+
+      // TOTAL chip
+      const totalBoxW = 150;
+      const totalBoxH = 28;
+      const totalX = tRight - totalBoxW;
+      const totalY = lineYs[2] + 24;
+      doc.setFillColor(COLORS.navy);
+      doc.rect(totalX, totalY, totalBoxW, totalBoxH, 'F');
+
+      doc.setTextColor('#FFFFFF');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text(`TOTAL ${' '} ${inv?.total_amount}`, totalX + 18, totalY + 18);
+
+      // Terms
+      doc.setTextColor(COLORS.navy);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text('Terms & Conditions', MARGIN_L, H - 120);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(
+        'Payment should be paid within the valid date.',
+        MARGIN_L,
+        H - 100
+      );
+
+      doc.save(`invoice_${inv.invoice_no || 'detail'}.pdf`);
     }
   };
 
@@ -452,6 +637,14 @@ const Invoices = () => {
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
+
+  const handlePageChange = (newPage: number) => {
+    table.setPageIndex(newPage + 1);
+    // console.log('current page: ', newPage);
+
+    setPage(newPage + 1);
+    fetchList(search, newPage + 1);
+  };
 
   return (
     <div className="p-4 mt-5">

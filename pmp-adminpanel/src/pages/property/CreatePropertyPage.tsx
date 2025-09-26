@@ -39,6 +39,23 @@ const CreatePropertyPage = () => {
   >({});
   const [csvMode, setCsvMode] = useState(false);
 
+  const [openItems, setOpenItems] = useState<string[]>([]);
+
+  const makeEmptyUnit: any = () => ({
+    name: '',
+    unit_no: '',
+    unit_type: '',
+    size: '',
+    rent: '',
+    status: '',
+    description: '',
+    bedrooms: '',
+    bathrooms: '',
+    water_meter: '',
+    electricity_meter: '',
+    pictures: [],
+  });
+
   const form = useForm<Fields>({
     defaultValues: {
       landlord_id: landlord?.landlordId || '',
@@ -64,28 +81,42 @@ const CreatePropertyPage = () => {
       ],
     },
   });
-  // const { fields, append, remove } = useFieldArray({
-  //   control: form.control,
-  //   name: 'units',
-  // });
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    getValues,
     clearErrors,
     setValue, // ✅ Add this
   } = form;
+
+  const { fields, append, remove, replace } = useFieldArray({
+    control: form.control,
+    name: 'units',
+  });
+
   useEffect(() => {
     setMainIsLoader(false);
   }, []);
-  // useEffect(() => {
-  //   return () => {
-  //     // propertyPicturesPreview.forEach(file => URL.revokeObjectURL(file.preview));
-  //     // Object.values(unitPicturesPreview).flat().forEach(file => URL.revokeObjectURL(file.preview));
-  //   };
-  // }, []);
+
+  useEffect(() => {
+    const currUnits = getValues('units') || [];
+    if (currUnits.length === 0) {
+      append(makeEmptyUnit());
+    }
+    if (!getValues('unit_counts')) {
+      setValue('unit_counts', (getValues('units') || []).length || 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // whenever units length changes, open all panels
+    setOpenItems(fields.map((_, i) => `item-${i}`));
+  }, [fields.length]); // fields from useFieldArray
+
   const ToastHandler = (text: string) => {
     return toast({
       description: text,
@@ -97,6 +128,39 @@ const CreatePropertyPage = () => {
         color: 'white',
         zIndex: 9999,
       },
+    });
+  };
+
+  const commitUnitCount = (raw: string | number) => {
+    // allow empty while typing -> do nothing
+    if (raw === '' || raw === null || raw === undefined) return;
+
+    let count = typeof raw === 'number' ? raw : parseInt(String(raw), 10);
+    if (!Number.isFinite(count)) return;
+
+    // clamp 1..40
+    if (count < 1) count = 1;
+    if (count > 40) count = 40;
+
+    // sync the field value so the input stays clamped
+    setValue('unit_counts', count, { shouldValidate: true, shouldDirty: true });
+
+    const currLen = (getValues('units') || []).length;
+    if (count === currLen) return; // nothing to do
+
+    if (count > currLen) {
+      for (let i = 0; i < count - currLen; i++) append(makeEmptyUnit());
+    } else {
+      for (let i = currLen - 1; i >= count; i--) remove(i);
+    }
+
+    clearErrors('units');
+
+    // keep your previews map in sync (optional)
+    setUnitPicturesPreview((prev) => {
+      const next: Record<number, File[]> = {};
+      for (let i = 0; i < count; i++) next[i] = prev?.[i] || [];
+      return next;
     });
   };
 
@@ -263,7 +327,7 @@ const CreatePropertyPage = () => {
         reset({
           ...form.getValues(),
           units: validRows,
-          unit_count: validRows.length,
+          unit_counts: validRows.length,
         });
 
         // ✅ Setup picture previews
@@ -571,71 +635,26 @@ const CreatePropertyPage = () => {
                 <FormLabel className="text-sm font-semibold text-primary-bg">
                   Number Of Units
                 </FormLabel>
+
                 <Input
                   type="number"
                   min={1}
-                  max={100}
-                  {...form.register('unit_count', {
+                  max={40}
+                  {...register('unit_counts', {
                     required: 'Please provide unit count',
                     min: { value: 1, message: 'At least 1 unit is required' },
-                    max: { value: 100, message: 'Maximum 100 units allowed' },
+                    max: { value: 40, message: 'Maximum 40 units allowed' }, // hard-cap at 40
                     valueAsNumber: true,
                   })}
                   className="rounded-[18px] h-[50px] px-5 bg-dialogBg focus-visible:ring-0"
                   onChange={(e) => {
-                    const value = e.target.value;
-                    const count = parseInt(value, 10);
-
-                    if (!value || isNaN(count)) return;
-
-                    const existingUnits = form.getValues('units') || [];
-
-                    let newUnits;
-                    if (count > existingUnits.length) {
-                      const additional = Array.from(
-                        { length: count - existingUnits.length },
-                        () => ({
-                          name: '',
-                          unit_no: '',
-                          unit_type: '',
-                          size: '',
-                          rent: '',
-                          status: '',
-                          description: '',
-                          bedrooms: '',
-                          bathrooms: '',
-                          water_meter: '',
-                          electricity_meter: '',
-                          pictures: [],
-                        })
-                      );
-                      newUnits = [...existingUnits, ...additional];
-                    } else {
-                      newUnits = existingUnits.slice(0, count);
-                    }
-                    form.unregister('units');
-
-                    // ✅ Final fix: reset whole form with new values
-                    form.reset({
-                      ...form.getValues(), // preserve other values
-                      unit_count: count,
-                      units: newUnits,
-                    });
-
-                    form.clearErrors('units');
-
-                    // ✅ Reset previews too
-                    setUnitPicturesPreview((prev) => {
-                      const updated: Record<number, File[]> = {};
-                      for (let i = 0; i < count; i++) {
-                        updated[i] = prev[i] || [];
-                      }
-                      return updated;
-                    });
+                    // use raw string so we can allow '' while typing
+                    commitUnitCount(e.target.value);
                   }}
                 />
-                {errors.unit_count && (
-                  <FormMessage>*{errors.unit_count.message}</FormMessage>
+
+                {errors.unit_counts && (
+                  <FormMessage>*{errors.unit_counts.message}</FormMessage>
                 )}
               </div>
 
@@ -649,9 +668,14 @@ const CreatePropertyPage = () => {
                   Bank Name
                 </FormLabel>
                 <Input
-                  {...form.register('bank_name')}
+                  {...form.register('bank_name', {
+                    required: 'This field is required',
+                  })}
                   className="rounded-[18px] h-[50px] px-5 bg-dialogBg focus-visible:ring-0"
                 />
+                {errors.bank_name && (
+                  <FormMessage>*{errors.bank_name.message}</FormMessage>
+                )}
               </div>
 
               <div className="col-span-12 md:col-span-6">
@@ -659,9 +683,14 @@ const CreatePropertyPage = () => {
                   Beneficiary Name
                 </FormLabel>
                 <Input
-                  {...form.register('account_name')}
+                  {...form.register('account_name', {
+                    required: 'This field is required',
+                  })}
                   className="rounded-[18px] h-[50px] px-5 bg-dialogBg focus-visible:ring-0"
                 />
+                {errors.account_name && (
+                  <FormMessage>*{errors.account_name.message}</FormMessage>
+                )}
               </div>
 
               <div className="col-span-12 md:col-span-6">
@@ -670,6 +699,7 @@ const CreatePropertyPage = () => {
                 </FormLabel>
                 <Input
                   {...form.register('iban_no', {
+                    required: 'This field is required',
                     pattern: {
                       value: /^QA\d{2}[A-Z]{4}\d{21}$/,
                       message:
@@ -688,6 +718,7 @@ const CreatePropertyPage = () => {
                 </FormLabel>
                 <Input
                   {...form.register('account_no', {
+                    required: 'This field is required',
                     pattern: {
                       value: /^\d{21}$/,
                       message: 'Account number must be exactly 21 digits',
@@ -748,6 +779,7 @@ const CreatePropertyPage = () => {
             <h2 className="text-2xl text-primary-bg font-semibold mt-10 mb-4">
               Unit Details
             </h2>
+
             <div className="mb-6">
               <FormLabel className="text-sm text-primary-bg font-semibold">
                 Upload Units CSV
@@ -765,16 +797,16 @@ const CreatePropertyPage = () => {
                 status is only (available, not_available)]
               </p>
             </div>
+
             <Accordion
               className="w-full"
               type="multiple"
-              defaultValue={(form.watch('units') || []).map(
-                (_, idx) => `item-${idx}`
-              )} // open all by default
+              value={openItems}
+              onValueChange={setOpenItems}
             >
-              {(form.watch('units') || []).map((field, index) => (
+              {fields.map((field, index) => (
                 <AccordionItem
-                  key={index}
+                  key={field.id} // <-- important for field arrays
                   value={`item-${index}`}
                   className="rounded-[18px] p-0 bg-secondary-bg border border-scrollbar mb-4 overflow-hidden"
                 >
@@ -897,7 +929,7 @@ const CreatePropertyPage = () => {
                         </div>
                       </div>
 
-                      {/* Row 3: Description (full width) */}
+                      {/* Row 3: Description */}
                       <div className="mt-4">
                         <FormLabel className="text-sm font-semibold text-primary-bg">
                           Description
@@ -1014,18 +1046,18 @@ const CreatePropertyPage = () => {
                               }));
                             }}
                           />
-                          <div className="flex flex-wrap gap-3 mt-3">
+                          <div className="mt-3 flex flex-wrap gap-3">
                             {unitPicturesPreview[index]?.map(
                               (file, picIndex) =>
                                 file instanceof File ? (
                                   <div
                                     key={picIndex}
-                                    className="relative w-[100px] h-[100px]"
+                                    className="relative h-[100px] w-[100px]"
                                   >
                                     <img
                                       src={URL.createObjectURL(file)}
                                       alt="unit"
-                                      className="w-full h-full object-cover rounded-lg border"
+                                      className="h-full w-full rounded-lg border object-cover"
                                     />
                                     <button
                                       type="button"
@@ -1047,7 +1079,7 @@ const CreatePropertyPage = () => {
                                           }
                                         );
                                       }}
-                                      className="absolute -top-1 -right-1 p-1 bg-primary-bg text-white rounded-full leading-none"
+                                      className="absolute -right-1 -top-1 rounded-full bg-primary-bg p-1 leading-none text-white"
                                       aria-label="Remove"
                                     >
                                       ✕
@@ -1063,35 +1095,6 @@ const CreatePropertyPage = () => {
                 </AccordionItem>
               ))}
             </Accordion>
-            {/* <Button
-  type="button"
-className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2xl shadow-sm border border-gray-200 hover:text-white"
-  onClick={() => {
-  append({
-    name: '',
-    unit_no: '',
-    unit_type: '',
-    size: '',
-    rent: '',
-    status: '',
-    description: '',
-    bedrooms: '',
-    bathrooms: '',
-    water_meter: '',
-    electricity_meter: '',
-    bank_name: '',
-    account_no: '',
-    account_name: '',
-    pictures: [],
-  });
-  setUnitPicturesPreview((prev) => ({
-    ...prev,
-    [fields.length]: [],
-  }));
-}}
->
-  + Add Unit
-</Button> */}
             <div className="flex justify-end">
               <Button
                 disabled={isSubmitting}

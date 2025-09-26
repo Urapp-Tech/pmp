@@ -38,7 +38,7 @@ export interface Fields {
   account_no: string;
   account_name: string;
   iban_no: string;
-  unit_count: number;
+  unit_counts: number;
   status: string;
   pictures: File[]; // handled in React state
   units: Unit[]; // array of unit objects

@@ -90,6 +90,10 @@ const UpdateContractDialog = ({
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [unitList, setUnitList] = useState<GroupedOption[]>([]);
 
+  const [docs, setDocs] = useState<File[]>([]);
+
+  const isImageFile = (f: File) => /^image\//.test(f.type);
+
   const {
     register,
     handleSubmit,
@@ -115,7 +119,8 @@ const UpdateContractDialog = ({
       paymentCycle: data.paymentCycle,
       language: data.language,
     };
-    if (file) obj.agreementDoc = file;
+    if (docs.length) (obj as any).agreementDoc = docs;
+    // if (file) obj.agreementDoc = file;
     // console.log('s', obj);
     callback(obj);
   };
@@ -519,106 +524,114 @@ const UpdateContractDialog = ({
                   ) : null}
                 </div>
               </div> */}
-                <div>
-                  <div className="flex justify-between">
-                    <FormLabel
-                      htmlFor="address"
-                      className="text-sm font-medium my-3"
-                    >
-                      Upload Docs
-                    </FormLabel>
+
+                <FormLabel className="text-sm font-medium my-3">
+                  Upload Docs
+                </FormLabel>
+
+                <div className="grid grid-cols-12 gap-4 items-start">
+                  <div className="col-span-6 border-2 rounded border-scrollbar p-3">
+                    <Input
+                      type="file"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (!files.length) return;
+                        setDocs((prev) => [...prev, ...files]);
+                      }}
+                      className="!bg-white"
+                      accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.webp,.gif"
+                    />
+                    <p className="text-[11px] text-muted-foreground mt-2">
+                      You can add multiple files. Supported: images, PDF, Word,
+                      TXT.
+                    </p>
                   </div>
 
-                  <div className="grid grid-cols-12 gap-4 items-center">
-                    <div className="col-span-6 border-2 rounded border-scrollbar mb-1">
-                      <DragDropFile
-                        setFile={setFile}
-                        setImg={setSelectedImg}
-                        setIsNotify={ToastHandler}
-                      />
-                    </div>
-
-                    {/* Preview uploaded file */}
-                    {selectedImg ? (
-                      <div className="col-span-6 relative h-full rounded border-2 border-scrollbar flex items-center justify-center xl:justify-center 2xl:justify-start p-3">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedImg(null);
-                            setFile(null);
-                            // clear saved value if you want:
-                            // form?.setValue?.('agreementDoc', '');
-                          }}
-                          className="absolute -right-3 -top-3 h-7 w-7 grid place-items-center rounded-full bg-scrollbar text-white shadow hover:opacity-90"
-                          aria-label="Remove file"
-                          title="Remove"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                        {/^data:image\//.test(selectedImg) ||
-                        /\.(jpg|jpeg|png|webp|gif)$/i.test(selectedImg) ? (
-                          <img
-                            className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                            src={selectedImg}
-                            alt="Doc Uploaded"
-                          />
-                        ) : (
-                          <div>{file?.name}</div>
-                        )}
-                      </div>
-                    ) : getValues('agreementDoc') ? (
-                      <div className="col-span-6 relative h-full rounded border-2 border-scrollbar flex items-center justify-center xl:justify-center 2xl:justify-start p-3">
-                        <img
-                          className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
-                          src={getValues('agreementDoc')}
-                          alt="agreementDoc"
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {/* Show existing pictures from unitDetail */}
-                  {formData?.agreement_doc?.length > 0 && (
-                    <div className="mt-4 gap-2 flex flex-col">
+                  {/* NEW DOCS PREVIEW (not yet saved) */}
+                  <div className="col-span-6">
+                    {docs.length > 0 && (
                       <div>
-                        <p className="text-sm text-primary-bg mt-2">
-                          Previous picture / doc will be shown below. You can
-                          update new files also.
+                        <p className="text-xs text-primary-bg/70 mb-2">
+                          New files to upload:
                         </p>
+                        <div className="flex flex-wrap gap-2">
+                          {docs.map((f, idx) => (
+                            <div
+                              key={`${f.name}-${idx}`}
+                              className="w-20 h-20 relative border rounded flex items-center justify-center overflow-hidden"
+                              title={f.name}
+                            >
+                              {isImageFile(f) ? (
+                                <img
+                                  className="w-full h-full object-cover"
+                                  src={URL.createObjectURL(f)}
+                                  alt={f.name}
+                                />
+                              ) : (
+                                <img
+                                  className="w-10 h-10 object-contain"
+                                  src={assets.images.tenantAssign}
+                                  alt={f.name}
+                                />
+                                // <FileText
+                                //   size={18}
+                                //   className="text-primary-bg"
+                                // />
+                              )}
+                              <button
+                                type="button"
+                                className="absolute z-50 -top-0 -right-0 h-6 w-6 grid place-items-center rounded-full bg-red-500 text-white text-xs"
+                                onClick={() =>
+                                  setDocs((prev) =>
+                                    prev.filter((_, i) => i !== idx)
+                                  )
+                                }
+                                aria-label="Remove"
+                              >
+                                X
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {formData?.agreement_doc?.map(
-                          (pic: string, idx: number) => {
-                            const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(
-                              pic
-                            );
-                            const isPDF = /\.pdf$/i.test(pic);
-                            const isDoc = /\.(docx?|txt)$/i.test(pic);
+                    )}
+                  </div>
+                </div>
 
+                {/* EXISTING (already saved) DOCS */}
+                {Array.isArray(formData?.agreement_doc) &&
+                  formData.agreement_doc.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs text-primary-bg/70 mb-2">
+                        Existing documents:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.agreement_doc.map(
+                          (path: string, idx: number) => {
+                            const href = ASSET_BASE_URL + path;
+                            const isImg = /\.(png|jpe?g|webp|gif)$/i.test(path);
                             return (
                               <a
                                 key={idx}
-                                href={ASSET_BASE_URL + pic}
+                                href={href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-16 h-16 border border-primary-bg rounded overflow-hidden flex items-center justify-center"
-                                title={pic.split('/').pop()}
+                                className="w-20 h-20 border rounded overflow-hidden flex items-center justify-center"
+                                title={path.split('/').pop()}
                               >
-                                {isImage ? (
+                                {isImg ? (
                                   <img
-                                    src={ASSET_BASE_URL + pic}
-                                    alt={`unit-picture-${idx}`}
+                                    src={href}
+                                    alt="doc"
                                     className="w-full h-full object-cover"
                                   />
-                                ) : isPDF || isDoc ? (
-                                  <FileText
-                                    className="text-lunar-bg"
-                                    size={20}
-                                  />
                                 ) : (
-                                  <span className="text-xs text-primary-bg">
-                                    File
-                                  </span>
+                                  <img
+                                    className="w-10 h-10 object-contain"
+                                    src={assets.images.tenantAssign}
+                                    alt={'file'}
+                                  />
                                 )}
                               </a>
                             );
@@ -627,7 +640,6 @@ const UpdateContractDialog = ({
                       </div>
                     </div>
                   )}
-                </div>
                 <DialogFooter className="mt-3">
                   <Button
                     disabled={isLoader}

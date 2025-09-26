@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session
+import json
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from app.models.properties import Property as PropertyModel
 from app.models.managers import Manager
@@ -364,27 +365,194 @@ def create_property(db: Session, body: PropertyCreate):
 #         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
+# def update_property(db: Session, property_id: UUID, body):
+#     try:
+#         property_data = db.query(PropertyModel).filter_by(id=property_id).first()
+#         if not property_data:
+#             raise HTTPException(status_code=404, detail="Property not found")
+
+#         picture_paths = []
+#         try:
+#             for pic in body.get("pictures", []):
+#                 if is_upload_file(pic):
+#                     saved_name = save_uploaded_file(pic, "uploads/properties")
+#                     picture_paths.append(saved_name)
+#                 elif isinstance(pic, str):
+#                     picture_paths.append(pic)
+#         except Exception as e:
+#             error_log(e, "Failed to process property pictures")
+#             raise HTTPException(
+#                 status_code=500, detail="Error while saving property pictures."
+#             )
+
+#         # ✅ Update only non-null fields
+#         updatable_fields = [
+#             "name",
+#             "city",
+#             "governance",
+#             "address",
+#             "address2",
+#             "description",
+#             "property_type",
+#             "type",
+#             "paci_no",
+#             "property_no",
+#             "civil_no",
+#             "build_year",
+#             "book_value",
+#             "estimate_value",
+#             "latitude",
+#             "longitude",
+#             "status",
+#             "is_active",
+#             "unit_counts",
+#             "email",
+#             "phone",
+#             "bank_name",
+#             "account_no",
+#             "iban_no",
+#             "account_name",
+#         ]
+#         for field in updatable_fields:
+#             if field in body and body[field] is not None:
+#                 setattr(property_data, field, body[field])
+
+#         if picture_paths:
+#             property_data.pictures = picture_paths
+
+#         # ✅ Unit handling (skip if not passed)
+#         if "units" in body:
+#             existing_units = {str(u.id): u for u in property_data.units}
+#             new_unit_ids = set()
+
+#             flat_unit_pictures = body.get("unit_pictures", [])
+#             pic_offset = 0
+
+#             for unit_data in body["units"] or []:
+#                 unit_id = str(unit_data.get("id", None))
+#                 unit_picture_paths = []
+
+#                 count = int(unit_data.get("pictures_count", 0))
+#                 files_for_unit = flat_unit_pictures[pic_offset : pic_offset + count]
+#                 pic_offset += count
+
+#                 for pic in unit_data.get("pictures", []) + files_for_unit:
+#                     if is_upload_file(pic):
+#                         saved_pic = save_uploaded_file(pic, "uploads/units")
+#                         unit_picture_paths.append(saved_pic)
+#                     elif isinstance(pic, str):
+#                         unit_picture_paths.append(pic)
+
+#             # Update or Create unit
+#             if unit_id and unit_id in existing_units:
+#                 unit = existing_units[unit_id]
+#                 unit.name = unit_data["name"]
+#                 unit.unit_no = unit_data["unit_no"]
+#                 unit.unit_type = unit_data["unit_type"]
+#                 unit.size = unit_data["size"]
+#                 unit.rent = unit_data["rent"]
+#                 unit.description = unit_data["description"]
+#                 unit.pictures = unit_picture_paths
+#                 unit.bedrooms = unit_data["bedrooms"]
+#                 unit.bathrooms = unit_data["bathrooms"]
+#                 unit.water_meter = unit_data["water_meter"]
+#                 unit.electricity_meter = unit_data["electricity_meter"]
+#                 unit.status = unit_data["status"]
+#                 new_unit_ids.add(unit_id)
+#             else:
+#                 new_unit = PropertyUnitModel(
+#                     id=uuid4(),
+#                     property_id=property_id,
+#                     name=unit_data["name"],
+#                     unit_no=unit_data["unit_no"],
+#                     unit_type=unit_data["unit_type"],
+#                     size=unit_data["size"],
+#                     rent=unit_data["rent"],
+#                     description=unit_data["description"],
+#                     pictures=unit_picture_paths,
+#                     bedrooms=unit_data["bedrooms"],
+#                     bathrooms=unit_data["bathrooms"],
+#                     water_meter=unit_data["water_meter"],
+#                     electricity_meter=unit_data["electricity_meter"],
+#                     status=unit_data["status"],
+#                 )
+#                 db.add(new_unit)
+
+#             for existing_unit_id, unit in existing_units.items():
+#                 if existing_unit_id not in new_unit_ids:
+#                     db.delete(unit)
+
+#         db.commit()
+#         db.refresh(property_data)
+
+#         property_data = (
+#             db.query(PropertyModel)
+#             .options(joinedload(PropertyModel.units))
+#             .filter_by(id=property_id)
+#             .first()
+#         )
+
+#         return {
+#             "success": True,
+#             "message": "Property updated successfully.",
+#             "items": jsonable_encoder(property_data),
+#         }
+
+#     except SQLAlchemyError as e:
+#         db.rollback()
+#         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
 def update_property(db: Session, property_id: UUID, body):
     try:
         property_data = db.query(PropertyModel).filter_by(id=property_id).first()
         if not property_data:
             raise HTTPException(status_code=404, detail="Property not found")
 
-        picture_paths = []
+        # -----------------------
+        # Property-level pictures
+        # -----------------------
+        new_prop_picture_paths: list[str] = []
         try:
-            for pic in body.get("pictures", []):
+            incoming_prop_files = body.get("pictures", [])
+            # normalize to list
+            if incoming_prop_files and not isinstance(
+                incoming_prop_files, (list, tuple)
+            ):
+                incoming_prop_files = [incoming_prop_files]
+
+            for pic in incoming_prop_files:
                 if is_upload_file(pic):
                     saved_name = save_uploaded_file(pic, "uploads/properties")
-                    picture_paths.append(saved_name)
-                elif isinstance(pic, str):
-                    picture_paths.append(pic)
+                    new_prop_picture_paths.append(saved_name)
+                elif isinstance(pic, str) and pic:
+                    # seldom sent here, usually in 'existing_pictures'
+                    new_prop_picture_paths.append(pic)
         except Exception as e:
             error_log(e, "Failed to process property pictures")
             raise HTTPException(
                 status_code=500, detail="Error while saving property pictures."
             )
 
-        # ✅ Update only non-null fields
+        # Merge existing property pictures (string paths) + new uploaded
+        existing_pictures = body.get("existing_pictures", [])
+        if isinstance(existing_pictures, str):
+            try:
+                existing_pictures = json.loads(existing_pictures or "[]")
+            except Exception:
+                existing_pictures = []
+        if not isinstance(existing_pictures, list):
+            existing_pictures = []
+
+        final_property_pictures = (existing_pictures or []) + (
+            new_prop_picture_paths or []
+        )
+        if final_property_pictures:
+            property_data.pictures = final_property_pictures
+
+        # -----------------------
+        # Update primitive fields
+        # -----------------------
         updatable_fields = [
             "name",
             "city",
@@ -416,74 +584,147 @@ def update_property(db: Session, property_id: UUID, body):
             if field in body and body[field] is not None:
                 setattr(property_data, field, body[field])
 
-        if picture_paths:
-            property_data.pictures = picture_paths
+        # -----------------------------------------
+        # Units: parse input from FormData payloads
+        # -----------------------------------------
+        # Frontend sends multiple "units_data" entries (each JSON string) OR a "units" list of dicts.
+        units_payload = []
+        if "units" in body and isinstance(body["units"], list):
+            units_payload = body["units"]
+        else:
+            raw_units_data = body.get("units_data", [])
+            if raw_units_data and not isinstance(raw_units_data, (list, tuple)):
+                raw_units_data = [raw_units_data]
+            for item in raw_units_data or []:
+                if isinstance(item, str):
+                    try:
+                        units_payload.append(json.loads(item))
+                    except Exception:
+                        continue
+                elif isinstance(item, dict):
+                    units_payload.append(item)
 
-        # ✅ Unit handling (skip if not passed)
-        if "units" in body:
-            existing_units = {str(u.id): u for u in property_data.units}
-            new_unit_ids = set()
+        # Pictures for units come as a flat list in the order of the units, with counts per unit
+        flat_unit_files = body.get("unit_pictures", [])
+        if flat_unit_files and not isinstance(flat_unit_files, (list, tuple)):
+            flat_unit_files = [flat_unit_files]
 
-            flat_unit_pictures = body.get("unit_pictures", [])
-            pic_offset = 0
+        # Existing unit pictures mapping: {"0": ["path1", ...], "1": [...]} keyed by index in units_payload
+        existing_unit_pictures = body.get("existing_unit_pictures", {})
+        if isinstance(existing_unit_pictures, str):
+            try:
+                existing_unit_pictures = json.loads(existing_unit_pictures or "{}")
+            except Exception:
+                existing_unit_pictures = {}
+        if not isinstance(existing_unit_pictures, dict):
+            existing_unit_pictures = {}
 
-            for unit_data in body["units"] or []:
-                unit_id = str(unit_data.get("id", None))
-                unit_picture_paths = []
+        # Explicitly removed unit ids (string UUIDs)
+        removed_unit_ids = body.get("removed_unit_ids", [])
+        if isinstance(removed_unit_ids, str):
+            try:
+                removed_unit_ids = json.loads(removed_unit_ids or "[]")
+            except Exception:
+                removed_unit_ids = []
+        if not isinstance(removed_unit_ids, list):
+            removed_unit_ids = []
 
-                count = int(unit_data.get("pictures_count", 0))
-                files_for_unit = flat_unit_pictures[pic_offset : pic_offset + count]
-                pic_offset += count
+        # -----------------------
+        # Update / Create units
+        # -----------------------
+        existing_units: dict[str, PropertyUnitModel] = {
+            str(u.id): u for u in property_data.units
+        }
+        new_or_kept_unit_ids: set[str] = set()
 
-                for pic in unit_data.get("pictures", []) + files_for_unit:
-                    if is_upload_file(pic):
-                        saved_pic = save_uploaded_file(pic, "uploads/units")
-                        unit_picture_paths.append(saved_pic)
-                    elif isinstance(pic, str):
-                        unit_picture_paths.append(pic)
+        pic_offset = 0
+        for idx, unit_data in enumerate(units_payload or []):
+            # normalize types and defaults
+            unit_id = str(unit_data.get("id")) if unit_data.get("id") else None
 
-            # Update or Create unit
+            # Gather files for this unit from the flattened list
+            pictures_count = unit_data.get("pictures_count", 0)
+            try:
+                pictures_count = int(pictures_count)
+            except Exception:
+                pictures_count = 0
+
+            files_for_unit = list(
+                flat_unit_files[pic_offset : pic_offset + pictures_count]
+            )
+            pic_offset += pictures_count
+
+            # Start with existing (kept) picture paths for this index
+            unit_picture_paths: list[str] = []
+            existing_paths_for_idx = existing_unit_pictures.get(str(idx), [])
+            if isinstance(existing_paths_for_idx, list):
+                unit_picture_paths.extend(
+                    [p for p in existing_paths_for_idx if isinstance(p, str) and p]
+                )
+
+            # Save uploaded files for this unit
+            for f in files_for_unit:
+                if is_upload_file(f):
+                    saved = save_uploaded_file(f, "uploads/units")
+                    unit_picture_paths.append(saved)
+
+            # If the unit payload also contained string paths in "pictures", add them too
+            for p in unit_data.get("pictures", []) or []:
+                if isinstance(p, str) and p:
+                    unit_picture_paths.append(p)
+
+            # Update or create
             if unit_id and unit_id in existing_units:
                 unit = existing_units[unit_id]
-                unit.name = unit_data["name"]
-                unit.unit_no = unit_data["unit_no"]
-                unit.unit_type = unit_data["unit_type"]
-                unit.size = unit_data["size"]
-                unit.rent = unit_data["rent"]
-                unit.description = unit_data["description"]
+                # update only provided fields (fallback to current)
+                unit.name = unit_data.get("name", unit.name)
+                unit.unit_no = unit_data.get("unit_no", unit.unit_no)
+                unit.unit_type = unit_data.get("unit_type", unit.unit_type)
+                unit.size = unit_data.get("size", unit.size)
+                unit.rent = unit_data.get("rent", unit.rent)
+                unit.description = unit_data.get("description", unit.description)
+                unit.bedrooms = unit_data.get("bedrooms", unit.bedrooms)
+                unit.bathrooms = unit_data.get("bathrooms", unit.bathrooms)
+                unit.water_meter = unit_data.get("water_meter", unit.water_meter)
+                unit.electricity_meter = unit_data.get(
+                    "electricity_meter", unit.electricity_meter
+                )
+                unit.status = unit_data.get("status", unit.status)
+                # replace pictures with combined list for this update cycle
                 unit.pictures = unit_picture_paths
-                unit.bedrooms = unit_data["bedrooms"]
-                unit.bathrooms = unit_data["bathrooms"]
-                unit.water_meter = unit_data["water_meter"]
-                unit.electricity_meter = unit_data["electricity_meter"]
-                unit.status = unit_data["status"]
-                new_unit_ids.add(unit_id)
+                new_or_kept_unit_ids.add(unit_id)
             else:
+                # create new
                 new_unit = PropertyUnitModel(
                     id=uuid4(),
                     property_id=property_id,
-                    name=unit_data["name"],
-                    unit_no=unit_data["unit_no"],
-                    unit_type=unit_data["unit_type"],
-                    size=unit_data["size"],
-                    rent=unit_data["rent"],
-                    description=unit_data["description"],
+                    name=unit_data.get("name", ""),
+                    unit_no=unit_data.get("unit_no", ""),
+                    unit_type=unit_data.get("unit_type", ""),
+                    size=unit_data.get("size", ""),
+                    rent=unit_data.get("rent", ""),
+                    description=unit_data.get("description", ""),
                     pictures=unit_picture_paths,
-                    bedrooms=unit_data["bedrooms"],
-                    bathrooms=unit_data["bathrooms"],
-                    water_meter=unit_data["water_meter"],
-                    electricity_meter=unit_data["electricity_meter"],
-                    status=unit_data["status"],
+                    bedrooms=unit_data.get("bedrooms", ""),
+                    bathrooms=unit_data.get("bathrooms", ""),
+                    water_meter=unit_data.get("water_meter", ""),
+                    electricity_meter=unit_data.get("electricity_meter", ""),
+                    status=unit_data.get("status", "available"),
                 )
                 db.add(new_unit)
 
-            for existing_unit_id, unit in existing_units.items():
-                if existing_unit_id not in new_unit_ids:
-                    db.delete(unit)
+        # ------------------------------------------
+        # Deletions: ONLY delete what client asked to
+        # ------------------------------------------
+        for rid in removed_unit_ids:
+            rid = str(rid)
+            if rid in existing_units and rid not in new_or_kept_unit_ids:
+                db.delete(existing_units[rid])
 
         db.commit()
         db.refresh(property_data)
 
+        # return with units eager-loaded
         property_data = (
             db.query(PropertyModel)
             .options(joinedload(PropertyModel.units))
@@ -542,7 +783,7 @@ def get_property(
     # Build response object and override unit_counts
     prop_dict = jsonable_encoder(property_data)
     prop_dict["units"] = units_dict
-    prop_dict["unit_count"] = len(units_dict)  # ✅ FIX
+    prop_dict["unit_counts"] = len(units_dict)  # ✅ FIX
 
     return {
         "success": True,

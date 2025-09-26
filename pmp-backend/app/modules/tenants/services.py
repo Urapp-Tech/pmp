@@ -26,7 +26,9 @@ from sqlalchemy import or_
 
 
 def create_contract_for_user(
-    db: Session, data: ContractCreate, agreement_doc: Optional[UploadFile] = None
+    db: Session,
+    data: ContractCreate,
+    agreement_docs_files: Optional[list[UploadFile]] = None,
 ):
     try:
         existing_contract = (
@@ -59,16 +61,19 @@ def create_contract_for_user(
         )
         sequence = count + 1
         contract_number = f"CNT-{year}-{str(sequence).zfill(3)}"
+        saved_paths: list[str] = []
         try:
-            file_url = None
-            if is_upload_file(agreement_doc):
-                file_url = save_uploaded_file(
-                    agreement_doc, upload_dir="uploads/agreement_docs"
-                )
+            for f in agreement_docs_files or []:
+                if is_upload_file(f):
+                    saved_paths.append(save_uploaded_file(f, "uploads/agreement_docs"))
         except Exception as e:
             db.rollback()
-            print(e)
-            raise HTTPException(status_code=500, detail=f"Failed: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to save docs: {str(e)}"
+            )
+
+        joined = ",".join(saved_paths) if saved_paths else None
+
         tenant_contract = Tenant(
             id=uuid.uuid4(),
             user_id=data.user_id,
@@ -87,12 +92,22 @@ def create_contract_for_user(
             payment_cycle=data.payment_cycle,
             leaving_date=data.leaving_date,
             is_active=True,
-            agreement_doc=file_url,
+            agreement_doc=joined,
         )
         db.add(tenant_contract)
         db.commit()
         db.refresh(tenant_contract)
-        return ContractCreateOut.model_validate(tenant_contract)
+
+        docs_array = (
+            tenant_contract.agreement_doc.split(",")
+            if tenant_contract.agreement_doc
+            else []
+        )
+        payload = ContractCreateOut.model_validate(tenant_contract).model_dump()
+        payload["agreementDocs"] = docs_array  # add array field for client
+
+        return payload
+        # return ContractCreateOut.model_validate(tenant_contract)
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
@@ -105,52 +120,70 @@ def update_contract_for_user(
     db: Session,
     contract_id: UUID,
     data: ContractUpdate,
-    agreement_doc: Optional[UploadFile] = None,
+    agreement_docs_files: Optional[List[UploadFile]] = None,  # ⬅️ multiple files
 ):
     try:
-        # 1. Find existing contract
+        # 1) Find existing contract
         tenant_contract = db.query(Tenant).filter(Tenant.id == contract_id).first()
         if not tenant_contract:
             raise HTTPException(status_code=404, detail="Contract not found")
 
         old_unit_id: Optional[UUID] = tenant_contract.property_unit_id
 
-        # 2. Keep existing docs as list (from comma-separated string)
-        existing_docs = []
-        if tenant_contract.agreement_doc:
-            existing_docs = tenant_contract.agreement_doc.split(",")
+        # 2) Existing docs from TEXT -> list
+        existing_docs: List[str] = (
+            tenant_contract.agreement_doc.split(",")
+            if tenant_contract.agreement_doc
+            else []
+        )
 
-        # 3. If new agreement_doc is uploaded, save and append
-        if is_upload_file(agreement_doc):
-            new_file_url = save_uploaded_file(
-                agreement_doc, upload_dir="uploads/agreement_docs"
-            )
-            existing_docs.append(new_file_url)
+        # 3) Save new uploaded docs (if any) and append
+        if agreement_docs_files:
+            for f in agreement_docs_files:
+                if is_upload_file(f):
+                    saved = save_uploaded_file(f, "uploads/agreement_docs")
+                    existing_docs.append(saved)
 
-        # 4. Update fields from incoming data
-        # tenant_contract.user_id = data.user_id
-        tenant_contract.property_unit_id = data.property_unit_id
-        tenant_contract.tenant_type = data.tenant_type
-        tenant_contract.civil_id = data.civil_id
-        tenant_contract.nationality = data.nationality
-        tenant_contract.legal_case = data.legal_case
-        # tenant_contract.is_approved = data.is_approved
-        tenant_contract.language = data.language
-        tenant_contract.contract_start = data.contract_start
-        tenant_contract.contract_end = data.contract_end
-        tenant_contract.rent_price = data.rent_price
-        tenant_contract.rent_pay_day = data.rent_pay_day
-        tenant_contract.payment_cycle = data.payment_cycle
-        tenant_contract.leaving_date = data.leaving_date
+        # 4) Update fields only if provided (avoid overwriting with None)
+        def _set_if(value, setter):
+            if value is not None:
+                setter(value)
+
+        _set_if(
+            data.property_unit_id,
+            lambda v: setattr(tenant_contract, "property_unit_id", v),
+        )
+        _set_if(data.tenant_type, lambda v: setattr(tenant_contract, "tenant_type", v))
+        _set_if(data.civil_id, lambda v: setattr(tenant_contract, "civil_id", v))
+        _set_if(data.nationality, lambda v: setattr(tenant_contract, "nationality", v))
+        _set_if(data.legal_case, lambda v: setattr(tenant_contract, "legal_case", v))
+        _set_if(data.language, lambda v: setattr(tenant_contract, "language", v))
+        _set_if(
+            data.contract_start, lambda v: setattr(tenant_contract, "contract_start", v)
+        )
+        _set_if(
+            data.contract_end, lambda v: setattr(tenant_contract, "contract_end", v)
+        )
+        _set_if(data.rent_price, lambda v: setattr(tenant_contract, "rent_price", v))
+        _set_if(
+            data.rent_pay_day, lambda v: setattr(tenant_contract, "rent_pay_day", v)
+        )
+        _set_if(
+            data.payment_cycle, lambda v: setattr(tenant_contract, "payment_cycle", v)
+        )
+        _set_if(
+            data.leaving_date, lambda v: setattr(tenant_contract, "leaving_date", v)
+        )
+
         tenant_contract.updated_at = datetime.utcnow()
 
-        # 5. Save updated list as comma-separated string
+        # 5) Persist docs back to TEXT (comma-separated)
         tenant_contract.agreement_doc = ",".join(existing_docs)
 
-        new_unit_id: Optional[UUID] = data.property_unit_id
+        new_unit_id: Optional[UUID] = getattr(tenant_contract, "property_unit_id", None)
 
+        # Helpers for unit status
         def set_available(unit_obj):
-            # supports either a string 'status' or boolean 'is_occupied'
             if hasattr(unit_obj, "status"):
                 unit_obj.status = "available"
             if hasattr(unit_obj, "is_occupied"):
@@ -162,10 +195,10 @@ def update_contract_for_user(
             if hasattr(unit_obj, "is_occupied"):
                 unit_obj.is_occupied = True
 
-        unit = None  # we'll reuse this for response building
+        unit = None  # for response building
 
+        # 6) If unit changed, free old and occupy new
         if new_unit_id and new_unit_id != old_unit_id:
-            # 6a) Release old unit
             if old_unit_id:
                 prev_unit = (
                     db.query(PropertyUnit)
@@ -175,7 +208,6 @@ def update_contract_for_user(
                 if prev_unit:
                     set_available(prev_unit)
 
-            # 6b) Occupy new unit
             unit = db.query(PropertyUnit).filter(PropertyUnit.id == new_unit_id).first()
             if not unit:
                 db.rollback()
@@ -185,7 +217,7 @@ def update_contract_for_user(
 
             set_occupied(unit)
         else:
-            # No change or no new unit id; fetch current unit for response (if any)
+            # No change; fetch current unit for response (if any)
             if tenant_contract.property_unit_id:
                 unit = (
                     db.query(PropertyUnit)
@@ -196,12 +228,7 @@ def update_contract_for_user(
         db.commit()
         db.refresh(tenant_contract)
 
-        # 6. Fetch unit details for the response
-        # unit = (
-        #     db.query(PropertyUnit)
-        #     .filter(PropertyUnit.id == tenant_contract.property_unit_id)
-        #     .first()
-        # )
+        # 7) Prepare response payload (unit details + docs array)
         property_info = None
         if unit and unit.property_id:
             property_row = (
@@ -227,48 +254,45 @@ def update_contract_for_user(
                 property=property_info,
             )
 
-            # 7. Build response ContractUpdate object
-            contract_update_response = ContractUpdate(
-                property_unit_id=tenant_contract.property_unit_id,
-                contract_start=tenant_contract.contract_start,
-                contract_end=tenant_contract.contract_end,
-                rent_price=(
-                    float(tenant_contract.rent_price)
-                    if tenant_contract.rent_price is not None
-                    else 0.0
-                ),
-                rent_pay_day=(
-                    int(tenant_contract.rent_pay_day)
-                    if tenant_contract.rent_pay_day is not None
-                    else 0
-                ),
-                payment_cycle=tenant_contract.payment_cycle,
-                leaving_date=tenant_contract.leaving_date,
-                civil_id=tenant_contract.civil_id,
-                tenant_type=tenant_contract.tenant_type,
-                nationality=tenant_contract.nationality,
-                legal_case=(
-                    bool(tenant_contract.legal_case)
-                    if tenant_contract.legal_case is not None
-                    else False
-                ),
-                is_approved=(
-                    bool(tenant_contract.is_approved)
-                    if tenant_contract.is_approved is not None
-                    else False
-                ),
-                language=tenant_contract.language,
-                agreement_doc=existing_docs,
-                unit_detail=unit_detail,
-            )
+        contract_update_response = ContractUpdate(
+            property_unit_id=tenant_contract.property_unit_id,
+            contract_start=tenant_contract.contract_start,
+            contract_end=tenant_contract.contract_end,
+            rent_price=(
+                float(tenant_contract.rent_price)
+                if tenant_contract.rent_price is not None
+                else 0.0
+            ),
+            rent_pay_day=(
+                int(tenant_contract.rent_pay_day)
+                if tenant_contract.rent_pay_day is not None
+                else 0
+            ),
+            payment_cycle=tenant_contract.payment_cycle,
+            leaving_date=tenant_contract.leaving_date,
+            civil_id=tenant_contract.civil_id,
+            tenant_type=tenant_contract.tenant_type,
+            nationality=tenant_contract.nationality,
+            legal_case=(
+                bool(tenant_contract.legal_case)
+                if tenant_contract.legal_case is not None
+                else False
+            ),
+            is_approved=(
+                bool(tenant_contract.is_approved)
+                if tenant_contract.is_approved is not None
+                else False
+            ),
+            language=tenant_contract.language,
+            agreement_doc=existing_docs,  # ⬅️ return as array
+            unit_detail=unit_detail,
+        )
 
         return ContractStandardUpdateResponse(
             success=True,
             message="Contract updated successfully",
             data=contract_update_response,
         )
-
-        # return ContractCreateOut.model_validate(tenant_contract)
 
     except SQLAlchemyError as e:
         db.rollback()

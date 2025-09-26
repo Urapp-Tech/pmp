@@ -72,6 +72,25 @@ const CreateContractDialog = ({
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [unitList, setUnitList] = useState<GroupedOption[]>([]);
 
+  const [agreementDocs, setAgreementDocs] = useState<(File | string)[]>([]);
+
+  const ACCEPTED = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+  ];
+  const MAX_FILES = 5;
+
+  const addFiles = (files: File[]) => {
+    const safe = files.filter((f) => ACCEPTED.includes(f.type));
+    setAgreementDocs((prev) => [...prev, ...safe].slice(0, MAX_FILES));
+  };
+  const removeDoc = (idx: number) =>
+    setAgreementDocs((prev) => prev.filter((_, i) => i !== idx));
+
   const {
     register,
     handleSubmit,
@@ -96,8 +115,9 @@ const CreateContractDialog = ({
       leavingDate: dayjs(data.leavingDate).format('YYYY-MM-DD'),
       paymentCycle: data.paymentCycle,
       language: data.language,
+      agreementDoc: agreementDocs,
     };
-    if (file) obj.agreementDoc = file;
+    // if (file) obj.agreementDoc = file;
     console.log('s', obj);
     callback(obj);
   };
@@ -512,75 +532,135 @@ const CreateContractDialog = ({
                     </div>
                   </FormControl>
                 </div>
+
                 <div>
                   <div className="flex justify-between">
-                    <FormLabel
-                      htmlFor="address"
-                      className="text-sm font-medium my-3"
-                    >
-                      Upload Docs
+                    <FormLabel className="text-sm font-medium my-3">
+                      Upload Docs (PDF, Word, Images)
                     </FormLabel>
+                    <span className="text-xs text-muted-foreground mt-4">
+                      {agreementDocs.length}/{MAX_FILES}
+                    </span>
                   </div>
-                  <div className="grid grid-cols-12 gap-4 items-center">
-                    <div className="col-span-6 border-2 rounded border-scrollbar mb-1">
-                      <DragDropFile
-                        setFile={setFile}
-                        setImg={setSelectedImg}
-                        setIsNotify={ToastHandler}
-                      />
-                    </div>
-                    {/* RIGHT: preview */}
-                    {selectedImg || getValues('agreementDoc') || file ? (
-                      <div className="col-span-6 relative h-full rounded border-2 border-scrollbar flex items-center justify-center xl:justify-center 2xl:justify-start p-3">
-                        {/* remove button */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedImg(null);
-                            setFile(null);
-                            // clear saved value if you want:
-                            // form?.setValue?.('agreementDoc', '');
+
+                  <div className="grid grid-cols-12 gap-4 items-start">
+                    {/* LEFT: drop/click */}
+                    <div className="col-span-12 xl:col-span-6">
+                      <label
+                        htmlFor="agreementDocsInput"
+                        className="flex flex-col items-center justify-center w-full h-36 border-2 border-scrollbar rounded cursor-pointer bg-dialogBg hover:bg-muted transition"
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          addFiles(Array.from(e.dataTransfer.files || []));
+                        }}
+                      >
+                        <div className="text-center">
+                          <p className="text-sm font-medium text-primary-bg">
+                            Drag & Drop
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            or click to browse
+                          </p>
+                        </div>
+                        <input
+                          id="agreementDocsInput"
+                          type="file"
+                          multiple
+                          accept={ACCEPTED.join(',')}
+                          className="hidden"
+                          onChange={(e) => {
+                            addFiles(Array.from(e.target.files || []));
+                            e.currentTarget.value = '';
                           }}
-                          className="absolute -right-3 -top-3 h-7 w-7 grid place-items-center rounded-full bg-scrollbar text-white shadow hover:opacity-90"
-                          aria-label="Remove file"
-                          title="Remove"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
+                        />
+                      </label>
 
-                        {(() => {
-                          const persisted = getValues('agreementDoc');
-                          const src = selectedImg || persisted || '';
-                          const name =
-                            file?.name ||
-                            (typeof src === 'string'
-                              ? src.split('/').pop()
-                              : 'file');
-                          const kind = fileKind(name, file?.type);
-
-                          // image preview
-                          if (isImageSrc(src)) {
-                            return (
-                              <img
-                                className="max-h-[140px] max-w-[240px] rounded-md object-contain"
-                                src={src}
-                                alt="Uploaded document"
-                              />
-                            );
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-8"
+                          onClick={() =>
+                            document
+                              .getElementById('agreementDocsInput')
+                              ?.click()
                           }
-
-                          // non-image: icon + name
-                          return (
-                            <div className="flex items-center gap-3">
-                              <FileIcon kind={kind} />
-                              <div className="max-w-[260px] text-sm text-primary-bg/80 truncate">
-                                {name}
-                              </div>
-                            </div>
-                          );
-                        })()}
+                        >
+                          Choose files
+                        </Button>
+                        {!!agreementDocs.length && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="h-8 text-destructive"
+                            onClick={() => setAgreementDocs([])}
+                          >
+                            Clear all
+                          </Button>
+                        )}
                       </div>
-                    ) : null}
+                    </div>
+
+                    {/* RIGHT: previews */}
+                    <div className="col-span-12 xl:col-span-6">
+                      {agreementDocs.length ? (
+                        <div className="grid grid-cols-2 gap-3">
+                          {agreementDocs.map((doc, idx) => {
+                            const isFile = doc instanceof File;
+                            const name = isFile ? doc.name : String(doc);
+                            const isImg = isFile
+                              ? doc.type.startsWith('image/')
+                              : /\.(jpg|jpeg|png|gif|webp)$/i.test(name);
+                            const src =
+                              isFile && isImg ? URL.createObjectURL(doc) : '';
+
+                            return (
+                              <div
+                                key={idx}
+                                className="relative rounded-lg border p-3 bg-white flex items-center gap-3"
+                              >
+                                <button
+                                  type="button"
+                                  className="absolute -top-2 -right-2 h-6 w-6 grid place-items-center rounded-full bg-secondary-bg text-primary-bg"
+                                  onClick={() => removeDoc(idx)}
+                                  aria-label="Remove file"
+                                >
+                                  ✕
+                                </button>
+
+                                {isImg ? (
+                                  <img
+                                    src={src}
+                                    className="h-12 w-12 rounded object-cover"
+                                    alt={name}
+                                  />
+                                ) : (
+                                  <div className="h-12 w-12 grid place-items-center rounded bg-muted text-xs">
+                                    FILE
+                                  </div>
+                                )}
+
+                                <div className="min-w-0">
+                                  <div className="text-sm font-medium truncate max-w-[160px]">
+                                    {name}
+                                  </div>
+                                  {isFile && (
+                                    <div className="text-[10px] text-muted-foreground">
+                                      {(doc.size / 1024).toFixed(1)} KB
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border-2 border-dashed border-scrollbar p-6 text-sm text-muted-foreground">
+                          No documents selected yet.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <DialogFooter className="mt-3">

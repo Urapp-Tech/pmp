@@ -1,7 +1,10 @@
 from sqlalchemy.orm import Session, joinedload
 from app.models.property_units import PropertyUnit
 from app.models.properties import Property
+from app.models.tenants import Tenant
 from uuid import UUID
+from typing import List
+from datetime import date
 from app.modules.propertyUnits.schemas import (
     PropertyUnitLOV,
     BuildingUnitsLOV,
@@ -49,7 +52,25 @@ def get_units_lov_by_manager(landlord_id: UUID, db: Session):
 
 
 def get_available_units_lov_by_landlord(landlord_id: UUID, db: Session):
+    """
+    Return 'available' units for a landlord, excluding any unit that currently
+    has an active, approved contract (Tenant.is_approved == True AND is_active == True AND contract_end >= today).
+    This effectively enforces: is_approved is NOT true.
+    """
 
+    # 1) Precompute unit IDs that are taken by an approved, active contract
+    approved_active_unit_ids = {
+        row[0]
+        for row in db.query(Tenant.property_unit_id)
+        .filter(
+            Tenant.is_active == True,
+            Tenant.is_approved == True,
+            Tenant.contract_end >= date.today(),
+        )
+        .all()
+    }
+
+    # 2) Fetch properties with their units (for this landlord)
     properties = (
         db.query(Property)
         .options(joinedload(Property.units))
@@ -57,20 +78,20 @@ def get_available_units_lov_by_landlord(landlord_id: UUID, db: Session):
         .all()
     )
 
-    result = []
-
+    # 3) Build LOV grouped by building, applying both filters:
+    #    - unit.status == "available"
+    #    - unit.id NOT IN approved_active_unit_ids  -> "is_approved is not true"
+    result: List[BuildingUnitsLOV] = []
     for prop in properties:
-        available_units = [unit for unit in prop.units if unit.status == "available"]
-
+        available_units = [
+            unit
+            for unit in prop.units
+            if unit.status == "available" and unit.id not in approved_active_unit_ids
+        ]
         if not available_units:
             continue
 
         items = [PropertyUnitLOV.model_validate(unit) for unit in available_units]
-        result.append(
-            BuildingUnitsLOV(
-                name=prop.name,
-                items=items,
-            )
-        )
+        result.append(BuildingUnitsLOV(name=prop.name, items=items))
 
     return result

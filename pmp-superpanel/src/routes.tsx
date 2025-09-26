@@ -22,6 +22,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import NewPassword from './pages/auth/NewPassword';
 import ReportGraphPage from './pages/reports/ReportGraphPage';
 import Contacts from '@/pages/contact-us/Contact';
+import ProfilePage from './pages/profile';
 
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
 const RolePermissions = lazy(
@@ -151,6 +152,23 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <UnverifiedUsers />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'profile',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ProfilePage />
                   </Suspense>
                 ),
               },
