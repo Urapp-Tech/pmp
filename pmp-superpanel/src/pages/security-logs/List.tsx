@@ -108,9 +108,7 @@ const Receipts = () => {
               {getInitials(row.getValue('userName'))}
             </AvatarFallback>
           </Avatar>
-          <div className="capitalize font-light">
-            {row.getValue('userName')}
-          </div>
+          <div className="capitalize">{row.getValue('userName')}</div>
         </div>
       ),
     },

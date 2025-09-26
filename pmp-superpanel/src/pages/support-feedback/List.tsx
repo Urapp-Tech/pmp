@@ -55,6 +55,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials, handleErrorMessage } from '@/utils/helper';
 import { ASSET_BASE_URL } from '@/utils/constants';
 import StatusChangeDialog from './StatusDialog';
+import assets from '@/assets/images';
 
 export type Users = {
   id: string; // UUID
@@ -122,14 +123,14 @@ const Blogs = () => {
   const columns: ColumnDef<Users>[] = [
     {
       accessorKey: 'subject',
-      header: 'Subject',
+      header: 'SUBJECT',
       cell: ({ row }) => (
         <div className="capitalize font-light">{row.getValue('subject')}</div>
       ),
     },
     {
       accessorKey: 'message',
-      header: 'Description',
+      header: 'DESCRIPTION',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('message')}</div>
       ),
@@ -147,7 +148,7 @@ const Blogs = () => {
     },
     {
       accessorKey: 'images',
-      header: 'Attachments',
+      header: 'ATTACHMENTS',
       cell: ({ row }) => {
         const images = row.getValue('images') as string[] | null;
 
@@ -178,16 +179,24 @@ const Blogs = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : isPDF ? (
-                    <FileText
-                      className="text-lunar-bg cursor-pointer"
-                      size={50}
+                    <img
+                      src={assets.images.doc}
+                      className="h-8 w-8 object-contain"
                     />
-                  ) : isDoc ? (
-                    <FileText
-                      className="text-lunar-bg cursor-pointer"
-                      size={20}
+                  ) : // <FileText
+                  //   className="text-lunar-bg cursor-pointer"
+                  //   size={50}
+                  // />
+                  isDoc ? (
+                    <img
+                      src={assets.images.doc}
+                      className="h-8 w-8 object-contain"
                     />
                   ) : (
+                    // <FileText
+                    //   className="text-lunar-bg cursor-pointer"
+                    //   size={20}
+                    // />
                     <span className="text-xs text-gray-500">File</span>
                   )}
                 </a>
@@ -199,6 +208,7 @@ const Blogs = () => {
     },
     {
       id: 'actions',
+      header: 'ACTIONS',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
@@ -206,15 +216,20 @@ const Blogs = () => {
         // console.log('status', status);
 
         return (
-          <div className="flex justify-center items-center">
+          <div className="flex justify-start items-center">
             {status === 'closed' ? null : (
               <>
                 <div className="pr-6">
-                  <Airplay
+                  <img
+                    src={assets.images.editPencil}
+                    className="h-8 w-8 object-contain cursor-pointer"
+                    onClick={() => handleActionMenu('status', id)}
+                  />
+                  {/* <Airplay
                     className="text-primary-bg cursor-pointer"
                     size={20}
                     onClick={() => handleActionMenu('status', id)}
-                  />
+                  /> */}
                 </div>
 
                 {/* <div>
@@ -225,11 +240,16 @@ const Blogs = () => {
                   />
                 </div> */}
                 <div className="pl-3">
-                  <Trash2
+                  <img
+                    src={assets.images.deleted}
+                    className="h-8 w-8 object-contain cursor-pointer"
+                    onClick={() => handleActionMenu('delete', id)}
+                  />
+                  {/* <Trash2
                     className="text-primary-bg cursor-pointer"
                     size={20}
                     onClick={() => handleActionMenu('delete', id)}
-                  />
+                  /> */}
                 </div>
               </>
             )}

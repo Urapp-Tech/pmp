@@ -109,7 +109,7 @@ export const TopBar = ({ title }: Props) => {
                 className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460]"
               >
                 <Link
-                  to="/profile"
+                  to="/super-admin/profile/list"
                   className="flex items-center gap-3 text-[#242460]"
                 >
                   <img src={assets.images.propManagers} className="h-5 w-5" />

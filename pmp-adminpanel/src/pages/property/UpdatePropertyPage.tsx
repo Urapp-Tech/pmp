@@ -245,217 +245,6 @@ const UpdatePropertyPage = () => {
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <input type="hidden" {...register('landlord_id')} />
-            {/* <h2 className="text-xl font-semibold mb-4">Property Details</h2> */}
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                'name',
-                'city',
-                'governance',
-                'address',
-                'address2',
-                'description',
-                'property_type',
-                'type',
-                'paci_no',
-                'property_no',
-                'civil_no',
-                'build_year',
-                'book_value',
-                'estimate_value',
-                'latitude',
-                'longitude',
-                'status',
-                'phone',
-                'email',
-                'bank_name',
-                'account_no',
-                'iban_no',
-                'account_name',
-              ].map((field) => (
-                <FormControl key={field} className="mb-4">
-                  <div>
-                    <FormLabel className="text-sm font-semibold capitalize">
-                      {field.replace(/_/g, ' ')}
-                    </FormLabel>
-
-                    {field === 'description' ? (
-                      <Textarea
-                        {...form.register(field)}
-                        className="rounded-[20px] px-4 py-2 bg-earth-bg"
-                      />
-                    ) : field === 'type' ? (
-                      <SingleSelectDropDown
-                        {...form.register('type', {
-                          required: 'This field is required',
-                        })}
-                        label="Type"
-                        placeholder="Select Type"
-                        control={form.control}
-                        items={[
-                          { name: 'Residential', id: 'residential' },
-                          { name: 'Commercial', id: 'commercial' },
-                        ]}
-                      />
-                    ) : field === 'property_type' ? (
-                      <SingleSelectDropDown
-                        {...form.register('property_type', {
-                          required: 'This field is required',
-                        })}
-                        label="Property Type"
-                        control={form.control}
-                        placeholder="Select Property Type"
-                        items={[
-                          { name: 'Villa', id: 'villa' },
-                          { name: 'Building', id: 'building' },
-                          { name: 'Apartment', id: 'apartment' },
-                        ]}
-                      />
-                    ) : field === 'status' ? (
-                      <SingleSelectDropDown
-                        {...form.register('status', {
-                          required: 'This field is required',
-                        })}
-                        label="Status"
-                        control={form.control}
-                        placeholder="Select Status"
-                        items={[
-                          { name: 'Available', id: 'available' },
-                          { name: 'Not Available', id: 'not_available' },
-                        ]}
-                      />
-                    ) : field === 'email' ? (
-                      <Input
-                        type="email"
-                        {...form.register(field as any, {
-                          required: 'This field is required',
-                        })}
-                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
-                      />
-                    ) : field === 'iban_no' ? (
-                      <Input
-                        type="text"
-                        {...form.register(field as any, {
-                          required: 'This field is required',
-                          pattern: {
-                            value: /^QA\d{2}[A-Z]{4}\d{21}$/,
-                            message:
-                              'IBAN must start with QA, have 2 check digits, 4-letter bank code, and 21-digit account number',
-                          },
-                        })}
-                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
-                      />
-                    ) : field === 'phone' ? (
-                      <Input
-                        type="number"
-                        {...form.register(field as any, {
-                          required: 'This field is required',
-                          pattern: {
-                            value: /^[9654]\d{7}$/,
-                            message:
-                              'Phone must start with 9, 6, 5, or 4 and be exactly 8 digits',
-                          },
-                        })}
-                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
-                      />
-                    ) : field === 'account_no' ? (
-                      <Input
-                        type="text"
-                        {...form.register(field as any, {
-                          required: 'This field is required',
-                          pattern: {
-                            value: /^\d{21}$/,
-                            message: 'Account number must be exactly 21 digits',
-                          },
-                        })}
-                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
-                      />
-                    ) : (
-                      <Input
-                        type="text"
-                        {...form.register(field as any, {
-                          required: 'This field is required',
-                        })}
-                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
-                      />
-                    )}
-
-                    {form.formState.errors[field as keyof Fields] &&
-                      !['type', 'property_type', 'status'].includes(field) && (
-                        <FormMessage>
-                          *
-                          {
-                            form.formState.errors[field as keyof Fields]
-                              ?.message as string
-                          }
-                        </FormMessage>
-                      )}
-                  </div>
-                </FormControl>
-              ))}
-
-              <FormControl className="mb-6">
-                <div>
-                  <FormLabel className="text-sm font-semibold">
-                    Property Pictures
-                  </FormLabel>
-
-                  <Input
-                    type="file"
-                    multiple
-                    {...form.register('pictures')}
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-
-                      // ✅ Fix: Properly merge existing and new files
-                      setPropertyPicturesPreview((prev) => [...prev, ...files]);
-
-                      // ✅ Fix: Set form value correctly
-                      const currentFiles = form.getValues('pictures') || [];
-                      form.setValue('pictures', [...currentFiles, ...files]);
-                    }}
-                  />
-
-                  <div className="flex flex-wrap gap-3 mt-3">
-                    {propertyPicturesPreview.map((file, index) => {
-                      const imageUrl =
-                        typeof file === 'string'
-                          ? file.startsWith('http')
-                            ? file
-                            : `${ASSET_BASE_URL}${file}`
-                          : URL.createObjectURL(file);
-                      return (
-                        <div key={index} className="relative w-[80px] h-[80px]">
-                          <img
-                            src={imageUrl}
-                            alt="preview"
-                            className="w-full h-full object-cover rounded-lg border"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = [...propertyPicturesPreview];
-                              updated.splice(index, 1);
-                              setPropertyPicturesPreview(updated);
-                              form.setValue(
-                                'pictures',
-                                updated.filter((f) => f instanceof File),
-                                {
-                                  shouldValidate: true,
-                                  shouldDirty: true,
-                                }
-                              );
-                            }}
-                            className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-1"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </FormControl>
-            </div> */}
             <h2 className="text-4xl font-semibold text-primary-bg mb-10">
               Update Property Details
             </h2>
@@ -737,7 +526,7 @@ const UpdatePropertyPage = () => {
                   type="number"
                   min={1}
                   max={100}
-                  {...form.register('unit_count', {
+                  {...form.register('unit_counts', {
                     required: 'Please provide unit count',
                     min: { value: 1, message: 'At least 1 unit is required' },
                     max: { value: 100, message: 'Maximum 100 units allowed' },
@@ -780,7 +569,7 @@ const UpdatePropertyPage = () => {
                     // ✅ Final fix: reset whole form with new values
                     form.reset({
                       ...form.getValues(), // preserve other values
-                      unit_count: count,
+                      unit_counts: count,
                       units: newUnits,
                     });
 
@@ -796,8 +585,8 @@ const UpdatePropertyPage = () => {
                     });
                   }}
                 />
-                {errors.unit_count && (
-                  <FormMessage>*{errors.unit_count.message}</FormMessage>
+                {errors.unit_counts && (
+                  <FormMessage>*{errors.unit_counts.message}</FormMessage>
                 )}
               </div>
 
@@ -811,9 +600,14 @@ const UpdatePropertyPage = () => {
                   Bank Name
                 </FormLabel>
                 <Input
-                  {...form.register('bank_name')}
+                  {...form.register('bank_name', {
+                    required: 'Please provide beneficiary name',
+                  })}
                   className="rounded-[18px] h-[50px] px-5 bg-dialogBg focus-visible:ring-0"
                 />
+                {errors.bank_name && (
+                  <FormMessage>*{errors.bank_name.message}</FormMessage>
+                )}
               </div>
 
               <div className="col-span-12 md:col-span-6">
@@ -821,9 +615,14 @@ const UpdatePropertyPage = () => {
                   Beneficiary Name
                 </FormLabel>
                 <Input
-                  {...form.register('account_name')}
+                  {...form.register('account_name', {
+                    required: 'Please provide beneficiary name',
+                  })}
                   className="rounded-[18px] h-[50px] px-5 bg-dialogBg focus-visible:ring-0"
                 />
+                {errors.account_name && (
+                  <FormMessage>*{errors.account_name.message}</FormMessage>
+                )}
               </div>
 
               <div className="col-span-12 md:col-span-6">
@@ -832,6 +631,7 @@ const UpdatePropertyPage = () => {
                 </FormLabel>
                 <Input
                   {...form.register('iban_no', {
+                    required: 'Please provide IBAN number',
                     pattern: {
                       value: /^QA\d{2}[A-Z]{4}\d{21}$/,
                       message:
@@ -850,6 +650,7 @@ const UpdatePropertyPage = () => {
                 </FormLabel>
                 <Input
                   {...form.register('account_no', {
+                    required: 'Please provide account number',
                     pattern: {
                       value: /^\d{21}$/,
                       message: 'Account number must be exactly 21 digits',
@@ -968,204 +769,6 @@ const UpdatePropertyPage = () => {
                         </AccordionTrigger>
                         <AccordionContent className="px-5 pb-5 pt-4">
                           <div className="rounded-[16px] border border-scrollbar bg-secondary-bg p-4">
-                            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {[
-                                'name',
-                                'unit_no',
-                                'unit_type',
-                                'size',
-                                'rent',
-                                'status',
-                                'description',
-                                'bedrooms',
-                                'bathrooms',
-                                'water_meter',
-                                'electricity_meter',
-                              ].map((unitField) => (
-                                <FormControl
-                                  key={unitField}
-                                  className="m-1 w-full"
-                                >
-                                  <div>
-                                    <FormLabel className="text-sm font-semibold capitalize">
-                                      {unitField.replace(/_/g, ' ')}
-                                    </FormLabel>
-                                    {unitField === 'description' ? (
-                                      <Textarea
-                                        {...register(
-                                          `units.${index}.${unitField}`
-                                        )}
-                                        className="rounded-[20px] px-4 py-2 bg-earth-bg"
-                                      />
-                                    ) : unitField === 'status' ? (
-                                      <SingleSelectDropDown
-                                        {...register(
-                                          `units.${index}.${unitField}`
-                                        )}
-                                        control={form.control}
-                                        label="Status"
-                                        placeholder="Select Status"
-                                        items={[
-                                          {
-                                            name: 'Available',
-                                            id: 'available',
-                                          },
-                                          {
-                                            name: 'Not Available',
-                                            id: 'not_available',
-                                          },
-                                        ]}
-                                      />
-                                    ) : unitField === 'unit_type' ? (
-                                      <SingleSelectDropDown
-                                        {...form.register(
-                                          `units.${index}.${unitField}`
-                                        )}
-                                        control={form.control}
-                                        label="Select Type"
-                                        placeholder="Select Type"
-                                        items={[
-                                          {
-                                            name: 'Residential',
-                                            id: 'residential',
-                                          },
-                                          {
-                                            name: 'Commercial',
-                                            id: 'commercial',
-                                          },
-                                        ]}
-                                      />
-                                    ) : unitField === 'rent' ? (
-                                      <Input
-                                        type="number"
-                                        {...register(
-                                          `units.${index}.${unitField}` as any
-                                        )}
-                                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
-                                      />
-                                    ) : (
-                                      <Input
-                                        type="text"
-                                        {...register(
-                                          `units.${index}.${unitField}` as any
-                                        )}
-                                        className="rounded-[20px] h-[50px] px-5 bg-earth-bg"
-                                      />
-                                    )}
-                                    {errors.units?.[index] &&
-                                      (
-                                        errors.units[index] as Record<
-                                          string,
-                                          any
-                                        >
-                                      )[unitField] && (
-                                        <FormMessage>
-                                          *
-                                          {
-                                            (
-                                              errors.units[index] as Record<
-                                                string,
-                                                any
-                                              >
-                                            )[unitField]?.message as string
-                                          }
-                                        </FormMessage>
-                                      )}
-                                  </div>
-                                </FormControl>
-                              ))}
-
-                              <FormControl className="">
-                                <div>
-                                  <FormLabel className="text-sm font-semibold">
-                                    Unit Pictures
-                                  </FormLabel>
-
-                                  <Input
-                                    type="file"
-                                    multiple
-                                    {...register(`units.${index}.pictures`)}
-                                    className="rounded-[20px] bg-earth-bg"
-                                    onChange={(e) => {
-                                      const files = Array.from(
-                                        e.target.files || []
-                                      );
-
-                                      // ✅ Fix: Update preview state
-                                      setUnitPicturesPreview((prev) => ({
-                                        ...prev,
-                                        [index]: [
-                                          ...(prev[index] || []),
-                                          ...files,
-                                        ],
-                                      }));
-
-                                      // ✅ Fix: Update form value
-                                      const currentFiles =
-                                        form.getValues(
-                                          `units.${index}.pictures`
-                                        ) || [];
-                                      form.setValue(`units.${index}.pictures`, [
-                                        ...currentFiles,
-                                        ...files,
-                                      ]);
-                                    }}
-                                  />
-                                  <div className="flex flex-wrap gap-3 mt-3">
-                                    {unitPicturesPreview[index]?.map(
-                                      (file, picIndex) => {
-                                        const imageUrl =
-                                          typeof file === 'string'
-                                            ? file.startsWith('http')
-                                              ? file
-                                              : `${ASSET_BASE_URL}${file}`
-                                            : URL.createObjectURL(file);
-                                        return (
-                                          <div
-                                            key={picIndex}
-                                            className="relative w-[80px] h-[80px]"
-                                          >
-                                            <img
-                                              src={imageUrl}
-                                              alt="unit"
-                                              className="w-full h-full object-cover rounded-lg border"
-                                            />
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                const updated = [
-                                                  ...unitPicturesPreview[index],
-                                                ];
-                                                updated.splice(picIndex, 1);
-                                                setUnitPicturesPreview(
-                                                  (prev) => ({
-                                                    ...prev,
-                                                    [index]: updated,
-                                                  })
-                                                );
-                                                form.setValue(
-                                                  `units.${index}.pictures`,
-                                                  updated.filter(
-                                                    (f) => f instanceof File
-                                                  ),
-                                                  {
-                                                    shouldValidate: true,
-                                                    shouldDirty: true,
-                                                  }
-                                                );
-                                              }}
-                                              className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-1"
-                                            >
-                                              ✕
-                                            </button>
-                                          </div>
-                                        );
-                                      }
-                                    )}
-                                  </div>
-                                </div>
-                              </FormControl>
-                            </div> */}
                             {/* Row 1: Name | Unit No. | Unit Type */}
                             <div className="grid grid-cols-12 gap-4">
                               <div className="col-span-12 md:col-span-4">
@@ -1522,33 +1125,6 @@ const UpdatePropertyPage = () => {
                 )}
               </div>
             </div>
-
-            {/* <Button
-  type="button"
-className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2xl shadow-sm border border-gray-200 hover:text-white"
-  onClick={() => {
-  append({
-    name: '',
-    unit_no: '',
-    unit_type: '',
-    size: '',
-    rent: '',
-    status: '',
-    description: '',
-    bedrooms: '',
-    bathrooms: '',
-    water_meter: '',
-    electricity_meter: '',
-    pictures: [],
-  });
-  setUnitPicturesPreview((prev) => ({
-    ...prev,
-    [fields.length]: [],
-  }));
-}}
->
-  + Add Unit
-</Button> */}
             <div className="flex justify-end">
               <Button
                 disabled={isSubmitting}

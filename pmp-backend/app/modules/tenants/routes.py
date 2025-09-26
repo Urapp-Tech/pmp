@@ -1,3 +1,4 @@
+from typing import List, Optional, Union
 from fastapi import (
     APIRouter,
     Depends,
@@ -28,7 +29,6 @@ from app.modules.tenants.services import (
     list_contracts_by_landlord,
 )
 from app.db.database import get_db
-from typing import Union, Optional
 
 router = APIRouter()
 
@@ -48,31 +48,29 @@ def parse_contract_create(
     legalCase: Optional[bool] = Form(False),
     isApproved: Optional[bool] = Form(False),
     language: Optional[str] = Form(None),
-    agreementDoc: Union[UploadFile, str] = File(None),
+    # Accept BOTH keys:
+    agreementDocs: Optional[List[UploadFile]] = File(None),
+    agreementDoc_compat: Optional[List[UploadFile]] = File(None, alias="agreementDoc"),
 ):
-    print("agreement_doc", agreementDoc)
-    if isinstance(agreementDoc, str) and agreementDoc == "":
-        agreementDoc = None
-    try:
-        contract_data = ContractCreate(
-            user_id=userId,
-            property_unit_id=propertyUnitId,
-            contract_start=contractStart,
-            contract_end=contractEnd,
-            rent_price=rentPrice,
-            rent_pay_day=rentPayDay,
-            payment_cycle=paymentCycle,
-            leaving_date=leavingDate,
-            civil_id=civilId,
-            tenant_type=tenantType,
-            nationality=nationality,
-            legal_case=legalCase,
-            is_approved=isApproved,
-            language=language,
-        )
-        return {"contract_data": contract_data, "agreement_doc": agreementDoc}
-    except ValidationError as e:
-        raise HTTPException(status_code=422, detail=e.errors())
+    contract_data = ContractCreate(
+        user_id=userId,
+        property_unit_id=propertyUnitId,
+        contract_start=contractStart,
+        contract_end=contractEnd,
+        rent_price=rentPrice,
+        rent_pay_day=rentPayDay,
+        payment_cycle=paymentCycle,
+        leaving_date=leavingDate,
+        civil_id=civilId,
+        tenant_type=tenantType,
+        nationality=nationality,
+        legal_case=legalCase,
+        is_approved=isApproved,
+        language=language,
+    )
+
+    files = (agreementDocs or []) + (agreementDoc_compat or [])
+    return {"contract_data": contract_data, "agreement_docs_files": files}
 
 
 @router.post("/contract-create", response_model=ContractStandardResponse)
@@ -80,7 +78,7 @@ def create_contract(
     parsed: dict = Depends(parse_contract_create), db: Session = Depends(get_db)
 ):
     contract = create_contract_for_user(
-        db, parsed["contract_data"], parsed["agreement_doc"]
+        db, parsed["contract_data"], parsed["agreement_docs_files"]
     )
     return {
         "success": True,
@@ -102,33 +100,29 @@ def parse_contract_update(
     tenantType: Optional[str] = Form(None),
     nationality: Optional[str] = Form(None),
     legalCase: Optional[bool] = Form(None),
-    # isApproved: Optional[bool] = Form(None),
     language: Optional[str] = Form(None),
-    agreementDoc: Union[UploadFile, str] = File(None),
+    # ⬇️ multiple files, same key
+    agreementDoc: Optional[List[UploadFile]] = File(None),
 ):
-    if isinstance(agreementDoc, str) and agreementDoc == "":
-        agreementDoc = None
-
-    try:
-        contract_data = ContractUpdate(
-            contract_id=contractId,
-            property_unit_id=propertyUnitId,
-            contract_start=contractStart,
-            contract_end=contractEnd,
-            rent_price=rentPrice,
-            rent_pay_day=rentPayDay,
-            payment_cycle=paymentCycle,
-            leaving_date=leavingDate,
-            civil_id=civilId,
-            tenant_type=tenantType,
-            nationality=nationality,
-            legal_case=legalCase,
-            # is_approved=isApproved,
-            language=language,
-        )
-        return {"contract_data": contract_data, "agreement_doc": agreementDoc}
-    except ValidationError as e:
-        raise HTTPException(status_code=422, detail=e.errors())
+    contract_data = ContractUpdate(
+        contract_id=contractId,
+        property_unit_id=propertyUnitId,
+        contract_start=contractStart,
+        contract_end=contractEnd,
+        rent_price=rentPrice,
+        rent_pay_day=rentPayDay,
+        payment_cycle=paymentCycle,
+        leaving_date=leavingDate,
+        civil_id=civilId,
+        tenant_type=tenantType,
+        nationality=nationality,
+        legal_case=legalCase,
+        language=language,
+    )
+    return {
+        "contract_data": contract_data,
+        "agreement_docs_files": agreementDoc or [],  # always a list
+    }
 
 
 @router.post(
@@ -142,16 +136,8 @@ def update_contract(
     db: Session = Depends(get_db),
 ):
     return update_contract_for_user(
-        db, contract_id, parsed["contract_data"], parsed["agreement_doc"]
+        db, contract_id, parsed["contract_data"], parsed["agreement_docs_files"]
     )
-    # contract = update_contract_for_user(
-    #     db, contract_id, parsed["contract_data"], parsed["agreement_doc"]
-    # )
-    # return {
-    #     "success": True,
-    #     "message": "Contract successfully updated",
-    #     "data": contract,
-    # }
 
 
 @router.post("/approve", summary="Approve a contract and occupy a unit")

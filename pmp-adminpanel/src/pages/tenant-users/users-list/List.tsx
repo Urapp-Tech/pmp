@@ -485,7 +485,15 @@ const TenantUsers = () => {
     formData.append('leavingDate', data.leavingDate || '');
     formData.append('paymentCycle', data.paymentCycle || '');
     formData.append('language', data.language || '');
-    if (data.agreementDoc) formData.append('agreementDoc', data.agreementDoc);
+    // if (data.agreementDoc) formData.append('agreementDoc', data.agreementDoc);
+    (data.agreementDoc || []).forEach((d: File | string) => {
+      if (d instanceof File) {
+        formData.append('agreementDoc', d);
+      } else {
+        // if you ever support keeping existing doc URLs on update, send separately
+        // fd.append('existingAgreementDocs[]', d)
+      }
+    });
     if (userDetails.role.name === 'Landlord')
       formData.append('isApproved', 'true');
     contreactService
