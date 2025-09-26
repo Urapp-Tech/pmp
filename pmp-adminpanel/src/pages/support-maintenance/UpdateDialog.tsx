@@ -170,8 +170,11 @@ const SupportTicketUpdateDialog = ({
         <DialogHeader className="p-0 w-full">
           {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
           <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
-            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
-              Update Support Ticket
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-semibold tracking-wide">
+              {userDetails?.role?.name === 'User'
+                ? 'Update Maintenance Request'
+                : 'Update Support Ticket'}
+              {/* Update Support Ticket */}
             </DialogTitle>
             <button
               type="button"
@@ -185,7 +188,7 @@ const SupportTicketUpdateDialog = ({
         </DialogHeader>
         <div className="bg-white rounded-bl-3xl px-6 pb-6 pt-5">
           <div className="grid grid-cols-12 gap-3">
-            <div className="col-span-6">
+            <div className="col-span-12">
               <Form {...form}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="custom-form-section">
@@ -226,7 +229,7 @@ const SupportTicketUpdateDialog = ({
                             Description
                           </FormLabel>
                           <Textarea
-                            className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
+                            className="!bg-secondary-bg mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
                             id="message"
                             placeholder="Type your report here."
                             {...register('message')}
@@ -249,43 +252,122 @@ const SupportTicketUpdateDialog = ({
                           </span>
                         </FormLabel>
                       </div>
-                      <div className="FormField">
-                        <div className="ImageBox">
+                      <div className="grid grid-cols-12 gap-4">
+                        <div className="FormField col-span-6">
+                          <div className="ImageBox">
+                            <Controller
+                              name="images"
+                              control={control}
+                              render={({ field: { onChange } }) => (
+                                <>
+                                  <div className="w-full flex h-[150px] items-center">
+                                    <input
+                                      accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+                                      style={{ display: 'none' }}
+                                      id="raised-button-files"
+                                      type="file"
+                                      multiple
+                                      onChange={(event) =>
+                                        handleFileChange(onChange, event)
+                                      }
+                                      onClick={handleFileOnClick}
+                                    />
+                                    <span className="border-2 h-[150px] mt-10 border-scrollbar flex-col flex justify-center items-center w-full rounded">
+                                      <label
+                                        htmlFor="raised-button-files"
+                                        className="ImageLabel text-primary-bg flex h-[55px] justify-center items-center w-full"
+                                      >
+                                        <img
+                                          src={assets.images.downloadIcon}
+                                          className="h-6 w-6 object-contain"
+                                        />
+                                        {/* <UploadIcon size={18} /> */}
+                                      </label>
+                                      <p className="text-primary-bg px-1 text-sm">
+                                        <span className="text-scrollbar">
+                                          Click to Upload
+                                        </span>{' '}
+                                        or drag and drop
+                                      </p>
+                                      <p className="text-primary-bg text-xs px-1">
+                                        Support for images, documents, and more
+                                      </p>
+                                    </span>
+                                  </div>
+                                </>
+                              )}
+                            />
+                            {errors.images && (
+                              <FormMessage>
+                                *{errors.images?.message}
+                              </FormMessage>
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-span-6">
                           <Controller
                             name="images"
                             control={control}
                             render={({ field: { onChange } }) => (
-                              <>
-                                <div className="w-full flex h-[50px] items-center">
-                                  <input
-                                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
-                                    style={{ display: 'none' }}
-                                    id="raised-button-files"
-                                    type="file"
-                                    multiple
-                                    onChange={(event) =>
-                                      handleFileChange(onChange, event)
-                                    }
-                                    onClick={handleFileOnClick}
-                                  />
-                                  <span className="border-2 border-primary-bg w-full rounded-2xl">
-                                    <label
-                                      htmlFor="raised-button-files"
-                                      className="ImageLabel text-primary-bg flex h-[50px] justify-center items-center w-full"
-                                    >
-                                      <UploadIcon size={18} />
-                                      <span className="text-primary-bg px-1">
-                                        Upload
-                                      </span>
-                                    </label>
-                                  </span>
-                                </div>
-                              </>
+                              <div>
+                                {selectedPlanImages.length > 0 ? (
+                                  <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
+                                    {selectedPlanImages.map(
+                                      (item: any, index: number) => {
+                                        const isImage =
+                                          typeof item === 'string' &&
+                                          item.startsWith('data:image/');
+                                        return (
+                                          <div
+                                            key={index}
+                                            className="ShowFileItem p-1 flex items-center relative"
+                                          >
+                                            <X
+                                              size={20}
+                                              className="absolute top-1 right-[-1px] cursor-pointer text-white bg-red-500 rounded-full p-1"
+                                              onClick={() =>
+                                                handleRemoveFile(
+                                                  index,
+                                                  onChange
+                                                )
+                                              }
+                                            />
+                                            <div className="p-4 bg-blue-50 rounded-[20px] w-[180px] h-[150px] flex items-center justify-center">
+                                              {isImage ? (
+                                                <img
+                                                  src={item}
+                                                  alt="Uploaded"
+                                                  className="w-full h-full object-contain"
+                                                />
+                                              ) : (
+                                                <div className="flex flex-col items-center justify-center text-center">
+                                                  <FileText
+                                                    className="text-lunar-bg"
+                                                    size={50}
+                                                  />
+                                                  <p className="text-xs mt-1 w-[100px] break-all text-center">
+                                                    {item?.name ||
+                                                      item
+                                                        ?.split?.('/')
+                                                        ?.pop() ||
+                                                      'Document'}
+                                                  </p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="flex justify-center items-center text-sm w-full h-[150px] text-primary-bg">
+                                    No new files uploaded.
+                                  </div>
+                                )}
+                              </div>
                             )}
                           />
-                          {errors.images && (
-                            <FormMessage>*{errors.images?.message}</FormMessage>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -305,125 +387,64 @@ const SupportTicketUpdateDialog = ({
                 </form>
               </Form>
             </div>
-            <div>
-              {existingFiles?.length > 0 && (
-                <div className="mt-6">
-                  <Label
-                    htmlFor="existing-files"
-                    className="text-sm underline text-primary-bg underline-offset-2 font-medium my-3"
-                  >
-                    Existing Uploaded Files
-                  </Label>
-                  <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
-                    {existingFiles.map((file: string, index: number) => {
-                      const isImage = /\.(jpg|jpeg|png)$/i.test(file);
-                      // const isPdf = /\.pdf$/i.test(file);
-                      // const isDoc = /\.(doc|docx)$/i.test(file);
-                      // const isXls = /\.(xls|xlsx)$/i.test(file);
-                      const fileUrl = `${ASSET_BASE_URL}${file}`;
-                      const fileName = file.split('/').pop();
+          </div>
+          <div>
+            {existingFiles?.length > 0 && (
+              <div className="mt-6 w-full">
+                <Label
+                  htmlFor="existing-files"
+                  className="text-sm text-primary-bg font-medium my-3"
+                >
+                  Existing Uploaded Files
+                </Label>
+                <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
+                  {existingFiles.map((file: string, index: number) => {
+                    const isImage = /\.(jpg|jpeg|png)$/i.test(file);
+                    // const isPdf = /\.pdf$/i.test(file);
+                    // const isDoc = /\.(doc|docx)$/i.test(file);
+                    // const isXls = /\.(xls|xlsx)$/i.test(file);
+                    const fileUrl = `${ASSET_BASE_URL}${file}`;
+                    const fileName = file.split('/').pop();
 
-                      return (
-                        <div
-                          key={index}
-                          className="ShowFileItem p-1 flex items-center relative"
-                        >
-                          <div className="p-4 border-dashed flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]">
-                            <div className="flex flex-col items-center justify-center text-center">
-                              <div className="w-[88px] h-[88px] flex items-center justify-center">
-                                {isImage ? (
-                                  <img
-                                    src={fileUrl}
-                                    alt="preview"
-                                    className="w-full h-full object-contain"
+                    return (
+                      <div
+                        key={index}
+                        className="ShowFileItem p-1 flex items-center relative"
+                      >
+                        <div className="p-4 border-dashed flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]">
+                          <div className="flex flex-col items-center justify-center text-center">
+                            <div className="w-[88px] h-[88px] flex items-center justify-center">
+                              {isImage ? (
+                                <img
+                                  src={fileUrl}
+                                  alt="preview"
+                                  className="w-full h-full object-contain"
+                                />
+                              ) : (
+                                <a
+                                  href={fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title={fileName}
+                                >
+                                  <FileText
+                                    className="text-lunar-bg cursor-pointer"
+                                    size={50}
                                   />
-                                ) : (
-                                  <a
-                                    href={fileUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    title={fileName}
-                                  >
-                                    <FileText
-                                      className="text-lunar-bg cursor-pointer"
-                                      size={50}
-                                    />
-                                  </a>
-                                )}
-                              </div>
-                              <div className="text-xs mt-1 line-clamp-1 w-[100px]">
-                                {fileName}
-                              </div>
+                                </a>
+                              )}
+                            </div>
+                            <div className="text-xs mt-1 line-clamp-1 w-[100px]">
+                              {fileName}
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-            <div className="col-span-6">
-              <Controller
-                name="images"
-                control={control}
-                render={({ field: { onChange } }) => (
-                  <div>
-                    <Label className="text-sm underline text-primary-bg font-medium my-3">
-                      Uploaded Files
-                    </Label>
-                    {selectedPlanImages.length > 0 ? (
-                      <div className="mt-2 p-2 flex flex-wrap rounded-2xl">
-                        {selectedPlanImages.map((item: any, index: number) => {
-                          const isImage =
-                            typeof item === 'string' &&
-                            item.startsWith('data:image/');
-                          return (
-                            <div
-                              key={index}
-                              className="ShowFileItem p-1 flex items-center relative"
-                            >
-                              <X
-                                size={20}
-                                className="absolute top-1 right-[-1px] cursor-pointer text-white bg-red-500 rounded-full p-1"
-                                onClick={() =>
-                                  handleRemoveFile(index, onChange)
-                                }
-                              />
-                              <div className="p-4 bg-blue-50 rounded-[20px] w-[180px] h-[150px] flex items-center justify-center">
-                                {isImage ? (
-                                  <img
-                                    src={item}
-                                    alt="Uploaded"
-                                    className="w-full h-full object-contain"
-                                  />
-                                ) : (
-                                  <div className="flex flex-col items-center justify-center text-center">
-                                    <FileText
-                                      className="text-lunar-bg"
-                                      size={50}
-                                    />
-                                    <p className="text-xs mt-1 w-[100px] break-all text-center">
-                                      {item?.name ||
-                                        item?.split?.('/')?.pop() ||
-                                        'Document'}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="flex justify-center items-center text-sm w-full h-[300px] text-primary-bg">
-                        No files uploaded.
-                      </div>
-                    )}
-                  </div>
-                )}
-              />
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>

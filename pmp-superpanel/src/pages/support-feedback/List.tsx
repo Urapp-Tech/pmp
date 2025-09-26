@@ -124,9 +124,7 @@ const Blogs = () => {
       accessorKey: 'subject',
       header: 'Subject',
       cell: ({ row }) => (
-        <div className="capitalize font-semibold">
-          {row.getValue('subject')}
-        </div>
+        <div className="capitalize font-light">{row.getValue('subject')}</div>
       ),
     },
     {
@@ -507,8 +505,8 @@ const Blogs = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
-              Support & Feedback
+            <h2 className="text-primary-bg font-semibold text-2xl leading-normal capitalize">
+              SUPPORT & FEEDBACK
             </h2>
             <div className="flex gap-3 items-center">
               <Input

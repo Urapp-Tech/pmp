@@ -113,7 +113,7 @@ const NewPassword = () => {
             />
           </div>
 
-          <h1 className="font-bold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
+          <h1 className="font-semibold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
             Quick recovery.
             <br /> Simple steps.
           </h1>
@@ -149,7 +149,7 @@ const NewPassword = () => {
                       type={passwordVisible ? 'text' : 'password'}
                       className="
                                         h-12 rounded-xl border-0 bg-white/50 pr-12 shadow-sm
-                                        placeholder:text-primary-bg focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
+                                        placeholder:text-primary-bg/40 focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
                                       "
                       {...register('password', {
                         required: 'Please enter your password.',
@@ -184,7 +184,7 @@ const NewPassword = () => {
                       type={newPasswordVisible ? 'text' : 'password'}
                       className="
                         h-12 rounded-xl border-0 bg-white/50 pr-12 shadow-sm
-                        placeholder:text-primary-bg focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
+                        placeholder:text-primary-bg/40 focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
                       "
                       {...register('confirmPassword', {
                         required: 'Please enter your password.',

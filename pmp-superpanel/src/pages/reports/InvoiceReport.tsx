@@ -240,7 +240,85 @@ const InvoiceReport = () => {
             RECEIPTS
           </h2>
           <div className="flex gap-4 flex-wrap items-center">
-            <Input
+            <div className="relative w-[200px]">
+              <Input
+                id="fromDate"
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="
+      w-full border-primary-bg pr-10
+      appearance-none
+      focus-visible:ring-0
+      [&::-webkit-calendar-picker-indicator]:opacity-0
+      [&::-webkit-clear-button]:hidden
+      [&::-ms-reveal]:hidden
+      [&::-ms-clear]:hidden
+    "
+                placeholder="From date"
+              />
+              <button
+                type="button"
+                aria-label="Open date picker"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                onClick={() => {
+                  const el = document.getElementById(
+                    'fromDate'
+                  ) as HTMLInputElement | null;
+                  // @ts-ignore - not in all TS libs
+                  if (el && typeof el.showPicker === 'function')
+                    el.showPicker();
+                  else el?.focus();
+                }}
+              >
+                <img
+                  src={assets.images.calender}
+                  alt="Calendar"
+                  className="h-4 w-4 pointer-events-none"
+                />
+              </button>
+            </div>
+
+            {/* To date */}
+            <div className="relative w-[200px]">
+              <Input
+                id="toDate"
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="
+      w-full border-primary-bg pr-10
+      appearance-none
+      focus-visible:ring-0
+      [&::-webkit-calendar-picker-indicator]:opacity-0
+      [&::-webkit-clear-button]:hidden
+      [&::-ms-reveal]:hidden
+      [&::-ms-clear]:hidden
+    "
+                placeholder="To date"
+              />
+              <button
+                type="button"
+                aria-label="Open date picker"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                onClick={() => {
+                  const el = document.getElementById(
+                    'toDate'
+                  ) as HTMLInputElement | null;
+                  // @ts-ignore
+                  if (el && typeof el.showPicker === 'function')
+                    el.showPicker();
+                  else el?.focus();
+                }}
+              >
+                <img
+                  src={assets.images.calender}
+                  alt="Calendar"
+                  className="h-4 w-4 pointer-events-none"
+                />
+              </button>
+            </div>
+            {/* <Input
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
@@ -253,7 +331,7 @@ const InvoiceReport = () => {
               onChange={(e) => setToDate(e.target.value)}
               className="w-[200px] border-primary-bg"
               placeholder="To date"
-            />
+            /> */}
             <Button
               className="border-primary-bg"
               variant="outline"
@@ -328,7 +406,7 @@ const InvoiceReport = () => {
                     {/* <TableHead>Status</TableHead> */}
                   </TableRow>
                 </TableHeader>
-                <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg">
+                <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg !text-light !text-primary-bg">
                   {reportList.length === 0 ? (
                     <TableRow>
                       <TableCell
@@ -354,12 +432,12 @@ const InvoiceReport = () => {
                         <TableCell>
                           {inv.tenant?.user?.fname &&
                             inv.tenant?.user?.lname && (
-                              <div className="text-sm font-semibold text-gray-800 leading-tight">
+                              <div className="text-sm font-semibold text-primary-bg leading-tight">
                                 {inv.tenant.user.fname} {inv.tenant.user.lname}
                               </div>
                             )}
                           {inv.tenant?.contract_number && (
-                            <div className="text-xs text-gray-500 mt-0.5">
+                            <div className="text-xs text-primary-bg mt-0.5">
                               ({inv.tenant.contract_number})
                             </div>
                           )}
@@ -394,7 +472,7 @@ const InvoiceReport = () => {
                 </TableBody>
               </Table>
 
-              <div className="text-right mt-4 font-semibold text-lg">
+              <div className="text-right text-primary-bg mt-4 font-semibold text-lg">
                 Total Collection:{' '}
                 <span className="text-primary-bg">{totalPaid}</span>
               </div>

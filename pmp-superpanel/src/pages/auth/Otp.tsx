@@ -180,7 +180,7 @@ const Otp = () => {
             />
           </div>
 
-          <h1 className="font-bold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
+          <h1 className="font-semibold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
             Quick recovery.
             <br /> Simple steps.
           </h1>

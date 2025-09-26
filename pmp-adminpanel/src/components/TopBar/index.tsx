@@ -10,9 +10,10 @@ import {
 import { setCollapsedSidebar } from '@/redux/features/appSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/redux-hooks';
 import { Link } from 'react-router-dom';
-import { User2, LogOut } from 'lucide-react';
+import { User2, LogOut, ChevronDown } from 'lucide-react';
 import { getItem } from '@/utils/storage';
 import { logout } from '@/redux/features/authSlice';
+import { ASSET_BASE_URL } from '@/utils/constants';
 
 type Props = { title?: string };
 
@@ -24,7 +25,7 @@ export const TopBar = ({ title }: Props) => {
   const handleLogout = () => dispatch(logout());
 
   const name = user?.fname + ' ' + user?.lname || 'Admin';
-  const role = user?.role.name || '';
+  const role = user?.role.name =="User" ? "Tenant": user?.role?.name || "" ;
   const email = user?.email || 'a2@gmail.com'; // replace with real email if available
   const initial = name?.trim()?.[0] ?? 'A';
 
@@ -49,25 +50,23 @@ export const TopBar = ({ title }: Props) => {
         {/* Profile dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="group flex items-center gap-3 rounded-full bg-white/10 px-3 py-2 text-left">
+            <button className="group flex items-center gap-3 rounded-full  px-3 py-2 text-left">
               <img
-                src={assets.images.avatarIcon}
+                src={
+                  user?.profilePic
+                    ? ASSET_BASE_URL + user?.profilePic
+                    : assets.images.avatarBg
+                }
                 alt="Avatar"
                 className="w-8 h-8 rounded-full object-cover"
               />
-              <div className="hidden sm:block">
-                <div className="text-white text-sm leading-tight">{name}</div>
-                <div className="text-white/70 text-xs leading-tight">
+              <div className="hidden sm:block group-hover:opacity-50">
+                <div className="uppercase text-white text-sm leading-tight mb-1">{name}</div>
+                <div className="uppercase text-xs leading-tight text-sidebar-accent-foreground">
                   {role}
                 </div>
               </div>
-              <svg
-                className="ml-1 h-4 w-4 text-white/80 group-hover:text-white"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M5.5 7.5l4.5 4.5 4.5-4.5" />
-              </svg>
+              <ChevronDown  className="text-white h-8 w-8 group-hover:opacity-50"/>
             </button>
           </DropdownMenuTrigger>
 
@@ -84,11 +83,11 @@ export const TopBar = ({ title }: Props) => {
             {/* header block */}
             <div className="px-6 pt-6 pb-4">
               <div className="mx-auto grid place-items-center gap-3">
-                <div className="grid h-16 w-16 place-items-center rounded-full bg-[#56C7A3] text-white text-2xl font-bold">
+                <div className="grid h-16 w-16 place-items-center uppercase rounded-full bg-[#56C7A3] text-white text-2xl font-bold">
                   {initial}
                 </div>
                 <div className="text-center">
-                  <div className="text-[#1b1b57] text-lg font-extrabold tracking-wide">
+                  <div className="text-[#1b1b57] uppercase text-lg font-semibold tracking-wide">
                     {name}
                   </div>
                   <div className="text-[#1b1b57]/70 text-xs font-semibold uppercase tracking-wide">

@@ -33,7 +33,7 @@ const DeleteDialog = ({
         <DialogHeader className="p-0 w-full rounded-t-3xl">
           {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
           <div className="h-16 rounded-t-3xl relative flex items-center justify-center">
-            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-semibold tracking-wide">
               Delete {title}
             </DialogTitle>
             {/* 3) Custom rounded close button */}

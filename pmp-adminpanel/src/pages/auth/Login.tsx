@@ -105,7 +105,7 @@ const Login = () => {
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1280px] items-center justify-between px-6 md:px-10">
         {/* LEFT: logo + hero text */}
         <div className="hidden w-full max-w-[520px] md:block">
-          <div className="mb-6">
+          <div className="mb-10">
             <img
               src={assets.images.whiteCompLogo /* (image two: white logo) */}
               alt="logo"
@@ -113,7 +113,7 @@ const Login = () => {
             />
           </div>
 
-          <h1 className="font-bold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
+          <h1 className="font-semibold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
             Your Gateway
             <br /> to Smarter
             <br /> Rentals
@@ -134,7 +134,9 @@ const Login = () => {
             "
           >
             <div className="mb-6 text-center mt-12">
-              <h2 className="text-3xl font-bold text-primary-bg">Sign-in</h2>
+              <h2 className="text-3xl font-semibold text-primary-bg">
+                Sign-in
+              </h2>
             </div>
 
             <Form {...form}>
@@ -151,7 +153,7 @@ const Login = () => {
                       placeholder="urapptech@gmail.com"
                       className="
                         mt-2 h-12 rounded-xl border-0 outline-none bg-white/50 shadow-sm
-                        placeholder:text-primary-bg focus-visible:ring-0 focus-visible:ring-offset-0
+                        placeholder:text-primary-bg/40 focus-visible:ring-0 focus-visible:ring-offset-0
                       "
                       {...register('email', {
                         required: 'Please enter your email or phone.',
@@ -175,7 +177,7 @@ const Login = () => {
                       type={passwordVisible ? 'text' : 'password'}
                       className="
                         h-12 rounded-xl border-0 bg-white/50 pr-12 shadow-sm
-                        placeholder:text-primary-bg focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
+                        placeholder:text-primary-bg/40 focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
                       "
                       {...register('password', {
                         required: 'Please enter your password.',
@@ -188,9 +190,9 @@ const Login = () => {
                       className="absolute right-1 top-1.5 h-9 w-9 rounded-full bg-transparent hover:bg-transparent text-primary-bg"
                     >
                       {passwordVisible ? (
-                        <EyeOff size={18} />
-                      ) : (
                         <Eye size={18} />
+                      ) : (
+                        <EyeOff size={18} />
                       )}
                     </Button>
                   </div>

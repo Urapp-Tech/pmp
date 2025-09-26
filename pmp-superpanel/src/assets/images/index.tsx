@@ -48,6 +48,12 @@ import editPencil from './pencil.svg';
 import coloredEye from './colored-eye.svg';
 import deleted from './deleted.svg';
 import download from './download.svg';
+import propManagers from './prop-m.svg';
+import signOut from './sign-out.svg';
+import avatarBg from './avatar-bg.svg';
+import calender from './calender.svg';
+import bgBanner from './bg-banner.png';
+import coloredCompLogo from './colored-comp-bg.svg';
 
 const assets = {
   images: {
@@ -100,6 +106,12 @@ const assets = {
     coloredEye,
     deleted,
     download,
+    propManagers,
+    signOut,
+    avatarBg,
+    calender,
+    bgBanner,
+    coloredCompLogo,
   },
 } as const;
 

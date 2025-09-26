@@ -19,61 +19,58 @@ function LandlordDashboard() {
 
   // helper to keep card style consistent
   const cardBase =
-    'rounded-2xl shadow-sm ring-1 ring-black/5 px-4 py-3 sm:px-5 sm:py-4 h-46 sm:h-50 flex flex-col';
+    'rounded-2xl shadow-sm ring-1 ring-black/5 px-4 sm:px-5 h-46 sm:h-50';
   const cardLight = 'bg-secondary-bg'; // light mint (matches mock)
   const cardDark = 'bg-secondary-bg'; // slightly darker mint (for alternates)
   const labelCls =
-    'text-base text-primary-bg flex items-center gap-2 font-bold';
+    'text-base text-primary-bg flex pb-6 items-center font-semibold';
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: 'var(--body-background)' }}
-    >
+    <div className="" style={{ background: 'var(--body-background)' }}>
       <SidebarInset>
         {/* CONTENT WRAP */}
-        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mx-auto w-full max-w-[2400px] px-4 sm:px-6 lg:px-8 py-6">
           {/* HERO ROW: left welcome, right image */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-36 items-start mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-36 items-start mb-4">
             <div className="rounded-2xl px-6 py-8">
-              <h1 className="text-primary-bg text-3xl sm:text-4xl font-extrabold leading-snug">
+              <h1 className="text-primary-bg sm:text-4xl 2xl:text-5xl font-semibold leading-snug">
                 Hello {user?.fname},
                 <br />
                 Welcome to your
                 <br />
                 dashboard overview.
               </h1>
-              <p className="mt-3 text-sm text-primary-bg px-10">
+              <p className="mt-4 px-1 text-sm 2xl:text-base text-primary-bg">
                 Track and manage the listed properties
               </p>
             </div>
 
-            <div className="rounded-2xl overflow-hidden m-3">
+            <div className="rounded-2xl overflow-hidden m-3 flex justify-end">
               {/* Replace src with your actual image */}
               <img
                 src={assets.images.dashboardHomeImg}
                 alt="Building"
-                className="w-full h-[320px] object-contain"
+                className="w-[250px] h-[240px] object-contain object-right"
               />
             </div>
           </div>
 
           {/* METRIC CARDS: 4 x 2 grid */}
-          <div className="grid gap-10 2xl::grid-cols-4 sm:grid-cols-2">
+          <div className="grid gap-10 2xl::grid-cols-4 sm:grid-cols-2 2xl:mt-[3%]">
             {/* 1 */}
             <div className={`${cardBase} ${cardLight}`}>
-              <div className="flex items-end justify-start">
-                <span className="text-[95px] font-semibold text-primary-bg">
-                  {data?.total_properties ?? 0}
-                </span>
-              </div>
+              {/* <div className=""> */}
+              <span className="text-[95px] leading-none mt-[5%] 2xl:mt-[4%] block font-semibold text-primary-bg">
+                {data?.total_properties ?? 0}
+              </span>
+              {/* </div> */}
               <Label className={labelCls}>TOTAL PROPERTIES</Label>
             </div>
 
             {/* 2 */}
             <div className={`${cardBase} ${cardDark}`}>
-              <div className="flex-1 flex items-end justify-start mt-6">
-                <span className="text-[95px] font-semibold text-primary-bg">
+              <div className="flex items-end justify-start">
+                <span className="text-[95px] leading-none mt-[5%] 2xl:mt-[4%] block font-semibold text-primary-bg">
                   {data?.active_tenant_users ?? 0}
                 </span>
               </div>
@@ -82,8 +79,8 @@ function LandlordDashboard() {
 
             {/* 3 */}
             <div className={`${cardBase} ${cardLight}`}>
-              <div className="flex-1 flex items-end justify-start mt-0">
-                <span className="text-[95px] font-semibold text-primary-bg">
+              <div className="flex items-end justify-start">
+                <span className="text-[95px] leading-none mt-[5%] 2xl:mt-[4%] block font-semibold text-primary-bg">
                   {data?.pending_invoices ?? 0}
                 </span>
               </div>
@@ -92,8 +89,8 @@ function LandlordDashboard() {
 
             {/* 4 */}
             <div className={`${cardBase} ${cardDark}`}>
-              <div className="flex-1 flex items-end justify-start mt-0">
-                <span className="text-[95px] font-semibold text-primary-bg">
+              <div className="flex items-end justify-start">
+                <span className="text-[95px] leading-none mt-[5%] 2xl:mt-[4%] block font-semibold text-primary-bg">
                   {data?.unresolved_tickets ?? 0}
                 </span>
               </div>

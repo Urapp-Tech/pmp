@@ -108,7 +108,7 @@ const OfficeUserUpdateDialog = ({
         <DialogHeader className="p-0 w-full">
           {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
           <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
-            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-semibold tracking-wide">
               Update Tenant User
             </DialogTitle>
             {/* 3) Custom rounded close button */}
@@ -252,7 +252,8 @@ const OfficeUserUpdateDialog = ({
                           className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
                           id="phone"
                           placeholder="876543215"
-                          type="number"
+                          type="tel"
+                          inputMode="numeric"
                           {...register('phone', {
                             required: 'Please enter your phone',
                             pattern: {
@@ -329,7 +330,7 @@ const OfficeUserUpdateDialog = ({
                         />
                       </div>
                     ) : getValues('profilePic') ? (
-                      <div className="col-span-6 flex items-center justify-center  xl:justify-center 2xl:justify-start">
+                      <div className="col-span-6 relative h-full rounded border-2 border-scrollbar flex items-center justify-center xl:justify-center 2xl:justify-start p-3">
                         <img
                           className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
                           src={`${ASSET_BASE_URL}${getValues('profilePic')}`}

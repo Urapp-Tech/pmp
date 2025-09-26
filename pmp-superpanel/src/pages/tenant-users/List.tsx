@@ -140,7 +140,7 @@ const TenantUsers = () => {
                 {getInitials(row.getValue('fname'))}
               </AvatarFallback>
             </Avatar>
-            <div className="capitalize font-semibold">
+            <div className="capitalize">
               {row.getValue('fname')} {row.original?.lname}
             </div>
           </div>
@@ -227,7 +227,7 @@ const TenantUsers = () => {
         };
 
         return (
-          <div className="flex justify-center items-center">
+          <div className="flex justify-start items-center">
             <label className="inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"

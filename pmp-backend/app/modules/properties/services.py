@@ -13,7 +13,7 @@ from app.modules.properties.schemas import (
 )
 from uuid import uuid4
 from fastapi import HTTPException, status, UploadFile
-from typing import Optional
+from typing import Optional, List
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import joinedload, selectinload
 from app.utils.uploader import save_uploaded_file, is_upload_file
@@ -502,10 +502,16 @@ def update_property(db: Session, property_id: UUID, body):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
-def get_property(db: Session, property_id: str):
+def get_property(
+    db: Session,
+    property_id: str,
+    user_id: Optional[str] = None,
+    role_id: Optional[str] = None,
+):
+    # Load property + units
     property_data = (
         db.query(PropertyModel)
-        .options(joinedload(PropertyModel.units))
+        .options(selectinload(PropertyModel.units))
         .filter(PropertyModel.id == property_id)
         .first()
     )
@@ -516,10 +522,32 @@ def get_property(db: Session, property_id: str):
             detail="Property not found",
         )
 
+    # Start with active units only
+    units = [u for u in property_data.units if u.is_active]
+
+    # If this endpoint is used by Managers, keep only their assigned units
+    if role_id == "Manager" and user_id:
+        assigned_unit_ids = [
+            row[0]
+            for row in db.query(Manager.assign_property_unit)
+            .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
+            .all()
+        ]
+        assigned_unit_id_set = set(assigned_unit_ids)
+        units = [u for u in units if u.id in assigned_unit_id_set]
+
+    # (Optional) enrich units here if you want; keeping original structure:
+    units_dict = [jsonable_encoder(u) for u in units]
+
+    # Build response object and override unit_counts
+    prop_dict = jsonable_encoder(property_data)
+    prop_dict["units"] = units_dict
+    prop_dict["unit_count"] = len(units_dict)  # ✅ FIX
+
     return {
         "success": True,
         "message": "Property retrieved successfully.",
-        "property": jsonable_encoder(property_data),
+        "property": prop_dict,
     }
 
 
@@ -589,141 +617,6 @@ def enrich_unit_with_tenant_info(
     unit_data["assignedUnitUserName"] = assigned_user_name
 
     return PropertyUnitOut(**unit_data)
-
-
-def get_properties(
-    db: Session,
-    user_id: Optional[str] = None,
-    role_id: Optional[str] = None,
-    page: int = 1,
-    size: int = 20,
-    search: Optional[str] = None,
-):
-    query = (
-        db.query(PropertyModel)
-        .options(selectinload(PropertyModel.units))
-        .filter(PropertyModel.is_active == True)
-    )
-
-    # For Manager role, collect assigned unit ids first
-    assigned_unit_ids = []
-    if role_id == "Manager":
-        managers = (
-            db.query(Manager)
-            .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
-            .all()
-        )
-        for m in managers:
-            if m.assign_property_unit:
-                assigned_unit_ids.append(m.assign_property_unit)
-        assigned_unit_ids = list(set(assigned_unit_ids))
-
-        if not assigned_unit_ids:
-            return {
-                "success": True,
-                "total": 0,
-                "page": page,
-                "size": size,
-                "items": [],
-            }
-
-        allowed_property_ids = (
-            db.query(PropertyUnitModel.property_id)
-            .filter(
-                PropertyUnitModel.id.in_(assigned_unit_ids),
-                PropertyUnitModel.is_active == True,
-            )
-            .distinct()
-            .all()
-        )
-
-        allowed_property_ids = [pid[0] for pid in allowed_property_ids]
-        query = query.filter(PropertyModel.id.in_(allowed_property_ids))
-
-    elif role_id == "Landlord":
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user or not user.landlord_id:
-            return {
-                "success": True,
-                "total": 0,
-                "page": page,
-                "size": size,
-                "items": [],
-            }
-        landlord_id = user.landlord_id
-        query = query.filter(PropertyModel.landlord_id == landlord_id)
-
-    if search:
-        search_term = f"%{search}%"
-        query = query.filter(
-            PropertyModel.name.ilike(search_term)
-            | PropertyModel.address.ilike(search_term)
-        )
-
-    total = query.count()
-    properties = (
-        query.order_by(PropertyModel.created_at.desc())
-        .offset((page - 1) * size)
-        .limit(size)
-        .all()
-    )
-
-    results = []
-
-    for prop in properties:
-        # Filter active units
-        units = [unit for unit in prop.units if unit.is_active]
-
-        if role_id == "Manager":
-            units = [unit for unit in units if unit.id in assigned_unit_ids]
-
-        # Enrich each unit
-        # Get landlord name
-        landlord_user = (
-            db.query(User).filter(User.landlord_id == prop.landlord_id).first()
-        )
-        landlord_name = (
-            f"{landlord_user.fname} {landlord_user.lname}" if landlord_user else None
-        )
-
-        enriched_units = []
-        for unit in units:
-            unit_out = enrich_unit_with_tenant_info(db, unit)
-
-            # Get assigned manager name from manager_user_id
-            manager = (
-                db.query(Manager)
-                .filter(Manager.assign_property_unit == unit.id)
-                .first()
-            )
-            assigned_manager_name = None
-            if manager:
-                manager_user = (
-                    db.query(User).filter(User.id == manager.manager_user_id).first()
-                )
-                if manager_user:
-                    assigned_manager_name = f"{manager_user.fname} {manager_user.lname}"
-
-            # Create a new PropertyUnitOut with assignedManagerName added
-            unit_out = unit_out.copy(
-                update={"assignedManagerName": assigned_manager_name}
-            )
-            enriched_units.append(unit_out)
-
-        # Create property dict and add landlord_name
-        prop_dict = prop.__dict__.copy()
-        prop_dict["units"] = enriched_units
-        prop_dict["landlord_name"] = landlord_name
-
-        results.append(PropertyOut(**prop_dict))
-
-    return {
-        "success": True,
-        "total": total,
-        "page": page,
-        "size": size,
-        "items": results,
-    }
 
 
 # def get_properties_super_admin_view(
@@ -824,6 +717,143 @@ def get_properties(
 #         "size": size,
 #         "items": results,
 #     }
+
+
+def get_properties(
+    db: Session,
+    user_id: Optional[str] = None,
+    role_id: Optional[str] = None,
+    page: int = 1,
+    size: int = 20,
+    search: Optional[str] = None,
+):
+    query = (
+        db.query(PropertyModel)
+        .options(selectinload(PropertyModel.units))
+        .filter(PropertyModel.is_active == True)
+    )
+
+    # For Manager role, collect assigned unit ids first
+    assigned_unit_ids: List[str] = []
+    if role_id == "Manager":
+        managers = (
+            db.query(Manager)
+            .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
+            .all()
+        )
+        for m in managers:
+            if m.assign_property_unit:
+                assigned_unit_ids.append(m.assign_property_unit)
+        assigned_unit_ids = list(set(assigned_unit_ids))
+
+        if not assigned_unit_ids:
+            return {
+                "success": True,
+                "total": 0,
+                "page": page,
+                "size": size,
+                "items": [],
+            }
+
+        allowed_property_ids = (
+            db.query(PropertyUnitModel.property_id)
+            .filter(
+                PropertyUnitModel.id.in_(assigned_unit_ids),
+                PropertyUnitModel.is_active == True,
+            )
+            .distinct()
+            .all()
+        )
+        allowed_property_ids = [pid[0] for pid in allowed_property_ids]
+        query = query.filter(PropertyModel.id.in_(allowed_property_ids))
+
+    elif role_id == "Landlord":
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user or not user.landlord_id:
+            return {
+                "success": True,
+                "total": 0,
+                "page": page,
+                "size": size,
+                "items": [],
+            }
+        landlord_id = user.landlord_id
+        query = query.filter(PropertyModel.landlord_id == landlord_id)
+
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            PropertyModel.name.ilike(search_term)
+            | PropertyModel.address.ilike(search_term)
+        )
+
+    total = query.count()
+    properties = (
+        query.order_by(PropertyModel.created_at.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+        .all()
+    )
+
+    results: List[PropertyOut] = []
+
+    assigned_unit_id_set = set(assigned_unit_ids)
+
+    for prop in properties:
+        # --- filter active units
+        units = [u for u in prop.units if u.is_active]
+        if role_id == "Manager":
+            units = [u for u in units if u.id in assigned_unit_id_set]
+
+        # landlord name
+        landlord_user = (
+            db.query(User).filter(User.landlord_id == prop.landlord_id).first()
+        )
+        landlord_name = (
+            f"{landlord_user.fname} {landlord_user.lname}" if landlord_user else None
+        )
+
+        # enrich each unit
+        enriched_units = []
+        for unit in units:
+            unit_out = enrich_unit_with_tenant_info(db, unit)
+
+            # assigned manager name
+            manager = (
+                db.query(Manager)
+                .filter(Manager.assign_property_unit == unit.id)
+                .first()
+            )
+            assigned_manager_name = None
+            if manager:
+                manager_user = (
+                    db.query(User).filter(User.id == manager.manager_user_id).first()
+                )
+                if manager_user:
+                    assigned_manager_name = f"{manager_user.fname} {manager_user.lname}"
+
+            unit_out = unit_out.copy(
+                update={"assignedManagerName": assigned_manager_name}
+            )
+            enriched_units.append(unit_out)
+
+        # --- build response object
+        prop_dict = prop.__dict__.copy()
+        prop_dict["units"] = enriched_units
+        prop_dict["landlord_name"] = landlord_name
+
+        # ✅ FIX: override unit_counts with computed count (after filtering)
+        prop_dict["unit_counts"] = len(enriched_units)
+
+        results.append(PropertyOut(**prop_dict))
+
+    return {
+        "success": True,
+        "total": total,
+        "page": page,
+        "size": size,
+        "items": results,
+    }
 
 
 def get_properties_super_admin_view(

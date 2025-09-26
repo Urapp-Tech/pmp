@@ -137,7 +137,7 @@ const ContractRequest = () => {
               />
               <AvatarFallback>{getInitials(user?.fname || '')}</AvatarFallback>
             </Avatar>
-            <div className="capitalize font-semibold">
+            <div className="capitalize">
               {user?.fname} {user?.lname}
             </div>
           </div>
@@ -183,6 +183,15 @@ const ContractRequest = () => {
       cell: ({ row }) => (
         <div className="capitalize">
           {dayjs(row.getValue('contractEnd')).format('YYYY-MM-DD')}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'leavingDate',
+      header: 'LEAVING DATE',
+      cell: ({ row }) => (
+        <div className="capitalize">
+          {dayjs(row.getValue('leavingDate')).format('YYYY-MM-DD')}
         </div>
       ),
     },
@@ -238,6 +247,7 @@ const ContractRequest = () => {
     // },
     {
       id: 'actions',
+      header: 'ACTIONS',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
@@ -257,7 +267,7 @@ const ContractRequest = () => {
               <div className="pl-3">
                 <CircleCheck
                   className="text-primary-bg cursor-pointer"
-                  size={20}
+                  size={25}
                   onClick={() =>
                     handleActionMenu('accept', id, { propertyUnitId, userId })
                   }
@@ -268,7 +278,7 @@ const ContractRequest = () => {
               <div className="pl-3">
                 <CircleX
                   className="text-primary-bg cursor-pointer"
-                  size={20}
+                  size={25}
                   onClick={() =>
                     handleActionMenu('reject', id, { propertyUnitId, userId })
                   }
@@ -532,7 +542,7 @@ const ContractRequest = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
               PENDING CONTRACTS REQUESTS
             </h2>
             <div className="flex gap-3 items-center">

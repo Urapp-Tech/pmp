@@ -1,6 +1,8 @@
 import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { SidebarInset } from '@/components/ui/sidebar';
+
+import { Link } from 'react-router-dom';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -51,6 +53,7 @@ import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import assets from '@/assets/images';
+import dayjs from 'dayjs';
 
 const Invoices = () => {
   const { toast } = useToast();
@@ -89,6 +92,7 @@ const Invoices = () => {
   const [invoiceItemPage, setInvoiceItemPage] = useState(1);
   const [invoiceItemSize] = useState(5); // same as ITEMS_PER_PAGE
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
+
 
   const fetchInvoiceItems = async (invoiceId: string, page = 1) => {
     try {
@@ -283,17 +287,17 @@ const Invoices = () => {
             <div className="flex gap-4 w-[115px] items-center justify-center">
               {hasPending ? (
                 <>
-                  <div className="inline-block h-2 w-2 rounded-full bg-scrollbar" />
-                  <span className="text-textinv">
+                  <div className=" inline-block h-2 w-2 rounded-full bg-scrollbar" />
+                  <Link to={`/super-admin/invoices/detail/${row.original.id}`}  className="underline text-textinv">
                     {row.original.invoice_no}
-                  </span>
+                  </Link>
                 </>
               ) : (
                 <>
                   <div className="inline-block h-2 w-2 rounded-full bg-offground" />
-                  <span className="text-textinv">
+                  <Link to={`/super-admin/invoices/detail/${row.original.id}`} className="underline  text-textinv">
                     {row.original.invoice_no}
-                  </span>
+                  </Link>
                 </>
               )}
             </div>
@@ -310,12 +314,12 @@ const Invoices = () => {
           return (
             <div className="leading-tight">
               {user?.fname && user?.lname && (
-                <div className="text-sm font-semibold text-gray-800">
+                <div className="text-sm capitalize font-semibold text-primary-bg">
                   {user.fname} {user.lname}
                 </div>
               )}
               {tenant?.contract_number && (
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-xs text-primary-bg mt-0.5">
                   ({tenant.contract_number})
                 </div>
               )}
@@ -325,7 +329,7 @@ const Invoices = () => {
       },
       {
         accessorKey: 'property',
-        header: 'PROP.',
+        header: 'PROPERTY',
         cell: ({ row }) =>
           row.original.tenant?.property_unit?.property?.name || '--',
       },
@@ -336,8 +340,32 @@ const Invoices = () => {
       },
       // { accessorKey: 'invoice_no', header: 'Contract no' },
       { accessorKey: 'total_amount', header: 'TOT.' },
-      { accessorKey: 'due_date', header: 'DUE' },
-      { accessorKey: 'status', header: 'STATUS' },
+      {
+        accessorKey: 'due_date',
+        header: 'DUE',
+        cell: ({ row }) => {
+          return (
+            <div className="leading-tight">
+                <div className="text-sm  capitalize text-primary-bg">
+                  {dayjs(row.original.due_date).format('YYYY-MM-DD')}
+                </div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'status',
+        header: 'STATUS',
+        cell: ({ row }) => {
+          return (
+            <div className="leading-tight">
+                <div className="text-sm  capitalize text-primary-bg">
+                  {row.original.status}
+                </div>
+            </div>
+          );
+        },
+      },
       // {
       //   accessorKey: 'invoice_date',
       //   header: 'Invoice Date',
@@ -357,7 +385,7 @@ const Invoices = () => {
               invoiceItems.every((item) => item.status !== 'pending'));
 
           return (
-            <div className="flex gap-2 items-center">
+            <div className="flex capitalize gap-2 items-center">
               {hasPending ? 'payment pending' : 'payment done'}
             </div>
           );
@@ -500,7 +528,7 @@ const Invoices = () => {
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg">
+              <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg !text-light !text-primary-bg">
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>

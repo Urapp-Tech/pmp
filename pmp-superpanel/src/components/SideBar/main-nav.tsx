@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import { ChevronRight, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 
 export function NavMain({
   items,
@@ -32,6 +32,7 @@ export function NavMain({
     }[];
   }[];
 }) {
+  const navigate = useNavigate();
   const [openCollapsibles, setOpenCollapsibles] = useState<Set<string>>(
     new Set()
   );
@@ -64,18 +65,20 @@ export function NavMain({
           <SidebarMenuItem className="my-1" key={item.title}>
             {/* If there are no sub-items, just show the button */}
             {item.items && item.items.length === 0 ? (
-              <SidebarMenuButton tooltip={item.title}>
+              <SidebarMenuButton
+                tooltip={item.title}
+                onClick={() => navigate(item.url)}
+              >
                 {item.icon && <img src={item.icon} />}
                 {/* <span>{item.title}</span> */}
                 <NavLink
                   key={item.url}
                   to={item.url}
-                  onClick={() => handleSubItemClick(item.title)}
                   className={({ isActive }) =>
-                    `${isActive ? 'text-white text-[12px] mx-2 font-semibold' : 'text-[12px] mx-2 text-white'}`
+                    `${isActive ? 'text-quinary-bg text-[12px] font-light px-4' : 'text-[12px] font-light px-4'}`
                   }
                 >
-                  <span className="text-mars-bg font-medium ">
+                  <span className="text-sidebar-accent-foreground font-light">
                     {item.title}
                   </span>
                 </NavLink>
@@ -88,36 +91,26 @@ export function NavMain({
                 className="group/collapsible"
               >
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={item.title}
-                    className="p-0 bg-transparent"
-                  >
+                  <SidebarMenuButton tooltip={item.title}>
+                    {item.icon && <img src={item.icon} />}
+                    {/* {item.icon && <item.icon />} */}
+                    {/* <span>{item.title}</span> */}
                     <NavLink
                       key={item.url}
                       to={item.url}
-                      className={[
-                        'group flex items-center gap-3 rounded-xl px-3 py-3 mx-2 my-2',
-                        'transition-all duration-150',
-                        'text-white/80 hover:text-white',
-                        'hover:bg-white/10 hover:ring-1 hover:ring-white/10 hover:translate-x-[2px]',
-                        openCollapsibles.has(item.title)
-                          ? 'bg-white/10 ring-1 ring-white/15 text-white'
-                          : '',
-                      ].join(' ')}
+                      onClick={() => handleSubItemClick(item.title)}
+                      className={({ isActive }) =>
+                        `${isActive ? 'text-sidebar-accent-foreground text-[12px] font-light' : 'text-[12px] font-light'}`
+                      }
+                      // className={({ isActive }) =>
+                      //   `${isActive ? 'text-blue-900 font-bold' : ''}`
+                      // }
                     >
-                      {item.icon && (
-                        <img
-                          src={item.icon}
-                          className="h-6 w-6 opacity-90 group-hover:opacity-100"
-                        />
-                      )}
-                      <span className="text-sm font-medium tracking-wide">
+                      <span className="text-sidebar-accent-foreground font-light px-4">
                         {item.title}
                       </span>
-
-                      <ChevronRight className="ml-auto h-4 w-4 text-white/80 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </NavLink>
+                    <ChevronRight className="ml-auto text-white transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 {/* Render child items if available */}
@@ -126,28 +119,19 @@ export function NavMain({
                     <SidebarMenuSub>
                       {item.items.map((subItem: any) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton
-                            asChild
-                            className="p-0 bg-transparent"
-                          >
+                          <SidebarMenuSubButton asChild>
                             <NavLink
                               key={subItem.url}
                               to={subItem.url}
                               onClick={() => handleSubItemClick(subItem.title)}
-                              className={({ isActive }) =>
-                                [
-                                  'group flex items-center gap-2 rounded-lg px-3 py-2 mx-4 my-1',
-                                  'transition-all duration-150',
-                                  'text-white/75 hover:text-white',
-                                  'hover:bg-white/10 hover:ring-1 hover:ring-white/10 hover:translate-x-[2px]',
-                                  isActive
-                                    ? 'bg-white/10 ring-1 ring-white/15 text-white'
-                                    : '',
-                                ].join(' ')
-                              }
+                              className={`${openSubItemUrl === subItem.title ? 'text-sidebar-accent-foreground font-light' : ''}`}
                             >
-                              <span className="text-sm">{subItem.title}</span>
+                              <span className="font-light text-sidebar-accent-foreground">
+                                {subItem.title}
+                              </span>
                             </NavLink>
+                            {/* <a href={subItem.url}>
+                            </a> */}
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}

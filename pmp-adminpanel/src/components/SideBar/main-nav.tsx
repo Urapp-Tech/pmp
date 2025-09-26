@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import { ChevronRight, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 
 export function NavMain({
   items,
@@ -32,6 +32,7 @@ export function NavMain({
     }[];
   }[];
 }) {
+  const navigate = useNavigate();
   const [openCollapsibles, setOpenCollapsibles] = useState<Set<string>>(
     new Set()
   );
@@ -64,18 +65,20 @@ export function NavMain({
           <SidebarMenuItem className="my-1" key={item.title}>
             {/* If there are no sub-items, just show the button */}
             {item.items && item.items.length === 0 ? (
-              <SidebarMenuButton tooltip={item.title}>
+              <SidebarMenuButton
+                tooltip={item.title}
+                onClick={() => navigate(item.url)}
+              >
                 {item.icon && <img src={item.icon} />}
                 {/* <span>{item.title}</span> */}
                 <NavLink
                   key={item.url}
                   to={item.url}
-                  onClick={() => handleSubItemClick(item.title)}
                   className={({ isActive }) =>
-                    `${isActive ? 'text-quinary-bg text-[12px] font-semibold' : 'text-[12px]'}`
+                    `${isActive ? 'text-quinary-bg text-[12px] font-light px-4' : 'text-[12px] font-light px-4'}`
                   }
                 >
-                  <span className="text-mars-bg font-medium ">
+                  <span className="text-sidebar-accent-foreground font-light">
                     {item.title}
                   </span>
                 </NavLink>
@@ -95,11 +98,17 @@ export function NavMain({
                     <NavLink
                       key={item.url}
                       to={item.url}
+                      onClick={() => handleSubItemClick(item.title)}
+                      className={({ isActive }) =>
+                        `${isActive ? 'text-sidebar-accent-foreground text-[12px] font-light' : 'text-[12px] font-light'}`
+                      }
                       // className={({ isActive }) =>
                       //   `${isActive ? 'text-blue-900 font-bold' : ''}`
                       // }
                     >
-                      <span className="text-mars-bg">{item.title}</span>
+                      <span className="text-sidebar-accent-foreground font-light px-4">
+                        {item.title}
+                      </span>
                     </NavLink>
                     <ChevronRight className="ml-auto text-white transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
@@ -115,9 +124,9 @@ export function NavMain({
                               key={subItem.url}
                               to={subItem.url}
                               onClick={() => handleSubItemClick(subItem.title)}
-                              className={`${openSubItemUrl === subItem.title ? 'text-blue-900 font-bold' : ''}`}
+                              className={`${openSubItemUrl === subItem.title ? 'text-sidebar-accent-foreground font-light' : ''}`}
                             >
-                              <span className="text-mars-bg">
+                              <span className="font-light text-sidebar-accent-foreground">
                                 {subItem.title}
                               </span>
                             </NavLink>

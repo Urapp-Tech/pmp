@@ -287,14 +287,14 @@ const CreatePropertyPage = () => {
       <Loader2 className="animate-spin" />
     </div>
   ) : (
-    <div className="grid grid-cols-12 bg-secondary-bg p-2">
+    <div className="grid grid-cols-12 bg-secondary-bg p-2 m-10 rounded-xl">
       <div className="col-span-12 p-5">
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Hidden Landlord ID */}
             <input type="hidden" {...form.register('landlord_id')} />
 
-            <h2 className="text-4xl font-bold text-primary-bg mb-4">
+            <h2 className="text-4xl font-semibold text-primary-bg mb-10">
               Property Details
             </h2>
 
@@ -582,6 +582,57 @@ const CreatePropertyPage = () => {
                     valueAsNumber: true,
                   })}
                   className="rounded-[18px] h-[50px] px-5 bg-dialogBg focus-visible:ring-0"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const count = parseInt(value, 10);
+
+                    if (!value || isNaN(count)) return;
+
+                    const existingUnits = form.getValues('units') || [];
+
+                    let newUnits;
+                    if (count > existingUnits.length) {
+                      const additional = Array.from(
+                        { length: count - existingUnits.length },
+                        () => ({
+                          name: '',
+                          unit_no: '',
+                          unit_type: '',
+                          size: '',
+                          rent: '',
+                          status: '',
+                          description: '',
+                          bedrooms: '',
+                          bathrooms: '',
+                          water_meter: '',
+                          electricity_meter: '',
+                          pictures: [],
+                        })
+                      );
+                      newUnits = [...existingUnits, ...additional];
+                    } else {
+                      newUnits = existingUnits.slice(0, count);
+                    }
+                    form.unregister('units');
+
+                    // ✅ Final fix: reset whole form with new values
+                    form.reset({
+                      ...form.getValues(), // preserve other values
+                      unit_count: count,
+                      units: newUnits,
+                    });
+
+                    form.clearErrors('units');
+
+                    // ✅ Reset previews too
+                    setUnitPicturesPreview((prev) => {
+                      const updated: Record<number, File[]> = {};
+                      for (let i = 0; i < count; i++) {
+                        updated[i] = prev[i] || [];
+                      }
+                      return updated;
+                    });
+                  }}
                 />
                 {errors.unit_count && (
                   <FormMessage>*{errors.unit_count.message}</FormMessage>
@@ -694,7 +745,7 @@ const CreatePropertyPage = () => {
               </div>
             </div>
 
-            <h2 className="text-2xl text-primary-bg font-bold mt-10 mb-4">
+            <h2 className="text-2xl text-primary-bg font-semibold mt-10 mb-4">
               Unit Details
             </h2>
             <div className="mb-6">
@@ -727,7 +778,7 @@ const CreatePropertyPage = () => {
                   value={`item-${index}`}
                   className="rounded-[18px] p-0 bg-secondary-bg border border-scrollbar mb-4 overflow-hidden"
                 >
-                  <AccordionTrigger className="px-5 pt-5 text-left text-xl font-bold bg-secondary-bg border-b border-scrollbar mx-4 text-primary-bg">
+                  <AccordionTrigger className="px-5 pt-5 text-left text-xl font-semibold bg-secondary-bg border-b border-scrollbar mx-4 text-primary-bg">
                     {`Unit ${index + 1}`}
                   </AccordionTrigger>
 
@@ -1041,14 +1092,15 @@ className="mb-6 text-sm font-medium bg-gray-50 text-gray-700 px-5 py-3 rounded-2
 >
   + Add Unit
 </Button> */}
-
-            <Button
-              disabled={isSubmitting}
-              type="submit"
-              className="mt-7 w-[148px] h-[40px] bg-primary-bg rounded-[18px] text-sm font-semibold text-white"
-            >
-              {isSubmitting ? <Loader2 className="animate-spin" /> : 'Save'}
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                disabled={isSubmitting}
+                type="submit"
+                className="mt-7 w-[148px] h-[40px] bg-primary-bg rounded-[18px] text-sm font-semibold text-white"
+              >
+                {isSubmitting ? <Loader2 className="animate-spin" /> : 'Save'}
+              </Button>
+            </div>
           </form>
         </Form>
       </div>

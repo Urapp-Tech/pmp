@@ -95,8 +95,8 @@ const OfficeUserCreateDialog = ({
         <DialogHeader className="p-0 w-full">
           {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
           <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
-            <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
-              Add New User
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-semibold tracking-wide">
+              Add New Tenant User
             </DialogTitle>
             {/* 3) Custom rounded close button */}
             <button
@@ -241,7 +241,8 @@ const OfficeUserCreateDialog = ({
                           className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
                           id="phone"
                           placeholder="876543215"
-                          type="number"
+                          type="tel"
+                          inputMode="numeric"
                           {...register('phone', {
                             required: 'Please enter your phone',
                             pattern: {

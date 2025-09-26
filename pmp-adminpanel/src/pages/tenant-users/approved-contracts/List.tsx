@@ -61,6 +61,7 @@ import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
 import dayjs from 'dayjs';
 import UpdateContractDialog from './UpdateDialog';
 import assets from '@/assets/images';
+import AgreementDocsCell from "./AgreementDocsCell";
 
 export type Users = {
   id: string; // UUID
@@ -143,7 +144,7 @@ const ApprovedContracts = () => {
               <AvatarFallback>{getInitials(user?.fname || '')}</AvatarFallback>
             </Avatar>
             <div className="">
-              <div className="capitalize font-semibold">
+              <div className="capitalize">
                 {user?.fname} {user?.lname}
               </div>
               <span className="text-gray-700 text-xs">({tenantType})</span>
@@ -208,101 +209,21 @@ const ApprovedContracts = () => {
         </div>
       ),
     },
+    
     {
-      accessorKey: 'agreement_doc',
-      header: 'AGREEMENT DOCS',
-      cell: ({ row }) => {
-        const [showTooltip, setShowTooltip] = useState(false);
-
-        const docs: any = row.getValue('agreement_doc');
-
-        if (!docs || docs?.length === 0) return <span>No file</span>;
-
-        // Ensure it's always an array
-        const fileList = Array.isArray(docs) ? docs : [docs];
-
-        const getFileType = (fileName: any) => {
-          const ext = fileName.split('.').pop().toLowerCase();
-          if (['pdf', 'doc', 'docx', 'xls', 'xlsx'].includes(ext))
-            return 'document';
-          if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext))
-            return 'image';
-          return 'other';
-        };
-
-        return (
-          <div className="flex items-center gap-2">
-            {fileList.slice(0, 2).map((file, idx) => {
-              const type = getFileType(file);
-              return (
-                <a
-                  key={idx}
-                  href={ASSET_BASE_URL + file}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center"
-                >
-                  {type === 'document' ? (
-                    <FileText className="text-primary-bg" size={20} />
-                  ) : type === 'image' ? (
-                    <img
-                      src={ASSET_BASE_URL + file}
-                      alt="doc"
-                      className="w-8 h-8 object-cover rounded border"
-                    />
-                  ) : (
-                    <FileText className="text-primary-bg text-lg" />
-                  )}
-                </a>
-              );
-            })}
-            {fileList.length > 2 && (
-              <div className="relative">
-                <span
-                  className="bg-primary-bg text-white text-xs px-2 py-1 rounded-full cursor-pointer"
-                  onClick={() => setShowTooltip(!showTooltip)}
-                >
-                  +{fileList.length - 2}
-                </span>
-
-                {showTooltip && (
-                  <div className="absolute bottom-[-15px] mb-2 left-[50px] -translate-x-1/2 bg-white border shadow-lg p-2 rounded z-500 overflow-y-auto">
-                    <div className="flex gap-2 flex-wrap max-w-[500px] max-h-[100px] overflow-y-auto">
-                      {fileList.slice(2).map((file, idx) => {
-                        const type = getFileType(file);
-                        return (
-                          <a
-                            key={idx}
-                            href={ASSET_BASE_URL + file}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center"
-                          >
-                            {type === 'document' ? (
-                              <FileText className="text-primary-bg" size={20} />
-                            ) : type === 'image' ? (
-                              <img
-                                src={ASSET_BASE_URL + file}
-                                alt="doc"
-                                className="w-8 h-8 object-cover rounded border"
-                              />
-                            ) : (
-                              <FileText className="text-gray-500 text-lg" />
-                            )}
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      },
-    },
+  accessorKey: "agreement_doc",
+  header: "AGREEMENT DOCS",
+  cell: ({ row }) => (
+    <AgreementDocsCell
+      value={row.getValue("agreement_doc")}
+      assetBaseUrl={ASSET_BASE_URL}
+      maxInline={3} // tweak if you want 2 or 4
+    />
+  ),
+},
     {
       id: 'actions',
+      header: 'ACTIONS',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
@@ -314,7 +235,7 @@ const ApprovedContracts = () => {
                 <img
                   onClick={() => handleActionMenu('edit', id)}
                   src={assets.images.editPencil}
-                  className="text-primary-bg cursor-pointer h-24 w-24"
+                  className="text-primary-bg cursor-pointer h-8 w-8"
                 />
               </div>
             )}
@@ -560,7 +481,7 @@ const ApprovedContracts = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-primary-bg font-bold text-3xl leading-normal capitalize">
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
               APPROVED CONTRACTS
             </h2>
             <div className="flex gap-3 items-center">

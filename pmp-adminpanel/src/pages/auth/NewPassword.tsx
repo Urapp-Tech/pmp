@@ -105,7 +105,7 @@ const NewPassword = () => {
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1280px] items-center justify-between px-6 md:px-10">
         {/* LEFT: logo + hero text */}
         <div className="hidden w-full max-w-[520px] md:block">
-          <div className="mb-6">
+          <div className="mb-10">
             <img
               src={assets.images.whiteCompLogo /* (image two: white logo) */}
               alt="logo"
@@ -113,7 +113,7 @@ const NewPassword = () => {
             />
           </div>
 
-          <h1 className="font-bold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
+          <h1 className="font-semibold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
             Quick recovery.
             <br /> Simple steps.
           </h1>
@@ -128,7 +128,7 @@ const NewPassword = () => {
             "
           >
             <div className="mb-6 text-center mt-[25%]">
-              <h2 className="text-3xl font-bold text-primary-bg">
+              <h2 className="text-3xl font-semibold text-primary-bg">
                 Set Password
               </h2>
               <span className="text-primary-bg text-sm">
@@ -149,7 +149,7 @@ const NewPassword = () => {
                       type={passwordVisible ? 'text' : 'password'}
                       className="
                                         h-12 rounded-xl border-0 bg-white/50 pr-12 shadow-sm
-                                        placeholder:text-primary-bg focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
+                                        placeholder:text-primary-bg/40 focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
                                       "
                       {...register('password', {
                         required: 'Please enter your password.',
@@ -184,7 +184,7 @@ const NewPassword = () => {
                       type={newPasswordVisible ? 'text' : 'password'}
                       className="
                         h-12 rounded-xl border-0 bg-white/50 pr-12 shadow-sm
-                        placeholder:text-primary-bg focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
+                        placeholder:text-primary-bg/40 focus-visible:ring-[#A5F2DE] focus-visible:ring-0 focus-visible:ring-offset-0
                       "
                       {...register('confirmPassword', {
                         required: 'Please enter your password.',

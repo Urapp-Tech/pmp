@@ -113,7 +113,7 @@ const ForgotPassword = () => {
             />
           </div>
 
-          <h1 className="font-bold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
+          <h1 className="font-semibold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
             Quick recovery.
             <br /> Simple steps.
           </h1>
@@ -150,7 +150,7 @@ const ForgotPassword = () => {
                       placeholder="example@gmail.com"
                       className="
                         mt-2 h-12 rounded-xl border-0 outline-none bg-white/50 shadow-sm
-                        placeholder:text-primary-bg focus-visible:ring-0 focus-visible:ring-offset-0
+                        placeholder:text-primary-bg/40 focus-visible:ring-0 focus-visible:ring-offset-0
                       "
                       {...register('email', {
                         required: 'Please enter your email or phone.',
