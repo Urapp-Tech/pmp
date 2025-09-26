@@ -50,6 +50,7 @@ import signOut from './sign-out.svg';
 import avatarBg from './avatar-bg.svg';
 import coloredCompLogo from './colored-comp-bg.svg';
 import bgBanner from './bg-banner.png';
+import downloadIcon from './download.png';
 
 const assets = {
   images: {
@@ -104,6 +105,7 @@ const assets = {
     avatarBg,
     coloredCompLogo,
     bgBanner,
+    downloadIcon,
   },
 } as const;
 

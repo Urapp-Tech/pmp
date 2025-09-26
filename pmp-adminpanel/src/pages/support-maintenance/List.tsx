@@ -183,11 +183,16 @@ const SupportMaintenance = () => {
                     <img
                       src={ASSET_BASE_URL + url}
                       alt={`attachment-${idx}`}
-                      className="w-full h-full object-cover"
+                      className="w-8 h-8 object-contain"
                     />
                   ) : isPDF || isDoc ? (
-                    <FileText className="text-primary-bg" size={20} />
+                    <img
+                      src={assets.images.tenantAssign}
+                      alt={`attachment-${idx}`}
+                      className="w-8 h-8 object-contain"
+                    />
                   ) : (
+                    // <FileText className="text-primary-bg" size={20} />
                     <span className="text-xs text-gray-500">File</span>
                   )}
                 </a>
@@ -205,12 +210,13 @@ const SupportMaintenance = () => {
     },
     {
       id: 'actions',
+      header: 'ACTIONS',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
         const { id, status } = row.original;
         return status === 'closed' ? null : (
-          <div className="flex justify-center items-center">
+          <div className="flex justify-start px-2 items-center">
             {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
               <div>
                 <img

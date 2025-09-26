@@ -1,58 +1,3 @@
-// import { useEffect, useState } from 'react';
-// import { TopBar } from '@/components/TopBar';
-// import { SidebarInset } from '@/components/ui/sidebar';
-// import { Label } from '@/components/ui/label';
-// import dashboardService from '@/services/adminapp/dashboard';
-// import { MonitorCheck, Monitor, Users } from 'lucide-react';
-
-// function Dashboard() {
-
-//   return (
-//     <div className="bg-white p-2 rounded-[20px] mt-5">
-//       <SidebarInset>
-//         <TopBar title="Dashboard" />
-//         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-//           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-//             <div className="aspect-video p-3 rounded-xl bg-muted/50">
-//               <Label className="text-xl" htmlFor="activeCabin">
-//                 <Monitor /> Active Managers
-//               </Label>
-//               <div className="flex items-center justify-center mt-[15%]">
-//                 <span className="text-4xl font-semibold">
-//                   {data?.totalActiveCabins}
-//                 </span>
-//               </div>
-//             </div>
-//             <div className="aspect-video p-3 rounded-xl bg-muted/50">
-//               <Label className="text-xl" htmlFor="activeCabin">
-//                 <MonitorCheck /> Active Tenants
-//               </Label>
-//               <div className="flex items-center justify-center mt-[15%]">
-//                 <span className="text-4xl font-semibold">
-//                   {data?.totalActiveAssignedCabins}
-//                 </span>
-//               </div>
-//             </div>
-//             <div className="aspect-video p-3 rounded-xl bg-muted/50">
-//               <Label className="text-xl" htmlFor="activeCabin">
-//                 <Users /> Pending Invoices
-//               </Label>
-//               <div className="flex items-center justify-center mt-[15%]">
-//                 <span className="text-4xl font-semibold">
-//                   {data?.totalActiveEmployees}
-//                 </span>
-//               </div>
-//             </div>
-//           </div>
-//           {/* <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" /> */}
-//         </div>
-//       </SidebarInset>
-//     </div>
-//   );
-// }
-
-// export default Dashboard;
-
 // tenant dashboard
 import { SidebarInset } from '@/components/ui/sidebar';
 import { TopBar } from '@/components/TopBar';
@@ -90,13 +35,10 @@ function Dashboard() {
   const { user, properties } = data ? data : {};
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: 'var(--body-background)' }}
-    >
+    <div className="" style={{ background: 'var(--body-background)' }}>
       <SidebarInset>
         {/* CONTENT WRAP */}
-        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full max-w-[2000px] px-4 sm:px-6 lg:px-8 py-6">
           {/* HERO ROW: left welcome, right image */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <div className="rounded-2xl px-6 py-8">

@@ -179,7 +179,7 @@ const BlogsCreateDialog = ({
         </DialogHeader> */}
         <div className="bg-white rounded-bl-3xl px-6 pb-6 pt-5">
           <div className="grid grid-cols-12 gap-3">
-            <div className="col-span-6">
+            <div className="col-span-12">
               <Form {...form}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="custom-form-section">
@@ -229,7 +229,7 @@ const BlogsCreateDialog = ({
                       <div className="flex justify-between">
                         <FormLabel
                           htmlFor="images"
-                          className="text-sm font-medium my-3"
+                          className="text-sm font-medium mt-3"
                         >
                           Upload Docs / Images
                           <span className="text-xs font-normal">
@@ -238,8 +238,8 @@ const BlogsCreateDialog = ({
                           </span>
                         </FormLabel>
                       </div>
-                      <div className="">
-                        <div className="FormField">
+                      <div className="grid grid-cols-12 gap-4">
+                        <div className="FormField col-span-6">
                           <div className="ImageBox">
                             <Controller
                               name="images"
@@ -249,7 +249,7 @@ const BlogsCreateDialog = ({
                               // }}
                               render={({ field: { onChange } }) => (
                                 <>
-                                  <div className="w-full flex h-[50px] items-center">
+                                  <div className="w-full flex h-[150px] items-center">
                                     <input
                                       accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
                                       style={{ display: 'none' }}
@@ -261,16 +261,26 @@ const BlogsCreateDialog = ({
                                       }
                                       onClick={handleFileOnClick}
                                     />
-                                    <span className="border-2 border-primary-bg w-full rounded-2xl">
+                                    <span className="border-2 h-[150px] mt-10 border-scrollbar flex-col flex justify-center items-center w-full rounded">
                                       <label
                                         htmlFor="raised-button-files"
-                                        className="ImageLabel text-primary-bg flex h-[50px] justify-center items-center w-full"
+                                        className="ImageLabel text-primary-bg flex h-[55px] justify-center items-center w-full"
                                       >
-                                        <UploadIcon size={18} />
-                                        <span className="text-primary-bg px-1">
-                                          Upload
-                                        </span>
+                                        <img
+                                          src={assets.images.downloadIcon}
+                                          className="h-6 w-6 object-contain"
+                                        />
+                                        {/* <UploadIcon size={18} /> */}
                                       </label>
+                                      <p className="text-primary-bg px-1 text-sm">
+                                        <span className="text-scrollbar">
+                                          Click to Upload
+                                        </span>{' '}
+                                        or drag and drop
+                                      </p>
+                                      <p className="text-primary-bg text-xs px-1">
+                                        Support for images, documents, and more
+                                      </p>
                                     </span>
                                   </div>
                                 </>
@@ -283,9 +293,60 @@ const BlogsCreateDialog = ({
                             )}
                           </div>
                         </div>
+                        <div className="col-span-6 mt-2">
+                          <Controller
+                            name="images"
+                            control={control}
+                            // rules={{
+                            //   validate: () => {
+                            //     if (planFiles?.length > 0) {
+                            //       return true;
+                            //     }
+                            //     return 'At least one image is required';
+                            //   },
+                            // }}
+                            render={({ field: { onChange } }) => (
+                              <div>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {selectedPlanImages?.map(
+                                    (file: any, index: number) => (
+                                      <div
+                                        key={index}
+                                        className="ShowFileItem p-1 flex items-center relative"
+                                      >
+                                        <X
+                                          size={20}
+                                          className="absolute top-1 right-[-1px] cursor-pointer text-primary-bg bg-secondary-bg rounded-full p-1"
+                                          onClick={() =>
+                                            handleRemoveFile(index, onChange)
+                                          }
+                                        />
+                                        <div
+                                          className={`p-4 border-dashed border-0 flex items-center justify-center rounded-[20px] bg-earth-bg w-[130px] h-[120px]`}
+                                        >
+                                          {file.startsWith('data:image') ? (
+                                            <img
+                                              src={file}
+                                              alt="preview"
+                                              className="w-[88px] h-[88px] object-contain"
+                                            />
+                                          ) : (
+                                            <span className="text-xs text-center break-all">
+                                              {file}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          />
+                        </div>
                       </div>
                     </div>
-                    <DialogFooter className="mt-3">
+                    <DialogFooter className="mt-8">
                       <Button
                         disabled={isLoader}
                         type="submit"
@@ -297,57 +358,6 @@ const BlogsCreateDialog = ({
                   </div>
                 </form>
               </Form>
-            </div>
-            <div className="col-span-6">
-              <Controller
-                name="images"
-                control={control}
-                // rules={{
-                //   validate: () => {
-                //     if (planFiles?.length > 0) {
-                //       return true;
-                //     }
-                //     return 'At least one image is required';
-                //   },
-                // }}
-                render={({ field: { onChange } }) => (
-                  <div>
-                    <Label
-                      htmlFor="address"
-                      className="text-sm underline underline-offset-2 font-medium my-3"
-                    >
-                      Images
-                    </Label>
-                    {selectedPlanImages?.map((file: any, index: number) => (
-                      <div
-                        key={index}
-                        className="ShowFileItem p-1 flex items-center relative"
-                      >
-                        <X
-                          size={20}
-                          className="absolute top-1 right-[-1px] cursor-pointer text-white bg-primary-bg rounded-full p-1"
-                          onClick={() => handleRemoveFile(index, onChange)}
-                        />
-                        <div
-                          className={`p-4 border-dashed border-0 flex items-center justify-center rounded-[20px] bg-earth-bg w-[180px] h-[150px]`}
-                        >
-                          {file.startsWith('data:image') ? (
-                            <img
-                              src={file}
-                              alt="preview"
-                              className="w-[88px] h-[88px] object-contain"
-                            />
-                          ) : (
-                            <span className="text-xs text-center break-all">
-                              {file}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              />
             </div>
           </div>
         </div>

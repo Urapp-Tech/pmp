@@ -253,7 +253,8 @@ const OfficeUserUpdateDialog = ({
                           className="mt-2 text-[11px] outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[1px] focus-visible:ring-0"
                           id="phone"
                           placeholder="876543215"
-                          type="number"
+                          type="tel"
+                          inputMode="numeric"
                           {...register('phone', {
                             required: 'Please enter your phone',
                             pattern: {
@@ -299,8 +300,8 @@ const OfficeUserUpdateDialog = ({
                       Upload Avatar
                     </FormLabel>
                   </div>
-                  <div className="grid grid-cols-12 items-center">
-                    <div className="col-span-5 mb-1">
+                  <div className="grid grid-cols-12 gap-4 items-center">
+                    <div className="col-span-6 border-2 rounded border-scrollbar mb-1">
                       <DragDropFile
                         setFile={setFile}
                         setImg={setSelectedImg}
@@ -308,7 +309,21 @@ const OfficeUserUpdateDialog = ({
                       />
                     </div>
                     {selectedImg ? (
-                      <div className="col-span-6 flex items-center justify-center xl:justify-center 2xl:justify-start">
+                      <div className="col-span-6 relative h-full rounded border-2 border-scrollbar flex items-center justify-center xl:justify-center 2xl:justify-start p-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedImg(null);
+                            setFile(null);
+                            // clear saved value if you want:
+                            // form?.setValue?.('agreementDoc', '');
+                          }}
+                          className="absolute -right-3 -top-3 h-7 w-7 grid place-items-center rounded-full bg-scrollbar text-white shadow hover:opacity-90"
+                          aria-label="Remove file"
+                          title="Remove"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                         <img
                           className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
                           src={selectedImg}
@@ -316,7 +331,7 @@ const OfficeUserUpdateDialog = ({
                         />
                       </div>
                     ) : getValues('profilePic') ? (
-                      <div className="col-span-6 flex items-center justify-center  xl:justify-center 2xl:justify-start">
+                      <div className="col-span-6 relative h-full rounded border-2 border-scrollbar flex items-center justify-center xl:justify-center 2xl:justify-start p-3">
                         <img
                           className="max-h-[100px] max-w-[150px] rounded-md mx-auto"
                           src={`${ASSET_BASE_URL}${getValues('profilePic')}`}

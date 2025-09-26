@@ -227,7 +227,7 @@ const TenantUsers = () => {
         };
 
         return (
-          <div className="flex justify-center items-center">
+          <div className="flex justify-start items-center">
             <label className="inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"

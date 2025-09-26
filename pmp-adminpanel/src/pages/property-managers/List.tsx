@@ -242,12 +242,13 @@ const PropertyManagers = () => {
     },
     {
       id: 'actions',
+      header: 'ACTIONS',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
         const { id } = row.original;
         return (
-          <div className="flex justify-center items-center">
+          <div className="flex justify-start items-center">
             {can(PERMISSIONS.MANAGER.UPDATE) && (
               <>
                 <div>

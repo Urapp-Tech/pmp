@@ -70,10 +70,16 @@ const PropertyList = () => {
     fetchList(search, page);
   }, [page]);
 
-  const handleSearchKey = (e: any) => {
-    setSearchKey(e.target.value);
-    // fetchList(search, page);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchKey(event.target.value);
   };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      fetchList(search, page);
+    }
+  };
+
   const handlePageChange = (p: any) => {
     // setPageIndex(newPage + 1);
     setPage(p + 1);
@@ -147,8 +153,9 @@ const PropertyList = () => {
             <Input
               placeholder="Search properties..."
               value={search}
-              onKeyUp={handleSearchKey}
-              className="w-[350px] rounded-full bg-mars-bg/50"
+              onChange={handleChange}
+              onKeyPress={handleKeyPress}
+              className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
             {can(PERMISSIONS.PROPERTY.CREATE) && (
               <Button
@@ -221,7 +228,7 @@ const PropertyList = () => {
                           {can(PERMISSIONS.PROPERTY.UPDATE) && (
                             <div className="pl-3">
                               <img
-                                onClick={() => handleActionMenu('view', item)}
+                                onClick={() => handleActionMenu('edit', item)}
                                 src={assets.images.editPencil}
                                 className="text-primary-bg cursor-pointer h-6 w-6"
                               />
@@ -235,7 +242,7 @@ const PropertyList = () => {
                           {can(PERMISSIONS.PROPERTY.DELETE) && (
                             <div className="pl-3">
                               <img
-                                onClick={() => handleActionMenu('view', item)}
+                                onClick={() => handleActionMenu('delete', item)}
                                 src={assets.images.deleted}
                                 className="text-primary-bg cursor-pointer h-6 w-6"
                               />

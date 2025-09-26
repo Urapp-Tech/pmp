@@ -25,24 +25,21 @@ function Dashboard() {
     'text-[14px] text-primary-bg flex items-center gap-2 font-semibold';
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: 'var(--body-background)' }}
-    >
+    <div className="" style={{ background: 'var(--body-background)' }}>
       <SidebarInset>
         {/* CONTENT WRAP */}
-        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full max-w-[2000px] px-4 sm:px-6 lg:px-8 py-6">
           {/* HERO ROW: left welcome, right image */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-36 items-start mb-6">
             <div className="rounded-2xl px-6 py-8">
-              <h1 className="text-primary-bg text-3xl sm:text-4xl font-semibold leading-snug">
+              <h1 className="text-primary-bg sm:text-4xl 2xl:text-5xl font-semibold leading-snug">
                 Hello Fahad,
                 <br />
                 Welcome to your
                 <br />
                 dashboard overview.
               </h1>
-              <p className="mt-3 text-sm text-primary-bg px-10">
+              <p className="mt-3 text-sm text-primary-bg px-1">
                 Track and manage the listed properties
               </p>
             </div>
@@ -52,7 +49,7 @@ function Dashboard() {
               <img
                 src={assets.images.dashboardHomeImg}
                 alt="Building"
-                className="w-full h-[320px] object-contain"
+                className="w-full h-[320px] 2xl:h-[480px] object-contain"
               />
             </div>
           </div>

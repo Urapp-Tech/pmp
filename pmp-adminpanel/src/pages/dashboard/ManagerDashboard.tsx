@@ -44,22 +44,20 @@ function ManagerDashboard() {
 
   // helper to keep card style consistent
   const cardBase =
-    'rounded-2xl shadow-sm ring-1 ring-black/5 px-4 py-3 sm:px-5 sm:py-4 h-46 sm:h-50 flex flex-col';
+    'rounded-2xl shadow-sm ring-1 ring-black/5 px-4 py-3 sm:px-5 sm:pt-4 h-46 sm:h-50 flex flex-col';
   const cardLight = 'bg-secondary-bg'; // light mint (matches mock)
   const cardDark = 'bg-secondary-bg'; // slightly darker mint (for alternates)
-  const labelCls = 'text-2xl text-primary-bg flex items-center gap-2 font-bold';
+  const labelCls =
+    'text-2xl text-primary-bg flex items-center gap-2 font-bold mt-2';
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: 'var(--body-background)' }}
-    >
+    <div className="" style={{ background: 'var(--body-background)' }}>
       <SidebarInset>
         {/* CONTENT WRAP */}
-        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full max-w-[2000px] px-4 sm:px-6 lg:px-8 py-6">
           {/* HERO ROW: left welcome, right image */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-36 items-start mb-6">
-            <div className="rounded-2xl px-6 py-8">
+          <div className="grid gap-6 2xl::grid-cols-4 sm:grid-cols-2 pb-6 items-end">
+            <div className="rounded-2xl">
               <h1 className="text-primary-bg text-3xl sm:text-4xl font-semibold leading-snug">
                 Hello {user?.fname},
                 <br />
@@ -67,26 +65,36 @@ function ManagerDashboard() {
                 <br />
                 dashboard overview.
               </h1>
-              <p className="mt-3 text-sm text-primary-bg px-10">
+              <p className="mt-3 text-sm text-primary-bg px-1">
                 Track and manage the listed properties
               </p>
             </div>
 
-            <div className="rounded-2xl text-primary-bg overflow-hidden m-3">
-              {/* Replace src with your actual image */}
-              <div className={`${cardBase} ${cardLight}`}>
-                <div className="rounded-xl p-1">
-                  {' '}
-                  <h2 className="text-xl font-bold mb-2">Manager Info </h2>{' '}
-                  <p className="font-medium">
-                    Name : {user?.fname} {user?.lname}{' '}
-                  </p>
-                  <p className="font-medium">Gender : {user?.gender}</p>
-                  <p className="font-medium">Phone : {user?.phone}</p>
-                  <p className="font-medium">Email : {user?.email}</p>{' '}
-                </div>
+            {/* <div className="rounded-2xl text-primary-bg overflow-hidden"> */}
+            {/* Replace src with your actual image */}
+            <div
+              className={`bg-secondary-bg h-[160px] flex items-center p-3 rounded-2xl shadow-sm ring-1 ring-black/5`}
+            >
+              <div className="rounded-xl p-1">
+                {' '}
+                <h2 className="text-xl text-primary-bg font-semibold mb-3">
+                  Manager Info{' '}
+                </h2>{' '}
+                <p className="font-light">
+                  Name : {user?.fname} {user?.lname}{' '}
+                </p>
+                <p className="font-light text-primary-bg">
+                  Gender : {user?.gender}
+                </p>
+                <p className="font-light text-primary-bg">
+                  Phone : {user?.phone}
+                </p>
+                <p className="font-light text-primary-bg">
+                  Email : {user?.email}
+                </p>{' '}
               </div>
             </div>
+            {/* </div> */}
           </div>
 
           {/* METRIC CARDS: 4 x 2 grid */}

@@ -182,8 +182,13 @@ const ReportedTicketsList = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : isPDF || isDoc ? (
-                    <FileText className="text-lunar-bg" size={20} />
+                    <img
+                      src={assets.images.tenantAssign}
+                      alt={`attachments`}
+                      className="w-8 h-8 object-contain"
+                    />
                   ) : (
+                    // <FileText className="text-lunar-bg" size={20} />
                     <span className="text-xs text-gray-500">File</span>
                   )}
                 </a>
@@ -217,7 +222,7 @@ const ReportedTicketsList = () => {
         // const payment = row.original;
         const { id, status } = row.original;
         return status === 'closed' ? null : (
-          <div className="flex justify-center items-center">
+          <div className="flex justify-start items-center">
             {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
               <div className="pr-6">
                 <img
@@ -236,7 +241,7 @@ const ReportedTicketsList = () => {
               <div>
                 <img
                   onClick={() => handleActionMenu('view', id)}
-                  src={assets.images.editPencil}
+                  src={assets.images.coloredEye}
                   className="text-primary-bg cursor-pointer h-6 w-6"
                 />
                 {/* <Eye

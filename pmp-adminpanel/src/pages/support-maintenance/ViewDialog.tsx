@@ -32,7 +32,7 @@ function ViewDialog({ isOpen, setIsOpen, formData }: Props) {
         <DialogHeader className="!h-[100px] !px-2 p-0 w-full">
           {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
           <div className="px-4 rounded-tl-3xl relative text-center">
-            <DialogTitle className="text-primary-bg text-4xl mt-2 font-semibold tracking-wide">
+            <DialogTitle className="text-primary-bg px-4 text-4xl mt-2 font-semibold tracking-wide">
               Maintenance Reported Request
             </DialogTitle>
             {/* 3) Custom rounded close button */}

@@ -185,10 +185,10 @@ const InvoiceDetail = () => {
     );
 
     // ---------------- Three-column info blocks
-    const COL_W = CONTENT_W / 3;
+    const COL_W = CONTENT_W / 2;
     const COL1_X = MARGIN_L;
     const COL2_X = MARGIN_L + COL_W;
-    const COL3_X = MARGIN_L + COL_W * 2;
+    const COL3_X = MARGIN_L + COL_W * 1.5;
     const BASE_Y = TITLE_Y + 60;
 
     doc.setTextColor(COLORS.navy);

@@ -172,7 +172,7 @@ const Otp = () => {
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1280px] items-center justify-between px-6 md:px-10">
         {/* LEFT: logo + hero text */}
         <div className="hidden w-full max-w-[520px] md:block">
-          <div className="mb-6">
+          <div className="mb-10">
             <img
               src={assets.images.whiteCompLogo}
               alt="logo"
@@ -180,7 +180,7 @@ const Otp = () => {
             />
           </div>
 
-          <h1 className="font-bold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
+          <h1 className="font-semibold leading-tight text-dialogBg [font-size:48px] md:[font-size:56px]">
             Quick recovery.
             <br /> Simple steps.
           </h1>
@@ -190,7 +190,7 @@ const Otp = () => {
         <div className="w-full max-w-[500px]">
           <div className="rounded-3xl h-[550px] border border-white/20 bg-white/50 p-6 shadow-2xl backdrop-blur-xl md:p-8">
             <div className="mb-6 mt-[25%] text-center">
-              <h2 className="text-3xl font-bold text-primary-bg">
+              <h2 className="text-3xl font-semibold text-primary-bg">
                 OTP Verification
               </h2>
               <span className="text-primary-bg text-sm">

@@ -276,7 +276,7 @@ const ApprovedContracts = () => {
 
                 {showTooltip && (
                   <div className="absolute bottom-[-15px] mb-2 left-[50px] -translate-x-1/2 bg-white border shadow-lg p-2 rounded z-500 overflow-y-auto">
-                    <div className="flex gap-2 flex-wrap max-w-[500px] max-h-[100px] overflow-y-auto">
+                    <div className="flex gap-2 flex-wrap max-w-[600px] max-h-[100px] overflow-y-auto">
                       {fileList.slice(2).map((file, idx) => {
                         const type = getFileType(file);
                         return (
@@ -289,14 +289,20 @@ const ApprovedContracts = () => {
                           >
                             {type === 'document' ? (
                               <FileText className="text-primary-bg" size={20} />
-                            ) : type === 'image' ? (
+                            ) : // <img
+                            //   src={assets.images.tenantAssign}
+                            //   alt="docs"
+                            //   className="w-20 h-20 object-contain text rounded border"
+                            // />
+                            // <FileText className="text-primary-bg" size={20} />
+                            type === 'image' ? (
                               <img
                                 src={ASSET_BASE_URL + file}
                                 alt="doc"
                                 className="w-8 h-8 object-cover rounded border"
                               />
                             ) : (
-                              <FileText className="text-gray-500 text-lg" />
+                              <FileText className="text-primary-bg text-lg" />
                             )}
                           </a>
                         );
@@ -312,6 +318,7 @@ const ApprovedContracts = () => {
     },
     {
       id: 'actions',
+      header: 'ACTIONS',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
@@ -323,7 +330,7 @@ const ApprovedContracts = () => {
                 <img
                   onClick={() => handleActionMenu('edit', id)}
                   src={assets.images.editPencil}
-                  className="text-primary-bg cursor-pointer h-24 w-24"
+                  className="text-primary-bg cursor-pointer h-8 w-8"
                 />
               </div>
             )}

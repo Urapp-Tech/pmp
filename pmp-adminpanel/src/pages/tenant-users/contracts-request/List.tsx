@@ -238,6 +238,7 @@ const ContractRequest = () => {
     // },
     {
       id: 'actions',
+      header: 'ACTIONS',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
@@ -257,7 +258,7 @@ const ContractRequest = () => {
               <div className="pl-3">
                 <CircleCheck
                   className="text-primary-bg cursor-pointer"
-                  size={20}
+                  size={25}
                   onClick={() =>
                     handleActionMenu('accept', id, { propertyUnitId, userId })
                   }
@@ -268,7 +269,7 @@ const ContractRequest = () => {
               <div className="pl-3">
                 <CircleX
                   className="text-primary-bg cursor-pointer"
-                  size={20}
+                  size={25}
                   onClick={() =>
                     handleActionMenu('reject', id, { propertyUnitId, userId })
                   }

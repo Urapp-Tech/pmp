@@ -204,6 +204,7 @@ const TenantUsers = () => {
     },
     {
       id: 'actions',
+      header: 'ACTIONS',
       enableHiding: false,
       cell: ({ row }) => {
         // const payment = row.original;
@@ -215,7 +216,7 @@ const TenantUsers = () => {
                 <img
                   onClick={() => handleActionMenu('contract', id)}
                   src={assets.images.tenantAssign}
-                  className="text-primary-bg cursor-pointer h-12 w-12"
+                  className="text-primary-bg cursor-pointer h-8 w-8"
                 />
                 {/* <MapPinHouse
                   className="text-lunar-bg cursor-pointer"
@@ -229,7 +230,7 @@ const TenantUsers = () => {
                 <img
                   onClick={() => handleActionMenu('edit', id)}
                   src={assets.images.editPencil}
-                  className="text-primary-bg cursor-pointer h-12 w-12"
+                  className="text-primary-bg cursor-pointer h-8 w-8"
                 />
                 {/* <Pencil
                   className="text-lunar-bg cursor-pointer"
@@ -243,7 +244,7 @@ const TenantUsers = () => {
                 <img
                   onClick={() => handleActionMenu('delete', id)}
                   src={assets.images.deleted}
-                  className="text-primary-bg cursor-pointer h-12 w-12"
+                  className="text-primary-bg cursor-pointer h-8 w-8"
                 />
                 {/* <Trash2
                   className="text-lunar-bg cursor-pointer"

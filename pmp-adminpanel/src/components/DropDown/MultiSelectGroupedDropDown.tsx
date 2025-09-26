@@ -40,19 +40,19 @@ export const MultiSelectGroupedDropDown: React.FC<Props> = ({
       control={control}
       rules={rules}
       render={({ field: { onChange, value }, fieldState: { error } }) => {
-        const selectedIds: string[] = value || [];
+        const selectedIds: string[] = Array.isArray(value) ? value : [];
 
         const toggleSelect = (id: string) => {
           const updated = selectedIds.includes(id)
-            ? selectedIds.filter((val) => val !== id)
+            ? selectedIds.filter((v) => v !== id)
             : [...selectedIds, id];
           onChange(updated);
         };
 
         const selectedNames = items
-          .flatMap((group) => group.options)
-          .filter((item) => selectedIds.includes(item.id))
-          .map((item) => item.name)
+          .flatMap((g) => g.options)
+          .filter((o) => selectedIds.includes(o.id))
+          .map((o) => o.name)
           .join(', ');
 
         return (
@@ -60,42 +60,69 @@ export const MultiSelectGroupedDropDown: React.FC<Props> = ({
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
                   role="combobox"
+                  aria-expanded={open}
+                  aria-haspopup="listbox"
+                  onClick={() => setOpen((o) => !o)}
                   className={cn(
-                    'w-full justify-between ring-0 focus:ring-0 focus:border-none text-left',
+                    'relative z-10 w-full h-12 !ring-0 !outline-none !border-0 justify-between text-left bg-secondary-bg text-primary-bg rounded-xl px-4 pointer-events-auto',
                     !selectedIds.length && 'text-muted-foreground'
                   )}
                 >
                   <span className="truncate max-w-[300px]">
                     {selectedIds.length ? selectedNames : placeholder}
                   </span>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-70" />
                 </Button>
               </PopoverTrigger>
+
               <PopoverContent
-                className="min-w-[100%] w-[300px] p-0 bg-mars-bg z-[999]"
                 align="start"
-                sideOffset={4}
+                sideOffset={6}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                className={cn(
+                  'w-[var(--radix-popover-trigger-width)] min-w-[14rem] max-w-[95vw] p-0 z-[1000] bg-white shadow-xl rounded-xl border'
+                )}
               >
-                <div className="text-xs bg-lunar-bg text-white p-2 font-semibold">
+                {/* header bar — same as single select */}
+                <div className="text-xs bg-secondary-bg text-primary-bg p-2 font-semibold rounded-t-xl">
                   {label}
                 </div>
-                <div className="px-1 max-h-[250px] overflow-auto">
+
+                {/* scroll area for items */}
+                <div
+                  className="max-h-64 overflow-y-auto overscroll-contain px-1 py-1"
+                  onWheelCapture={(e) => e.stopPropagation()}
+                  onTouchMoveCapture={(e) => e.stopPropagation()}
+                >
                   {items.map((group) => (
                     <div key={group.label} className="mb-1">
-                      <div className="text-[12px] font-semibold underline underline-offset-2 text-muted-foreground pl-3 pt-2 pb-1">
+                      <div className="text-[12px] font-semibold underline underline-offset-2 text-primary-bg pl-3 pt-2 pb-1">
                         {group.label}
                       </div>
+
                       {group.options.map((item) => {
                         const isSelected = selectedIds.includes(item.id);
                         return (
                           <div
                             key={item.id}
+                            role="option"
+                            aria-selected={isSelected}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                toggleSelect(item.id);
+                              }
+                            }}
                             onClick={() => toggleSelect(item.id)}
                             className={cn(
                               'px-3 py-2 my-1 text-sm cursor-pointer rounded-md',
-                              isSelected ? 'bg-muted' : 'hover:bg-muted'
+                              isSelected
+                                ? 'bg-secondary-bg font-semibold text-primary-bg'
+                                : 'hover:bg-muted text-primary-bg'
                             )}
                           >
                             {item.name}
@@ -107,6 +134,7 @@ export const MultiSelectGroupedDropDown: React.FC<Props> = ({
                 </div>
               </PopoverContent>
             </Popover>
+
             {error && <FormMessage>*{error.message}</FormMessage>}
           </div>
         );
