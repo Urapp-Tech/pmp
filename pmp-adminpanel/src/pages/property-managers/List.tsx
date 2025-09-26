@@ -597,6 +597,8 @@ const PropertyManagers = () => {
             <div className="flex gap-3 items-center">
               <Input
                 placeholder="Search managers..."
+                type="text"
+                name="search"
                 value={search}
                 onChange={handleChange}
                 onKeyPress={handleKeyPress}

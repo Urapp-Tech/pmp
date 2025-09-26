@@ -146,7 +146,10 @@ const PropertyList = () => {
           <div className="flex gap-3 items-center">
             <Input
               placeholder="Search properties..."
-              value={search}
+              // value={search}
+              type="text"
+              id='search'
+              name="search"
               onKeyUp={handleSearchKey}
               className="w-[350px] rounded-full bg-mars-bg/50"
             />

@@ -27,6 +27,7 @@ def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
     if not invoice.invoice_no and invoice.landlord_id:
         invoice_no = generate_invoice_no(db, invoice.landlord_id)
         invoice.invoice_no = invoice_no
+        invoice.due_amount = invoice_data.total_amount
     user = (
         db.query(Tenant)
         .options(joinedload(Tenant.user))
@@ -275,6 +276,7 @@ def create_next_invoice(db, previous_invoice: Invoice) -> Invoice:
         tenant_id=previous_invoice.tenant_id,
         landlord_id=previous_invoice.landlord_id,
         total_amount=previous_invoice.total_amount,
+        due_amount=previous_invoice.total_amount,
         due_date=next_due_date.isoformat(),
         description=f"Auto-generated for period ending {next_due_date.strftime('%B %Y')}",
         invoice_no=new_invoice_no,

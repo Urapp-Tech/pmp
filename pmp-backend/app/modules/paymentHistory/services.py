@@ -268,6 +268,8 @@ def process_payment_callback(payment_id: str, db: Session) -> str:
     invoice = db.query(Invoice).filter(Invoice.id == payment.invoice_id).first()
     if invoice and invoice_status == "Paid":
         invoice.status = "paid"
+        invoice.due_amount = 0
+        invoice.paid_amount = invoice.total_amount
         invoice.payment_date = datetime.utcnow().date()
         html_content = render_template(
             "paid_invoice.html",
