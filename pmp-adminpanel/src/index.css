@@ -539,6 +539,9 @@
   border-radius: 20px;
 }
 
+.bg-primary-bg-dark{
+  background-color: #424256;
+}
 .cs-dialog-box::-webkit-scrollbar-thumb {
   width: 24px;
   @apply bg-secondary-bg;

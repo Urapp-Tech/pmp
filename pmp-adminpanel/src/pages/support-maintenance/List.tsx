@@ -143,9 +143,12 @@ const SupportMaintenance = () => {
       header: 'Status',
       cell: ({ row }) => (
         <div
-          className={`capitalize ${row.getValue('status') === 'open' ? 'bg-scrollbar text-primary-bg' : row.getValue('status') === 'in_progress' ? 'bg-primary-bg text-white' : 'bg-primary-bg text-white'} text-center w-[75px] h-[30px]  flex items-center justify-center rounded-[3px]  text-[10px] leading-normal font-semibold py-[1px] border-secondary-bg border-2`}
+          className={`capitalize ${row.getValue('status') === 'open' ? 'bg-scrollbar text-primary-bg' : row.getValue('status') === 'in_progress' ? 'bg-primary-bg-dark text-sidebar-accent-foreground' : 'bg-primary-bg-dark text-sidebar-accent-foreground'} text-center w-[75px] h-[30px] rounded text-[10px] leading-normal flex items-center justify-center font-semibold py-[1px] border-secondary-bg border-2`}
         >
-          {row.getValue('status')}
+          {String(row.getValue('status') ?? '')
+            .toLowerCase()
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, (c) => c.toUpperCase())}
         </div>
       ),
     },
