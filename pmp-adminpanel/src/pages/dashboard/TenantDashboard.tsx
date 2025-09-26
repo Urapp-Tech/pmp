@@ -7,6 +7,7 @@ import dashboardService from '@/services/adminapp/admin';
 import { useEffect, useState } from 'react';
 import { ASSET_BASE_URL } from '@/utils/constants';
 import { cn } from '@/lib/utils';
+import AgreementDocsCell from '../tenant-users/approved-contracts/AgreementDocsCell';
 
 function Dashboard() {
   const userDetail: any = getItem('USER');
@@ -132,17 +133,16 @@ function Dashboard() {
                               {tenant.rent_pay_day}
                             </p>
                             {tenant.agreement_doc && (
-                              <p>
-                                <strong>Agreement Doc.</strong>{' '}
-                                <a
-                                  href={`${ASSET_BASE_URL}${tenant.agreement_doc}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-blue-600 underline"
-                                >
-                                  View
-                                </a>
-                              </p>
+                              <div className="space-y-1 pt-4">
+                                <div className="text-xs font-medium text-muted-foreground">
+                                  Agreement Docs
+                                </div>
+                                <AgreementDocsCell
+                                  value={tenant.agreement_doc} // can be string | string[] | comma string | {url}
+                                  assetBaseUrl={ASSET_BASE_URL}
+                                  maxInline={3} // tweak: 2–4
+                                />
+                              </div>
                             )}
                           </div>
                         ))}
