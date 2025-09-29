@@ -399,7 +399,7 @@
   background-size: cover;
   background-position: center; */
 }
-.bg-primary-bg-dark{
+.bg-primary-bg-dark {
   background-color: #424256;
 }
 .side--border {
@@ -511,15 +511,15 @@
 }
 
 *::-webkit-scrollbar {
-  width: 18px; /* height for horizontal bars */
+  width: 16px; /* height for horizontal bars */
 }
 *::-webkit-scrollbar-track {
   background: white; /* track color */
 }
 *::-webkit-scrollbar-thumb {
   @apply bg-scrollbar; /* thumb color */
-  border-radius: 9999px;
-  border: 5px solid #cceef4;
+  border-bottom-left-radius: 99px;
+  @apply border-scrollbar;
 }
 *::-webkit-scrollbar-thumb:hover {
   @apply bg-scrollbar;

@@ -58,6 +58,12 @@ export function MainSidebar({
         icon: assets.images.reportIcon,
         items: [],
       },
+      // {
+      //   title: 'BANK TRANSACTIONS',
+      //   url: '/super-admin/bank-transaction',
+      //   icon: assets.images.bankTIcon,
+      //   items: [],
+      // },
       {
         title: 'LANDLORD REQUESTS',
         url: '/super-admin/landlord-request',

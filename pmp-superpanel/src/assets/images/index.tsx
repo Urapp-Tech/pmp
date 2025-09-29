@@ -41,6 +41,7 @@ import invoiceIcon from './inv-icon.png';
 import tenantIcon from './tenant-icon.png';
 import secLogsIcon from './sec-logs.png';
 import usersIcon from './users.png';
+import bankTIcon from './bank.svg';
 import dashboardHomeImg from './dashboard-img.png';
 import authBg from './auth-bg.png';
 import authBgTwo from './auth-bg-two.png';
@@ -90,6 +91,7 @@ const assets = {
     homeIcon,
     propIcon,
     reportIcon,
+    bankTIcon,
     receiptIcon,
     bankIcon,
     propertyManagerIcon,

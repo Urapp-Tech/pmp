@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status, Request, UploadFile
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload, load_only
 from app.models.users import User
 from app.models.properties import Property
@@ -9,6 +10,7 @@ from app.models.managers import Manager
 from app.models.property_units import PropertyUnit
 from typing import Optional, List
 from collections import defaultdict
+from sqlalchemy.exc import IntegrityError
 
 # import uuid
 import uuid
@@ -118,25 +120,51 @@ def refresh_access_token(refresh_token: str) -> TokenSchema:
 
 
 def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile = None):
-
     print("Creating user with data:", landlord_data, profile_pic)
 
     allowed_roles = ["User", "Manager"]
 
+    # Resolve & validate role
+    role = None
     if landlord_data.role_type:
         role = db.query(Role).filter(Role.name == landlord_data.role_type).first()
         if not role:
             raise HTTPException(status_code=400, detail="Role is invalid")
-
-    if role.name not in allowed_roles:
+    if role is None or role.name not in allowed_roles:
         raise HTTPException(
             status_code=400, detail="Only 'User' and 'Manager' roles are allowed."
         )
 
+    # Normalize email
+    incoming_email = (landlord_data.email or "").strip().lower()
+    if not incoming_email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    # Ensure landlord_id is present for non-landlord users
+    if not landlord_data.landlord_id:
+        raise HTTPException(status_code=400, detail="landlord_id is required")
+
+    # Same-landlord duplicate check (case-insensitive)
+    existing_same_landlord = (
+        db.query(User)
+        .filter(
+            User.landlord_id == landlord_data.landlord_id,
+            func.lower(User.email) == incoming_email,
+        )
+        .first()
+    )
+    if existing_same_landlord:
+        # This is your "wrong example": duplicate under same landlord
+        raise HTTPException(
+            status_code=409,
+            detail="A user with this email already exists for the selected landlord.",
+        )
+
     hashed_pwd = hash_password(landlord_data.password)
 
+    # Optional: handle profile pic
+    profile_pic_url = None
     try:
-        profile_pic_url = None
         if is_upload_file(profile_pic):
             profile_pic_url = save_uploaded_file(
                 profile_pic, upload_dir="uploads/profile_pics"
@@ -150,7 +178,7 @@ def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile 
         id=uuid.uuid4(),
         fname=landlord_data.fname,
         lname=landlord_data.lname,
-        email=landlord_data.email,
+        email=incoming_email,  # store normalized
         phone=landlord_data.phone,
         password=hashed_pwd,
         gender=landlord_data.gender,
@@ -159,9 +187,23 @@ def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile 
         is_landlord=False,
         profile_pic=profile_pic_url,
     )
+
     db.add(user)
-    db.flush()
-    db.commit()
+    try:
+        db.flush()  # write to DB
+        db.commit()
+    except IntegrityError as ie:
+        db.rollback()
+        # Until you run the migration below, a duplicate email *anywhere* will raise here
+        msg = "Email already exists."
+        # If the driver exposes constraint name, customize message:
+        if (
+            hasattr(ie.orig, "diag")
+            and getattr(ie.orig.diag, "constraint_name", "") == "users_email_key"
+        ):
+            msg = "Email already exists (global uniqueness). Update DB to unique per landlord."
+        raise HTTPException(status_code=409, detail=msg)
+
     db.refresh(user)
 
     user_data = {
@@ -181,7 +223,6 @@ def create_user(db: Session, landlord_data: UserCreate, profile_pic: UploadFile 
         "role_name": user.role.name,
     }
 
-    # return user
     return {
         "success": True,
         "message": "User created successfully",

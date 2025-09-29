@@ -20,105 +20,15 @@ MYFATOORAH_API_URL = settings.MYFATOORAH_API_URL
 MYFATOORAH_API_KEY = settings.MYFATOORAH_API_KEY
 
 
-# def create_payment(
-#     db: Session,
-#     user_id: UUID,
-#     invoice_id: UUID,
-#     property_unit_id: UUID,
-#     property: str,
-#     property_unit: str,
-#     user_name: str,
-#     user_email: str,
-#     user_phone: str,
-#     amount: float,
-# ):
-#     print("Fatoorah URL:", MYFATOORAH_API_URL)
-#     print("Fatoorah API Key:", settings.MYFATOORAH_API_KEY[:10])
-
-#     user = db.query(User).filter(User.id == user_id).first()
-#     if not user:
-#         raise Exception(
-#             f"User with ID {user_id} does not exist. Cannot create payment."
-#         )
-
-#     # MyFatoorah payload
-#     payload = {
-#         "CustomerName": user_name,
-#         "CustomerEmail":user_email ,  # Dummy email for test
-#         # "MobileCountryCode": "+965",  # Dummy Kuwait code for test
-#         "CustomerMobile":user_phone ,  # Dummy mobile for test
-#         "CustomerReference": str(invoice_id),  # Helps map payment later
-#         "UserDefinedField": str(user_id),
-#         "NotificationOption": "ALL",
-#         "CallBackUrl": "http://localhost:8000/admin/payments/callback",
-#         "ErrorUrl": "http://localhost:8000/admin/payments/error",
-#         "WebhookUrl": "http://localhost:8000/api/v1/payment/webhook",
-#         "Language": "en",
-#         "InvoiceValue": amount,
-#         # "CustomerAddress": {  # Dummy address for test
-#         #     "Block": "10",
-#         #     "Street": "Test Street",
-#         #     "HouseBuildingNo": "5",
-#         #     "AddressInstructions": "Near test landmark",
-#         # },
-#         "InvoiceItems": [  # Add a single dummy item
-#             {
-#                 "ItemName": property + " - " + property_unit + " - " + "rent",
-#                 "Quantity": 1,
-#                 "UnitPrice": amount,
-#                 "Weight": 0,
-#                 "Width": 0,
-#                 "Height": 0,
-#                 "Depth": 0,
-#             }
-#         ],
-#         "ProcessingDetails": {"AutoCapture": True, "Bypass3DS": True},
-#     }
-
-#     headers = {
-#         "Authorization": f"Bearer {settings.MYFATOORAH_API_KEY}",
-#         "Content-Type": "application/json",
-#     }
-
-#     try:
-#         response = requests.post(MYFATOORAH_API_URL, json=payload, headers=headers)
-#         response.raise_for_status()  # Raise exception for HTTP errors
-#         payment_data = response.json()
-
-#         print("Payment API response:", payment_data)
-
-#         payment = PaymentHistory(
-#             invoice_id=invoice_id,
-#             user_id=user_id,
-#             property_unit_id=property_unit_id,
-#             amount=amount,  # ✅ FIXED
-#             currency="KWD",  # Or get from invoice if needed
-#             payment_type="RENT",  # ✅ FIXED
-#             payment_url=payment_data["Data"]["InvoiceURL"],
-#             status=PaymentStatus.PENDING,
-#         )
-#         db.add(payment)
-#         db.commit()
-#         db.refresh(payment)
-
-#         return payment
-
-
-#     except requests.RequestException as e:
-#         # Log error and raise custom exception
-#         print("Payment API call failed:", e)
-#         raise Exception(f"MyFatoorah API Error: {e}")
 def create_payment(
     db: Session,
     user_id: UUID,
     invoice_id: UUID,
     property_unit_id: UUID,
     property: str,
-    # supplier_code: Optional[str],
     property_unit: str,
     user_name: str,
     user_email: str,
-    # user_phone: str,
     amount: float,
 ):
     print("Fatoorah URL:", MYFATOORAH_API_URL)
@@ -127,11 +37,7 @@ def create_payment(
     user = (
         db.query(User)
         .filter(User.id == user_id)
-        .options(
-            load_only(
-                User.id, User.email, User.fname, User.lname
-            )  # Load only required fields
-        )
+        .options(load_only(User.id, User.email, User.fname, User.lname))
         .first()
     )
     if not user:
@@ -139,62 +45,85 @@ def create_payment(
             f"User with ID {user_id} does not exist. Cannot create payment."
         )
 
-    # print("supplier_code found:", type(supplier_code), Number(supplier_code))
-
-    # Prepare MyFatoorah payload
-    payload = {
-        "PaymentMethodId": 2,  # 1 for KNET, 2 for Credit Card, etc.
-        "CustomerName": user_name,
-        "CustomerEmail": user_email,
-        # "CustomerMobile": user_phone,
-        "CustomerReference": str(invoice_id),
-        "UserDefinedField": str(user_id),
-        "NotificationOption": "EML",
-        "CallBackUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/callback",
-        "ErrorUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/error",
-        "WebhookUrl": f"{settings.BACKEND_BASE_URL}/api/v1/payment/webhook",
-        "Language": "en",
-        "InvoiceValue": amount,
-        # "InvoiceItems": [
-        #     {
-        #         "ItemName": f"{property} - {property_unit} - rent",
-        #         "Quantity": 1,
-        #         "UnitPrice": amount,
-        #         "Weight": 0,
-        #         "Width": 0,
-        #         "Height": 0,
-        #         "Depth": 0,
-        #     }
-        # ],
-            # "Suppliers": [
-            #     {
-            #     "SupplierCode": None,
-            #     "ProposedShare": None,
-            #     "InvoiceShare":  None,
-            #     }
-            # ],
-        # "ProcessingDetails": {"AutoCapture": True, "Bypass3DS": True},
-    }
-
     headers = {
         "Authorization": f"Bearer {settings.MYFATOORAH_API_KEY}",
         "Content-Type": "application/json",
     }
 
+    # ---------- 1) INITIATE PAYMENT: get available methods ----------
+    currency_iso = "KWD"  # set to your account currency (e.g., KWD, SAR, BHD, QAR, AED)
     try:
-        # 🧾 Call MyFatoorah API
-        response = requests.post(
+        ip_resp = requests.post(
+            f"{MYFATOORAH_API_URL}/InitiatePayment",
+            json={"InvoiceAmount": float(amount), "CurrencyIso": currency_iso},
+            headers=headers,
+        )
+        ip_json = ip_resp.json()
+        print("InitiatePayment response:", ip_json)
+        ip_resp.raise_for_status()
+
+        if not ip_json.get("IsSuccess"):
+            raise Exception(f"InitiatePayment failed: {ip_json.get('Message')}")
+        methods = ip_json.get("Data", {}).get("PaymentMethods", []) or []
+        if not methods:
+            raise Exception(
+                "No payment methods are enabled for this account/currency in apitest."
+            )
+
+        # Prefer a card method if present; else pick the first available
+        def _norm(x: str) -> str:
+            return (x or "").strip().lower()
+
+        preferred = None
+        for m in methods:
+            name_en = _norm(m.get("PaymentMethodEn", ""))
+            code = _norm(m.get("PaymentMethodCode", ""))
+            if (
+                "visa" in name_en
+                or "master" in name_en
+                or "card" in name_en
+                or code in {"cc", "v-m"}
+            ):
+                preferred = m
+                break
+        chosen_method = preferred or methods[0]
+        payment_method_id = chosen_method["PaymentMethodId"]
+    except requests.RequestException as e:
+        print("InitiatePayment call failed:", e)
+        raise Exception(f"MyFatoorah InitiatePayment error: {e}")
+
+    # ---------- 2) EXECUTE PAYMENT with the valid PaymentMethodId ----------
+    payload = {
+        "PaymentMethodId": payment_method_id,
+        "CustomerName": user_name,
+        "CustomerEmail": user_email or "",
+        "CustomerReference": str(invoice_id),
+        "UserDefinedField": str(user_id),
+        "NotificationOption": "EML",  # EML / SMS / ALL
+        "CallBackUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/callback",
+        "ErrorUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/error",
+        "Language": "en",
+        "InvoiceValue": float(amount),
+        # Optional:
+        # "InvoiceItems": [{"ItemName": f"{property} - {property_unit} - rent", "Quantity": 1, "UnitPrice": float(amount)}],
+        # "ProcessingDetails": {"AutoCapture": True},  # only if your account supports it
+    }
+
+    try:
+        ep_resp = requests.post(
             f"{MYFATOORAH_API_URL}/ExecutePayment", json=payload, headers=headers
         )
-        print("✅  res", response.json())
-        response.raise_for_status()
-        payment_data = response.json()
-        invoice_url = payment_data["Data"]["PaymentURL"]
-        payment_id = payment_data["Data"]["InvoiceId"]
+        print("ExecutePayment raw:", ep_resp.text)
+        ep_json = ep_resp.json()
+        ep_resp.raise_for_status()
 
-        print("✅  res", response, payment_id)
-        # ✅ Check if payment already exists
-        # print("Checking for existing pending payment...", invoice_id)
+        if not ep_json.get("IsSuccess"):
+            raise Exception(f"ExecutePayment failed: {ep_json.get('Message')}")
+
+        invoice_url = ep_json["Data"]["PaymentURL"]
+        payment_id = ep_json["Data"]["InvoiceId"]
+
+        # Upsert your PaymentHistory as you already do
         existing_payment = (
             db.query(PaymentHistory)
             .filter(PaymentHistory.invoice_id == invoice_id)
@@ -203,23 +132,21 @@ def create_payment(
         )
 
         if existing_payment:
-            print("Updating existing pending payment...")
             existing_payment.payment_url = invoice_url
-            existing_payment.amount = amount  # Optional: in case amount changed
-            existing_payment.updated_at = datetime.utcnow()  # Optional
+            existing_payment.amount = amount
+            existing_payment.updated_at = datetime.utcnow()
             db.commit()
             db.refresh(existing_payment)
             return existing_payment
 
-        # ❌ If not exists, create new payment
         payment = PaymentHistory(
             invoice_id=invoice_id,
             user_id=user_id,
-            payload=payment_data,
+            payload=ep_json,
             payment_id=payment_id,
             property_unit_id=property_unit_id,
             amount=amount,
-            currency="KWD",
+            currency=currency_iso,
             payment_type="RENT",
             payment_url=invoice_url,
             status=PaymentStatus.PENDING,
@@ -227,12 +154,16 @@ def create_payment(
         db.add(payment)
         db.commit()
         db.refresh(payment)
-
         return payment
 
     except requests.RequestException as e:
         print("Payment API call failed:", e)
-        raise Exception(f"MyFatoorah API Error: {e}")
+        # surface the API message if present
+        try:
+            msg = ep_json.get("Message")  # type: ignore
+        except Exception:
+            msg = None
+        raise Exception(f"MyFatoorah ExecutePayment error: {msg or e}")
 
 
 def process_payment_callback(payment_id: str, db: Session) -> str:

@@ -23,7 +23,7 @@ class User(Base):
     is_landlord = Column(Boolean, default=True, nullable=True)
     fname = Column(String(255), nullable=True)
     lname = Column(String(255), nullable=True)
-    email = Column(String(255), unique=True, nullable=False)
+    email = Column(String(255), nullable=False)
     phone = Column(String(20), nullable=True)
     password = Column(String(255), nullable=False)
     profile_pic = Column(String(255), nullable=True)
@@ -40,7 +40,9 @@ class User(Base):
     landlord = relationship("Landlord", back_populates="users")
     role = relationship("Role", backref="users")
     security_logs = relationship("SecurityLog", back_populates="user")
-    payments = relationship("PaymentHistory", back_populates="user", cascade="all, delete-orphan")
+    payments = relationship(
+        "PaymentHistory", back_populates="user", cascade="all, delete-orphan"
+    )
 
     # invoice_items = relationship("InvoiceItem", back_populates="updated_user", passive_deletes=True)
 
