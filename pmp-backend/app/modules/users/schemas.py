@@ -214,6 +214,16 @@ class UserResponseOut(BaseModel):
         from_attributes = True
 
 
+class SubscriptionMiniOut(BaseModel):
+    plan_name: Optional[str] = Field(None, alias="planName")
+    holding_properties: Optional[int] = Field(None, alias="holdingProperties")
+    is_subscribed: bool = Field(False, alias="isSubscribed")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
 class UserLoggedInOut(BaseModel):
     id: UUID
     fname: str
@@ -233,6 +243,7 @@ class UserLoggedInOut(BaseModel):
     updated_at: datetime = Field(..., alias="updatedAt")
     access_token: Optional[str] = None
     refresh_token: Optional[str] = None
+    subscription: Optional[SubscriptionMiniOut] = None
 
     class Config:
         from_attributes = True

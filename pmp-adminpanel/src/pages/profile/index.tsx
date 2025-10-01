@@ -47,10 +47,15 @@ const ProfilePage = () => {
                 Verified
               </Badge>
             )}
+            {user?.subscription?.isSubscribed && (
+              <Badge className="bg-bodyTable text-primary-bg px-3 py-1 text-sm rounded-full">
+                Subscribed
+              </Badge>
+            )}
           </div>
 
           {/* Metadata */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full text-left">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6 w-full text-left">
             <div className="bg-secondary-bg rounded-xl p-4 shadow-inner">
               <p className="text-primary-bg text-sm">Account Status</p>
               <p className="font-medium text-lg">
@@ -64,6 +69,18 @@ const ProfilePage = () => {
             <div className="bg-secondary-bg rounded-xl p-4 shadow-inner">
               <p className="text-primary-bg text-sm">Phone</p>
               <p className="font-medium text-lg">{user.phone}</p>
+            </div>
+            <div className="bg-secondary-bg rounded-xl p-4 shadow-inner">
+              <p className="text-primary-bg text-sm">Subscription Plan</p>
+              <p className="font-medium text-lg">
+                {user.subscription?.planName}
+              </p>
+            </div>
+            <div className="bg-secondary-bg rounded-xl p-4 shadow-inner">
+              <p className="text-primary-bg text-sm">Allowed Properties</p>
+              <p className="font-medium text-lg">
+                {user.subscription?.holdingProperties}
+              </p>
             </div>
             <div className="bg-secondary-bg rounded-xl p-4 shadow-inner">
               <p className="text-primary-bg text-sm">Created At</p>

@@ -17,13 +17,7 @@ class Landlord(Base):
         unique=True,
         nullable=False,
     )
-    title = Column(String(255), nullable=True)
-    image = Column(String(255), nullable=True)
     subscription_id = Column(String(255), nullable=True)
-    expiration_date = Column(TIMESTAMP(timezone=True), nullable=True)
-    created_at = Column(
-        TIMESTAMP(timezone=True), server_default="now()", nullable=False
-    )
     updated_at = Column(
         TIMESTAMP(timezone=True), server_default="now()", nullable=False
     )
@@ -36,7 +30,9 @@ class Landlord(Base):
         cascade="all, delete-orphan",
     )
 
-    users = relationship("User", back_populates="landlord", cascade="all, delete-orphan")
+    users = relationship(
+        "User", back_populates="landlord", cascade="all, delete-orphan"
+    )
     # Relationships
     # users = relationship("User", back_populates="landlord", cascade="all, delete")
     # tenants = relationship("Tenant", back_populates="landlord", cascade="all, delete")

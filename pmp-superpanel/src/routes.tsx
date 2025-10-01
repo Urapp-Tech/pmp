@@ -24,6 +24,7 @@ import ReportGraphPage from './pages/reports/ReportGraphPage';
 import Contacts from '@/pages/contact-us/Contact';
 import ProfilePage from './pages/profile';
 import BankTransaction from './pages/bank-transaction/List';
+import SubLandlords from './pages/subscribed-landlords/List';
 
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
 const RolePermissions = lazy(
@@ -153,6 +154,23 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <UnverifiedUsers />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'subscribed-landlords',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <SubLandlords />
                   </Suspense>
                 ),
               },

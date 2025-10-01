@@ -2,7 +2,7 @@ import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { SidebarInset } from '@/components/ui/sidebar';
 
-import bankService from '@/services/adminapp/bank-transaction';
+import subService from '@/services/adminapp/subs-landlords';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -17,6 +17,8 @@ import {
 } from '@tanstack/react-table';
 import {
   ArrowUpDown,
+  CircleCheck,
+  CircleX,
   Loader2,
   // ChevronDown,
   MapPinHouse,
@@ -62,7 +64,8 @@ import dayjs from 'dayjs';
 export type Users = {
   id: string; // UUID
   tenant: string; // UUID representing the tenant ID
-  bank: any;
+  plan_name: any;
+  holding_properties: any;
   currency: any;
   amount: number;
   lname: string;
@@ -82,10 +85,10 @@ export type Users = {
   isDeleted: boolean; // Soft delete status
   createdAt: string; // ISO date string for creation timestamp
   updatedAt: string; // ISO date string for update timestamp
-  status: 'Active' | 'InActive';
+  status: any;
 };
 
-const BankTransaction = () => {
+const SubLandlords = () => {
   const userDetails: any = getItem('USER');
   const { toast } = useToast();
   // const { can } = usePermission();
@@ -126,166 +129,180 @@ const BankTransaction = () => {
 
   const columns: ColumnDef<Users>[] = [
     {
-      accessorKey: 'reference',
-      header: 'REFERENCE',
+      accessorKey: 'landlord_name',
+      header: 'LANDLORD NAME',
       cell: ({ row }) => (
-        <div className={`capitalize`}>{row.getValue('reference')}</div>
+        <div className={`capitalize`}>{row.getValue('landlord_name')}</div>
       ),
     },
     {
-      accessorKey: 'bank.name',
-      header: 'BANK NAME',
+      accessorKey: 'plan_name',
+      header: 'SUBSCRIBED PLAN',
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-3">
-            <div className="capitalize">{row.original?.bank?.name}</div>
+            <div className="capitalize">{row.getValue('plan_name')}</div>
           </div>
         );
       },
     },
     {
-      accessorKey: 'bank.accountNumber',
-      header: ' ACCOUNT NUMBER',
+      accessorKey: 'holding_properties',
+      header: 'HOLDING PROPERTIES',
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-3">
             <div className="capitalize">
-              {row.original?.bank?.accountNumber}
-            </div>
-          </div>
-        );
-      },
-    },
-    // {
-    //   accessorKey: 'bank.accountNumber',
-    //   header: ({ column }) => {
-    //     return (
-    //       <Button
-    //         variant="ghost"
-    //         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-    //       >
-    //         ACCOUNT NUMBER
-    //       </Button>
-    //     );
-    //   },
-    //   cell: ({ row }) => (
-    //     <div className="lowercase">{row.original?.bank?.accountNumber}</div>
-    //   ),
-    // },
-    {
-      accessorKey: 'amount',
-      header: 'AMOUNT',
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center gap-3">
-            <div className="capitalize">
-              {row.original?.amount} {row.original?.currency}
+              {row.getValue('holding_properties')}
             </div>
           </div>
         );
       },
     },
     {
-      accessorKey: 'deposit_date',
-      header: 'DEPOSIT DATE',
+      accessorKey: 'status',
+      header: 'STATUS',
+      cell: ({ row }) => {
+        return <div className="capitalize">{row.getValue('status')}</div>;
+      },
+    },
+    {
+      accessorKey: 'created_at',
+      header: 'SUBSCRIPTION DATE',
       cell: ({ row }) => (
         <div className="capitalize">
-          {dayjs(row.getValue('depositDate')).format('DD-MM-YYYY')}
+          {dayjs(row.getValue('created_at')).format('DD-MM-YYYY')}
         </div>
       ),
     },
+    {
+      accessorKey: 'expiration_date',
+      header: 'EXPERIRED DATE',
+      cell: ({ row }) => {
+        return (
+          <div className="capitalize">
+            {dayjs(row.getValue('expiration_date')).format('DD-MM-YYYY')}
+          </div>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: 'ACTIONS',
+      cell: ({ row }) => {
+        const { id, status } = row.original;
 
-    // {
-    //   id: 'status',
-    //   header: 'ACTIONS',
-    //   cell: ({ row }) => {
-    //     const { id, isActive } = row.original;
-
-    //     // const handleToggle = () => {
-    //     //   // You can call your API or state update logic here
-    //     //   handleStatusToggle(id, !isActive);
-    //     // };
-
-    //     return (
-    //       <div className="flex justify-start items-center">
-    //         {/* <label className="inline-flex items-center cursor-pointer">
-    //           <input
-    //             type="checkbox"
-    //             className="sr-only peer"
-    //             checked={isActive}
-    //             onChange={handleToggle}
-    //           />
-    //           <div
-    //             className="
-    //   relative w-16 h-8 rounded-[5px] bg-[#424256]
-    //   transition-colors duration-300
-    //   peer-checked:bg-primary-bg
-    //   after:content-[''] after:absolute after:top-1 after:left-1
-    //   after:h-6 after:w-6 after:bg-white after:rounded-full
-    //   after:transition-transform after:duration-300 after:ease-in-out
-    //   after:shadow-sm
-    //   peer-checked:after:translate-x-8
-    // "
-    //           />
-    //         </label> */}
-    //         <div className="pl-4">
-    //           <img
-    //             onClick={() => handleActionMenu('edit', id)}
-    //             src={assets.images.editPencil}
-    //             className="text-primary-bg cursor-pointer h-8 w-8"
-    //           />
-    //           {/* <Pencil
-    //             className="text-primary-bg cursor-pointer"
-    //             onClick={() => handleActionMenu('edit', id)}
-    //             size={20}
-    //           /> */}
-    //         </div>
-    //         {/* <div className="pl-3">
-    //           <Trash2
-    //             className="text-lunar-bg cursor-pointer"
-    //             size={20}
-    //             onClick={() => handleActionMenu('delete', id)}
-    //           />
-    //         </div> */}
-    //       </div>
-    //     );
-    //   },
-    // },
+        return (
+          <div className="flex justify-start items-center">
+            <div className="flex gap-4">
+              {status === 'pending' ? (
+                <>
+                  <CircleCheck
+                    className="text-primary-bg cursor-pointer"
+                    size={25}
+                    onClick={() => handleActionMenu('accept', id)}
+                  />
+                  <CircleX
+                    className="text-primary-bg cursor-pointer"
+                    size={25}
+                    onClick={() => handleActionMenu('reject', id)}
+                  />
+                </>
+              ) : (
+                <img
+                  onClick={() => handleActionMenu('edit', id)}
+                  src={assets.images.editPencil}
+                  className="text-primary-bg cursor-pointer h-8 w-8"
+                />
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
   ];
 
-  // const handleStatusToggle = (userId: any, newStatus: any) => {
-  //   setMainIsLoader(true);
-  //   const formData = new FormData();
-  //   formData.append('isActive', newStatus);
-  //   bankService
-  //     .update(userId, formData)
-  //     .then((updateItem) => {
-  //       if (updateItem.data.success) {
-  //         setMainIsLoader(false);
-  //         setList((newArr: any) => {
-  //           return newArr.map((item: any) => {
-  //             if (item.id === updateItem.data.items.id) {
-  //               item.isActive = updateItem.data.items.isActive;
-  //             }
-  //             return { ...item };
-  //           });
-  //         });
-  //         ToastHandler(updateItem.data.message);
-  //       }
-  //     })
-  //     .catch((err: Error | any) => {
-  //       const error = handleErrorMessage(err);
-  //       ToastHandler(error);
-  //       setMainIsLoader(false);
-  //     });
-  // };
+  const onApproveSubmit = async (data: any) => {
+    if (!data?.id) return;
+    setMainIsLoader(true);
+    try {
+      const res = await subService.approve(data.id, userDetails?.id);
+
+      // API returns the updated SubscribedLandlord record (no landlord_name), so preserve landlord_name
+      const updated = res?.data;
+      if (updated?.id) {
+        setList((prev: any[]) =>
+          prev.map((it) =>
+            it.id === updated.id
+              ? {
+                  ...it,
+                  ...updated,
+                  landlord_name: it.landlord_name, // keep existing name for the row
+                }
+              : it
+          )
+        );
+        setMainIsLoader(false);
+        ToastHandler('Subscription approved successfully');
+      } else {
+        setMainIsLoader(false);
+        ToastHandler('Approve succeeded but response was unexpected');
+      }
+      setEditOpen(false);
+    } catch (e: any) {
+      ToastHandler(
+        e?.response?.data?.detail || 'Failed to approve subscription'
+      );
+    } finally {
+      setMainIsLoader(false);
+    }
+  };
+
+  const onRejectSubmit = async (data?: any) => {
+    if (!data?.id) return;
+    setMainIsLoader(true);
+    try {
+      const res = await subService.reject(
+        data.id,
+        { reason: data.reason ?? null },
+        userDetails?.id
+      );
+
+      const updated = res?.data;
+      if (updated?.id) {
+        setList((prev: any[]) =>
+          prev.map((it) =>
+            it.id === updated.id
+              ? {
+                  ...it,
+                  ...updated,
+                  landlord_name: it.landlord_name,
+                }
+              : it
+          )
+        );
+        setMainIsLoader(false);
+        ToastHandler('Subscription rejected');
+      } else {
+        setMainIsLoader(false);
+        ToastHandler('Reject succeeded but response was unexpected');
+      }
+      setDeleteOpen(false);
+    } catch (e: any) {
+      ToastHandler(
+        e?.response?.data?.detail || 'Failed to reject subscription'
+      );
+    } finally {
+      setMainIsLoader(false);
+    }
+  };
 
   const fetchUsers = async () => {
     setMainIsLoader(true);
     const constantPage = 1;
     setPage(constantPage);
     try {
-      const deposits = await bankService.list({
+      const deposits = await subService.list({
         search,
         page: constantPage,
         pageSize,
@@ -325,7 +342,7 @@ const BankTransaction = () => {
     const nextPage = newPage + 1;
     table.setPageIndex(nextPage);
     try {
-      const users = await bankService.list({
+      const users = await subService.list({
         search,
         page: nextPage,
         pageSize,
@@ -347,15 +364,11 @@ const BankTransaction = () => {
   };
 
   const handleActionMenu = (type: string, actionId: string) => {
-    if (type === 'edit') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setEditOpen(true);
+    if (type === 'accept') {
+      onApproveSubmit({ id: actionId });
     }
-    if (type === 'delete') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setDeleteOpen(true);
+    if (type === 'reject') {
+      onRejectSubmit({ id: actionId, reason: 'rejected' });
     }
   };
 
@@ -386,7 +399,7 @@ const BankTransaction = () => {
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
-              BANK TRANSACTIONS
+              SUBSCRIBED LANDLORDS
             </h2>
             <div className="flex gap-3 items-center">
               {/* <div className="w-[150px]">
@@ -406,7 +419,7 @@ const BankTransaction = () => {
               </div> */}
               <div className="flex items-center w-[461px]">
                 <Input
-                  placeholder="Search users..."
+                  placeholder="Search landlords..."
                   value={search}
                   onChange={handleChange}
                   onKeyPress={handleKeyPress}
@@ -523,4 +536,4 @@ const BankTransaction = () => {
   );
 };
 
-export default BankTransaction;
+export default SubLandlords;

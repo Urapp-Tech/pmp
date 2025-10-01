@@ -52,8 +52,18 @@ class PaymentHistory(Base):
         nullable=True,
         comment="Stores error message if payout failed",
     )
+
+    deposit_reference = Column(String(100), nullable=True, index=True)
+    deposit_date = Column(DateTime(timezone=True), nullable=True, index=True)
+
     created_at = Column(DateTime, server_default="now()")
     updated_at = Column(DateTime, server_default="now()", onupdate="now()")
 
     invoice = relationship("Invoice", back_populates="payments")
     user = relationship("User", back_populates="payments", lazy="joined")
+
+    deposit_items = relationship(
+        "BankDepositItem",
+        back_populates="payment_history",
+        viewonly=True,  # items are driven by the deposit import
+    )

@@ -22,9 +22,11 @@ from app.utils.uploader import get_file_base_url
 from app.modules.dashboardActivities.routes import router as dashboard_activity_router
 from app.modules.reports.routes import router as report_router
 from app.modules.contact.routes import router as contact_router
+from app.modules.subscriptions.routes import router as subscriptions_router
 
 from app.schedulers.scheduler import scheduler
 from app.schedulers.invoice_scheduler import schedule_invoice_generation
+from app.schedulers.subscription_scheduler import schedule_subscription_jobs
 from app.schedulers.payment_scheduler import schedule_payout_processing
 from contextlib import asynccontextmanager
 
@@ -42,6 +44,9 @@ async def lifespan(app: FastAPI):
     # Register both jobs
     schedule_invoice_generation()
     # schedule_payout_processing()
+
+    # NEW: subscriptions jobs
+    schedule_subscription_jobs()
 
     # Start scheduler
     scheduler.start()
@@ -85,7 +90,7 @@ async def log_exceptions_middleware(request: Request, call_next):
         )
 
 
-app.include_router(contact_router,prefix="/admin",tags=["Contact Us"])
+app.include_router(contact_router, prefix="/admin", tags=["Contact Us"])
 app.include_router(superuser_router, prefix="/super-users", tags=["Super Users"])
 app.include_router(
     permission_router,
@@ -165,6 +170,9 @@ app.include_router(
     payment_router,
     prefix="/admin/payments",
     tags=["Admin - Payments"],
+)
+app.include_router(
+    subscriptions_router, prefix="/admin", tags=["Admin - Subscriptions"]
 )
 
 

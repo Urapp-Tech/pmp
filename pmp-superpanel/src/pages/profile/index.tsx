@@ -42,7 +42,7 @@ const ProfilePage = () => {
             )}
 
             {user.isVerified && (
-              <Badge className="bg-green-600 text-white px-3 py-1 text-sm rounded-full">
+              <Badge className="bg-scrollbar text-white px-3 py-1 text-sm rounded-full">
                 Verified
               </Badge>
             )}

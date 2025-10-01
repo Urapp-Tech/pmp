@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status, Request, UploadFile
 from sqlalchemy import func
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session, joinedload, load_only
 from app.models.users import User
 from app.models.properties import Property
@@ -21,6 +22,7 @@ from app.utils.uploader import is_upload_file, save_uploaded_file
 from sqlalchemy import or_
 from app.modules.securityLogs.services import log_security_event
 from app.modules.securityLogs.schemas import SecurityLogCreate
+from app.models.subscribed_landlord import SubscribedLandlord
 from app.modules.users.schemas import (
     UserCreate,
     UserUpdate,
@@ -97,6 +99,40 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
             ],
         }
         user_out_dict["role"] = role_data
+
+    subscription_summary = None
+    if getattr(user, "is_landlord", False) and getattr(user, "landlord_id", None):
+        # latest approved subscription for this landlord
+        rec = (
+            db.query(SubscribedLandlord)
+            .filter(
+                SubscribedLandlord.landlord_id == user.landlord_id,
+                SubscribedLandlord.status == "approved",
+            )
+            .order_by(SubscribedLandlord.created_at.desc())
+            .first()
+        )
+
+        is_subscribed = False
+        plan_name = None
+        holding_props = None
+
+        if rec:
+            plan_name = rec.plan_name
+            holding_props = rec.holding_properties
+            # subscribed only if not expired
+            now = datetime.now(timezone.utc)
+            if rec.expiration_date is not None and rec.expiration_date > now:
+                is_subscribed = True
+
+        subscription_summary = {
+            "planName": plan_name,
+            "holdingProperties": holding_props,
+            "isSubscribed": is_subscribed,
+        }
+
+    if subscription_summary is not None:
+        user_out_dict["subscription"] = subscription_summary
 
     return {
         "data": user_out_dict,
