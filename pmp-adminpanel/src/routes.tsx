@@ -10,6 +10,7 @@ import { Navigate, RouteObject } from 'react-router';
 import Otp from './pages/auth/Otp';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import NewPassword from './pages/auth/NewPassword';
+import StaticLayoutOutlet from './layout/StaticLayoutOutlet';
 
 const AddRolePermissionsPage = lazy(
   () => import('@/pages/role-permissions/AddRolePermissionsPage')
@@ -52,7 +53,78 @@ const RolePermissions = lazy(
   () => import('@/pages/role-permissions/RolePermissions')
 );
 
+// Static Routes
+const StaticHome = lazy(() => import('@/pages/static/Home/Home'));
+const StaticContact = lazy(() => import('@/pages/static/Contact'));
+const StaticFeatures = lazy(() => import('@/pages/static/Features'));
+const StaticAbout = lazy(() => import('@/pages/static/About-us'));
+const StaticPricing = lazy(() => import('@/pages/static/Pricing'));
+const StaticTerms = lazy(() => import('@/pages/static/Terms'));
+const StaticPrivacy = lazy(() => import('@/pages/static/Privacy'));
+
 export const routeObjects: RouteObject[] = [
+  {
+    path: '/',
+    element: <StaticLayoutOutlet />,
+    children: [
+      {
+        index: true,
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StaticHome />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'contact',
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StaticContact />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'features',
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StaticFeatures />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'about-us',
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StaticAbout />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'pricing',
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StaticPricing />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'terms',
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StaticTerms />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'privacy',
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StaticPrivacy />
+          </Suspense>
+        ),
+      },
+    ],
+  },
   {
     path: '/admin-panel',
     element: <LayoutOutlet />,
