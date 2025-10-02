@@ -6,6 +6,9 @@ const USERS = 'users';
 const loginService = (userData: { email: string; password: string }) => {
   return network.post(`${USERS}/login`, userData);
 };
+const signupService = (userData: {fname: string; lname: string; gender: string;phone: string; email: string; password: string }) => {
+  return network.post(`landlord-users/create`, userData);
+};
 
 const systemConfig = (domain: string) => {
   return network.get(`get/${domain}`, {}, 'system');
@@ -40,6 +43,7 @@ export default {
   loginService,
   systemConfig,
   activity,
+  signupService,
   managerActivity,
   tenantActivity,
 };

@@ -3,6 +3,7 @@ import * as React from 'react';
 
 import { FooterNavUser } from '@/components/SideBar/footer-nav';
 import { NavMain } from '@/components/SideBar/main-nav';
+import { Contact, Contact2Icon } from 'lucide-react';
 // import { NavProjects } from "@/components/nav-projects"
 // import { NavUser } from "@/components/nav-user"
 // import { TeamSwitcher } from "@/components/team-switcher"
@@ -125,6 +126,12 @@ export function MainSidebar({
         title: 'SECURITY AND LOGS',
         url: '/super-admin/security-and-logs',
         icon: assets.images.secLogsIcon,
+        items: [],
+      },
+      {
+        title: 'CONTACT US SUBMISSIONS',
+        url: '/super-admin/contact-us',
+        icon: assets.images.suppTicketIcon,
         items: [],
       },
       // {
