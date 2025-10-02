@@ -42,7 +42,7 @@ def create_landlord(db: Session, landlord_data: LandlordCreate):
             password=hashed_pwd,
             phone=landlord_data.phone,
             gender=landlord_data.gender,
-            is_verified=landlord_data.is_verified,
+            # is_verified=landlord_data.is_verified,
         )
         db.add(user)
         db.flush()

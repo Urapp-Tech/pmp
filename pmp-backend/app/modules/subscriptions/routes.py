@@ -111,7 +111,7 @@ def list_subscribed_landlords(
     )
 
 
-@subr.post("/sub-landlords/{landlord_id}", response_model=SubscribedLandlordOut)
+@subr.post("/{landlord_id}", response_model=SubscribedLandlordOut)
 def landlord_subscribe(
     landlord_id: UUID,
     body: LandlordSubscribeRequest,

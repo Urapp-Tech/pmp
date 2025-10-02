@@ -11,8 +11,8 @@ class LandlordCreate(BaseModel):
     email: EmailStr
     password: str
     phone: str
-    is_verified: bool = Field(..., alias="isVerified")
-    role_id: UUID = Field(..., alias="roleId")
+    # is_verified: bool = Field(..., alias="isVerified")
+    # role_id: UUID = Field(..., alias="roleId")
     gender: Optional[str] = None
 
     @field_validator("fname", "lname")
