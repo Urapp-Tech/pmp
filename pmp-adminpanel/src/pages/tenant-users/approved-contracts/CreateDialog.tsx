@@ -110,7 +110,7 @@ const OfficeUserCreateDialog = ({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Add New Tenant User</DialogTitle>
+          <DialogTitle>Add New Tenant</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>

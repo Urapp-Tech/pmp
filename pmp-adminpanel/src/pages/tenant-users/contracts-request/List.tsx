@@ -169,6 +169,13 @@ const ContractRequest = () => {
       ),
     },
     {
+      accessorKey: 'rentPrice',
+      header: 'RENT PRICE',
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue('rentPrice')}</div>
+      ),
+    },
+    {
       accessorKey: 'contractStart',
       header: 'CONTRACT START',
       cell: ({ row }) => (

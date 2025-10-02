@@ -63,9 +63,9 @@ networkInstance.interceptors.response.use(
       return Promise.reject(new Error('Aborted'));
     }
     const originalRequest = { ...error.config };
-    if (error.response.status === 401) {
+    if (error.response.status === 4012) {
       return refreshInstance
-        .get(`${BASE_URL}backofficeUser/refresh/token`, {
+        .get(`${BASE_URL}refresh/token`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: refreshToken(),

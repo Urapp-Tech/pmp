@@ -169,8 +169,8 @@ const ApprovedContracts = () => {
 
         return (
           <div className="capitalize">
-            {unit?.name}
-            <span className="text-gray-500 text-xs"> ({unit?.unitNo})</span>
+            {/* {unit?.name} */}{unit?.unitNo}
+            {/* <span className="text-gray-500 text-xs"> ()</span> */}
           </div>
         );
       },
@@ -180,6 +180,13 @@ const ApprovedContracts = () => {
       header: 'CONTRACT NUMBER',
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue('contractNumber')}</div>
+      ),
+    },
+    {
+      accessorKey: 'rentPrice',
+      header: 'RENT PRICE',
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue('rentPrice')}</div>
       ),
     },
     {

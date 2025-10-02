@@ -205,7 +205,8 @@ const InvoiceDetail = () => {
       ['INV#', `${invoice.invoice_no ?? '—'}`],
       ['DATE', `${invoice.invoice_date ?? '—'}`],
       ['VALID DATE', `${invoice.due_date ?? '—'}`],
-      ['FINAL AMOUNT', `${fmt(invoice.total_amount, currency)}`],
+      ['Contract#', `${invoice?.tenant?.contract_number ?? '—'}`],
+      ['AMOUNT', `${fmt(invoice.total_amount, currency)}`],
     ];
     doc.setFontSize(10);
     leftRows.forEach(([k, v]) => {
@@ -247,11 +248,22 @@ const InvoiceDetail = () => {
     doc.text(tenantName, COL3_X, BASE_Y + 20);
     doc.setFont('helvetica', 'normal');
     doc.text(tenantWrapped, COL3_X, BASE_Y + 36);
+    const leftRowTanent: Array<[string, string]> = [
+      ['LEGAL CASE:', `${invoice?.tenant?.legal_case ? 'YES' : 'NO'}`],
+    ];
+    doc.setFontSize(10);
+    leftRowTanent.forEach(([k, v]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(k, COL3_X, BASE_Y + 52);
+      doc.setFont('helvetica', 'normal');
+      doc.text(v, COL3_X + 80, BASE_Y + 52);
+      y += 16;
+    });
 
     // ---------------- Table header
     const tLeft = MARGIN_L;
     const tRight = W - MARGIN_R;
-    let ty = BASE_Y + 80;
+    let ty = BASE_Y + 100;
 
     doc.setFillColor(COLORS.navy);
     doc.setTextColor('#FFFFFF');
@@ -429,10 +441,19 @@ const InvoiceDetail = () => {
                   </div>
 
                   <div
+                    className="font-bold uppercase text-[12px]"
+                    style={{ color: COLORS.navy }}
+                  >
+                    Contract#
+                  </div>
+                  <div className={val} style={{ color: COLORS.navy }}>
+                    {invoice?.tenant?.contract_number ?? '—'}
+                  </div>
+                  <div
                     className="font-bold text-[12px]"
                     style={{ color: COLORS.navy }}
                   >
-                    FINAL AMOUNT
+                    AMOUNT
                   </div>
                   <div className={val} style={{ color: COLORS.navy }}>
                     {fmt(invoice.total_amount, currency)}
@@ -461,6 +482,14 @@ const InvoiceDetail = () => {
                 </div>
                 <div className={val} style={{ color: COLORS.navy }}>
                   {tenantContact}
+                </div>
+
+                <div className=" text-[11px]" style={{ color: COLORS.navy }}>
+                  <span className="font-bold uppercase text-[12px]">
+                    {' '}
+                    Legal case :{' '}
+                  </span>{' '}
+                  {invoice?.tenant?.legal_case ? 'YES' : 'NO'}
                 </div>
               </div>
             </div>

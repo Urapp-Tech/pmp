@@ -51,6 +51,7 @@ class User(BaseModel):
 
 class Tenant(BaseModel):
     contract_number: str = Field(...)
+    legal_case: bool = Field(...)
     property_unit: Optional[PropertyUnit]
     user: Optional[User]
 

@@ -309,7 +309,7 @@ def get_tenant_stats(db: Session, user_id: UUID):
             db.query(PropertyUnit).filter(PropertyUnit.id == t.property_unit_id).first()
         )
         if unit:
-            t_data["unit_name"] = unit.name
+            t_data["unit_name"] = unit.unit_no
 
         user_data["tenants"].append(t_data)
 

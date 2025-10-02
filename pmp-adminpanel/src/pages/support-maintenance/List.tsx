@@ -85,7 +85,6 @@ export type Users = {
 
 const SupportMaintenance = () => {
   const userDetails: any = getItem('USER');
-  console.log('userDetails', userDetails);
 
   const { toast } = useToast();
   const { can } = usePermission();

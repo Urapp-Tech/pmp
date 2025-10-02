@@ -58,7 +58,7 @@ export function MainSidebar({
       permission: PERMISSIONS.USER.VIEW,
       items: [
         {
-          title: 'Users List',
+          title: 'Tenants List',
           url: '/admin-panel/tenant-users/list',
           permission: PERMISSIONS.USER.VIEW,
         },

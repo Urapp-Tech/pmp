@@ -94,8 +94,7 @@ const Login = () => {
       }
     } catch (err: Error | any) {
       setIsLoader(false);
-      ToastHandler(err?.response?.data?.message);
-      // console.log('🚀 ~ loginHandler ~ error:', err?.response?.data?.message);
+      ToastHandler(err?.response?.data?.detail);
     }
   };
 

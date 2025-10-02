@@ -54,6 +54,7 @@ const RolePermissions = lazy(
 
 export const routeObjects: RouteObject[] = [
   {
+    
     path: '/admin-panel',
     element: <LayoutOutlet />,
     children: [

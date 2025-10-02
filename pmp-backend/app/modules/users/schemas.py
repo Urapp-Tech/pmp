@@ -119,7 +119,8 @@ class UserUpdate(BaseModel):
 
 class AssignedUnit(BaseModel):
     id: UUID
-    name: str
+    name: Optional[str]
+    unit_no: Optional[str]
 
     class Config:
         from_attributes = True

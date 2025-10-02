@@ -58,7 +58,7 @@ function Dashboard() {
           <div className="grid gap-4 md:grid-cols-4">
             {/* 1 */}
             <div className={`${cardBase} ${cardLight}`}>
-              <Label className={labelCls}>ACTIVE TENANT USERS</Label>
+              <Label className={labelCls}>ACTIVE TENANTS</Label>
               <div className="flex-1 flex items-end justify-start mt-6">
                 <span className="text-[64px] font-semibold text-primary-bg">
                   {data?.activeTenants ?? 0}

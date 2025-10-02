@@ -42,15 +42,15 @@ def create_contract_for_user(
             .first()
         )
         if existing_contract:
-            unit_name = (
-                existing_contract.property_unit.name
+            unit_no = (
+                existing_contract.property_unit.unit_no
                 if existing_contract.property_unit
                 else "Unknown Unit"
             )
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    f"Unit '{unit_name}' is already on pending approval to another user."
+                    f"Unit no.'{unit_no}' is already on pending approval to another user."
                 ),
             )
         year = date.today().year
