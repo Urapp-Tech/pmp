@@ -231,19 +231,23 @@ class UserLoggedInOut(BaseModel):
     email: EmailStr
     phone: str
     gender: Optional[str]
+
     is_landlord: bool = Field(..., alias="isLandlord")
     landlord_id: Optional[UUID] = Field(None, alias="landlordId")
-    # role_id: Optional[UUID] = Field(None, alias="roleId")
-    # role_name: Optional[str] = Field(None, alias="roleName")
-    role: Optional[RoleOutForUserLoggedIn]
+
+    role: Optional["RoleOutForUserLoggedIn"] = None
+
     profile_pic: Optional[str] = Field(None, alias="profilePic")
     is_active: bool = Field(..., alias="isActive")
     is_verified: bool = Field(..., alias="isVerified")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
+
     access_token: Optional[str] = None
     refresh_token: Optional[str] = None
-    subscription: Optional[SubscriptionMiniOut] = None
+
+    # NEW: sum of holding_properties across PAID/SUCCESS subscriptions
+    allowed_holding_properties: int = Field(0, alias="allowedHoldingProperties")
 
     class Config:
         from_attributes = True
@@ -295,3 +299,89 @@ class TokenSchema(BaseModel):
 
 class TokenRefreshRequest(BaseModel):
     refresh_token: str
+
+
+# landlord user profile
+class SubscriptionSummaryOut(BaseModel):
+    id: UUID
+    subscription_id: Optional[UUID] = Field(
+        None, alias="subscriptionId"
+    )  # plans table id
+    plan_name: Optional[str] = Field(None, alias="planName")
+    holding_properties: Optional[int] = Field(None, alias="holdingProperties")
+    is_subscribed: bool = Field(False, alias="isSubscribed")
+    expiration_date: Optional[datetime] = Field(None, alias="expirationDate")
+    days_to_expiry: Optional[int] = Field(None, alias="daysToExpiry")
+    payment_link: Optional[str] = Field(None, alias="paymentLink")
+    status: Optional[str] = None
+
+    total_amount: Optional[str] = Field(None, alias="totalAmount")
+    discounted_amount: Optional[str] = Field(None, alias="discountedAmount")
+    due_amount: Optional[str] = Field(None, alias="dueAmount")
+
+    created_at: Optional[datetime] = Field(None, alias="createdAt")
+    updated_at: Optional[datetime] = Field(None, alias="updatedAt")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+# ---------- Payment History ----------
+
+
+class SubscriptionPaymentHistoryItem(BaseModel):
+    id: UUID
+    amount: float
+    currency: Optional[str] = None
+    status: str
+    payment_url: Optional[str] = Field(None, alias="paymentUrl")
+    invoice_id: Optional[UUID] = Field(None, alias="invoiceId")
+    subscription_id: Optional[UUID] = Field(None, alias="subscriptionId")
+
+    # extra meta you asked for:
+    subs_name: Optional[str] = Field(None, alias="subsName")
+    holding_properties: Optional[int] = Field(None, alias="holdingProperties")
+
+    created_at: datetime = Field(..., alias="createdAt")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class SubscriptionPaymentHistoryPage(BaseModel):
+    items: List[SubscriptionPaymentHistoryItem]
+    page: int
+    pageSize: int
+    total: int
+    totalPages: int
+    success: bool = True
+
+
+# ---------- Profile (now includes subscriptions: []) ----------
+
+
+class LandlordProfileOut(BaseModel):
+    landlordId: UUID
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    gender: Optional[str] = None
+    isVerified: Optional[bool] = None
+    createdAt: Optional[datetime] = None
+
+    # Use an ARRAY of subscriptions (remove the single 'subscription' object)
+    subscriptions: List[SubscriptionSummaryOut] = []
+
+    history: SubscriptionPaymentHistoryPage
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class LandlordProfileResponse(BaseModel):
+    data: LandlordProfileOut
+    success: bool
+    message: str

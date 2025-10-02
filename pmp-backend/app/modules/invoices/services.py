@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from pydantic import UUID4
 from sqlalchemy.orm import Session
 from app.models.invoice_items import InvoiceItem
@@ -15,7 +15,7 @@ from app.utils.email_service import render_template, send_email
 # from datetime import datetime, timedelta
 from datetime import datetime, timezone, timedelta
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import and_
+from sqlalchemy import or_, func
 
 now = datetime.now(timezone.utc)
 
@@ -69,33 +69,82 @@ def get_all_invoices(
     page: int = 1,
     limit: int = 10,
     search: str = "",
+    *,
+    mode: Optional[str] = None,
+    subs_landlord_id: Optional[str] = None,
 ) -> dict:
     skip = (page - 1) * limit
+    page = max(1, int(page))
+    limit = max(1, int(limit))
 
-    # if role_id == "Super Admin":
-    #     return {
-    #         "success": True,
-    #         "message": "Super Admin is not allowed to view invoices.",
-    #         "total": 0,
-    #         "page": page,
-    #         "size": limit,
-    #         "items": [],
-    #     }
+    mode_norm = (mode or "").strip().lower()
+    subs_landlord_id = (subs_landlord_id or "").strip() or None
 
+    # ---------- MODE: landlordSubscriptions (SUB- only) ----------
+    if mode_norm == "landlordsubscriptions":
+        if not subs_landlord_id:
+            return {
+                "success": True,
+                "message": "landlordSubscriptions mode requires subs_landlord_id.",
+                "total": 0,
+                "page": page,
+                "size": limit,
+                "items": [],
+            }
+
+        query = (
+            db.query(Invoice)
+            .options(joinedload(Invoice.items))
+            .filter(
+                Invoice.landlord_id == subs_landlord_id,
+                Invoice.tenant_id.is_(None),
+                Invoice.invoice_no.ilike(
+                    "SUB-%"
+                ),  # <-- ensure ONLY subscription invoices
+            )
+        )
+
+        if search:
+            like = f"%{search}%"
+            query = query.filter(
+                or_(
+                    Invoice.invoice_no.ilike(like),
+                    Invoice.description.ilike(like),
+                )
+            )
+
+        count_sq = query.order_by(None).with_entities(Invoice.id).subquery()
+        total = db.query(func.count()).select_from(count_sq).scalar() or 0
+
+        items = (
+            query.order_by(Invoice.created_at.desc()).offset(skip).limit(limit).all()
+        )
+
+        return {
+            "success": True,
+            "message": "Landlord subscription invoices retrieved.",
+            "total": total,
+            "page": page,
+            "size": limit,
+            "items": items,
+        }
+
+    # ---------- DEFAULT / rentalUsers (inv- only) ----------
     query = db.query(Invoice).options(
         joinedload(Invoice.items),
         joinedload(Invoice.tenant)
         .joinedload(Tenant.property_unit)
         .joinedload(PropertyUnit.property)
-        .load_only(Property.id, Property.name),  # ✅ class attributes
+        .load_only(Property.id, Property.name),
         joinedload(Invoice.tenant)
         .joinedload(Tenant.property_unit)
-        .load_only(PropertyUnit.id, PropertyUnit.unit_no),  # ✅ class attributes
+        .load_only(PropertyUnit.id, PropertyUnit.unit_no),
         joinedload(Invoice.tenant)
         .joinedload(Tenant.user)
-        .load_only(User.id, User.fname, User.lname, User.email),  # ✅ class attributes
+        .load_only(User.id, User.fname, User.lname, User.email),
     )
 
+    # Keep existing role scoping
     if role_id == "Landlord":
         user = db.query(User).filter(User.id == user_id).first()
         if not user or not user.landlord_id:
@@ -118,7 +167,6 @@ def get_all_invoices(
         assigned_unit_ids = list(
             {m.assign_property_unit for m in managers if m.assign_property_unit}
         )
-
         if not assigned_unit_ids:
             return {
                 "success": True,
@@ -128,7 +176,6 @@ def get_all_invoices(
                 "size": limit,
                 "items": [],
             }
-
         query = query.join(Invoice.tenant).filter(
             Tenant.property_unit_id.in_(assigned_unit_ids)
         )
@@ -144,7 +191,6 @@ def get_all_invoices(
             )
             .all()
         )
-
         if not tenants:
             return {
                 "success": True,
@@ -154,16 +200,19 @@ def get_all_invoices(
                 "size": limit,
                 "items": [],
             }
-
         tenant_ids = [t.id for t in tenants]
-
-        # Filter invoices for all valid tenants
         query = query.filter(Invoice.tenant_id.in_(tenant_ids))
 
-    # Apply search filter if provided
+    # ✅ Enforce rental invoices only (exclude SUB-)
+    query = query.filter(Invoice.invoice_no.ilike("inv-%"))
+
+    # Search within rental invoices
     if search:
-        query = query.filter(Invoice.invoice_no.ilike(f"%{search.lower()}%"))
-    total = query.distinct().count()
+        query = query.filter(Invoice.invoice_no.ilike(f"%{search}%"))
+
+    count_sq = query.order_by(None).with_entities(Invoice.id).subquery()
+    total = db.query(func.count()).select_from(count_sq).scalar() or 0
+
     items = query.order_by(Invoice.created_at.desc()).offset(skip).limit(limit).all()
 
     return {
@@ -224,6 +273,7 @@ def generate_invoice_no(db: Session, landlord_id: str) -> str:
 
 
 # for production
+
 
 def get_tenants_with_upcoming_date(db, days_before_due: int = 7):
     """

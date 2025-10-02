@@ -157,15 +157,16 @@ const PropertyList = () => {
               onKeyPress={handleKeyPress}
               className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
-            {can(PERMISSIONS.PROPERTY.CREATE) && (
-              <Button
-                onClick={() => navigate('/admin-panel/property/add')}
-                className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
-                variant={'outline'}
-              >
-                + Add New
-              </Button>
-            )}
+            {can(PERMISSIONS.PROPERTY.CREATE) &&
+              userDetails?.allowedHoldingProperties > total && (
+                <Button
+                  onClick={() => navigate('/admin-panel/property/add')}
+                  className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
+                  variant={'outline'}
+                >
+                  + Add New
+                </Button>
+              )}
           </div>
         </div>
 

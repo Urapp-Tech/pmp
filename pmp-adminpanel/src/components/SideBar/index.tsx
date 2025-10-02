@@ -84,7 +84,7 @@ export function MainSidebar({
           title: 'Create Property',
           url: '/admin-panel/property/add',
           role: ['Landlord'],
-          // permission: PERMISSIONS.PROPERTY.CREATE,
+          permission: !userRoles?.allowedHoldingProperties,
         },
         {
           title: 'List Properties',

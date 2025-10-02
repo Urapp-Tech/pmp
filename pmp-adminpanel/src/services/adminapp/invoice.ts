@@ -11,6 +11,7 @@ const list = (
   search: string,
   page: number,
   size: number,
+  mode?: string,
   landlord_id?: string
 ) => {
   return network.get(`${INVOICE_PREFIX}/`, {
@@ -20,6 +21,8 @@ const list = (
     search: '' + search,
     page,
     size,
+    mode: mode,
+    subs_landlord_id: landlord_id || '',
   });
 };
 

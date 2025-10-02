@@ -36,10 +36,18 @@ const tenantActivity = (userId: string) => {
   );
 };
 
+const getLandlordProfile = (
+  landlordId: string,
+  params?: { historyPage?: number; historySize?: number }
+) => {
+  return network.get(`users/landlords/${landlordId}/profile`, params || {});
+};
+
 export default {
   loginService,
   systemConfig,
   activity,
   managerActivity,
   tenantActivity,
+  getLandlordProfile,
 };

@@ -6,13 +6,18 @@ from uuid import UUID
 from typing import Optional
 
 from app.db.database import get_db
-from app.modules.invoices.schemas import InvoiceCreate, InvoiceUpdate, PaginatedInvoiceResponse, InvoiceResponse
+from app.modules.invoices.schemas import (
+    InvoiceCreate,
+    InvoiceUpdate,
+    PaginatedInvoiceResponse,
+    InvoiceResponse,
+)
 from app.modules.invoices.services import (
     create_invoice,
     get_invoice,
     get_all_invoices,
     update_invoice,
-    delete_invoice
+    delete_invoice,
 )
 
 router = APIRouter()
@@ -43,27 +48,37 @@ def list_invoices(
     db: Session = Depends(get_db),
     user_id: Optional[UUID4] = None,
     role_id: Optional[str] = None,
-    # current_user: User = Depends(get_current_user),  # 👈 Authenticated user
+    mode: Optional[str] = Query(
+        None, description="rentalUsers | landlordSubscriptions"
+    ),
+    subs_landlord_id: Optional[str] = Query(
+        None, description="Required when mode=landlordSubscriptions"
+    ),
 ):
-    skip = (page - 1) * size
+    # normalize blank → None
+    subs_id = subs_landlord_id.strip() if subs_landlord_id else None
 
     return get_all_invoices(
         db=db,
-        user_id=user_id,
+        user_id=str(user_id) if user_id else None,
         role_id=role_id,
         page=page,
         limit=size,
-        search=search,
+        search=search or "",
+        mode=mode,
+        subs_landlord_id=subs_id,
     )
+
 
 @router.post("/create", response_model=InvoiceResponse)
 def create(invoice: InvoiceCreate, db: Session = Depends(get_db)):
     invoice = create_invoice(db, invoice)
     return {
-            "success": True,
-            "message": "Invoice created successfully.",
-            "items": invoice,
-        }
+        "success": True,
+        "message": "Invoice created successfully.",
+        "items": invoice,
+    }
+
 
 @router.get("/{invoice_id}", response_model=InvoiceResponse)
 def read(invoice_id: UUID4, db: Session = Depends(get_db)):
@@ -78,7 +93,9 @@ def read(invoice_id: UUID4, db: Session = Depends(get_db)):
 
 
 @router.post("/update/{invoice_id}", response_model=InvoiceResponse)
-def update(invoice_id: UUID4, invoice_data: InvoiceUpdate, db: Session = Depends(get_db)):
+def update(
+    invoice_id: UUID4, invoice_data: InvoiceUpdate, db: Session = Depends(get_db)
+):
     invoice = update_invoice(db, invoice_id, invoice_data)
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")

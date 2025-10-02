@@ -9,7 +9,9 @@ from app.models.users import User
 from app.models.roles import Role, RolePermission
 from app.models.managers import Manager
 from app.models.property_units import PropertyUnit
-from typing import Optional, List
+from app.models.payment_history import PaymentHistory
+from typing import Dict, Any, Optional, List, Tuple
+from math import ceil
 from collections import defaultdict
 from sqlalchemy.exc import IntegrityError
 
@@ -68,20 +70,23 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
-    # Log the security event
+    # Security log
     log_data = SecurityLogCreate(
         action="login",
         description="User login successful",
-        ip_address=request.client.host if request.client else "unknown",
-        user_agent=request.headers.get("user-agent", "unknown"),
+        ip_address=request.client.host if request and request.client else "unknown",
+        user_agent=(
+            request.headers.get("user-agent", "unknown") if request else "unknown"
+        ),
     )
     log_security_event(db, user_id=user.id, log_data=log_data)
+
     user_out = UserLoggedInOut.model_validate(user)
     user_out.access_token = access_token
     user_out.refresh_token = refresh_token
     user_out_dict = user_out.model_dump(by_alias=True)
 
-    # user_out_dict["roleName"] = user.role.name if user.role else None
+    # Attach role + permissions
     if user.role:
         role_data = {
             "id": str(user.role.id),
@@ -95,45 +100,51 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
                 }
                 for rp in user.role.role_permissions
                 if rp.is_active and rp.permission and rp.permission.is_active
-                # for p in user.role.permissions
             ],
         }
         user_out_dict["role"] = role_data
 
-    subscription_summary = None
+    # ----- Allowed holding properties (sum only PAID/SUCCESS) -----
+    allowed_holding = 0
     if getattr(user, "is_landlord", False) and getattr(user, "landlord_id", None):
-        # latest approved subscription for this landlord
-        rec = (
+        # all approved subscription records for this landlord
+        subs = (
             db.query(SubscribedLandlord)
             .filter(
                 SubscribedLandlord.landlord_id == user.landlord_id,
                 SubscribedLandlord.status == "approved",
             )
-            .order_by(SubscribedLandlord.created_at.desc())
-            .first()
+            .all()
         )
 
-        is_subscribed = False
-        plan_name = None
-        holding_props = None
+        for rec in subs:
+            # Find the latest subscription payment row for this plan.
+            # We check BOTH keys:
+            #  - subscribed_landlords.id  (some flows save this)
+            #  - subscriptions.id         (your current flow saves this)
+            latest_ph = (
+                db.query(PaymentHistory)
+                .filter(
+                    PaymentHistory.payment_type == "SUBSCRIPTION",
+                    or_(
+                        PaymentHistory.subscription_id == rec.id,
+                        PaymentHistory.subscription_id == rec.subscription_id,
+                    ),
+                )
+                .order_by(PaymentHistory.created_at.desc())
+                .first()
+            )
 
-        if rec:
-            plan_name = rec.plan_name
-            holding_props = rec.holding_properties
-            # subscribed only if not expired
-            now = datetime.now(timezone.utc)
-            if rec.expiration_date is not None and rec.expiration_date > now:
-                is_subscribed = True
+            status_val = (
+                str(latest_ph.status).upper() if latest_ph and latest_ph.status else ""
+            )
+            if status_val in ("PAID", "SUCCESS"):
+                allowed_holding += int(rec.holding_properties or 0)
 
-        subscription_summary = {
-            "planName": plan_name,
-            "holdingProperties": holding_props,
-            "isSubscribed": is_subscribed,
-        }
+    # Expose a single integer for the FE
+    user_out_dict["allowedHoldingProperties"] = allowed_holding
 
-    if subscription_summary is not None:
-        user_out_dict["subscription"] = subscription_summary
-
+    # Do NOT return subscription object anymore
     return {
         "data": user_out_dict,
         "success": True,
@@ -443,159 +454,6 @@ def get_assigned_units_managers(
     }
 
 
-# def get_users_by_role(
-#     db: Session,
-#     user_id: UUID,
-#     page: int = 1,
-#     size: int = 10,
-#     search: Optional[str] = None,
-# ):
-#     current_user = (
-#         db.query(User)
-#         .options(joinedload(User.role))
-#         .filter(User.id == user_id, User.is_active == True)
-#         .first()
-#     )
-
-#     if not current_user:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-#         )
-
-#     # Get landlord_id based on user role
-#     landlord_id_to_use = None
-
-#     if current_user.is_landlord:
-#         # Landlord themselves — use their landlord_id
-#         landlord_id_to_use = current_user.landlord_id
-
-#     elif current_user.role.name.lower() != "user":
-#         # Manager or custom role — fetch assigned user ids
-#         assigned_users_subquery = (
-#             db.query(Manager.assign_user)
-#             .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
-#             .subquery()
-#         )
-
-#         query = (
-#             db.query(User)
-#             .join(Role, User.role_id == Role.id)
-#             .options(joinedload(User.role))
-#             .filter(
-#                 User.id.in_(assigned_users_subquery),
-#                 User.is_active == True,
-#                 User.is_landlord == False,
-#                 Role.name == "User",
-#             )
-#         )
-
-#     else:
-#         # Regular user — get landlord_id and filter accordingly
-#         landlord_id_to_use = current_user.landlord_id
-
-#     # Default query for landlords or users with landlord_id
-#     if landlord_id_to_use:
-#         query = (
-#             db.query(User)
-#             .join(Role, User.role_id == Role.id)
-#             .options(joinedload(User.role))
-#             .filter(
-#                 User.is_active == True,
-#                 User.landlord_id == landlord_id_to_use,
-#                 User.is_landlord == False,
-#                 Role.name == "User",
-#             )
-#         )
-
-#     # Apply search filter
-#     if search:
-#         search_term = f"%{search.strip()}%"
-#         query = query.filter(
-#             or_(
-#                 User.fname.ilike(search_term),
-#                 User.lname.ilike(search_term),
-#                 User.email.ilike(search_term),
-#             )
-#         )
-
-#     total = query.count()
-#     users = query.offset((page - 1) * size).limit(size).all()
-
-#     seen_ids = set()
-#     result = []
-
-#     for u in users:
-#         if u.id in seen_ids:
-#             continue
-#         seen_ids.add(u.id)
-
-#         user_dict = UserOut.model_validate(u).model_dump(by_alias=True)
-#         user_dict["createdAt"] = u.created_at.isoformat() if u.created_at else None
-#         user_dict["updatedAt"] = u.updated_at.isoformat() if u.updated_at else None
-#         user_dict["roleId"] = str(u.role_id)
-#         user_dict["roleName"] = u.role.name if u.role else None
-
-#         result.append(user_dict)
-
-#     return {
-#         "success": True,
-#         "total": total,
-#         "page": page,
-#         "size": size,
-#         "items": result,
-#     }
-
-
-# def get_users_by_landlord(
-#     db: Session,
-#     landlord_id: UUID,
-#     page: int = 1,
-#     size: int = 10,
-#     search: Optional[str] = None,
-# ):
-#     query = (
-#         db.query(User)
-#         .join(Role, User.role_id == Role.id)
-#         .options(joinedload(User.role))
-#         .filter(
-#             User.is_active == True,
-#             User.landlord_id == landlord_id,
-#             User.is_landlord == False,
-#             Role.name == "User",
-#         )
-#     )
-
-#     if search:
-#         search_term = f"%{search.strip()}%"
-#         query = query.filter(
-#             or_(
-#                 User.fname.ilike(search_term),
-#                 User.lname.ilike(search_term),
-#                 User.email.ilike(search_term),
-#             )
-#         )
-
-#     total = query.count()
-#     users = query.offset((page - 1) * size).limit(size).all()
-
-#     result = []
-#     for u in users:
-#         user_dict = UserOut.model_validate(u).model_dump(by_alias=True)
-#         user_dict["createdAt"] = u.created_at.isoformat() if u.created_at else None
-#         user_dict["updatedAt"] = u.updated_at.isoformat() if u.updated_at else None
-#         user_dict["roleId"] = str(u.role_id)
-#         user_dict["roleName"] = u.role.name if u.role else None
-#         result.append(user_dict)
-
-#     return {
-#         "success": True,
-#         "total": total,
-#         "page": page,
-#         "size": size,
-#         "items": result,
-#     }
-
-
 def get_users_by_landlord(
     db: Session,
     landlord_id: UUID,
@@ -814,4 +672,252 @@ def get_all_active_users_service(
         "page": page,
         "size": limit,
         "items": items,
+    }
+
+
+# landlord user profile
+
+
+def _tz_aware(dt):
+    if not dt:
+        return None
+    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+
+
+def get_landlord_profile_service(
+    db: Session,
+    landlord_id: str,
+    history_page: int = 1,
+    history_size: int = 10,
+) -> Dict[str, Any]:
+    """
+    Returns landlord profile summary + ALL approved subscriptions (array) +
+    subscription payment history (with subsName & holdingProperties for each row).
+    """
+
+    # ---- 1) Representative landlord user for profile summary ----
+    u = (
+        db.query(User)
+        .filter(User.landlord_id == landlord_id, User.is_landlord == True)
+        .order_by(User.created_at.desc())
+        .first()
+    ) or (
+        db.query(User)
+        .filter(User.landlord_id == landlord_id)
+        .order_by(User.created_at.desc())
+        .first()
+    )
+
+    name = email = phone = gender = None
+    is_verified = None
+    created_at = None
+    if u:
+        name = (
+            " ".join(
+                [x for x in [(u.fname or "").strip(), (u.lname or "").strip()] if x]
+            )
+            or None
+        )
+        email, phone, gender = u.email, u.phone, u.gender
+        is_verified, created_at = u.is_verified, u.created_at
+
+    now = datetime.now(timezone.utc)
+
+    # ---- 2) ALL approved subscriptions for this landlord ----
+    recs_approved: List[SubscribedLandlord] = (
+        db.query(SubscribedLandlord)
+        .filter(
+            SubscribedLandlord.landlord_id == landlord_id,
+            SubscribedLandlord.status.ilike("approved"),
+        )
+        .order_by(SubscribedLandlord.created_at.desc())
+        .all()
+    )
+
+    # Build lookups
+    subs_by_id = {r.id: r for r in recs_approved}  # subscribed_landlords.id -> record
+    plan_ids = [r.subscription_id for r in recs_approved if r.subscription_id]
+    latest_rec_by_plan_id = {}
+    for r in recs_approved:
+        if r.subscription_id and r.subscription_id not in latest_rec_by_plan_id:
+            latest_rec_by_plan_id[r.subscription_id] = r  # newest-first order above
+
+    # Prefetch latest PaymentHistory by subscription_id (both SL.id and plan id)
+    all_sids = set(subs_by_id.keys()) | set(plan_ids)
+    latest_status_by_sid: dict = {}
+    if all_sids:
+        ph_rows = (
+            db.query(
+                PaymentHistory.subscription_id,
+                PaymentHistory.status,
+                PaymentHistory.created_at,
+            )
+            .filter(
+                PaymentHistory.payment_type == "SUBSCRIPTION",
+                PaymentHistory.subscription_id.in_(list(all_sids)),
+            )
+            .order_by(PaymentHistory.created_at.desc())
+            .all()
+        )
+        for sid, st, _created in ph_rows:
+            if sid not in latest_status_by_sid:
+                latest_status_by_sid[sid] = (str(st or "")).upper()
+
+    # Compose output array
+    subscriptions_out: List[Dict[str, Any]] = []
+    for rec in recs_approved:
+        exp = _tz_aware(rec.expiration_date)
+        not_expired = bool(exp and exp > now)
+
+        # latest status from either the subscribed_landlords.id or plan id
+        st1 = latest_status_by_sid.get(rec.id)
+        st2 = (
+            latest_status_by_sid.get(rec.subscription_id)
+            if rec.subscription_id
+            else None
+        )
+        latest_status = st1 or st2 or ""
+        is_paid = latest_status in ("PAID", "SUCCESS")
+
+        # days to expiry
+        days_to_expiry: Optional[int] = None
+        if exp:
+            delta = exp - now
+            days_to_expiry = max(0, int(delta.total_seconds() // 86400))
+
+        # Pay Now rules
+        show_pay_now = False
+        if rec.payment_link:
+            if rec.holding_properties and rec.holding_properties <= 3:
+                show_pay_now = (days_to_expiry is not None) and (
+                    0 <= days_to_expiry <= 7
+                )
+            else:
+                show_pay_now = True
+
+        subscriptions_out.append(
+            {
+                "id": rec.id,  # subscribed_landlords.id
+                "subscriptionId": rec.subscription_id,  # plans table id
+                "planName": rec.plan_name,
+                "holdingProperties": rec.holding_properties,
+                "expirationDate": exp,
+                "daysToExpiry": days_to_expiry,
+                "paymentLink": rec.payment_link,
+                "status": rec.status,
+                "isSubscribed": bool(
+                    not_expired and is_paid
+                ),  # must be not expired and last payment paid
+                "totalAmount": (
+                    str(rec.total_amount) if rec.total_amount is not None else None
+                ),
+                "discountedAmount": (
+                    str(rec.discounted_amount)
+                    if rec.discounted_amount is not None
+                    else None
+                ),
+                "dueAmount": (
+                    str(rec.due_amount) if rec.due_amount is not None else None
+                ),
+                "createdAt": rec.created_at,
+                "updatedAt": rec.updated_at,
+            }
+        )
+
+    # ---- 3) Payment history (SUBSCRIPTION payments for this landlord) ----
+    landlord_user_ids = [
+        x.id for x in db.query(User.id).filter(User.landlord_id == landlord_id).all()
+    ]
+
+    base_q = db.query(PaymentHistory).filter(
+        PaymentHistory.payment_type == "SUBSCRIPTION"
+    )
+    if all_sids and landlord_user_ids:
+        base_q = base_q.filter(
+            or_(
+                PaymentHistory.subscription_id.in_(list(all_sids)),
+                PaymentHistory.user_id.in_(landlord_user_ids),
+            )
+        )
+    elif all_sids:
+        base_q = base_q.filter(PaymentHistory.subscription_id.in_(list(all_sids)))
+    elif landlord_user_ids:
+        base_q = base_q.filter(PaymentHistory.user_id.in_(landlord_user_ids))
+    # else: keep it as-is (unlikely, but safe)
+
+    # Accurate count + pagination
+    count_sq = base_q.order_by(None).with_entities(PaymentHistory.id).subquery()
+    total = db.query(func.count()).select_from(count_sq).scalar() or 0
+
+    history_page = max(1, int(history_page))
+    history_size = max(1, min(int(history_size), 200))
+    offset = (history_page - 1) * history_size
+
+    rows = (
+        base_q.order_by(PaymentHistory.created_at.desc())
+        .offset(offset)
+        .limit(history_size)
+        .all()
+    )
+
+    def _resolve_row_meta(r: PaymentHistory) -> Tuple[Optional[str], Optional[int]]:
+        """
+        Returns (subsName, holdingProperties) for a payment row.
+        - If r.subscription_id matches a subscribed_landlords.id -> use that record
+        - Else if it matches a plan id -> use the newest approved record for that plan id
+        - Else -> (None, None)
+        """
+        sid = getattr(r, "subscription_id", None)
+        if not sid:
+            return (None, None)
+
+        rec = subs_by_id.get(sid)
+        if rec:
+            return (rec.plan_name, rec.holding_properties)
+
+        rec2 = latest_rec_by_plan_id.get(sid)
+        if rec2:
+            return (rec2.plan_name, rec2.holding_properties)
+
+        return (None, None)
+
+    history_items = []
+    for r in rows:
+        subs_name, holding_props = _resolve_row_meta(r)
+        history_items.append(
+            {
+                "id": r.id,
+                "amount": float(r.amount) if r.amount is not None else 0.0,
+                "currency": r.currency,
+                "status": str(r.status),
+                "paymentUrl": r.payment_url,
+                "invoiceId": r.invoice_id,
+                "subscriptionId": str(r.subscription_id) if r.subscription_id else None,
+                "subsName": subs_name,  # <-- added
+                "holdingProperties": holding_props,  # <-- added
+                "createdAt": r.created_at,
+            }
+        )
+
+    return {
+        "data": {
+            "landlordId": landlord_id,
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "gender": gender,
+            "isVerified": is_verified,
+            "createdAt": created_at,
+            "subscriptions": subscriptions_out,  # <-- ARRAY ONLY
+            "history": {
+                "items": history_items,
+                "page": history_page,
+                "pageSize": history_size,
+                "total": total,
+                "totalPages": ceil(total / history_size) if history_size else 0,
+                "success": True,
+            },
+        },
+        "success": True,
+        "message": "Landlord profile loaded",
     }

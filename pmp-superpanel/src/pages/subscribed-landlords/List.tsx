@@ -15,18 +15,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  ArrowUpDown,
-  CircleCheck,
-  CircleX,
-  Loader2,
-  // ChevronDown,
-  MapPinHouse,
-  Pencil,
-  Trash2,
-} from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-// import { Checkbox } from '@/components/ui/checkbox';
+import { CircleCheck, CircleX, Loader2, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DeleteDialog from '@/components/DeletePopup';
 import { Paginator } from '@/components/Paginator';
 import {
@@ -44,83 +34,63 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-// import userService from '@/services/adminapp/users';
-import LandlordService from '@/services/adminapp/landlords';
-// import contreactService from '@/services/adminapp/contracts';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
-// import CreateContractDialog from './CreateContractDialog';
-// import OfficeUserUpdateDialog from './UpdateDialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials, handleErrorMessage } from '@/utils/helper';
-// import { usePermission } from '@/utils/hasPermission';
-import { ASSET_BASE_URL } from '@/utils/constants';
-import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
-import { useForm } from 'react-hook-form';
-import assets from '@/assets/images';
 import dayjs from 'dayjs';
-// import OfficeUserCreateDialog from './CreateDialog';
+import assets from '@/assets/images';
+
+// Dialog imports
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 export type Users = {
-  id: string; // UUID
-  tenant: string; // UUID representing the tenant ID
+  id: string;
   plan_name: any;
   holding_properties: any;
-  currency: any;
-  amount: number;
-  lname: string;
-  username: string; // Email is being used as a username
-  email: string; // Email address of the user
-  password: string; // Encrypted password (bcrypt hash)
-  phone: string; // Phone number of the user
-  country: string | null; // Country information, nullable
-  state: string | null; // State information, nullable
-  city: string | null; // City information, nullable
-  zipCode: string | null; // Zip code, nullable
-  role: string | null; // User role, nullable
-  profilePic: string | null; // Avatar URL or path, nullable
-  address: string; // Address of the user
-  userType: 'USER' | 'ADMIN'; // Enum type to restrict values
-  isActive: boolean; // Active status of the user
-  isDeleted: boolean; // Soft delete status
-  createdAt: string; // ISO date string for creation timestamp
-  updatedAt: string; // ISO date string for update timestamp
   status: any;
+  created_at: string;
+  expiration_date: string;
+  landlord_name?: string;
+  total_amount?: string; // "40.000"
+  discounted_amount?: string; // "0.000"
+  due_amount?: string; // "40.000"
 };
 
 const SubLandlords = () => {
   const userDetails: any = getItem('USER');
   const { toast } = useToast();
-  // const { can } = usePermission();
-
-  const form = useForm<any>({ defaultValues: { userfilter: 'All' } });
-  const { control, watch } = form;
 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize] = React.useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<any>([]);
-  const [editFormData, setEditFormData] = useState<any>();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
-  const [isLoader, setIsLoader] = useState(false);
   const [mainIsLoader, setMainIsLoader] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const ToastHandler = (text: string) => {
+  // Approve → Discount dialog state
+  const [discountOpen, setDiscountOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<Users | null>(null);
+  const [discount, setDiscount] = useState<string>('0');
+
+  const ToastHandler = (text: string, success = true) => {
     return toast({
       description: text,
       className: cn(
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
       ),
       style: {
-        backgroundColor: '#5CB85C',
+        backgroundColor: success ? '#5CB85C' : '#DC3545',
         color: 'white',
         zIndex: 9999,
       },
@@ -155,6 +125,55 @@ const SubLandlords = () => {
             <div className="capitalize">
               {row.getValue('holding_properties')}
             </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'total_amount',
+      header: 'TOTAL AMOUNT',
+      cell: ({ row }) => {
+        // values often come as strings like "40.000" — normalize to numbers
+        const toNum = (v: any) => {
+          if (v === null || v === undefined) return 0;
+          const n = Number(String(v).replace(/,/g, ''));
+          return Number.isFinite(n) ? n : 0;
+        };
+
+        const total = toNum(row.original.total_amount);
+        const discount = Math.max(0, toNum(row.original.discounted_amount));
+        const dueAmount = toNum(row.original.due_amount);
+
+        // prefer due_amount if present, else compute (total - discount)
+        const finalAmount =
+          dueAmount > 0 ? dueAmount : Math.max(0, total - discount);
+
+        if (discount > 0) {
+          return (
+            <div className="flex flex-col leading-tight">
+              <span className="line-through text-muted-foreground">
+                {total.toFixed(3)}
+              </span>
+              <span className="text-primary-bg font-semibold">
+                {finalAmount.toFixed(3)}
+              </span>
+              <span className="text-xs text-foreground/60">
+                Disc {discount.toFixed(3)}
+              </span>
+            </div>
+          );
+        }
+
+        return <div className="font-medium">{total.toFixed(3)}</div>;
+      },
+    },
+    {
+      accessorKey: 'due_amount',
+      header: 'DUE AMOUNT',
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-3">
+            <div className="capitalize">{row.getValue('due_amount')}</div>
           </div>
         );
       },
@@ -222,42 +241,118 @@ const SubLandlords = () => {
     },
   ];
 
+  const fetchUsers = async () => {
+    setMainIsLoader(true);
+    const constantPage = 1;
+    setPage(constantPage);
+    try {
+      const res = await subService.list({
+        search,
+        page: constantPage,
+        pageSize,
+      });
+
+      if (res.data.success) {
+        setList(res.data.items);
+        setTotal(res.data.total);
+      } else {
+        ToastHandler(res.data.message, false);
+      }
+    } catch (error: any) {
+      ToastHandler(error?.message || 'Failed to load records', false);
+    } finally {
+      setMainIsLoader(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      fetchUsers();
+    }
+  };
+
+  const handlePageChange = async (newPage: any) => {
+    setMainIsLoader(true);
+    const nextPage = newPage + 1;
+    try {
+      const res = await subService.list({
+        search,
+        page: nextPage,
+        pageSize,
+      });
+      if (res.data.success) {
+        setPage(nextPage);
+        setList(res.data.items);
+        setTotal(res.data.total);
+      } else {
+        ToastHandler(res.data.message, false);
+      }
+    } catch (error: any) {
+      ToastHandler(error?.message || 'Failed to load page', false);
+    } finally {
+      setMainIsLoader(false);
+    }
+  };
+
+  // ---------- Approve -> then show Discount Dialog ----------
   const onApproveSubmit = async (data: any) => {
     if (!data?.id) return;
     setMainIsLoader(true);
     try {
       const res = await subService.approve(data.id, userDetails?.id);
-
-      // API returns the updated SubscribedLandlord record (no landlord_name), so preserve landlord_name
       const updated = res?.data;
+
       if (updated?.id) {
+        // Merge row in table (preserve landlord_name)
         setList((prev: any[]) =>
           prev.map((it) =>
             it.id === updated.id
               ? {
                   ...it,
                   ...updated,
-                  landlord_name: it.landlord_name, // keep existing name for the row
+                  landlord_name: it.landlord_name,
                 }
               : it
           )
         );
-        setMainIsLoader(false);
+
+        // After approve → open discount dialog (pre-fill amounts)
+        const merged = {
+          ...list.find((i: any) => i.id === data.id),
+          ...updated,
+        } as Users;
+
+        setSelectedRow(merged);
+        // prefill discount with existing discounted_amount or '0'
+        setDiscount(
+          (merged?.discounted_amount && `${merged.discounted_amount}`) || '0'
+        );
+        setDiscountOpen(true);
+
         ToastHandler('Subscription approved successfully');
       } else {
-        setMainIsLoader(false);
-        ToastHandler('Approve succeeded but response was unexpected');
+        ToastHandler('Approve succeeded but response was unexpected', false);
       }
-      setEditOpen(false);
     } catch (e: any) {
       ToastHandler(
-        e?.response?.data?.detail || 'Failed to approve subscription'
+        e?.response?.data?.detail || 'Failed to approve subscription',
+        false
       );
     } finally {
       setMainIsLoader(false);
     }
   };
 
+  // ---------- Reject ----------
   const onRejectSubmit = async (data?: any) => {
     if (!data?.id) return;
     setMainIsLoader(true);
@@ -281,85 +376,64 @@ const SubLandlords = () => {
               : it
           )
         );
-        setMainIsLoader(false);
         ToastHandler('Subscription rejected');
       } else {
-        setMainIsLoader(false);
-        ToastHandler('Reject succeeded but response was unexpected');
+        ToastHandler('Reject succeeded but response was unexpected', false);
       }
-      setDeleteOpen(false);
     } catch (e: any) {
       ToastHandler(
-        e?.response?.data?.detail || 'Failed to reject subscription'
+        e?.response?.data?.detail || 'Failed to reject subscription',
+        false
       );
     } finally {
       setMainIsLoader(false);
     }
   };
 
-  const fetchUsers = async () => {
-    setMainIsLoader(true);
-    const constantPage = 1;
-    setPage(constantPage);
-    try {
-      const deposits = await subService.list({
-        search,
-        page: constantPage,
-        pageSize,
-      });
-      console.log('deposits: ', deposits);
-
-      if (deposits.data.success) {
-        setMainIsLoader(false);
-        setList(deposits.data.items);
-        setTotal(deposits.data.total);
-      } else {
-        setMainIsLoader(false);
-        // console.log('error: ', deposits.data.message);
-      }
-    } catch (error: Error | unknown) {
-      setMainIsLoader(false);
-      // console.log('error: ', error);
+  // ---------- Discount dialog: Update discounted_amount only ----------
+  const onUpdateSubmit = async () => {
+    if (!selectedRow?.id) {
+      setDiscountOpen(false);
+      return;
     }
-  };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value);
-  };
+    const total = parseFloat(String(selectedRow.total_amount || '0')) || 0;
+    let disc = parseFloat(String(discount || '0'));
+    if (isNaN(disc) || disc < 0) disc = 0;
+    if (disc > total) disc = total; // clamp
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      fetchUsers();
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, [watch('userfilter')]);
-
-  const handlePageChange = async (newPage: any) => {
     setMainIsLoader(true);
-    const nextPage = newPage + 1;
-    table.setPageIndex(nextPage);
     try {
-      const users = await subService.list({
-        search,
-        page: nextPage,
-        pageSize,
+      const res = await subService.update(selectedRow.id, userDetails?.id, {
+        discounted_amount: disc,
       });
-      if (users.data.success) {
-        setPage(nextPage);
-        setList(users.data.items);
-        setTotal(users.data.total);
-        setMainIsLoader(false);
+
+      const updated = res?.data;
+      if (updated?.id) {
+        setList((prev: any[]) =>
+          prev.map((it) =>
+            it.id === updated.id
+              ? {
+                  ...it,
+                  ...updated,
+                  landlord_name: it.landlord_name || it.landlord_name,
+                }
+              : it
+          )
+        );
+        ToastHandler('Discount updated');
+        setDiscountOpen(false);
+        setSelectedRow(null);
       } else {
-        setMainIsLoader(false);
-        ToastHandler(users.data.message);
-        // console.log('error: ', users.data.message);
+        ToastHandler('Update succeeded but response was unexpected', false);
       }
-    } catch (error: Error | unknown) {
+    } catch (e: any) {
+      ToastHandler(
+        e?.response?.data?.detail || 'Failed to update discount',
+        false
+      );
+    } finally {
       setMainIsLoader(false);
-      // console.log('error: ', error);
     }
   };
 
@@ -369,6 +443,17 @@ const SubLandlords = () => {
     }
     if (type === 'reject') {
       onRejectSubmit({ id: actionId, reason: 'rejected' });
+    }
+    if (type === 'edit') {
+      // Optional: open the discount dialog for edits on already-approved rows
+      const row = list.find((i: any) => i.id === actionId);
+      if (row) {
+        setSelectedRow(row);
+        setDiscount(
+          (row.discounted_amount && `${row.discounted_amount}`) || '0'
+        );
+        setDiscountOpen(true);
+      }
     }
   };
 
@@ -391,32 +476,29 @@ const SubLandlords = () => {
     },
   });
 
+  // Live computed totals for dialog
+  const dialogTotals = useMemo(() => {
+    const total = parseFloat(String(selectedRow?.total_amount || '0')) || 0;
+    let disc = parseFloat(String(discount || '0'));
+    if (isNaN(disc) || disc < 0) disc = 0;
+    if (disc > total) disc = total;
+    const grand = total - disc;
+    return {
+      total,
+      discount: disc,
+      grand,
+    };
+  }, [discount, selectedRow?.total_amount]);
+
   return (
     <div className="p-2 mt-5">
-      {/* <TopBar title="Tenant Users" /> */}
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0 m-5">
-        {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
               SUBSCRIBED LANDLORDS
             </h2>
             <div className="flex gap-3 items-center">
-              {/* <div className="w-[150px]">
-                <SingleSelectDropDown
-                  control={control}
-                  name="userfilter"
-                  label=""
-                  items={[
-                    { id: 'All', name: 'All' },
-                    { id: 'User', name: 'User' },
-                    { id: 'Manager', name: 'Manager' },
-                    { id: 'Landlord', name: 'Landlord' },
-                  ]}
-                  placeholder="Choose an option"
-                  mainClassName="custom-filter-select-field"
-                />
-              </div> */}
               <div className="flex items-center w-[461px]">
                 <Input
                   placeholder="Search landlords..."
@@ -427,13 +509,6 @@ const SubLandlords = () => {
                 />
               </div>
               <DropdownMenu>
-                {/* <Button
-                  onClick={() => setIsOpen(true)}
-                  className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded text-[12px] leading-[16px] font-semibold text-quinary-bg"
-                  variant={'outline'}
-                >
-                  + Add New
-                </Button> */}
                 <DropdownMenuContent align="end">
                   {table
                     .getAllColumns()
@@ -514,9 +589,6 @@ const SubLandlords = () => {
           </div>
           {list?.length ? (
             <div className="flex items-center justify-center space-x-2 pt-4">
-              <div className="flex-1 text-sm text-muted-foreground">
-                {/* {total} total - Page {page + 1} of {Math.ceil(total / pageSize)} */}
-              </div>
               <div className="my-5 flex justify-center w-full">
                 <Paginator
                   pageSize={pageSize}
@@ -532,6 +604,85 @@ const SubLandlords = () => {
           )}
         </div>
       </SidebarInset>
+
+      {/* -------- Discount Dialog (open right after approve) -------- */}
+      <Dialog open={discountOpen} onOpenChange={setDiscountOpen}>
+        <DialogContent
+          className="sm:max-w-[600px] !bg-transparent [&>button]:hidden"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="p-0 w-full rounded-t-3xl">
+            <div className="h-16 rounded-t-3xl relative flex items-center justify-center">
+              <DialogTitle className="text-primary-bg mt-2 text-4xl font-extrabold tracking-wide">
+                Apply Discount
+              </DialogTitle>
+
+              {/* custom close */}
+              <button
+                type="button"
+                onClick={() => setDiscountOpen(false)}
+                className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </DialogHeader>
+
+          <div className="bg-white rounded-b-3xl px-6 pb-6 pt-5">
+            <div className="space-y-5">
+              <div>
+                <Label className="text-sm font-medium">Landlord</Label>
+                <div className="mt-1 text-[14px]">
+                  {selectedRow?.landlord_name || '—'}
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Plan</Label>
+                  <div className="mt-1 text-[14px] capitalize">
+                    {selectedRow?.plan_name || '—'}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Total Amount</Label>
+                  <div className="mt-1 text-[14px]">
+                    {dialogTotals.total.toFixed(3)} KWD
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Discount</Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                    className="mt-2 text-[13px]"
+                    placeholder="0.000"
+                  />
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Grand Total</Label>
+                  <div className="mt-1 text-[16px] font-semibold text-primary-bg">
+                    {dialogTotals.grand.toFixed(3)} KWD
+                  </div>
+                </div>
+                <div />
+                <div className="flex items-end justify-end">
+                  <Button className="bg-primary-bg" onClick={onUpdateSubmit}>
+                    Update
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

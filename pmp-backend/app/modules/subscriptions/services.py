@@ -377,7 +377,7 @@ def _pick_payment_method(amount: float, currency_iso: str) -> int:
 def _get_landlord_user(db: Session, landlord_id: UUID) -> User:
     user = (
         db.query(User)
-        .filter(User.landlord_id == landlord_id)
+        .filter(User.landlord_id == landlord_id, User.is_landlord == True)
         .options(load_only(User.id, User.email, User.fname, User.lname))
         .first()
     )

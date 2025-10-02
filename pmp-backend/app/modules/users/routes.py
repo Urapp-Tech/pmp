@@ -27,6 +27,7 @@ from app.modules.users.schemas import (
     TokenRefreshRequest,
     PaginatedManagerUserResponse,
     PaginatedTenantUserResponse,
+    LandlordProfileResponse,
 )
 from app.modules.users.services import (
     create_user,
@@ -38,6 +39,7 @@ from app.modules.users.services import (
     get_assigned_units_managers,
     get_users_lov_by_landlord,
     get_all_active_users_service,
+    get_landlord_profile_service,
 )
 
 
@@ -240,3 +242,17 @@ def get_tenant_users(
     return get_all_active_users_service(
         db=db, page=page, limit=limit, search=search, role_filter=role
     )
+
+
+# landlord profile
+@router.get("/landlords/{landlord_id}/profile", response_model=LandlordProfileResponse)
+def get_landlord_profile(
+    landlord_id: UUID,
+    historyPage: int = Query(1, ge=1),
+    historySize: int = Query(10, ge=1, le=200),
+    db: Session = Depends(get_db),
+):
+    result = get_landlord_profile_service(
+        db, str(landlord_id), history_page=historyPage, history_size=historySize
+    )
+    return result

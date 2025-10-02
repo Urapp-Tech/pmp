@@ -111,7 +111,7 @@ def list_subscribed_landlords(
     )
 
 
-@subr.post("/sub-landlords/{landlord_id}", response_model=SubscribedLandlordOut)
+@subr.post("/{landlord_id}", response_model=SubscribedLandlordOut)
 def landlord_subscribe(
     landlord_id: UUID,
     body: LandlordSubscribeRequest,
@@ -160,7 +160,7 @@ def admin_reject(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@subr.patch("/update/sub-landlord/{record_id}", response_model=SubscribedLandlordOut)
+@subr.post("/update/{record_id}", response_model=SubscribedLandlordOut)
 def admin_update(
     record_id: UUID,
     body: AdminUpdateRequest,

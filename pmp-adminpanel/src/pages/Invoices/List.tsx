@@ -53,9 +53,16 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import assets from '@/assets/images';
 import dayjs from 'dayjs';
+import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
+import { useForm } from 'react-hook-form';
 
 const Invoices = () => {
   const { toast } = useToast();
+  const form = useForm<any>({
+    defaultValues: { invoicefilter: 'rentalUsers' },
+  });
+  const { control, watch } = form;
+
   const userDetails: any = getItem('USER');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -159,7 +166,9 @@ const Invoices = () => {
         userDetails?.role?.name,
         keySearch,
         pageNo,
-        pageSize
+        pageSize,
+        watch('invoicefilter'),
+        watch('invoicefilter') !== 'rentalUsers' ? userDetails?.landlordId : ''
       );
       if (resp.data.success) {
         setList(resp.data.items);
@@ -179,7 +188,7 @@ const Invoices = () => {
       setColumnVisibility({ actions: true });
     }
     fetchList(search, page);
-  }, []);
+  }, [watch('invoicefilter')]);
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     fetchList(search, 1);
@@ -591,16 +600,16 @@ const Invoices = () => {
       { accessorKey: 'total_amount', header: 'TOTAL' },
       // { accessorKey: 'due_date', header: 'DUE' },
       // { accessorKey: 'status', header: 'STATUS' },
-      
+
       {
         accessorKey: 'due_date',
         header: 'DUE',
         cell: ({ row }) => {
           return (
             <div className="leading-tight">
-                <div className="text-sm  capitalize text-primary-bg">
-                  {dayjs(row.original.due_date).format('YYYY-MM-DD')}
-                </div>
+              <div className="text-sm  capitalize text-primary-bg">
+                {dayjs(row.original.due_date).format('YYYY-MM-DD')}
+              </div>
             </div>
           );
         },
@@ -611,9 +620,9 @@ const Invoices = () => {
         cell: ({ row }) => {
           return (
             <div className="leading-tight">
-                <div className="text-sm  capitalize text-primary-bg">
-                  {row.original.status}
-                </div>
+              <div className="text-sm  capitalize text-primary-bg">
+                {row.original.status}
+              </div>
             </div>
           );
         },
@@ -762,6 +771,22 @@ const Invoices = () => {
             </div>
           </h2>
           <div className="flex items-center gap-3">
+            <div className="w-[150px]">
+              <SingleSelectDropDown
+                control={control}
+                name="invoicefilter"
+                label=""
+                items={[
+                  { id: 'rentalUsers', name: 'Rental Users' },
+                  {
+                    id: 'landlordSubscriptions',
+                    name: 'Landlord Subscriptions',
+                  },
+                ]}
+                placeholder="Choose an option"
+                mainClassName="custom-filter-select-field"
+              />
+            </div>
             <Input
               placeholder="Search invoices..."
               value={search}

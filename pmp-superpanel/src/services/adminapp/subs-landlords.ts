@@ -20,8 +20,14 @@ const reject = (
   return network.post(url, payload);
 };
 
+const update = (id: string, adminUserId: string, data: any) => {
+  const url = `${SUBS_PREFIX}/subscribed-landlords/update/${id}?admin_user_id=${adminUserId}`;
+  return network.post(url, data);
+};
+
 export default {
   list,
   approve,
   reject,
+  update,
 };
