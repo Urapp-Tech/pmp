@@ -1,5 +1,5 @@
-// yhan se responsive staty hai
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import assets from '@/assets/images';
 import Footer from '@/components/Static/Footer';
 import Header from '@/components/Static/Header';
@@ -20,15 +20,110 @@ interface ContactFields {
   agree: boolean;
 }
 
+import SelectedPlanModal from '@/components/Static/Model';
+import plan from '@/services/adminapp/static';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { useSelector } from 'react-redux';
+
 const HomeResponsive = () => {
+  type BillingCycle = 'annual' | 'monthly';
+
+type Plan = {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  currency: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  features?: string[];
+};
+
+const defaultPlans: Plan[] = [
+  {
+    id: 'building',
+    code: 'building',
+    name: 'Building',
+    description:
+      'A bold structure built for purpose and scale—where design meets ambition in every floor.',
+    currency: 'KD',
+    monthlyPrice: 40,
+    annualPrice: 40,
+    features: [
+      'Post unlimited building listings',
+      'Highlighted placement for better reach',
+      'Dedicated support assistance',
+      'Advanced property analytics & insights',
+    ],
+  },
+  {
+    id: 'villa_house',
+    code: 'villa_house',
+    name: 'Villa/House',
+    description:
+      'A personal sanctuary wrapped in style and space, crafted for comfort and character.',
+    currency: 'KD',
+    monthlyPrice: 20,
+    annualPrice: 20,
+    features: [
+      'Post up to 5 house/villa listings',
+      'Priority in search results',
+      'Option to add high-quality photos/videos',
+      'Promote your property with “Featured” tag',
+    ],
+  },
+  {
+    id: 'apartment',
+    code: 'apartment',
+    name: 'Apartment',
+    description:
+      'Smart living stacked with convenience—urban rhythm in a compact, curated shell.',
+    currency: 'KD',
+    monthlyPrice: 10,
+    annualPrice: 10,
+    features: [
+      'Post up to 3 apartment listings',
+      'Standard placement in search results',
+      'Photo uploads included',
+      'Easy property management dashboard',
+    ],
+  },
+];
+
   const [isToggled, setIsToggled] = useState(true);
   const [isLoader, setIsLoader] = useState(false);
   const { toast } = useToast();
 
+  // const handleToggle = () => {
+  //   setIsToggled(!isToggled);
+  // };
+   const navigate = useNavigate();
+  const authState: any = useSelector((state: any) => state.authState);
+
+
+  const { toast } = useToast();
+  const ToastHandler = (text: string, color = 'red') =>
+    toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+      ),
+      style: { backgroundColor: color, color: 'white' },
+    });
+
+  // 🔄 same logic as Pricing
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual');
+  const [plans, setPlans] = useState<Plan[]>(defaultPlans);
+  const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+
   const handleToggle = () => {
-    setIsToggled(!isToggled);
+    setBillingCycle((prev) => (prev === 'annual' ? 'monthly' : 'annual'));
   };
 
+<<<<<<< HEAD
   const ToastHandler = (text: string, color = 'red') =>
     toast({
       description: text,
@@ -84,6 +179,60 @@ const HomeResponsive = () => {
     }
   };
 
+=======
+  const cycleNote = useMemo(
+    () =>
+      billingCycle === 'annual'
+        ? '/property per month (billed annually)'
+        : '/property per month',
+    [billingCycle]
+  );
+
+  const priceFor = (p: Plan) =>
+    billingCycle === 'annual' ? p.annualPrice : p.monthlyPrice;
+
+  const openSubscribe = (p: Plan) => {
+    if (!authState.user) {
+      navigate('/admin-panel/auth/login');
+      return;
+    }
+    setSelectedPlan(p);
+    setIsModalOpen(true);
+  };
+
+  // helper: lowercase key
+  const nameKey = (s: string) => (s || '').trim().toLowerCase();
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await plan.planService(); // GET subscriptions/list
+        if (!mounted) return;
+        const items = res?.data?.items ?? res?.data?.plans ?? res?.data ?? [];
+        const map: Record<string, string> = {};
+        (Array.isArray(items) ? items : []).forEach((it: any) => {
+          const nm = (it?.plan_name ?? '').toString();
+          const id = it?.id != null ? String(it.id) : '';
+          if (nm && id) map[nameKey(nm)] = id;
+        });
+        setPlans(
+          defaultPlans.map((p) => ({
+            ...p,
+            id: map[nameKey(p.name)] ?? p.id,
+          }))
+        );
+      } catch {
+        setPlans(defaultPlans);
+      } finally {
+        setLoadingPlans(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+>>>>>>> feature/static-make-dynamic
   return (
     <div className=" overflow-auto">
       <div className="w-full home-bg  h-screen relative">
@@ -252,168 +401,94 @@ const HomeResponsive = () => {
         </div>
 
         {/* price */}
-        <div className="mt-10 mb-6">
-          <div className="flex gap-2 items-center">
-            <img
-              src={assets.images.priceIcon}
-              alt="icon"
-              className="w-[58px] h-[58px]"
-            />
-            <h4 className="capitalize text-[28px] font-normal leading-normal text-primary  mb-4">
-              Pricing
-            </h4>
-          </div>
+<div className="mt-10 mb-6">
+  <div className="flex gap-2 items-center">
+    <img src={assets.images.priceIcon} alt="icon" className="w-[58px] h-[58px]" />
+    <h4 className="capitalize text-[28px] font-normal leading-normal text-primary  mb-4">
+      Pricing
+    </h4>
+  </div>
 
-          <p className="max-w-[593px] font-light text-[20px] text-primary my-3">
-            Simple pricing. No hidden fees. Pay only for the properties you
-            manage.
-          </p>
-        </div>
+  <p className="max-w-[593px] font-light text-[20px] text-primary my-3">
+    Simple pricing. No hidden fees. Pay only for the properties you manage.
+  </p>
+</div>
 
-        <div className="  flex items-center space-x-2 max-[1440px]:w-full max-[1440px]:justify-end">
-          <div
-            className={`w-10 h-5 flex items-center rounded-full p-0 cursor-pointer transition-colors duration-300 ${
-              isToggled
-                ? 'bg-gradient-to-r from-green-500 to-blue-500'
-                : 'bg-gray-300'
-            }`}
-            onClick={handleToggle}
-          >
-            <div
-              className={`bg-white w-3 h-3 rounded-full shadow-md transform transition-transform duration-300 ${
-                isToggled ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            ></div>
-          </div>
-          <span className="text-primary font-light text-[16px] select-none">
-            Annually (Save up to 50%)
-          </span>
-        </div>
-        <div className="flex justify-center gap-3 items-center   my-5 flex-col  ">
-          <div className="flex-1">
-            <div className="w-full max-w-[560px] rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group max-[992px]:max-w-full">
-              <div className="space-y-4 mb-8">
-                <h2 className="text-[36px] m-0 font-medium">Building</h2>
-                <h1 className="text-[64px] m-0 font-medium tracking-tight">
-                  40KD
-                </h1>
-                <p className="text-[20px] font-normal text-white ">
-                  /property per month (billed annually)
-                </p>
-              </div>
+{/* annual/monthly toggle (same behavior as Pricing) */}
+<div className="flex items-center space-x-2 max-[1440px]:w-full max-[1440px]:justify-end">
+  <div
+    className={`w-10 h-5 flex items-center rounded-full p-0 cursor-pointer transition-colors duration-300 ${
+      billingCycle === 'annual'
+        ? 'bg-gradient-to-r from-green-500 to-blue-500'
+        : 'bg-gray-300'
+    }`}
+    onClick={handleToggle}
+    role="switch"
+    aria-checked={billingCycle === 'annual'}
+    aria-label="Toggle billing cycle"
+  >
+    <div
+      className={`bg-white w-3 h-3 rounded-full shadow-md transform transition-transform duration-300 ${
+        billingCycle === 'annual' ? 'translate-x-6' : 'translate-x-1'
+      }`}
+    ></div>
+  </div>
+  <span className="text-primary font-light text-[16px] select-none">
+    Annually (Save up to 50%)
+  </span>
+</div>
 
-              <ul className="space-y-4 mb-8 text-white">
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Post unlimited building listings</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Highlighted placement for better reach</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Dedicated support assistance</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Advanced property analytics & insights</span>
-                </li>
-              </ul>
-
-              <p className="text-[20px] font-light text-white mb-8">
-                A bold structure built for purpose and scale—where design meets
-                ambition in every floor.
+{/* dynamic cards */}
+<div className="flex justify-center gap-3 items-center my-5 flex-col">
+  {loadingPlans ? (
+    <div className="text-primary text-lg py-10">Loading plans…</div>
+  ) : (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 w-full">
+      {plans.slice(0, 3).map((p) => (
+        <div key={p.id} className="flex-1">
+          <div className="w-full max-w-[560px] rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group max-[992px]:max-w-full">
+            <div className="space-y-4 mb-8">
+              <h2 className="text-[36px] m-0 font-medium">{p.name}</h2>
+              <h1 className="text-[64px] m-0 font-medium tracking-tight">
+                {priceFor(p)}
+                {p.currency}
+              </h1>
+              <p className="text-[20px] font-normal text-white">
+                {cycleNote}
               </p>
-
-              <button className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500">
-                Subscribe Now
-              </button>
             </div>
-          </div>
-          <div className="flex-1">
-            <div className="w-full max-w-[560px] rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group max-[992px]:max-w-full">
-              <div className="space-y-4 mb-8">
-                <h2 className="text-[36px] m-0 font-medium">House/Villa</h2>
-                <h1 className="text-[64px] m-0 font-medium tracking-tight">
-                  20KD
-                </h1>
-                <p className="text-[20px] font-normal text-white ">
-                  /property per month (billed annually)
-                </p>
-              </div>
 
-              <ul className="space-y-4 mb-8 text-white">
-                <li className="flex items-start">
+            <ul className="space-y-4 mb-8 text-white">
+              {(p.features?.length
+                ? p.features
+                : defaultPlans.find((d) => d.code === p.code)?.features || []
+              ).map((f, i) => (
+                <li className="flex items-start" key={i}>
                   <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Post up to 5 house/villa listings</span>
+                  <span>{f}</span>
                 </li>
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Priority in search results</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Option to add high-quality photos/videos</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Promote your property with “Featured” tag</span>
-                </li>
-              </ul>
+              ))}
+            </ul>
 
-              <p className="text-[20px] font-light text-white mb-8">
-                A personal sanctuary wrapped in style and space, crafted for
-                comfort and character.
-              </p>
+            <p className="text-[20px] font-light text-white mb-8">
+              {p.description ||
+                defaultPlans.find((d) => d.code === p.code)?.description ||
+                'Flexible plan tailored for property managers and landlords.'}
+            </p>
 
-              <button className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500">
-                Subscribe Now1
-              </button>
-            </div>
-          </div>
-          <div className="flex-1">
-            <div className="w-full max-w-[560px] rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group max-[992px]:max-w-full">
-              <div className="space-y-4 mb-8">
-                <h2 className="text-[36px] m-0 font-medium">Apartment</h2>
-                <h1 className="text-[64px] m-0 font-medium tracking-tight">
-                  10KD
-                </h1>
-                <p className="text-[20px] font-normal text-white ">
-                  /property per month (billed annually)
-                </p>
-              </div>
-
-              <ul className="space-y-4 mb-8 text-white">
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Post up to 3 apartment listings</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Standard placement in search results</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Photo uploads included</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-xl mr-2 leading-none">•</span>
-                  <span>Easy property management dashboard</span>
-                </li>
-              </ul>
-
-              <p className="text-[20px] font-light text-white mb-8">
-                Smart living stacked with convenience—urban rhythm in a compact,
-                curated shell.
-              </p>
-
-              <button className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500">
-                Subscribe Now
-              </button>
-            </div>
+            <button
+              className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
+              onClick={() => openSubscribe(p)}
+            >
+              Subscribe Now
+            </button>
           </div>
         </div>
+      ))}
+    </div>
+  )}
+</div>
+
       </div>
 
       {/* contact */}
@@ -564,7 +639,20 @@ const HomeResponsive = () => {
             <img src={assets.images.phoneBanner} alt="banner" />
           </div>
         </div>
+<<<<<<< HEAD
       </form>
+=======
+        <div className=" ">
+          <img src={assets.images.phoneBanner} alt="banner" />
+        </div>
+      </div>
+<SelectedPlanModal
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  plan={selectedPlan}
+  billingCycle={billingCycle}
+/>
+>>>>>>> feature/static-make-dynamic
 
       <Footer />
     </div>

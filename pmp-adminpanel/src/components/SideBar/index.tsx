@@ -15,6 +15,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { getItem } from '@/utils/storage';
+import { Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { PERMISSIONS } from '@/utils/constants';
 import { hasPermission } from '@/utils/hasPermission';
@@ -27,6 +28,7 @@ export function MainSidebar({
     (state) => state.appState.collapsedSidebar
   );
   const authState: any = useSelector((state: any) => state.authState);
+  
   const appState: any = useSelector((state: any) => state.appState);
   const shop: any = getItem('SHOP_TENANT');
   const userRoles: any = getItem('USER');

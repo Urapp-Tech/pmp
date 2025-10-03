@@ -1,14 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 // import { Link } from "react-router-dom";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import contact from '@/services/adminapp/static';
 import { useForm } from 'react-hook-form';
 import assets from '@/assets/images';
 import Header from '@/components/Static/Header';
 import HomeResponsive from './Home-responsive';
-import { Loader, Loader2 } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ContactFields {
@@ -20,7 +20,77 @@ interface ContactFields {
   agree: boolean;
 }
 
+// ⬇️ add these
+import SelectedPlanModal from '@/components/Static/Model';
+import plan from '@/services/adminapp/static';
+import { useSelector } from 'react-redux';
+type BillingCycle = 'annual' | 'monthly';
+
+type Plan = {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  currency: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  features?: string[];
+};
+
+const defaultPlans: Plan[] = [
+  {
+    id: 'building',
+    code: 'building',
+    name: 'Building',
+    description:
+      'A bold structure built for purpose and scale—where design meets ambition in every floor.',
+    currency: 'KD',
+    monthlyPrice: 40,
+    annualPrice: 40,
+    features: [
+      'Post unlimited building listings',
+      'Highlighted placement for better reach',
+      'Dedicated support assistance',
+      'Advanced property analytics & insights',
+    ],
+  },
+  {
+    id: 'villa_house',
+    code: 'villa_house',
+    name: 'Villa/House',
+    description:
+      'A personal sanctuary wrapped in style and space, crafted for comfort and character.',
+    currency: 'KD',
+    monthlyPrice: 20,
+    annualPrice: 20,
+    features: [
+      'Post up to 5 house/villa listings',
+      'Priority in search results',
+      'Option to add high-quality photos/videos',
+      'Promote your property with “Featured” tag',
+    ],
+  },
+  {
+    id: 'apartment',
+    code: 'apartment',
+    name: 'Apartment',
+    description:
+      'Smart living stacked with convenience—urban rhythm in a compact, curated shell.',
+    currency: 'KD',
+    monthlyPrice: 10,
+    annualPrice: 10,
+    features: [
+      'Post up to 3 apartment listings',
+      'Standard placement in search results',
+      'Photo uploads included',
+      'Easy property management dashboard',
+    ],
+  },
+];
+
 const Home: React.FC = () => {
+  const authState: any = useSelector((state: any) => state.authState);
+
   const [index, setIndex] = useState(0); // 0 = Hero, 1 = Stacked, 2 = Partner, 3 = WhyChoose
   const [currentBox, setCurrentBox] = useState(1); // active box (1–4)
   const [howStep, setHowStep] = useState(0); // 0 = heading center, 1 = heading top + text center
@@ -35,9 +105,24 @@ const Home: React.FC = () => {
   const [hideHLBottomImg, setHideHLBottomImg] = useState(false);
   const [hideHowBottomImg, setHideHowBottomImg] = useState(false);
 
-  const [isLoader, setIsLoader] = useState(false);
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLoader, setIsLoader] = useState(false);
 
+  // ... aapke existing states ke baad:
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual');
+  const [plans, setPlans] = useState<Plan[]>(defaultPlans);
+  const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+
+  const ToastHandler = (text: string, color = 'red') =>
+    toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+      ),
+      style: { backgroundColor: color, color: 'white' },
+    });
   const boxes = [
     {
       id: 1,
@@ -140,9 +225,62 @@ const Home: React.FC = () => {
   const SCROLL_COOLDOWN = 700; // ms (tweak if needed)
   // const isMobile=1;
   // const [lastScrollY, setLastScrollY] = useState(0);
+  //   const handleToggle = () => {
+  //     setIsToggled(!isToggled);
+  //   };
   const handleToggle = () => {
-    setIsToggled(!isToggled);
+    setBillingCycle((prev) => (prev === 'annual' ? 'monthly' : 'annual'));
   };
+
+  const cycleNote = useMemo(
+    () =>
+      billingCycle === 'annual'
+        ? '/property per month (billed annually)'
+        : '/property per month',
+    [billingCycle]
+  );
+
+  const priceFor = (p: Plan) =>
+    billingCycle === 'annual' ? p.annualPrice : p.monthlyPrice;
+
+  const openSubscribe = (p: Plan) => {
+    if (!authState.user) {
+      navigate('/admin-panel/auth/login');
+      return;
+    }
+    setSelectedPlan(p);
+    setIsModalOpen(true);
+  };
+
+  const nameKey = (s: string) => (s || '').trim().toLowerCase();
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await plan.planService(); // GET subscriptions/list
+        if (!mounted) return;
+        const items = res?.data?.items ?? res?.data?.plans ?? res?.data ?? [];
+        const map: Record<string, string> = {};
+        (Array.isArray(items) ? items : []).forEach((it: any) => {
+          const nm = (it?.plan_name ?? '').toString();
+          const id = it?.id != null ? String(it.id) : '';
+          if (nm && id) map[nameKey(nm)] = id;
+        });
+        setPlans(
+          defaultPlans.map((p) => ({ ...p, id: map[nameKey(p.name)] ?? p.id }))
+        );
+      } catch {
+        setPlans(defaultPlans);
+      } finally {
+        setLoadingPlans(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
@@ -159,7 +297,6 @@ const Home: React.FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -359,15 +496,6 @@ const Home: React.FC = () => {
     TOTAL_HIGHLIGHT,
     TOTAL_REPLICA,
   ]);
-
-  const ToastHandler = (text: string, color = 'red') =>
-    toast({
-      description: text,
-      className: cn(
-        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-      ),
-      style: { backgroundColor: color, color: 'white' },
-    });
 
   const {
     register,
@@ -738,6 +866,7 @@ const Home: React.FC = () => {
     </motion.section>
   );
 
+  // ---------------- Partner Section ----------------
   const PartnerSection = (
     <motion.section
       key="partner"
@@ -1181,6 +1310,8 @@ const Home: React.FC = () => {
   );
 
   // ---------------- Pricing Section ----------------
+  const [isModalOpen, setIsModalOpen] = useState(false); // put alongside other pricing states
+
   const PricingSection = (
     <motion.section
       key="pricing"
@@ -1220,7 +1351,6 @@ const Home: React.FC = () => {
                 </div>
               </motion.h2>
 
-              {/* 👇 Fixed bottom banner (hides on first scroll) */}
               <AnimatePresence>
                 {!hideBottomImg && (
                   <motion.div
@@ -1244,6 +1374,7 @@ const Home: React.FC = () => {
 
           {pricingStep === 1 && (
             <>
+              {/* Heading + toggle row */}
               <motion.h2
                 key="pricing-step1-heading"
                 className="text-white font-bold absolute"
@@ -1272,20 +1403,25 @@ const Home: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="flex items-center space-x-2 ">
+                    <div className="flex items-center space-x-2">
                       <div
                         className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-                          isToggled
+                          billingCycle === 'annual'
                             ? 'bg-gradient-to-r from-green-500 to-blue-500'
                             : 'bg-gray-300'
                         }`}
                         onClick={handleToggle}
+                        role="switch"
+                        aria-checked={billingCycle === 'annual'}
+                        aria-label="Toggle billing cycle"
                       >
                         <div
                           className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${
-                            isToggled ? 'translate-x-6' : 'translate-x-0'
+                            billingCycle === 'annual'
+                              ? 'translate-x-6'
+                              : 'translate-x-0'
                           }`}
-                        ></div>
+                        />
                       </div>
                       <span className="text-[#DFF4EC] font-light text-[20px] select-none">
                         Annually (Save up to 50%)
@@ -1293,108 +1429,88 @@ const Home: React.FC = () => {
                     </div>
                   </div>
 
-                  <p className="text-[18px] font-light text-[#DFF4EC] mt-[-10px]  leading-snug  ">
+                  <p className="text-[18px] font-light text-[#DFF4EC] mt-[-10px] leading-snug">
                     Simple pricing. No hidden fees. Pay only for the properties
                     you manage.
                   </p>
                 </div>
               </motion.h2>
 
+              {/* Cards container */}
               <motion.div
-                key="pricing-red-box"
-                className="absolute bottom-5 w-full max-[1540px]:h-[83vh] max-[1540px]:bottom-0  "
+                key="pricing-cards"
+                className="absolute bottom-5 w-full max-[1540px]:h-[83vh] max-[1540px]:bottom-0"
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: '100%', opacity: 0 }}
                 transition={{ duration: 0.8, ease: 'easeInOut' }}
               >
-                <div className="flex justify-center gap-6 items-center flex-wrap p-4 max-w-[1200px] mx-auto mt-5 ">
-                  {/* Building */}
-                  <div className="flex-1 min-w-[280px] h-full">
-                    <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
-                      <div className="space-y-4 mb-8">
-                        <h2 className="text-[36px] font-medium group-hover:text-white">
-                          Building
-                        </h2>
-                        <h1 className="text-[64px] font-medium tracking-tight group-hover:text-white">
-                          40KD
-                        </h1>
-                        <p className="text-[20px] font-normal group-hover:text-white">
-                          /property per month (billed annually)
-                        </p>
-                      </div>
-                      <p className="text-[20px] font-light mb-8 group-hover:text-white truncate">
-                        A bold structure built for purpose and scale—where
-                        design meets ambition in every floor.
-                      </p>
-                      <button className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500">
-                        Subscribe Now
-                      </button>
+                <div className="flex justify-center gap-6 items-center flex-wrap p-4 max-w-[1200px] mx-auto mt-5">
+                  {loadingPlans ? (
+                    <div className="text-[#DFF4EC] text-lg py-10">
+                      Loading plans…
                     </div>
-                  </div>
+                  ) : (
+                    plans.slice(0, 3).map((p) => (
+                      <div key={p.id} className="flex-1 min-w-[280px] h-full">
+                        <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
+                          <div className="space-y-4 mb-8">
+                            <h2 className="text-[36px] font-medium group-hover:text-white">
+                              {p.name}
+                            </h2>
+                            <h1 className="text-[64px] font-medium tracking-tight group-hover:text-white">
+                              {priceFor(p)}
+                              {p.currency}
+                            </h1>
+                            <p className="text-[20px] font-normal group-hover:text-white">
+                              {cycleNote}
+                            </p>
+                          </div>
 
-                  {/* House/Villa */}
-                  <div className="flex-1 min-w-[280px] h-full">
-                    <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
-                      <div className="space-y-4 mb-8">
-                        <h2 className="text-[36px] font-medium group-hover:text-white">
-                          House/Villa
-                        </h2>
-                        <h1 className="text-[64px] font-medium tracking-tight group-hover:text-white">
-                          20KD
-                        </h1>
-                        <p className="text-[20px] font-normal group-hover:text-white">
-                          /property per month (billed annually)
-                        </p>
-                      </div>
-                      <p className="text-[20px] font-light group-hover:text-white mb-8 truncate">
-                        A personal sanctuary wrapped in style and space, crafted
-                        for comfort and character.
-                      </p>
-                      <button className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500">
-                        Subscribe Now
-                      </button>
-                    </div>
-                  </div>
+                          <ul className="space-y-4 mb-8">
+                            {(p.features?.length
+                              ? p.features
+                              : defaultPlans.find((d) => d.code === p.code)
+                                  ?.features || []
+                            ).map((f, i) => (
+                              <li key={i} className="flex items-start">
+                                <span className="text-xl mr-2 leading-none">
+                                  •
+                                </span>
+                                <span className="group-hover:text-white">
+                                  {f}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
 
-                  {/* Apartment */}
-                  <div className="flex-1 min-w-[280px] h-full">
-                    <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
-                      <div className="space-y-4 mb-8">
-                        <h2 className="text-[36px] font-medium group-hover:text-white">
-                          Apartment
-                        </h2>
-                        <h1 className="text-[64px] font-medium tracking-tight group-hover:text-white">
-                          10KD
-                        </h1>
-                        <p className="text-[20px] font-normal group-hover:text-white">
-                          /property per month (billed annually)
-                        </p>
+                          <p className="text-[20px] font-light mb-8 group-hover:text-white truncate">
+                            {p.description ||
+                              defaultPlans.find((d) => d.code === p.code)
+                                ?.description ||
+                              'Flexible plan tailored for property managers and landlords.'}
+                          </p>
+
+                          <button
+                            className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
+                            onClick={() => openSubscribe(p)}
+                          >
+                            Subscribe Now
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-[20px] font-light group-hover:text-white mb-8 truncate">
-                        Smart living stacked with convenience—urban rhythm in a
-                        compact, curated shell.
-                      </p>
-                      <button className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500">
-                        Subscribe Now
-                      </button>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
-                <div className="flex justify-between gap-6 items-center flex-wrap  max-w-[1200px] mx-auto mt-5 ">
-                  <p className="text-[18px] font-light text-[#DFF4EC]   leading-snug  ">
+
+                <div className="flex justify-between gap-6 items-center flex-wrap max-w-[1200px] mx-auto mt-5">
+                  <p className="text-[18px] font-light text-[#DFF4EC] leading-snug">
                     Simple pricing. No hidden fees. Pay only for the properties
                     you manage.
                   </p>
-                  <button
-                    className="inline-flex items-center rounded-xl p-[2px]
-         bg-gradient-to-r from-green-400 to-blue-500"
-                  >
+                  <button className="inline-flex items-center rounded-xl p-[2px] bg-gradient-to-r from-green-400 to-blue-500">
                     <span className="rounded-[10px] bg-[#141c4e] px-5 py-2">
-                      <span
-                        className="bg-gradient-to-r from-green-400 to-blue-500
-             bg-clip-text text-transparent font-semibold"
-                      >
+                      <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent font-semibold">
                         Get Started
                       </span>
                     </span>
@@ -1407,6 +1523,7 @@ const Home: React.FC = () => {
       </div>
     </motion.section>
   );
+
   // ---------------- New Slide-in Section ----------------
   const ContactSection = (
     <motion.section
@@ -1758,10 +1875,6 @@ const Home: React.FC = () => {
                   aljaser@rento.online
                 </li>
               </ul>
-              {/* <div className="flex gap-4 max-[768px]:mt-5">
-                                <Link to="/privacy" className="text-white/50 text-[16px]">Privacy Policy</Link>
-                                <Link to="/terms" className="text-white/50 text-[16px]">Terms & Conditions</Link>
-                            </div> */}
             </div>
 
             <div className="flex justify-between items-center">
@@ -1819,6 +1932,12 @@ const Home: React.FC = () => {
             {index === 10 && ContactSection}
             {showFooter && FooterSection}
           </AnimatePresence>
+          <SelectedPlanModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            plan={selectedPlan}
+            billingCycle={billingCycle}
+          />
         </div>
       ) : (
         <div className="w-full h-auto relative">
