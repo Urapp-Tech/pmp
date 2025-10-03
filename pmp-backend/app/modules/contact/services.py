@@ -21,52 +21,51 @@ from app.models.contact_us import ContactUs
 from app.modules.contact.schemas import ContactUsCreate, ContactUsCreateResponse
 
 def create_contact_us(db: Session, contact: ContactUsCreate) :
-    db_contact = ContactUs(
-        fname=contact.fname,
-        lname=contact.lname,
-        email=contact.email,
-        phone=contact.phone,
-        message=contact.message
-    )
-    db.add(db_contact)
-    db.commit()
-    db.refresh(db_contact)
-    html_content = render_template(
-        "paid_invoice.html",
-        {
-            "name": f"{contact.fname} {contact.lname}",
-            "phone": contact.phone,
-            "message": contact.message,
-        },
-    )
-    # for_admin = render_template(
-    #     "contact_us.html",
-    #     {
-    #         "name": f"{contact.fname} {contact.lname}",
-    #         "phone": contact.phone,
-    #         "message": contact.message,
-    #     },
-    # )
-    for_user = render_template(
-        "thank_you.html",
-        {
-            "name": f"{contact.fname} {contact.lname}",
-        },
-    )
-    # send_email(
-    #     to_email="admin@gmail.com",
-    #     subject="New Contact Us Submission",
-    #     html_content=for_admin,
-    # )
-    send_email(
-        to_email=contact.email,
-        subject="Your Inquiry has been received",
-        html_content=for_user,
-    )
-
-    return ContactUsCreateResponse(
+    
+    try:
+        db_contact = ContactUs(
+            fname=contact.fname,
+            lname=contact.lname,
+            email=contact.email,
+            phone=contact.phone,
+            message=contact.message
+        )
+        db.add(db_contact)
+        db.commit()
+        db.refresh(db_contact)
+        # for_admin = render_template(
+        #     "contact_us.html",
+        #     {
+        #         "name": f"{contact.fname} {contact.lname}",
+        #         "phone": contact.phone,
+        #         "message": contact.message,
+        #     },
+        # )
+        for_user = render_template(
+            "thank_you.html",
+            {
+                "name": f"{contact.fname} {contact.lname}",
+            },
+        )
+        # send_email(
+        #     to_email="admin@gmail.com",
+        #     subject="New Contact Us Submission",
+        #     html_content=for_admin,
+        # )
+        send_email(
+            to_email=contact.email,
+            subject="Your Inquiry has been received",
+            html_content=for_user,
+        )
+        return ContactUsCreateResponse(
         success=True,
         message="Contact Us created successfully",
+        items=[]
+    )
+    except Exception as e:
+        return ContactUsCreateResponse(
+        success=False,
+        message=str(e),
         items=[]
     )
 

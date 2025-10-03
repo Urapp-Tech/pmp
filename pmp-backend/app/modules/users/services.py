@@ -35,6 +35,8 @@ from app.modules.users.schemas import (
     TokenSchema,
     PaginatedTenantUserResponse,
 )
+from app.utils.email_service import render_template, send_email
+
 from app.utils.bcrypt import hash_password, verify_password
 from app.utils.jwt import (
     create_access_token,

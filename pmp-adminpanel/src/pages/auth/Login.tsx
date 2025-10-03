@@ -237,7 +237,7 @@ const Login = () => {
                 {/* Footer link */}
                 <p className="text-center text-xs text-primary-bg font-semibold">
                   Don’t have account yet ?{' '}
-                  <NavLink to="../register" className="text-dialogBg">
+                  <NavLink to="/admin-panel/auth/register" className="text-dialogBg">
                     New Account
                   </NavLink>
                 </p>

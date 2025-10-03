@@ -1,17 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import assets from '@/assets/images';
+import { getItem } from '@/utils/storage';
 
 type Props = {
   customClass?: string;
 };
 
 export default function Header({ customClass }: Props) {
+  const user: any = getItem('USER');
   const [menuOpen, setMenuOpen] = useState(false);
-
+  const [isLogin, setIsLogin] = useState(false);
+  useEffect(() => {
+    if (!user) {
+      setIsLogin(true);
+    }
+  })
   return (
     <header
-      className={`absolute top-0 z-111 w-full py-4 bg-neutral-400/20 backdrop-blur-[5px] ${
+      className={`absolute top-0 z-[111] w-full py-4 bg-neutral-400/20 backdrop-blur-[5px] ${
         customClass || ''
       }`}
     >
@@ -57,14 +64,25 @@ export default function Header({ customClass }: Props) {
           </nav>
 
           {/* Desktop Login */}
-          <div className="hidden md:flex items-center justify-end">
-            <Link
-              to="/login"
-              className="text-[20px] font-light no-underline text-primary hover:underline"
-            >
-              Login
-            </Link>
-          </div>
+          {isLogin ? (
+            <div className="hidden md:flex items-center justify-end">
+              <Link
+                to="/admin-panel/auth/login"
+                className="text-[20px] font-light no-underline text-primary hover:underline"
+              >
+                Login
+              </Link>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center justify-end">
+              <Link
+                to="/admin-panel/dashboard"
+                className="text-[20px] font-light no-underline text-primary hover:underline"
+              >
+                Dashboard
+              </Link>
+            </div>
+          )}
 
           {/* Mobile Toggle */}
           <button
