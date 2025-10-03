@@ -13,6 +13,9 @@ from app.modules.landlords.schemas import (
     PaginatedLandlordResponse,
     VerifyLandlordRequest,
     LandlordDeleteResponse,
+    ChangePasswordRequest,
+    EmailRequest,
+    OtpVerificationRequest
 )
 from app.modules.landlords.services import (
     create_landlord,
@@ -23,7 +26,8 @@ from app.modules.landlords.services import (
     delete_landlord_user,
     get_landlord_lov,
     email_verification,
-    otp_verification
+    otp_verification,
+    update_password
 )
 
 router = APIRouter()
@@ -43,18 +47,17 @@ def get_db():
 def create(user: LandlordCreate, db: Session = Depends(get_db)):
     return create_landlord(db, user)
 
-@router.post(
-    "/email/verification",  summary="Email verification"
-)
-def email_verification_service( db: Session = Depends(get_db), email: str = ""):
-    return email_verification(db, email)
+@router.post("/email/verification", summary="Email verification")
+def email_verification_service(req: EmailRequest, db: Session = Depends(get_db)):
+    return email_verification(db, req.email)
 
-@router.post(
-    "/email/opt/verified",  summary="Email otp verification"
-)
-def email_verified( db: Session = Depends(get_db), email: str = "", otp: str = ""):
-    return otp_verification(db, email,otp)
+@router.post("/email/otp/verified", summary="Email otp verification")
+def email_verified(req: OtpVerificationRequest, db: Session = Depends(get_db)):
+    return otp_verification(db, req.email, req.otp)
 
+@router.post("/new/password", summary="New password with email")
+def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
+    return update_password(db, req.email, req.password)
 @router.post(
     "/update/{id}",
     response_model=LandlordResponse,

@@ -4,7 +4,18 @@ from uuid import UUID
 from datetime import datetime
 import re
 
+# Schemas
+class EmailRequest(BaseModel):
+    email: str
 
+class OtpVerificationRequest(BaseModel):
+    email: str
+    otp: str
+
+class ChangePasswordRequest(BaseModel):
+    email: str
+    password: str
+    
 class LandlordCreate(BaseModel):
     fname: str = Field(..., min_length=1, description="First name (only alphabets)")
     lname: str = Field(..., min_length=1, description="Last name (only alphabets)")

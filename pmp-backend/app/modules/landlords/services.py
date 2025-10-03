@@ -85,7 +85,7 @@ def email_verification(db: Session, email: str):
     # Check user exist
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        return {"success": False, "message": "User not found."}
 
     # Generate OTP and save
     otp_entry = send_otp_email(db, email, "Please verify your email address.")
@@ -95,7 +95,24 @@ def email_verification(db: Session, email: str):
 
 def otp_verification(db: Session, email: str , otp: str):
     verify_otp = verify_otp_email(db, email, otp)
+    if(verify_otp["success"]):
+            user = db.query(User).filter(User.email == email).first()
+            user.is_verified = True
+            db.commit()
+            db.refresh(user)
     return verify_otp
+
+def update_password(db: Session, email: str, password: str):
+    # Check user exist
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        return {"success": False, "message": "User not found."}
+    user.password = hash_password(password)
+    db.commit()
+    db.refresh(user)
+    
+    return {"success": True, "message": "Password updated successfully."}
+
 
 def update_landlord(db: Session, landlord_id: UUID, data: LandlordUpdate):
     user = (
