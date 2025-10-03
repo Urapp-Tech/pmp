@@ -14,6 +14,7 @@ from app.modules.landlords.schemas import (
 )
 from app.utils.bcrypt import hash_password, verify_password
 import uuid
+from app.utils.otpservice import send_otp_email, verify_otp_email
 
 # from fastapi import HTTPException, status
 
@@ -79,6 +80,22 @@ def create_landlord(db: Session, landlord_data: LandlordCreate):
             status_code=500, detail=f"Failed to create landlord: {str(e)}"
         )
 
+
+def email_verification(db: Session, email: str):
+    # Check user exist
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Generate OTP and save
+    otp_entry = send_otp_email(db, email, "Please verify your email address.")
+
+    return {"success": True, "message": "OTP sent successfully."}
+
+
+def otp_verification(db: Session, email: str , otp: str):
+    verify_otp = verify_otp_email(db, email, otp)
+    return verify_otp
 
 def update_landlord(db: Session, landlord_id: UUID, data: LandlordUpdate):
     user = (

@@ -22,6 +22,8 @@ from app.modules.landlords.services import (
     update_landlord,
     delete_landlord_user,
     get_landlord_lov,
+    email_verification,
+    otp_verification
 )
 
 router = APIRouter()
@@ -41,6 +43,17 @@ def get_db():
 def create(user: LandlordCreate, db: Session = Depends(get_db)):
     return create_landlord(db, user)
 
+@router.post(
+    "/email/verification",  summary="Email verification"
+)
+def email_verification_service( db: Session = Depends(get_db), email: str = ""):
+    return email_verification(db, email)
+
+@router.post(
+    "/email/opt/verified",  summary="Email otp verification"
+)
+def email_verified( db: Session = Depends(get_db), email: str = "", otp: str = ""):
+    return otp_verification(db, email,otp)
 
 @router.post(
     "/update/{id}",
