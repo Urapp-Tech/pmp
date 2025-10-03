@@ -62,6 +62,10 @@ const verifyOTP = (userData: { email: any; otp: any }) => {
   return network.post(`${LANDLORD_USERS}/email/verification`, userData);
 };
 
+const newPassword = (userData: { email: any; password: any }) => {
+  return network.post(`${LANDLORD_USERS}/new/password`, userData);
+};
+
 export default {
   loginService,
   systemConfig,
@@ -72,4 +76,5 @@ export default {
   getLandlordProfile,
   forgetPassword,
   verifyOTP,
+  newPassword,
 };

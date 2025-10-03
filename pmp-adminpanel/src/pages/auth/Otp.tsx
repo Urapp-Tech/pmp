@@ -103,13 +103,14 @@ const Otp = () => {
   const submitHandler = async (data: OtpFields) => {
     setIsLoader(true);
 
-    const code = `${data.otp1}${data.otp2}${data.otp3}${data.otp4}`.trim();
+    const code = `${data.otp1}${data.otp2}${data.otp3}${data.otp4}`;
     if (code.length !== 4) {
       setIsLoader(false);
       return ToastHandler('Please enter the 4-digit code.');
     }
+
     const userData: any = {
-      email: state.email.trim().replace(/\s+/g, ''),
+      email: state.trim().replace(/\s+/g, ''),
       code,
     };
     try {
@@ -118,7 +119,7 @@ const Otp = () => {
       if (otp?.data?.success) {
         setIsLoader(false);
         toast({ description: 'Code verified successfully.' });
-        navigate('../new-password', { replace: true });
+        navigate('../new-password', { replace: true, state: state });
       } else {
         ToastHandler(otp?.data?.message || 'Invalid code, please try again.');
         setIsLoader(false);

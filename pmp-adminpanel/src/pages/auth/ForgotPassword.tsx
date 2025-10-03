@@ -73,7 +73,7 @@ const ForgotPassword = () => {
         console.log(user.data.data);
 
         setIsLoader(false);
-        navigate('/otp');
+        navigate('/admin-panel/auth/otp', { state: userData.email });
         // (optional) remember me handling (persist on your side if needed)
       } else {
         ToastHandler(user.data.message);
