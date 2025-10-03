@@ -8,7 +8,9 @@ import siddiqsonsLogo from './siddiqsons-logo.png';
 import signBanner from './construction.png';
 import whiteLogo from './white-logo.webp';
 import whiteCompLogo from './white-comp-logo.png';
-
+import bottomPrice from './price-bottom.png';
+import bottomHighlight from './highlight.png';
+import bottomWorks from './how-work.png';
 import dashboardSidebarIcon from './dashboard-icon.svg';
 import usersSidebarIcon from './users-icon.svg';
 import adminUsersSidebarIcon from './user-admin-icon.svg';
@@ -133,6 +135,9 @@ import hiliteIcon from './higlite.svg';
 
 const assets = {
   images: {
+    bottomPrice,
+    bottomHighlight,
+    bottomWorks,
     siddiqsonsLogo,
     siddiqsonsBlackLogo,
     signBanner,

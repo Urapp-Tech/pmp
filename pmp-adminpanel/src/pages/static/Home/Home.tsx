@@ -17,6 +17,9 @@ const Home: React.FC = () => {
   const [isToggled, setIsToggled] = useState(true);
   const [showFooter, setShowFooter] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 991);
+  const [hideBottomImg, setHideBottomImg] = useState(false);
+  const [hideHLBottomImg, setHideHLBottomImg] = useState(false);
+  const [hideHowBottomImg, setHideHowBottomImg] = useState(false);
   const boxes = [
     {
       id: 1,
@@ -138,6 +141,359 @@ const Home: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // useEffect(() => {
+  //     const handleWheel = (e: WheelEvent) => {
+  //         e.preventDefault();
+
+  //         if (wheelLockRef.current) return;
+  //         wheelLockRef.current = true;
+
+  //         const delta = e.deltaY > 0 ? 1 : -1;
+  //         const unlock = () => setTimeout(() => { wheelLockRef.current = false; }, SCROLL_COOLDOWN);
+
+  //         // ---------- Footer locked mode ----------
+  //         if (showFooter) {
+  //             if (delta < 0) {
+  //                 // scroll up blocked
+  //             }
+  //             unlock();
+  //             return;
+  //         }
+
+  //         // ---------- Normal scroll logic ----------
+  //         if (delta > 0) { // scroll down
+  //             switch (index) {
+  //                 case 0:
+  //                     setIndex(1); // Hero → Highlight (Step 0)
+  //                     break;
+
+  //                 case 1: {
+  //                     // Highlight PPT-style
+  //                     if (howStep === 0) {
+  //                         setHowStep(1); // start slides
+  //                     } else {
+  //                         if (currentBox < TOTAL_HIGHLIGHT) setCurrentBox(p => Math.min(TOTAL_HIGHLIGHT, p + 1));
+  //                         else setIndex(3); // to Partner
+  //                     }
+  //                     break;
+  //                 }
+
+  //                 case 3:
+  //                     setIndex(4); // Partner → WhyChoose
+  //                     break;
+
+  //                 case 4:
+  //                     // WhyChoose → How (reset how sequence)
+  //                     setHowStep(0);
+  //                     setReplicaBox(1);
+  //                     setIndex(5);
+  //                     break;
+
+  //                 // case 5:
+  //                 //     // How PPT-style
+  //                 //     if (howStep === 0) {
+  //                 //         setHowStep(1);
+  //                 //     } else {
+  //                 //         if (replicaBox < TOTAL_REPLICA) setReplicaBox(p => Math.min(TOTAL_REPLICA, p + 1));
+  //                 //         else setIndex(7);
+  //                 //     }
+  //                 //     break;
+  //                 case 5:
+  //                     if (howStep === 0) setHowStep(1);
+  //                     else if (howStep === 1) setHowStep(2);
+  //                     else {
+  //                         if (replicaBox < TOTAL_REPLICA) setReplicaBox(p => Math.min(TOTAL_REPLICA, p + 1));
+  //                         else setIndex(7);
+  //                     }
+  //                     break;
+
+  //                 case 7: setIndex(8); break;
+  //                 case 8: setIndex(9); break;
+
+  //                 case 9:
+  //                     if (pricingStep === 0) setPricingStep(1);
+  //                     else setIndex(10);
+  //                     break;
+
+  //                 case 10:
+  //                     setShowFooter(true);
+  //                     break;
+
+  //                 default: break;
+  //             }
+  //         } else { // scroll up
+  //             switch (index) {
+  //                 case 1: {
+  //                     // Highlight reverse
+  //                     if (howStep === 1) {
+  //                         if (currentBox > 1) setCurrentBox(p => Math.max(1, p - 1));
+  //                         else setHowStep(0);
+  //                     } else {
+  //                         setIndex(0);
+  //                     }
+  //                     break;
+  //                 }
+
+  //                 case 3:
+  //                     // back into Highlight with slides completed (to walk back)
+  //                     setIndex(1);
+  //                     setHowStep(1);
+  //                     setCurrentBox(TOTAL_HIGHLIGHT);
+  //                     break;
+
+  //                 case 4:
+  //                     setIndex(3);
+  //                     break;
+
+  //                 // case 5:
+  //                 //     // How reverse
+  //                 //     if (howStep === 1) {
+  //                 //         if (replicaBox > 1) setReplicaBox(p => Math.max(1, p - 1));
+  //                 //         else setHowStep(0);
+  //                 //     } else {
+  //                 //         setIndex(4);
+  //                 //     }
+  //                 //     break;
+  //                 case 5:
+  //                     if (howStep === 2) {
+  //                         if (replicaBox > 1) setReplicaBox(p => Math.max(1, p - 1));
+  //                         else setHowStep(1);
+  //                     } else if (howStep === 1) {
+  //                         setHowStep(0);
+  //                     } else {
+  //                         setIndex(4);
+  //                     }
+  //                     break;
+
+  //                 case 7:
+  //                     if (newPartnerBox > 1) {
+  //                         setNewPartnerBox(p => p - 1);
+  //                     } else {
+  //                         setIndex(5);
+  //                         setHowStep(1);
+  //                         setReplicaBox(TOTAL_REPLICA);
+  //                     }
+  //                     break;
+
+  //                 case 8:
+  //                     if (newAboutBox > 1) setNewAboutBox(p => p - 1);
+  //                     else { setIndex(7); setNewPartnerBox(4); }
+  //                     break;
+
+  //                 case 9:
+  //                     if (pricingStep === 1) setPricingStep(0);
+  //                     else setIndex(8);
+  //                     break;
+
+  //                 case 10:
+  //                     setIndex(9);
+  //                     break;
+
+  //                 default: break;
+  //             }
+  //         }
+
+  //         unlock();
+  //     };
+
+  //     window.addEventListener("wheel", handleWheel, { passive: false });
+  //     return () => window.removeEventListener("wheel", handleWheel);
+  // }, [
+  //     index,
+  //     currentBox,
+  //     replicaBox,
+  //     howStep,
+  //     newPartnerBox,
+  //     newAboutBox,
+  //     pricingStep,
+  //     showFooter,
+  //     TOTAL_HIGHLIGHT,
+  //     TOTAL_REPLICA,
+  // ]);
+
+  // ✅ Add this at component top
+  // const [hideBottomImg, setHideBottomImg] = useState(false);
+
+  // useEffect(() => {
+  //     const handleWheel = (e: WheelEvent) => {
+  //         e.preventDefault();
+
+  //         if (wheelLockRef.current) return;
+  //         wheelLockRef.current = true;
+
+  //         const delta = e.deltaY > 0 ? 1 : -1;
+  //         const unlock = () =>
+  //             setTimeout(() => {
+  //                 wheelLockRef.current = false;
+  //             }, SCROLL_COOLDOWN);
+
+  //         // ---------- Footer locked mode ----------
+  //         if (showFooter) {
+  //             if (delta < 0) {
+  //                 // scroll up blocked
+  //             }
+  //             unlock();
+  //             return;
+  //         }
+
+  //         // 👇 While on Pricing step-0, any wheel should hide the bottom image immediately
+  //         if (index === 9 && pricingStep === 0) {
+  //             setHideBottomImg(true);
+  //         }
+
+  //         // ---------- Normal scroll logic ----------
+  //         if (delta > 0) {
+  //             // scroll down
+  //             switch (index) {
+  //                 case 0:
+  //                     setIndex(1); // Hero → Highlight (Step 0)
+  //                     break;
+
+  //                 case 1: {
+  //                     // Highlight PPT-style
+  //                     if (howStep === 0) {
+  //                         setHowStep(1); // start slides
+  //                     } else {
+  //                         if (currentBox < TOTAL_HIGHLIGHT)
+  //                             setCurrentBox((p) => Math.min(TOTAL_HIGHLIGHT, p + 1));
+  //                         else setIndex(3); // to Partner
+  //                     }
+  //                     break;
+  //                 }
+
+  //                 case 3:
+  //                     setIndex(4); // Partner → WhyChoose
+  //                     break;
+
+  //                 case 4:
+  //                     // WhyChoose → How (reset how sequence)
+  //                     setHowStep(0);
+  //                     setReplicaBox(1);
+  //                     setIndex(5);
+  //                     break;
+
+  //                 case 5:
+  //                     if (howStep === 0) setHowStep(1);
+  //                     else if (howStep === 1) setHowStep(2);
+  //                     else {
+  //                         if (replicaBox < TOTAL_REPLICA)
+  //                             setReplicaBox((p) => Math.min(TOTAL_REPLICA, p + 1));
+  //                         else setIndex(7);
+  //                     }
+  //                     break;
+
+  //                 case 7:
+  //                     setIndex(8);
+  //                     break;
+
+  //                 case 8:
+  //                     setIndex(9);          // enter Pricing
+  //                     setHideBottomImg(false); // 👈 show bottom image when entering step-0
+  //                     break;
+
+  //                 case 9:
+  //                     if (pricingStep === 0) setPricingStep(1);
+  //                     else setIndex(10);
+  //                     break;
+
+  //                 case 10:
+  //                     setShowFooter(true);
+  //                     break;
+
+  //                 default:
+  //                     break;
+  //             }
+  //         } else {
+  //             // scroll up
+  //             switch (index) {
+  //                 case 1: {
+  //                     // Highlight reverse
+  //                     if (howStep === 1) {
+  //                         if (currentBox > 1) setCurrentBox((p) => Math.max(1, p - 1));
+  //                         else setHowStep(0);
+  //                     } else {
+  //                         setIndex(0);
+  //                     }
+  //                     break;
+  //                 }
+
+  //                 case 3:
+  //                     // back into Highlight with slides completed (to walk back)
+  //                     setIndex(1);
+  //                     setHowStep(1);
+  //                     setCurrentBox(TOTAL_HIGHLIGHT);
+  //                     break;
+
+  //                 case 4:
+  //                     setIndex(3);
+  //                     break;
+
+  //                 case 5:
+  //                     if (howStep === 2) {
+  //                         if (replicaBox > 1) setReplicaBox((p) => Math.max(1, p - 1));
+  //                         else setHowStep(1);
+  //                     } else if (howStep === 1) {
+  //                         setHowStep(0);
+  //                     } else {
+  //                         setIndex(4);
+  //                     }
+  //                     break;
+
+  //                 case 7:
+  //                     if (newPartnerBox > 1) {
+  //                         setNewPartnerBox((p) => p - 1);
+  //                     } else {
+  //                         setIndex(5);
+  //                         setHowStep(1);
+  //                         setReplicaBox(TOTAL_REPLICA);
+  //                     }
+  //                     break;
+
+  //                 case 8:
+  //                     if (newAboutBox > 1) setNewAboutBox((p) => p - 1);
+  //                     else {
+  //                         setIndex(7);
+  //                         setNewPartnerBox(4);
+  //                     }
+  //                     break;
+
+  //                 case 9:
+  //                     if (pricingStep === 1) {
+  //                         setPricingStep(0);     // back to Pricing step-0
+  //                         setHideBottomImg(false); // 👈 reveal bottom image again
+  //                     } else {
+  //                         setIndex(8);
+  //                     }
+  //                     break;
+
+  //                 case 10:
+  //                     setIndex(9);
+  //                     break;
+
+  //                 default:
+  //                     break;
+  //             }
+  //         }
+
+  //         unlock();
+  //     };
+
+  //     window.addEventListener("wheel", handleWheel, { passive: false });
+  //     return () => window.removeEventListener("wheel", handleWheel);
+  // }, [
+  //     index,
+  //     currentBox,
+  //     replicaBox,
+  //     howStep,
+  //     newPartnerBox,
+  //     newAboutBox,
+  //     pricingStep,
+  //     showFooter,
+  //     TOTAL_HIGHLIGHT,
+  //     TOTAL_REPLICA,
+  //     // no need to add hideBottomImg here; we only set it inside
+  // ]);
+
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -160,12 +516,27 @@ const Home: React.FC = () => {
         return;
       }
 
+      // ---------- First-scroll hide rules for bottom banners ----------
+      // Highlight step-0
+      if (index === 1 && howStep === 0) {
+        setHideHLBottomImg(true);
+      }
+      // How It Works step-1
+      if (index === 5 && howStep === 1) {
+        setHideHowBottomImg(true);
+      }
+      // Pricing step-0
+      if (index === 9 && pricingStep === 0) {
+        setHideBottomImg(true);
+      }
+
       // ---------- Normal scroll logic ----------
       if (delta > 0) {
         // scroll down
         switch (index) {
           case 0:
             setIndex(1); // Hero → Highlight (Step 0)
+            setHideHLBottomImg(false); // show Highlight bottom when entering step-0
             break;
 
           case 1: {
@@ -191,19 +562,13 @@ const Home: React.FC = () => {
             setIndex(5);
             break;
 
-          // case 5:
-          //     // How PPT-style
-          //     if (howStep === 0) {
-          //         setHowStep(1);
-          //     } else {
-          //         if (replicaBox < TOTAL_REPLICA) setReplicaBox(p => Math.min(TOTAL_REPLICA, p + 1));
-          //         else setIndex(7);
-          //     }
-          //     break;
           case 5:
-            if (howStep === 0) setHowStep(1);
-            else if (howStep === 1) setHowStep(2);
-            else {
+            if (howStep === 0) {
+              setHowStep(1); // enter How step-1 (pinned + center subheading)
+              setHideHowBottomImg(false); // show How bottom when arriving to step-1
+            } else if (howStep === 1) {
+              setHowStep(2); // go into slides
+            } else {
               if (replicaBox < TOTAL_REPLICA)
                 setReplicaBox((p) => Math.min(TOTAL_REPLICA, p + 1));
               else setIndex(7);
@@ -213,8 +578,10 @@ const Home: React.FC = () => {
           case 7:
             setIndex(8);
             break;
+
           case 8:
-            setIndex(9);
+            setIndex(9); // enter Pricing
+            setHideBottomImg(false); // show Pricing bottom on step-0
             break;
 
           case 9:
@@ -236,7 +603,10 @@ const Home: React.FC = () => {
             // Highlight reverse
             if (howStep === 1) {
               if (currentBox > 1) setCurrentBox((p) => Math.max(1, p - 1));
-              else setHowStep(0);
+              else {
+                setHowStep(0); // back to step-0
+                setHideHLBottomImg(false); // show Highlight bottom again
+              }
             } else {
               setIndex(0);
             }
@@ -254,19 +624,14 @@ const Home: React.FC = () => {
             setIndex(3);
             break;
 
-          // case 5:
-          //     // How reverse
-          //     if (howStep === 1) {
-          //         if (replicaBox > 1) setReplicaBox(p => Math.max(1, p - 1));
-          //         else setHowStep(0);
-          //     } else {
-          //         setIndex(4);
-          //     }
-          //     break;
           case 5:
             if (howStep === 2) {
-              if (replicaBox > 1) setReplicaBox((p) => Math.max(1, p - 1));
-              else setHowStep(1);
+              if (replicaBox > 1) {
+                setReplicaBox((p) => Math.max(1, p - 1));
+              } else {
+                setHowStep(1); // arrive to How step-1 from slides
+                setHideHowBottomImg(false); // show How bottom again
+              }
             } else if (howStep === 1) {
               setHowStep(0);
             } else {
@@ -281,6 +646,7 @@ const Home: React.FC = () => {
               setIndex(5);
               setHowStep(1);
               setReplicaBox(TOTAL_REPLICA);
+              setHideHowBottomImg(false); // ensure shown when landing on step-1
             }
             break;
 
@@ -293,8 +659,12 @@ const Home: React.FC = () => {
             break;
 
           case 9:
-            if (pricingStep === 1) setPricingStep(0);
-            else setIndex(8);
+            if (pricingStep === 1) {
+              setPricingStep(0); // back to Pricing step-0
+              setHideBottomImg(false); // show Pricing bottom again
+            } else {
+              setIndex(8);
+            }
             break;
 
           case 10:
@@ -360,6 +730,170 @@ const Home: React.FC = () => {
 
   // highlight section
 
+  // const HighlightSection = (
+  //     <motion.section
+  //         key="highlight"
+  //         className="absolute inset-0 w-full h-screen bg-[#DFF4EC] overflow-hidden"
+  //         initial={{ y: "100%" }}
+  //         animate={{ y: 0 }}
+  //         exit={{ y: "-100%" }}
+  //         transition={{ duration: 0.8, ease: "easeInOut" }}
+  //     >
+  //         <div className="relative w-full h-full max-w-[1537px] mx-auto">
+  //             <AnimatePresence mode="wait">
+  //                 {howStep === 0 ? (
+  //                     // -------- STEP 0: centered heading only --------
+  //                     <motion.div
+  //                         key="hl-center"
+  //                         className="absolute inset-0 flex items-center justify-center"
+  //                         initial={{ opacity: 0, scale: 0.98 }}
+  //                         animate={{ opacity: 1, scale: 1 }}
+  //                         exit={{ opacity: 0, scale: 0.98 }}
+  //                         transition={{ duration: 0.6, ease: "easeInOut" }}
+  //                     >
+  //                         <div className="text-center">
+  //                             <div className="flex gap-2 justify-center items-center">
+  //                                 <img src={assets.images.hiliteIcon} alt="icon" className="w-[138px] h-[134px]" />
+  //                                 <span className="font-normal text-[6vw] text-primary">Highlights</span>
+  //                             </div>
+  //                         </div>
+  //                     </motion.div>
+  //                 ) : (
+  //                     // -------- STEP 1: heading left, paragraph hides once currentBox >= 2, slides run here --------
+  //                     // -------- STEP 1: heading left, paragraph hides once currentBox >= 2, slides run here --------
+  //                     (() => {
+  //                         const pinned = currentBox >= 2;            // slide 2 aate hi heading pin + neighbors visible
+  //                         const showParagraph = currentBox === 1;    // paragraph only on first slide
+  //                         const REVEAL_NEXT = 135;                   // next slide kitna upar dikhana (content visible)
+  //                         const TOP_PREV = "0%";                     // prev slide top se kitna gap (content visible)
+  //                         const CURRENT_Z = 100;
+  //                         const NEXT_Z = 110;
+  //                         const PREV_Z = 90;
+
+  //                         return (
+  //                             <motion.div
+  //                                 key="hl-live"
+  //                                 className="absolute inset-0"
+  //                                 initial={{ opacity: 0, y: -8 }}
+  //                                 animate={{ opacity: 1, y: 0 }}
+  //                                 exit={{ opacity: 0, y: -8 }}
+  //                                 transition={{ duration: 0.5, ease: "easeInOut" }}
+  //                             >
+  //                                 {/* Header area */}
+  //                                 <div className="px-8 pt-8 relative flex justify-start items-center max-[576px]:flex-col">
+  //                                     {/* Heading group → slide 2 par left-0 pe pin with transition */}
+  //                                     <motion.div
+  //                                         layout
+  //                                         className={`flex items-center gap-2 shrink-0 ${pinned ? "absolute left-0 top-20 max-[1550px]:left-4 max-[1550px]:top-20" : ""}`}
+  //                                         initial={false}
+  //                                         animate={{ opacity: 1 }}
+  //                                         transition={{ layout: { duration: 0.4, ease: "easeInOut" } }}
+  //                                     >
+  //                                         <img src={assets.images.hiliteIcon} alt="icon" className="w-[36px] h-[36px]" />
+  //                                         <h2
+  //                                             className={`text-primary font-normal leading-none ${pinned ? "text-[24px]" : "text-[26px]"
+  //                                                 }`}
+  //                                         >
+  //                                             Highlights
+  //                                         </h2>
+  //                                     </motion.div>
+
+  //                                     {/* Paragraph — sirf first slide pe */}
+  //                                     <AnimatePresence initial={false} mode="wait">
+  //                                         {showParagraph && (
+  //                                             <motion.p
+  //                                                 key="hl-paragraph"
+  //                                                 className="text-primary/80 text-[16px] font-light leading-snug pl-[56px]" // thoda heading se offset
+  //                                                 initial={{ opacity: 0, y: 6 }}
+  //                                                 animate={{ opacity: 1, y: 0 }}
+  //                                                 exit={{ opacity: 0, y: -6 }}
+  //                                                 transition={{ duration: 0.25, ease: "easeOut" }}
+  //                                             >
+  //                                                 Rento isn’t just easier to use — it’s simpler to set up, quicker with support and
+  //                                                 built with the right features to grow with you.
+  //                                             </motion.p>
+  //                                         )}
+  //                                     </AnimatePresence>
+  //                                 </div>
+
+  //                                 {/* Slides container (same screen) */}
+  //                                 <div className="px-6 pt-4">
+  //                                     <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden max-w-[1220px] mx-auto max-[1600px]:h-[calc(100vh-60px)]  max-[1550px]:max-w-[1100px]">
+  //                                         {boxes.map((box) => {
+  //                                             let animate: Record<string, string | number> = {};
+  //                                             let zIndex = 0;
+
+  //                                             const order = box.id - currentBox;      // 0=current, 1=next, -1=previous
+
+  //                                             if (order === 0) {
+  //                                                 // current slide centered
+  //                                                 animate = { top: "50%", left: "50%", x: "-50%", y: "-50%", scale: 0.96 };
+  //                                                 zIndex = CURRENT_Z;
+  //                                             } else if (order === -1) {
+  //                                                 // immediate PREVIOUS: bring to top area so content shows
+  //                                                 animate = { top: TOP_PREV, left: "50%", x: "-50%", y: 0, scale: 0.92 };
+  //                                                 zIndex = PREV_Z;
+  //                                             } else if (order < -1) {
+  //                                                 // older previous: push further up (hide)
+  //                                                 animate = { top: "-140px", left: "50%", x: "-50%", y: 0, scale: 0.9 };
+  //                                                 zIndex = box.id;
+  //                                             } else if (order === 1) {
+  //                                                 // NEXT: reveal enough from bottom so content is visible
+  //                                                 animate = { top: `calc(100% - ${REVEAL_NEXT}px)`, left: "50%", x: "-50%", y: 0, scale: 1 };
+  //                                                 zIndex = NEXT_Z;
+  //                                             } else {
+  //                                                 // future > next: keep below viewport
+  //                                                 animate = { top: "calc(100% + 140px)", left: "50%", x: "-50%", y: 0, scale: 1 };
+  //                                                 zIndex = box.id;
+  //                                             }
+
+  //                                             // Content visibility:
+  //                                             // - Before slide 2: next content hidden
+  //                                             // - After slide 2: prev & next content visible
+  //                                             const hideInner =
+  //                                                 order >= 2 || order <= -2 || (order === 1 && !pinned); // hide only deeper slides, and next before pin
+
+  //                                             return (
+  //                                                 <motion.div
+  //                                                     key={box.id}
+  //                                                     className="mx-auto absolute bg-white rounded-2xl  flex items-center justify-center w-full h-[68vh]"
+  //                                                     style={{
+  //                                                         zIndex,
+  //                                                         backgroundImage: `url(${box.bg})`,
+  //                                                         backgroundSize: "cover",
+  //                                                         backgroundPosition: "center",
+  //                                                     }}
+  //                                                     animate={animate}
+  //                                                     initial={false}
+  //                                                     transition={{ duration: 0.8, ease: "easeInOut" }}
+  //                                                 >
+  //                                                     <div
+  //                                                         className={[
+  //                                                             "p-6 rounded-lg absolute inset-0 transition-opacity duration-300",
+  //                                                             hideInner ? "opacity-0 pointer-events-none" : "opacity-100",
+  //                                                         ].join(" ")}
+  //                                                     >
+  //                                                         <h3 className="text-[40px] font-normal mt-[-10px] mb-4 max-[1550px]:text-[34px]" style={{ color: box.titleColor }}>
+  //                                                             {box.title}
+  //                                                         </h3>
+  //                                                         <p className="text-[21px] font-light max-w-5xl" style={{ color: box.descColor }}>
+  //                                                             {box.description}
+  //                                                         </p>
+  //                                                     </div>
+  //                                                 </motion.div>
+  //                                             );
+  //                                         })}
+  //                                     </div>
+  //                                 </div>
+  //                             </motion.div>
+  //                         );
+  //                     })()
+
+  //                 )}
+  //             </AnimatePresence>
+  //         </div>
+  //     </motion.section>
+  // );
   const HighlightSection = (
     <motion.section
       key="highlight"
@@ -382,26 +916,46 @@ const Home: React.FC = () => {
               transition={{ duration: 0.6, ease: 'easeInOut' }}
             >
               <div className="text-center">
-                <div className="flex gap-2 justify-center items-center">
+                <div className="flex gap-6 justify-center items-center">
                   <img
                     src={assets.images.hiliteIcon}
                     alt="icon"
-                    className="w-[50px] h-[50px]"
+                    className="w-[138px] h-[134px]"
                   />
-                  <span className="font-normal text-[40px] text-primary">
-                    Highlight
+                  <span className="font-normal text-[6vw] text-primary">
+                    Highlights
                   </span>
                 </div>
+                <AnimatePresence>
+                  {!hideHLBottomImg && (
+                    <motion.div
+                      key="hl-bottom-img"
+                      className="fixed left-0 right-0 bottom-0 z-[5] pointer-events-none select-none px-6"
+                      initial={{ y: 40, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 40, opacity: 0 }}
+                      transition={{ duration: 0.35, ease: 'easeOut' }}
+                    >
+                      <img
+                        src={assets.images.bottomHighlight}
+                        alt="highlight bottom"
+                        className="w-full h-auto max-w-[1220px] mx-auto"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           ) : (
-            // -------- STEP 1: heading left, paragraph hides once currentBox >= 2, slides run here --------
+            // -------- STEP 1 --------
             (() => {
-              // const GAP = 6;                 // space between stacked future slides
-              // const PEEK = 36;                // how much of the future slide peeks
-              // const BOTTOM_2 = -20;             // Tailwind bottom-2 (8px)
-              // const baselineTop = `calc(100% - ${PEEK + BOTTOM_2}px)`;
-              const showParagraph = currentBox === 1; // hide as soon as we move to slide 2
+              const pinned = currentBox >= 2; // slide 2 aate hi neighbors visible/pinned
+              const showParagraph = currentBox === 1; // paragraph only on first slide
+              const REVEAL_NEXT = 135;
+              const TOP_PREV = '0%';
+              const CURRENT_Z = 100;
+              const NEXT_Z = 110;
+              const PREV_Z = 90;
 
               return (
                 <motion.div
@@ -412,29 +966,39 @@ const Home: React.FC = () => {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.5, ease: 'easeInOut' }}
                 >
-                  {/* Header row (left) */}
-                  <div className="px-8 pt-8 flex items-center gap-6 max-[576px]:flex-col">
-                    <div className="flex items-center gap-2 shrink-0">
+                  {/* Header */}
+                  <div className="px-8 pt-8 relative flex justify-start items-center max-[576px]:flex-col">
+                    <motion.div
+                      layout
+                      className={`flex items-center gap-2 shrink-0 ${pinned ? 'absolute left-0 top-20 max-[1550px]:left-4 max-[1550px]:top-20' : ''}`}
+                      initial={false}
+                      animate={{ opacity: 1 }}
+                      transition={{
+                        layout: { duration: 0.4, ease: 'easeInOut' },
+                      }}
+                    >
                       <img
                         src={assets.images.hiliteIcon}
                         alt="icon"
                         className="w-[36px] h-[36px]"
                       />
-                      <h2 className="text-primary font-semibold text-[26px] leading-none">
-                        Highlight
+                      <h2
+                        className={`text-primary font-normal leading-none ${pinned ? 'text-[24px]' : 'text-[26px]'}`}
+                      >
+                        Highlights
                       </h2>
-                    </div>
+                    </motion.div>
 
-                    {/* Paragraph only on first slide of stacked */}
+                    {/* Paragraph — sirf first slide pe */}
                     <AnimatePresence initial={false} mode="wait">
                       {showParagraph && (
                         <motion.p
                           key="hl-paragraph"
-                          className="text-primary/80 text-[16px] font-light leading-snug "
+                          className="text-primary text-[16px] font-light leading-snug pl-[56px]"
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -6 }}
-                          transition={{ duration: 0.3, ease: 'easeOut' }}
+                          transition={{ duration: 0.25, ease: 'easeOut' }}
                         >
                           Rento isn’t just easier to use — it’s simpler to set
                           up, quicker with support and built with the right
@@ -444,80 +1008,15 @@ const Home: React.FC = () => {
                     </AnimatePresence>
                   </div>
 
-                  {/* Slides container lives on the SAME screen */}
+                  {/* Slides */}
                   <div className="px-6 pt-4">
-                    <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden  max-w-[1220px] mx-auto">
-                      {/* {boxes.map((box) => {
-                                                let animate: Record<string, string | number> = {};
-                                                let zIndex = 0;
-
-                                                if (box.id < currentBox) {
-                                                    // past slides: stack slightly up
-                                                    animate = { top: 10, left: "50%", x: "-50%", y: 0, scale: 0.92 };
-                                                    zIndex = box.id;
-                                                } else if (box.id === currentBox) {
-                                                    // active centered
-                                                    animate = { top: "50%", left: "50%", x: "-50%", y: "-50%", scale: 0.96 };
-                                                    zIndex = 100;
-                                                } else {
-                                                    // future slides:
-                                                    // - baseline near bottom with bottom-2 spacing
-                                                    // - NEXT (order===1) stays at baseline (y=0) so it DOES NOT stick to current
-                                                    // - deeper futures lift up by GAP per level
-                                                    const order = box.id - currentBox; // 1 = next, 2,3...
-                                                    const yLift = order === 1 ? 0 : -(order - 1) * GAP;
-
-                                                    animate = { top: baselineTop, left: "50%", x: "-50%", y: yLift, scale: 1 };
-                                                    zIndex = box.id;
-                                                }
-
-                                                return (
-                                                    <motion.div
-                                                        key={box.id}
-                                                        className="mx-auto absolute bg-white rounded-2xl shadow-2xl flex items-center justify-center max-w-[92vw] w-full h-[78vh]"
-                                                        style={{
-                                                            zIndex,
-                                                            backgroundImage: `url(${box.bg})`,
-                                                            backgroundSize: "cover",
-                                                            backgroundPosition: "center",
-                                                        }}
-                                                        animate={animate}
-                                                        initial={false}
-                                                        transition={{ duration: 0.8, ease: "easeInOut" }}
-                                                    >
-                                                        <div className="p-6 rounded-lg absolute inset-0">
-                                                            <h3 className="text-[40px] font-normal mb-4" style={{ color: box.titleColor }}>
-                                                                {box.title}
-                                                            </h3>
-                                                            <p className="text-[21px] font-light max-w-5xl" style={{ color: box.descColor }}>
-                                                                {box.description}
-                                                            </p>
-                                                        </div>
-                                                    </motion.div>
-                                                );
-                                            })} */}
+                    <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden max-w-[1220px] mx-auto max-[1600px]:h-[calc(100vh-60px)] max-[1550px]:max-w-[1100px]">
                       {boxes.map((box) => {
-                        const REVEAL = 100; // bottom-[30px] pe next slide ki tail
-                        const CURRENT_Z = 100;
-                        const NEXT_Z = 110;
-
                         let animate: Record<string, string | number> = {};
                         let zIndex = 0;
+                        const order = box.id - currentBox; // 0=current, 1=next, -1=prev
 
-                        const order = box.id - currentBox; // 0 = current, 1 = next, 2+ = future
-
-                        if (box.id < currentBox) {
-                          // Past slides: thoda upar stack
-                          animate = {
-                            top: 10,
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 0.92,
-                          };
-                          zIndex = box.id; // lower z
-                        } else if (order === 0) {
-                          // Current slide: center
+                        if (order === 0) {
                           animate = {
                             top: '50%',
                             left: '50%',
@@ -525,36 +1024,73 @@ const Home: React.FC = () => {
                             y: '-50%',
                             scale: 0.96,
                           };
-                          zIndex = CURRENT_Z; // e.g., z-1 in your naming
+                          zIndex = CURRENT_Z;
+                        } else if (order === -1) {
+                          animate = {
+                            top: TOP_PREV,
+                            left: '50%',
+                            x: '-50%',
+                            y: 0,
+                            scale: 0.92,
+                          };
+                          zIndex = PREV_Z;
+                        } else if (order < -1) {
+                          animate = {
+                            top: '-140px',
+                            left: '50%',
+                            x: '-50%',
+                            y: 0,
+                            scale: 0.9,
+                          };
+                          zIndex = box.id;
                         } else if (order === 1) {
-                          // Next slide: sirf tail dikhani — container ke bottom se 30px upar
                           animate = {
-                            top: `calc(100% - ${REVEAL}px)`,
+                            top: `calc(100% - ${REVEAL_NEXT}px)`,
                             left: '50%',
                             x: '-50%',
                             y: 0,
                             scale: 1,
                           };
-                          zIndex = NEXT_Z; // e.g., z-11 (current se upar layer)
+                          zIndex = NEXT_Z;
                         } else {
-                          // Future slides: viewport ke niche push kar do (bilkul na dikhay)
                           animate = {
-                            top: 'calc(100% + 120px)',
+                            top: 'calc(100% + 140px)',
                             left: '50%',
                             x: '-50%',
                             y: 0,
                             scale: 1,
                           };
-                          zIndex = box.id; // doesn’t matter much, they’re hidden
+                          zIndex = box.id;
                         }
 
-                        // content hide rule: next & future slides ka content invisible
-                        const hideInner = order >= 1;
+                        // pehle se jo deep slides hide ho rahe thay — same
+                        const hideInner =
+                          order >= 2 || order <= -2 || (order === 1 && !pinned);
+
+                        // ---- NEW: content visibility rules ----
+                        const isCurrent = order === 0;
+                        const isPrev = order === -1;
+                        const isNext = order === 1;
+
+                        // NEXT description rule:
+                        // slide 2 ke baad (pinned === true), next slide ki description hide
+                        const showDescription =
+                          !hideInner &&
+                          (isCurrent ||
+                            isPrev || // prev pe description allow (agar tumhe prev pe bhi sirf title chahiye ho to isPrev hata do)
+                            (isNext && !pinned)); // next pe sirf tab jab pinned false ho (i.e., slide 1)
+
+                        const showTitle =
+                          !hideInner && (isCurrent || isPrev || isNext);
+
+                        // ---- NEW: 4th slide height 100% jab woh current ho ----
+                        const cardHeightClass =
+                          isCurrent && box.id === 4 ? 'h-[70vh]' : 'h-[68vh]';
 
                         return (
                           <motion.div
                             key={box.id}
-                            className="mx-auto absolute bg-white rounded-2xl shadow-2xl flex items-center justify-center w-full h-[78vh]"
+                            className={`mx-auto absolute bg-white rounded-2xl flex items-center justify-center w-full ${cardHeightClass}`}
                             style={{
                               zIndex,
                               backgroundImage: `url(${box.bg})`,
@@ -573,18 +1109,23 @@ const Home: React.FC = () => {
                                   : 'opacity-100',
                               ].join(' ')}
                             >
-                              <h3
-                                className="text-[40px] font-normal mb-4"
-                                style={{ color: box.titleColor }}
-                              >
-                                {box.title}
-                              </h3>
-                              <p
-                                className="text-[21px] font-light max-w-5xl"
-                                style={{ color: box.descColor }}
-                              >
-                                {box.description}
-                              </p>
+                              {showTitle && (
+                                <h3
+                                  className="text-[40px] font-normal mt-[-7px] mb-4 max-[1550px]:text-[34px]"
+                                  style={{ color: box.titleColor }}
+                                >
+                                  {box.title}
+                                </h3>
+                              )}
+
+                              {showDescription && (
+                                <p
+                                  className="text-[21px] font-light max-w-5xl max-[1600px]:text-[18px]"
+                                  style={{ color: box.descColor }}
+                                >
+                                  {box.description}
+                                </p>
+                              )}
                             </div>
                           </motion.div>
                         );
@@ -953,10 +1494,11 @@ const Home: React.FC = () => {
             Why Choose Us?
           </h2>
           <ul className="px-5 list-disc text-left text-primary text-[28px] font-normal leading-normal space-y-3 max-[1024px]:text-[24px] max-w-[600px] min-[1400px]:max-w-[800px] marker:text-[#242460]">
-            <li>Fast and reliable property management tools</li>
-            <li>Secure payment integrations for rent collection</li>
-            <li>Responsive customer support for landlords and tenants</li>
-            <li>Comprehensive reporting and analytics</li>
+            <li>Built for Kuwait’s property market</li>
+            <li>Supports Arabic & English</li>
+            <li>Transparent, easy-to-use dashboards</li>
+            <li>Secure payments with bank-grade protection</li>
+            <li>Save time, cut costs, and improve relationships</li>
           </ul>
         </div>
 
@@ -1333,9 +1875,9 @@ const Home: React.FC = () => {
                   <img
                     src={assets.images.howorkIcon}
                     alt="icon"
-                    className="w-[50px] h-[50px]"
+                    className="w-[138px] h-[134px]"
                   />
-                  <span className="font-normal text-[40px] text-primary">
+                  <span className="font-normal text-[6vw] text-primary">
                     How It Works
                   </span>
                 </div>
@@ -1386,14 +1928,35 @@ const Home: React.FC = () => {
                   </span>
                 </span>
               </motion.p>
+              <AnimatePresence>
+                {!hideHowBottomImg && (
+                  <motion.div
+                    key="hl-bottom-img"
+                    className="fixed left-0 right-0 bottom-0 z-[5] pointer-events-none select-none px-6"
+                    initial={{ y: 40, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 40, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                  >
+                    <img
+                      src={assets.images.bottomWorks}
+                      alt="how it bottom"
+                      className="w-full h-auto max-w-[1220px] mx-auto"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           ) : (
-            // -------- STEP 2: slides start (same flow as before) --------
+            // HOW IT WORKS — now mirrors STEP 1 (Highlights) logic
             (() => {
-              const REVEAL = 100; // next slide tail show
+              const pinned = replicaBox >= 2; // slide 2 aate hi neighbors visible/pinned
+              const showParagraph = replicaBox === 1; // paragraph only on first slide
+              const REVEAL_NEXT = 135;
+              const TOP_PREV = '0%';
               const CURRENT_Z = 100;
               const NEXT_Z = 110;
-              const showParagraph = replicaBox === 1; // paragraph only on first slide
+              const PREV_Z = 90;
 
               return (
                 <motion.div
@@ -1404,28 +1967,42 @@ const Home: React.FC = () => {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.5, ease: 'easeInOut' }}
                 >
-                  {/* Header row (left) — heading stays, paragraph appears only on first slide */}
-                  <div className="px-8 pt-8 flex items-center gap-6 max-[576px]:flex-col">
-                    <div className="flex items-center gap-2 shrink-0">
+                  {/* Header — pin like step 1, styling same as your How It Works */}
+                  <div className="px-8 pt-8 relative flex items-center gap-6 max-[576px]:flex-col">
+                    <motion.div
+                      layout
+                      className={`flex items-center gap-2 shrink-0 ${
+                        pinned
+                          ? 'absolute left-[-50px] top-20 max-[1550px]:left-4 max-[1550px]:top-20'
+                          : ''
+                      }`}
+                      initial={false}
+                      animate={{ opacity: 1 }}
+                      transition={{
+                        layout: { duration: 0.4, ease: 'easeInOut' },
+                      }}
+                    >
                       <img
                         src={assets.images.howorkIcon}
                         alt="icon"
                         className="w-[36px] h-[36px]"
                       />
-                      <h2 className="text-primary font-semibold text-[26px] leading-none">
+                      <h2
+                        className={`text-primary font-semibold leading-none ${pinned ? 'text-[24px]' : 'text-[26px]'}`}
+                      >
                         How It Works
                       </h2>
-                    </div>
+                    </motion.div>
 
                     <AnimatePresence initial={false} mode="wait">
                       {showParagraph && (
                         <motion.p
                           key="how-paragraph"
-                          className="text-primary/80 text-[16px] font-light leading-snug "
+                          className="text-primary text-[16px] font-light leading-snug pl-[56px]"
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -6 }}
-                          transition={{ duration: 0.3, ease: 'easeOut' }}
+                          transition={{ duration: 0.25, ease: 'easeOut' }}
                         >
                           Our platform is built for landlords, managers, and
                           tenants four smart portals, tailored for every role.
@@ -1434,24 +2011,16 @@ const Home: React.FC = () => {
                     </AnimatePresence>
                   </div>
 
-                  {/* Slides container (in-place, same behavior) */}
+                  {/* Slides — same behavior as step 1 */}
                   <div className="px-6 pt-4">
-                    <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden max-w-[1220px] mx-auto">
+                    <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden max-w-[1220px] mx-auto max-[1600px]:h-[calc(100vh-60px)] max-[1550px]:max-w-[1100px]">
                       {repboxes.map((box) => {
                         let animate: Record<string, string | number> = {};
                         let zIndex = 0;
-                        const order = box.id - replicaBox; // 0=current, 1=next, 2+=future
+                        const order = box.id - replicaBox; // 0=current, 1=next, -1=prev
 
-                        if (box.id < replicaBox) {
-                          animate = {
-                            top: 10,
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 0.92,
-                          };
-                          zIndex = box.id;
-                        } else if (order === 0) {
+                        if (order === 0) {
+                          // current centered
                           animate = {
                             top: '50%',
                             left: '50%',
@@ -1460,9 +2029,30 @@ const Home: React.FC = () => {
                             scale: 0.96,
                           };
                           zIndex = CURRENT_Z;
-                        } else if (order === 1) {
+                        } else if (order === -1) {
+                          // prev at top, visible
                           animate = {
-                            top: `calc(100% - ${REVEAL}px)`,
+                            top: TOP_PREV,
+                            left: '50%',
+                            x: '-50%',
+                            y: 0,
+                            scale: 0.92,
+                          };
+                          zIndex = PREV_Z;
+                        } else if (order < -1) {
+                          // older prev (hide further up)
+                          animate = {
+                            top: '-140px',
+                            left: '50%',
+                            x: '-50%',
+                            y: 0,
+                            scale: 0.9,
+                          };
+                          zIndex = box.id;
+                        } else if (order === 1) {
+                          // next tail reveal
+                          animate = {
+                            top: `calc(100% - ${REVEAL_NEXT}px)`,
                             left: '50%',
                             x: '-50%',
                             y: 0,
@@ -1470,8 +2060,9 @@ const Home: React.FC = () => {
                           };
                           zIndex = NEXT_Z;
                         } else {
+                          // future > next (keep below)
                           animate = {
-                            top: 'calc(100% + 120px)',
+                            top: 'calc(100% + 140px)',
                             left: '50%',
                             x: '-50%',
                             y: 0,
@@ -1480,12 +2071,30 @@ const Home: React.FC = () => {
                           zIndex = box.id;
                         }
 
-                        const hideInner = order >= 1;
+                        // deep slides hidden; next hidden before pin (exactly like step 1)
+                        const hideInner =
+                          order >= 2 || order <= -2 || (order === 1 && !pinned);
+
+                        const isCurrent = order === 0;
+                        const isPrev = order === -1;
+                        const isNext = order === 1;
+
+                        // next desc/bullets hide after slide 2 (pinned === true)
+                        const showTitle =
+                          !hideInner && (isCurrent || isPrev || isNext);
+                        const showDescription =
+                          !hideInner &&
+                          (isCurrent || isPrev || (isNext && !pinned));
+                        const showBullets = showDescription; // bullets follow description rule
+
+                        // 4th slide height tweak (same as your step 1)
+                        const cardHeightClass =
+                          isCurrent && box.id === 4 ? 'h-[70vh]' : 'h-[68vh]';
 
                         return (
                           <motion.div
                             key={box.id}
-                            className="mx-auto absolute bg-white rounded-2xl shadow-2xl flex items-center justify-center w-full h-[78vh]"
+                            className={`mx-auto absolute bg-white rounded-2xl  flex items-center justify-center w-full ${cardHeightClass}`}
                             style={{
                               zIndex,
                               backgroundImage: `url(${box.bg})`,
@@ -1504,21 +2113,25 @@ const Home: React.FC = () => {
                                   : 'opacity-100',
                               ].join(' ')}
                             >
-                              <h3
-                                className="text-[40px] font-normal mb-1"
-                                style={{ color: box.titleColor }}
-                              >
-                                {box.title}
-                              </h3>
-                              {box.description && (
+                              {showTitle && (
+                                <h3
+                                  className="text-[40px] font-normal mb-1 max-[1550px]:text-[34px]"
+                                  style={{ color: box.titleColor }}
+                                >
+                                  {box.title}
+                                </h3>
+                              )}
+
+                              {showDescription && box.description && (
                                 <p
-                                  className="text-[21px] font-light max-w-5xl"
+                                  className="text-[21px] font-light max-w-5xl max-[1600px]:text-[18px]"
                                   style={{ color: box.descColor }}
                                 >
                                   {box.description}
                                 </p>
                               )}
-                              {!!box.bullets?.length && (
+
+                              {showBullets && !!box.bullets?.length && (
                                 <ul className="list-disc pl-4 space-y-2 mt-5">
                                   {box.bullets.map((bullet, idx) => (
                                     <li
@@ -1631,34 +2244,86 @@ const Home: React.FC = () => {
       exit={{ y: '-100%' }}
       transition={{ duration: 0.8, ease: 'easeInOut' }}
     >
-      <div className="w-full h-full relative flex items-center justify-center ">
+      <div className="w-full h-full relative flex items-center justify-center price-step">
         <AnimatePresence mode="wait">
+          {/* {pricingStep === 0 && (
+                                <motion.h2
+                                    key="pricing-step0"
+                                    className="text-[#DFF4EC] font-medium absolute"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{
+                                        top: "50%",
+                                        left: "50%",
+                                        x: "-50%",
+                                        y: "-50%",
+                                        fontSize: "96px",
+                                        opacity: 1,
+                                        scale: 1,
+                                    }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                                >
+                                    <div className="flex justify-center gap-3">
+                                        <img src={assets.images.priceIcon} alt="icon" className="w-[135px] h-[135px]" />
+                                        Pricing
+                                    </div>
+
+                                       <div className="flex justify-center gap-3 mt-4 max-w-[1220px] mx-auto  absolute  bottom-0 left-0 right-0">
+                                        <img src={assets.images.bottomPrice} alt="banner" className="w-full max-w-full h-full"/>
+                                    </div>
+
+                                 
+                                </motion.h2>
+                                
+                            )} */}
           {pricingStep === 0 && (
-            <motion.h2
-              key="pricing-step0"
-              className="text-[#DFF4EC] font-medium absolute"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{
-                top: '50%',
-                left: '50%',
-                x: '-50%',
-                y: '-50%',
-                fontSize: '96px',
-                opacity: 1,
-                scale: 1,
-              }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.8, ease: 'easeInOut' }}
-            >
-              <div className="flex justify-center gap-3">
-                <img
-                  src={assets.images.priceIcon}
-                  alt="icon"
-                  className="w-[135px] h-[135px]"
-                />
-                Pricing
-              </div>
-            </motion.h2>
+            <>
+              <motion.h2
+                key="pricing-step0"
+                className="text-[#DFF4EC] font-medium absolute"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  top: '50%',
+                  left: '50%',
+                  x: '-50%',
+                  y: '-50%',
+                  fontSize: '96px',
+                  opacity: 1,
+                  scale: 1,
+                }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.8, ease: 'easeInOut' }}
+              >
+                <div className="flex justify-center gap-3">
+                  <img
+                    src={assets.images.priceIcon}
+                    alt="icon"
+                    className="w-[135px] h-[135px]"
+                  />
+                  Pricing
+                </div>
+              </motion.h2>
+
+              {/* 👇 Fixed bottom banner (hides on first scroll) */}
+              <AnimatePresence>
+                {!hideBottomImg && (
+                  <motion.div
+                    key="pricing-bottom-img"
+                    className="fixed left-0 right-0 bottom-0 z-[5] pointer-events-none select-none px-6"
+                    initial={{ y: 40, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 40, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                  >
+                    <img
+                      src={assets.images.bottomPrice}
+                      alt="banner"
+                      className="w-full h-auto max-w-[1220px] mx-auto"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
           )}
 
           {pricingStep === 1 && (
@@ -1838,7 +2503,7 @@ const Home: React.FC = () => {
     >
       {/* Heading: Slide from top */}
       <motion.h2
-        className="text-primary font-normal absolute top-30  left-1/2 -translate-x-1/2 text-[70px] mb-3 leading-normal text-center max-[1540px]:top-10 max-[1350px]:text-[50px] min-w-full"
+        className="text-primary font-normal top-10  left-1/2 -translate-x-1/2 text-[70px] mb-3 leading-normal text-center max-[1540px]:top-5 max-[1350px]:text-[50px] min-w-full"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -100, opacity: 0 }}
@@ -1849,7 +2514,7 @@ const Home: React.FC = () => {
 
       {/* Content Box: Slide from bottom */}
       <motion.div
-        className="w-[90%] max-w-[1200px] bg-white pt-1 pb-9 rounded-3xl px-5 mt-24 max-[1260px]:bg-[#DFF4EC] max-[1260px]:shadow-2xl"
+        className="w-[95%] max-w-[1840px] bg-white pt-1 pb-9 rounded-3xl px-5 mt-24 max-[1260px]:bg-[#DFF4EC] max-[1260px]:shadow-2xl"
         initial={{ y: 300, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 300, opacity: 0 }}
@@ -1932,7 +2597,7 @@ const Home: React.FC = () => {
         </div>
 
         <ul className="flex justify-between items-start  text-primary text-[14px] pb-3">
-          <li className="flex items-center gap-2">
+          <li className="flex items-center gap-2 text-primary">
             <img
               src={assets.images.locationIcon}
               alt="icon"
@@ -1940,7 +2605,7 @@ const Home: React.FC = () => {
             />{' '}
             Kuwait
           </li>
-          <li className="flex items-center gap-2">
+          <li className="flex items-center gap-2 text-primary">
             <img
               src={assets.images.phoneIcon}
               alt="icon"
@@ -1948,7 +2613,7 @@ const Home: React.FC = () => {
             />{' '}
             +965 94051232
           </li>
-          <li className="flex items-center gap-2">
+          <li className="flex items-center gap-2 text-primary">
             <img
               src={assets.images.mailIcon}
               alt="icon"
@@ -1960,6 +2625,7 @@ const Home: React.FC = () => {
       </motion.div>
     </motion.section>
   );
+
   //    footer section
 
   const FooterSection = (
@@ -2033,7 +2699,7 @@ const Home: React.FC = () => {
               </ul>
             </div>
 
-            <div className="flex justify-between items-center max-[768px]:flex-col max-[768px]:gap-5">
+            <div className="flex justify-start items-center max-[768px]:flex-col max-[768px]:gap-5">
               <ul className="flex flex-col gap-2 text-white text-[14px]">
                 <li className="flex items-center gap-2">
                   <img
@@ -2060,19 +2726,31 @@ const Home: React.FC = () => {
                   aljaser@rento.online
                 </li>
               </ul>
+              {/* <div className="flex gap-4 max-[768px]:mt-5">
+                                <Link to="/privacy" className="text-white/50 text-[16px]">Privacy Policy</Link>
+                                <Link to="/terms" className="text-white/50 text-[16px]">Terms & Conditions</Link>
+                            </div> */}
+            </div>
+
+            <div className="flex justify-between items-center">
               <div className="flex gap-4 max-[768px]:mt-5">
-                <Link to="/privacy" className="text-white/50 text-[16px]">
+                <Link
+                  to="/privacy"
+                  className="text-white/50 text-[16px] hover:text-white"
+                >
                   Privacy Policy
                 </Link>
-                <Link to="/terms" className="text-white/50 text-[16px]">
+                <Link
+                  to="/terms"
+                  className="text-white/50 text-[16px]  hover:text-white"
+                >
                   Terms & Conditions
                 </Link>
               </div>
+              <p className="text-white/50 text-[16px] text-center mt-5">
+                Copyright © 2025 Rento. All rights reserved.
+              </p>
             </div>
-
-            <p className="text-white/50 text-[16px] text-center mt-5">
-              Copyright © 2025 Rento. All rights reserved.
-            </p>
           </div>
           {/* Scroll to Top Button */}
           <button
@@ -2080,7 +2758,7 @@ const Home: React.FC = () => {
               setIndex(0);
               setShowFooter(false);
             }}
-            className="cursor-pointer absolute bottom-4 right-5 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold w-[45px] h-[40px] flex justify-center items-center   rounded-lg shadow-lg transition-all duration-300"
+            className="cursor-pointer absolute bottom-5 right-5 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold w-[45px] h-[40px] flex justify-center items-center   rounded-lg shadow-lg transition-all duration-300"
           >
             <img
               src={assets.images.upIcon}
