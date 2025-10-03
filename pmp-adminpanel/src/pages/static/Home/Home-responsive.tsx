@@ -5,13 +5,85 @@ import Footer from '@/components/Static/Footer';
 import Header from '@/components/Static/Header';
 import MobileSlider from '@/components/Static/Slider/MobileSlider';
 import PortalSlider from '@/components/Static/Slider/PortalSlider';
+import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import contact from '@/services/adminapp/static';
+import { cn } from '@/lib/utils';
+import { Loader } from 'lucide-react';
+
+interface ContactFields {
+  email: string;
+  phone: string;
+  message: string; // <-- fixed (was "messsage")
+  fname: string;
+  lname: string;
+  agree: boolean;
+}
 
 const HomeResponsive = () => {
   const [isToggled, setIsToggled] = useState(true);
+  const [isLoader, setIsLoader] = useState(false);
+  const { toast } = useToast();
 
   const handleToggle = () => {
     setIsToggled(!isToggled);
   };
+
+  const ToastHandler = (text: string, color = 'red') =>
+    toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+      ),
+      style: { backgroundColor: color, color: 'white' },
+    });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    getValues,
+  } = useForm<ContactFields>({
+    defaultValues: {
+      email: '',
+      phone: '',
+      message: '',
+      fname: '',
+      lname: '',
+      agree: false,
+    },
+    mode: 'onBlur',
+  });
+
+  const onSubmit = async (data: any) => {
+    setIsLoader(true);
+    try {
+      const res = await contact.contactService({
+        email: data.email,
+        phone: data.phone,
+        fname: data.fname,
+        lname: data.lname,
+        message: data.message,
+      });
+      console.log(res);
+
+      if (res?.data?.success) {
+        setIsLoader(false);
+        ToastHandler(res.data.message, 'green');
+        reset(); // clear the form
+      } else {
+        setIsLoader(false);
+        ToastHandler(res?.data?.message || 'Something went wrong');
+      }
+    } catch (e: any) {
+      setIsLoader(false);
+      ToastHandler(e?.message || 'Unexpected error');
+    } finally {
+      setIsLoader(false);
+    }
+  };
+
   return (
     <div className=" overflow-auto">
       <div className="w-full home-bg  h-screen relative">
@@ -345,62 +417,154 @@ const HomeResponsive = () => {
       </div>
 
       {/* contact */}
-      <div className="my-10 p-5">
-        <h3 className="text-center text-[28px] leading-tight text-primary font-normal mb-6">
-          We're here to help.
-        </h3>
-        <div className=" p-3 rounded-md">
-          {/* First Name */}
-          <div className="mb-4">
-            <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
-              Name
-            </label>
-            <input
-              type="text"
-              placeholder="Rashid Hamad"
-              className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <div className="my-10 p-5">
+          <h3 className="text-center text-[28px] leading-tight text-primary font-normal mb-6">
+            We're here to help.
+          </h3>
+
+          <div className=" p-3 rounded-md">
+            {/* Name (mapped to hidden fname/lname) */}
+            <div className="mb-4">
+              <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
+                Name
+              </label>
+              <input
+                type="text"
+                placeholder="Rashid Hamad"
+                className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                {...register('fullName', {
+                  required: 'Name is required.',
+                  minLength: {
+                    value: 2,
+                    message: 'Please enter a valid name.',
+                  },
+                  onChange: (e) => {
+                    const v = (e?.target?.value || '').trim();
+                    const parts = v.split(/\s+/);
+                    const first = parts[0] || '';
+                    const last = parts.slice(1).join(' ') || '';
+                    // keep fname/lname in sync for your submit payload
+                    setValue('fname', first, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                    setValue('lname', last, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                  },
+                })}
+                aria-invalid={!!errors.fullName}
+              />
+              {errors.fullName && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.fullName.message}
+                </p>
+              )}
+              {/* Hidden fields to satisfy your onSubmit payload */}
+              <input type="hidden" {...register('fname')} />
+              <input type="hidden" {...register('lname')} />
+            </div>
+
+            {/* Email */}
+            <div className="mb-4">
+              <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="Faisal Khamees"
+                className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                {...register('email', {
+                  required: 'Email is required.',
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i,
+                    message: 'Please enter a valid email address.',
+                  },
+                })}
+                aria-invalid={!!errors.email}
+              />
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* Phone */}
+            <div className="mb-4">
+              <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
+                Phone No.
+              </label>
+              <input
+                type="tel"
+                placeholder="+971527992240"
+                className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                {...register('phone', {
+                  required: 'Phone is required.',
+                  validate: (v) =>
+                    /^(?:\+?\d{1,3})?\d{7,14}$/.test(
+                      (v || '').replace(/[^\d+]/g, '')
+                    ) || 'Please enter a valid phone number.',
+                })}
+                aria-invalid={!!errors.phone}
+              />
+              {errors.phone && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.phone.message}
+                </p>
+              )}
+            </div>
+
+            {/* Message */}
+            <div className="mb-4">
+              <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
+                Message
+              </label>
+              <textarea
+                rows={4}
+                placeholder="write a message"
+                className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                {...register('message', {
+                  required: 'Message is required.',
+                  minLength: {
+                    value: 10,
+                    message: 'Message must be at least 10 characters.',
+                  },
+                  maxLength: {
+                    value: 2000,
+                    message: 'Message is too long (max 2000 characters).',
+                  },
+                })}
+                aria-invalid={!!errors.message}
+              />
+              {errors.message && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.message.message}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00D494] to-[#00B5E2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
+            >
+              {isLoader ? (
+                <div className="flex items-center justify-center">
+                  <Loader />
+                </div>
+              ) : (
+                'Submit'
+              )}
+            </button>
           </div>
 
-          {/* Email */}
-          <div className="mb-4">
-            <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              placeholder="Faisal Khamees"
-              className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
-              Phone No.
-            </label>
-            <input
-              type="tel"
-              placeholder="+971527992240"
-              className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          {/* Message */}
-          <div className="mb-4">
-            <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
-              Message
-            </label>
-            <textarea
-              rows={4}
-              placeholder="write a message"
-              className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            ></textarea>
+          <div className=" ">
+            <img src={assets.images.phoneBanner} alt="banner" />
           </div>
         </div>
-        <div className=" ">
-          <img src={assets.images.phoneBanner} alt="banner" />
-        </div>
-      </div>
+      </form>
 
       <Footer />
     </div>
