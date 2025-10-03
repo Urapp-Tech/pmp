@@ -43,15 +43,14 @@ const defaultPlans: Plan[] = [
     code: 'building',
     name: 'Building',
     description:
-      'A bold structure built for purpose and scale—where design meets ambition in every floor.',
+      '',
     currency: 'KD',
     monthlyPrice: 40,
     annualPrice: 40,
     features: [
-      'Post unlimited building listings',
-      'Highlighted placement for better reach',
-      'Dedicated support assistance',
-      'Advanced property analytics & insights',
+      'Post One Property Each package.',
+      'Option to add high-quality photos/videos',
+      'Easy property management dashboard',
     ],
   },
   {
@@ -59,15 +58,14 @@ const defaultPlans: Plan[] = [
     code: 'villa_house',
     name: 'Villa/House',
     description:
-      'A personal sanctuary wrapped in style and space, crafted for comfort and character.',
+      '',
     currency: 'KD',
     monthlyPrice: 20,
     annualPrice: 20,
     features: [
-      'Post up to 5 house/villa listings',
-      'Priority in search results',
+      'Post One Property Each package.',
       'Option to add high-quality photos/videos',
-      'Promote your property with “Featured” tag',
+      'Easy property management dashboard',
     ],
   },
   {
@@ -75,14 +73,13 @@ const defaultPlans: Plan[] = [
     code: 'apartment',
     name: 'Apartment',
     description:
-      'Smart living stacked with convenience—urban rhythm in a compact, curated shell.',
+      '',
     currency: 'KD',
     monthlyPrice: 10,
     annualPrice: 10,
     features: [
-      'Post up to 3 apartment listings',
-      'Standard placement in search results',
-      'Photo uploads included',
+      'Post One Property Each package.',
+      'Option to add high-quality photos/videos',
       'Easy property management dashboard',
     ],
   },
@@ -708,7 +705,7 @@ const Home: React.FC = () => {
                         className="w-[36px] h-[36px]"
                       />
                       <h2
-                        className={`text-primary font-normal leading-none ${pinned ? 'text-[24px]' : 'text-[26px]'}`}
+                        className={`text-primary font-normal leading-none   ${pinned ? 'text-[24px] max-[1380px]:hidden max-[1550px]:text-[18px]' : 'text-[26px]'}`}
                       >
                         Highlights
                       </h2>
@@ -815,7 +812,7 @@ const Home: React.FC = () => {
                         return (
                           <motion.div
                             key={box.id}
-                            className={`mx-auto absolute bg-white rounded-2xl flex items-center justify-center w-full ${cardHeightClass}`}
+                            className={`mx-auto absolute bg-white rounded-2xl flex items-center justify-center w-full boxes-bg-set ${cardHeightClass}`}
                             style={{
                               zIndex,
                               backgroundImage: `url(${box.bg})`,
@@ -836,7 +833,7 @@ const Home: React.FC = () => {
                             >
                               {showTitle && (
                                 <h3
-                                  className="text-[40px] font-normal mt-[-7px] mb-4 max-[1550px]:text-[34px]"
+                                  className="text-[40px] font-normal mt-[-7px] mb-4 max-[1550px]:text-[34px]  max-[1400px]:text-[26px]"
                                   style={{ color: box.titleColor }}
                                 >
                                   {box.title}
@@ -901,10 +898,10 @@ const Home: React.FC = () => {
     >
       <div className="text-center px-2 w-[96%] h-[90%] bg-[#DFF4EC] relative  rounded-[10px]">
         <div className="absolute top-10 left-10 z-[111]">
-          <h2 className="text-left text-[40px] font-medium text-[#242460] mb-6">
+          <h2 className="text-left text-[40px] font-medium text-[#242460] mb-6 max-[1500px]:text-[30px]">
             Why Choose Us?
           </h2>
-          <ul className="px-5 list-disc text-left text-primary text-[28px] font-normal leading-normal space-y-3 max-[1024px]:text-[24px] max-w-[600px] min-[1400px]:max-w-[800px] marker:text-[#242460]">
+          <ul className="px-5 list-disc text-left text-primary text-[28px] font-normal leading-normal space-y-3 max-[1500px]:text-[24px] max-[1024px]:text-[24px] max-w-[600px] min-[1400px]:max-w-[800px] marker:text-[#242460]">
             <li>Built for Kuwait’s property market</li>
             <li>Supports Arabic & English</li>
             <li>Transparent, easy-to-use dashboards</li>
@@ -917,7 +914,7 @@ const Home: React.FC = () => {
           <img
             src={assets.images.whyBanner}
             alt="banner"
-            className="object-contain w-full h-full object-right max-[1260px]:opacity-35"
+            className="w-full h-full  object-fill max-[1260px]:opacity-35"
           />
         </div>
       </div>
@@ -1063,7 +1060,7 @@ const Home: React.FC = () => {
                         className="w-[36px] h-[36px]"
                       />
                       <h2
-                        className={`text-primary font-semibold leading-none ${pinned ? 'text-[24px]' : 'text-[26px]'}`}
+                        className={`text-primary font-semibold leading-none ${pinned ? 'text-[24px]  max-[1380px]:hidden max-[1550px]:text-[18px]' : 'text-[26px]'}`}
                       >
                         How It Works
                       </h2>
@@ -1169,7 +1166,7 @@ const Home: React.FC = () => {
                         return (
                           <motion.div
                             key={box.id}
-                            className={`mx-auto absolute bg-white rounded-2xl  flex items-center justify-center w-full ${cardHeightClass}`}
+                            className={`mx-auto absolute bg-white rounded-2xl  flex items-center justify-center repboxes-bg-set w-full ${cardHeightClass}`}
                             style={{
                               zIndex,
                               backgroundImage: `url(${box.bg})`,
@@ -1190,7 +1187,7 @@ const Home: React.FC = () => {
                             >
                               {showTitle && (
                                 <h3
-                                  className="text-[40px] font-normal mb-1 max-[1550px]:text-[34px]"
+                                  className="text-[40px] font-normal mb-1 max-[1550px]:text-[34px]  max-[1400px]:text-[26px]"
                                   style={{ color: box.titleColor }}
                                 >
                                   {box.title}
@@ -1268,18 +1265,18 @@ const Home: React.FC = () => {
     >
       <div className="text-center px-2 w-[96%] h-[90%] bg-primary relative rounded-[10px]">
         <div className="absolute top-10 left-10 z-[111] max-w-[890px] pr-3">
-          <h2 className="text-left text-[40px] font-medium text-[#DFF4EC] mb-6 max-[1440px]:text-[30px]">
+          <h2 className="text-left text-[40px] font-medium text-[#DFF4EC] mb-6 max-[1550px]:text-[30px]">
             At Rento, we believe property management should be simple, smart,
             and stress-free.
           </h2>
-          <p className="text-left text-[24px] font-light text-[#DFF4EC] mb-4 max-[1260px]:text-[20px]">
+          <p className="text-left text-[24px] font-light text-[#DFF4EC] mb-4 max-[1550px]:text-[20px]">
             We built Rento to empower landlords, property managers, and tenants
             with a modern platform that brings everything into one easy-to-use
             solution. From managing properties and tenants to tracking payments,
             sending invoices, and keeping records secure, Rento keeps you in
             control with just a few clicks.
           </p>
-          <p className="text-left text-[24px] font-light text-[#DFF4EC] mb-4 max-[1260px]:text-[20px]">
+          <p className="text-left text-[24px] font-light text-[#DFF4EC] mb-4 max-[1550px]:text-[20px]">
             Our mission is to transform the rental experience in Kuwait by
             combining technology, transparency, and trust. Whether you own a
             single villa or manage a large portfolio of buildings, Rento is
@@ -1298,7 +1295,7 @@ const Home: React.FC = () => {
           </button>
         </div>
 
-        <div className="absolute bottom-0 right-0 z-[1] max-w-[750px] max-[1440px]:opacity-50">
+        <div className="absolute bottom-0 right-0 z-[1] max-w-[750px] max-[1550px]:max-w-[550px] max-[1440px]:opacity-50">
           <img
             src={assets.images.aboutFixtwo}
             alt="banner"
@@ -1429,7 +1426,7 @@ const Home: React.FC = () => {
                     </div>
                   </div>
 
-                  <p className="text-[18px] font-light text-[#DFF4EC] mt-[-10px] leading-snug">
+                  <p className="text-[18px] font-light text-[#DFF4EC] mt-[-25px] leading-snug">
                     Simple pricing. No hidden fees. Pay only for the properties
                     you manage.
                   </p>
@@ -1439,7 +1436,7 @@ const Home: React.FC = () => {
               {/* Cards container */}
               <motion.div
                 key="pricing-cards"
-                className="absolute bottom-5 w-full max-[1540px]:h-[83vh] max-[1540px]:bottom-0"
+                className="absolute bottom-0 w-full  overflow-auto "
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: '100%', opacity: 0 }}
@@ -1454,11 +1451,11 @@ const Home: React.FC = () => {
                     plans.slice(0, 3).map((p) => (
                       <div key={p.id} className="flex-1 min-w-[280px] h-full">
                         <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
-                          <div className="space-y-4 mb-8">
-                            <h2 className="text-[36px] font-medium group-hover:text-white">
+                          <div className="space-y-4 mb-8 max-[1550px]:mb-3">
+                            <h2 className="text-[36px] font-medium group-hover:text-white max-[1550px]:text-[28px]">
                               {p.name}
                             </h2>
-                            <h1 className="text-[64px] font-medium tracking-tight group-hover:text-white">
+                            <h1 className="text-[64px] font-medium tracking-tight leading-tight group-hover:text-white max-[1550px]:text-[36px]">
                               {priceFor(p)}
                               {p.currency}
                             </h1>
@@ -1467,7 +1464,7 @@ const Home: React.FC = () => {
                             </p>
                           </div>
 
-                          <ul className="space-y-4 mb-8">
+                          <ul className="space-y-4 mb-8 max-[1550px]:hidden">
                             {(p.features?.length
                               ? p.features
                               : defaultPlans.find((d) => d.code === p.code)
@@ -1488,7 +1485,7 @@ const Home: React.FC = () => {
                             {p.description ||
                               defaultPlans.find((d) => d.code === p.code)
                                 ?.description ||
-                              'Flexible plan tailored for property managers and landlords.'}
+                              ''}
                           </p>
 
                           <button
@@ -1503,7 +1500,7 @@ const Home: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex justify-between gap-6 items-center flex-wrap max-w-[1200px] mx-auto mt-5">
+                <div className="flex justify-between gap-6 items-center flex-wrap max-w-[1200px] mx-auto my-3 px-2">
                   <p className="text-[18px] font-light text-[#DFF4EC] leading-snug">
                     Simple pricing. No hidden fees. Pay only for the properties
                     you manage.
@@ -1536,7 +1533,7 @@ const Home: React.FC = () => {
     >
       {/* Heading: Slide from top */}
       <motion.h2
-        className="text-primary font-normal top-10  left-1/2 -translate-x-1/2 text-[70px] mb-3 leading-normal text-center max-[1540px]:top-5 max-[1350px]:text-[50px] min-w-full"
+        className="text-primary font-normal top-10  left-1/2 -translate-x-1/2 text-[70px] mb-4 leading-normal text-center max-[1540px]:top-5 max-[1440px]:text-[30px] min-w-full"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -100, opacity: 0 }}
@@ -1546,7 +1543,7 @@ const Home: React.FC = () => {
       </motion.h2>
       {/* Content Box: Slide from bottom */}
       <motion.div
-        className="w-[95%] max-w-[1840px] bg-white pt-1 pb-9 rounded-3xl px-5 mt-15 max-[1260px]:bg-[#DFF4EC] max-[1260px]:shadow-2xl"
+        className="w-[95%] max-w-[1840px] bg-white pt-2 pb-4 rounded-3xl px-5 mt-15 max-[1260px]:bg-[#DFF4EC] max-[1260px]:shadow-2xl"
         initial={{ y: 300, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 300, opacity: 0 }}
@@ -1798,7 +1795,7 @@ const Home: React.FC = () => {
             <img
               src={assets.images.footerBanner}
               alt="banner"
-              className="w-full  h-[45vh]  object-contain object-bottom max-[1540px]:h-[250px]"
+              className="w-full  h-[45vh]  object-contain object-bottom foter-ban"
             />
           </div>
         </div>
