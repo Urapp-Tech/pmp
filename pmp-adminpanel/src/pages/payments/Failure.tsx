@@ -1,7 +1,9 @@
 import assets from '@/assets/images';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router';
 
 export default function FailurePage() {
+  const navigate = useNavigate();
   return (
     <div className="w-full">
       <div className="m-auto">
@@ -26,7 +28,7 @@ export default function FailurePage() {
               className="btn-black-fill w-full p-0 py-2 text-quinary-bg bg-primary-bg/75 h-[60px] text-[16px] font-semibold rounded-[20px]"
               color="inherit"
               title="Login"
-              type="submit"
+              onClick={() => navigate(-1)}
             >
               Try Again
             </Button>
