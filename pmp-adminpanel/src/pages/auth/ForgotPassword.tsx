@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 import {
@@ -33,6 +33,7 @@ interface LoginFields {
 
 const ForgotPassword = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const form = useForm<LoginFields>();
   const dispatch = useAppDispatch();
 
@@ -61,21 +62,18 @@ const ForgotPassword = () => {
     formState: { errors },
   } = form;
 
-  const loginHandler = async (data: LoginFields) => {
+  const submitHandler = async (data: LoginFields) => {
     setIsLoader(true);
     const userData = {
       email: data.email.trim().replace(/\s+/g, ''),
-      password: data.password,
     };
-
     try {
-      const user = await authService.loginService(userData);
-
+      const user = await authService.forgetPassword(userData);
       if (user.data.success) {
+        console.log(user.data.data);
+
         setIsLoader(false);
-        const { tenantConfig, ...rest } = user.data.data;
-        dispatch(login(rest));
-        dispatch(setShopTenantState(tenantConfig));
+        navigate('/otp');
         // (optional) remember me handling (persist on your side if needed)
       } else {
         ToastHandler(user.data.message);
@@ -137,7 +135,10 @@ const ForgotPassword = () => {
             </div>
 
             <Form {...form}>
-              <form onSubmit={handleSubmit(loginHandler)} className="space-y-5">
+              <form
+                onSubmit={handleSubmit(submitHandler)}
+                className="space-y-5"
+              >
                 {/* Email */}
                 <FormItem>
                   <FormLabel className="text-base font-medium text-primary-bg">

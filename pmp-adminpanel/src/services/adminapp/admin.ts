@@ -2,11 +2,19 @@ import { BACKOFFICE_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
 
 const USERS = 'users';
+const LANDLORD_USERS = 'landlord-users';
 
 const loginService = (userData: { email: string; password: string }) => {
   return network.post(`${USERS}/login`, userData);
 };
-const signupService = (userData: {fname: string; lname: string; gender: string;phone: string; email: string; password: string }) => {
+const signupService = (userData: {
+  fname: string;
+  lname: string;
+  gender: string;
+  phone: string;
+  email: string;
+  password: string;
+}) => {
   return network.post(`landlord-users/create`, userData);
 };
 
@@ -46,6 +54,14 @@ const getLandlordProfile = (
   return network.get(`users/landlords/${landlordId}/profile`, params || {});
 };
 
+const forgetPassword = (userData: { email: string }) => {
+  return network.post(`${LANDLORD_USERS}/email/verification`, userData);
+};
+
+const verifyOTP = (userData: { email: any; otp: any }) => {
+  return network.post(`${LANDLORD_USERS}/email/verification`, userData);
+};
+
 export default {
   loginService,
   systemConfig,
@@ -54,4 +70,6 @@ export default {
   managerActivity,
   tenantActivity,
   getLandlordProfile,
+  forgetPassword,
+  verifyOTP,
 };

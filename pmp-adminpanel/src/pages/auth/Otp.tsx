@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
 import {
@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 import assets from '@/assets/images';
+import { A } from 'node_modules/framer-motion/dist/types.d-DsEeKk6G';
 
 const otpKeys = ['otp1', 'otp2', 'otp3', 'otp4'] as const;
 type OtpKey = (typeof otpKeys)[number];
@@ -37,18 +38,12 @@ interface OtpFields {
 }
 
 const Otp = () => {
+  const { state } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const form = useForm<OtpFields>({
     defaultValues: { otp1: '', otp2: '', otp3: '', otp4: '' },
   });
-  const dispatch = useAppDispatch();
-
-  // keep your existing config pulls
-  const localSysConfig: any = getItem('SYSTEM_CONFIG');
-  const systemConfig = useSelector(
-    (state: any) => state.authState.systemConfig
-  );
 
   const ToastHandler = (text: string) =>
     toast({
@@ -113,41 +108,19 @@ const Otp = () => {
       setIsLoader(false);
       return ToastHandler('Please enter the 4-digit code.');
     }
-
+    const userData: any = {
+      email: state.email.trim().replace(/\s+/g, ''),
+      code,
+    };
     try {
-      // try common method names; fall back to a local success if none exist
-      let res: any = null;
-      const anySvc: any = authService as any;
-
-      if (anySvc.verifyOtpService) {
-        res = await anySvc.verifyOtpService({ code });
-      } else if (anySvc.verifyOtp) {
-        res = await anySvc.verifyOtp({ code });
-      } else {
-        // fallback: pretend success (remove this once your API is wired)
-        res = {
-          data: {
-            success: true,
-            message: 'Verified',
-            data: { tenantConfig: {}, user: {} },
-          },
-        };
-      }
-
-      if (res?.data?.success) {
-        // if your API returns user + tenant like login, preserve your flow:
-        const { tenantConfig, ...rest } = res.data.data || {};
-        if (rest) dispatch(login(rest));
-        if (tenantConfig) dispatch(setShopTenantState(tenantConfig));
-
-        toast({ description: 'Code verified successfully.' });
+      // try common method names; fall back to a local success if none exis
+      const otp = await authService.verifyOTP(userData);
+      if (otp?.data?.success) {
         setIsLoader(false);
-
-        // go to next step (set new password)
-        // adjust route if different in your app:
+        toast({ description: 'Code verified successfully.' });
         navigate('../new-password', { replace: true });
       } else {
-        ToastHandler(res?.data?.message || 'Invalid code, please try again.');
+        ToastHandler(otp?.data?.message || 'Invalid code, please try again.');
         setIsLoader(false);
       }
     } catch (err: any) {
