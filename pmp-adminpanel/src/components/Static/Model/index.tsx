@@ -82,13 +82,6 @@ const SelectedPlanModal = ({
       } else {
         ToastHandler('Payment link not found please try again');
       }
-      // res?.data?.payment_link
-      // if (res?.data?.success) {
-      //   ToastHandler(res.data.message || 'Request submitted!', 'green');
-      //   onClose();
-      // } else {
-      //   ToastHandler(res?.data?.message || 'Something went wrong');
-      // }
     } catch (e: any) {
       ToastHandler(e?.message || 'Unexpected error');
     } finally {
@@ -97,7 +90,7 @@ const SelectedPlanModal = ({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
+    <div className="fixed overflow-y-auto inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
       <div className="bg-white w-full max-w-4xl rounded-2xl shadow-lg p-6 md:p-10 flex flex-col md:flex-row gap-6 relative">
         {/* Close Button */}
         <button

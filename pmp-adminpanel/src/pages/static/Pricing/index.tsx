@@ -7,9 +7,7 @@ import SelectedPlanModal from '@/components/Static/Model'; // keep your alias/pa
 import plan from '@/services/adminapp/static';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { getItem } from '@/utils/storage';
-import { useAppDispatch, useAppSelector } from '@/redux/redux-hooks';
-// import { useRouter } from '';
+import { useSelector } from 'react-redux';
 
 type BillingCycle = 'annual' | 'monthly';
 
@@ -78,9 +76,7 @@ const defaultPlans: Plan[] = [
 
 const Pricing = () => {
   const navigate = useNavigate();
-  const user: any = getItem('USER');
-  const dispatch = useAppDispatch();
-  console.log(user, 'user');
+  const authState: any = useSelector((state: any) => state.authState);
 
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -248,7 +244,7 @@ const Pricing = () => {
                   <button
                     className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
                     onClick={() => {
-                      if (!user) {
+                      if (!authState.user) {
                         navigate('/admin-panel/auth/login'); // 🔹 login page redirect
                       } else {
                         openSubscribe(p);

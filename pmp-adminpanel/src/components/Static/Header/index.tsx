@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import assets from '@/assets/images';
-import { getItem } from '@/utils/storage';
+import { useSelector } from 'react-redux';
 
 type Props = {
   customClass?: string;
 };
 
 export default function Header({ customClass }: Props) {
-  const user: any = getItem('USER');
+  const authState: any = useSelector((state: any) => state.authState);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLogin, setIsLogin] = useState(false);
   useEffect(() => {
-    if (!user) {
+    if (!authState.user) {
       setIsLogin(true);
     }
-  })
+  });
   return (
     <header
       className={`absolute top-0 z-[111] w-full py-4 bg-neutral-400/20 backdrop-blur-[5px] ${
@@ -26,7 +26,7 @@ export default function Header({ customClass }: Props) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/home">
+            <Link to="/">
               <img
                 src={assets.images.darklogo}
                 alt="Logo"
@@ -123,7 +123,10 @@ export default function Header({ customClass }: Props) {
                 </Link>
               </li>
               <li>
-                <Link to="/login" className="text-primary hover:underline">
+                <Link
+                  to="/admin-panel/auth/login"
+                  className="text-primary hover:underline"
+                >
                   Login
                 </Link>
               </li>

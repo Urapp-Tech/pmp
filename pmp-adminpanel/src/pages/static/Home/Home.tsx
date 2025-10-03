@@ -1,12 +1,83 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-// import { Link } from "react-router-dom";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // ⬅️ add useNavigate
 import assets from '@/assets/images';
 import Header from '@/components/Static/Header';
 import HomeResponsive from './Home-responsive';
 
+// ⬇️ add these
+import SelectedPlanModal from '@/components/Static/Model';
+import plan from '@/services/adminapp/static';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { useSelector } from 'react-redux';
+type BillingCycle = 'annual' | 'monthly';
+
+type Plan = {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  currency: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  features?: string[];
+};
+
+const defaultPlans: Plan[] = [
+  {
+    id: 'building',
+    code: 'building',
+    name: 'Building',
+    description:
+      'A bold structure built for purpose and scale—where design meets ambition in every floor.',
+    currency: 'KD',
+    monthlyPrice: 40,
+    annualPrice: 40,
+    features: [
+      'Post unlimited building listings',
+      'Highlighted placement for better reach',
+      'Dedicated support assistance',
+      'Advanced property analytics & insights',
+    ],
+  },
+  {
+    id: 'villa_house',
+    code: 'villa_house',
+    name: 'Villa/House',
+    description:
+      'A personal sanctuary wrapped in style and space, crafted for comfort and character.',
+    currency: 'KD',
+    monthlyPrice: 20,
+    annualPrice: 20,
+    features: [
+      'Post up to 5 house/villa listings',
+      'Priority in search results',
+      'Option to add high-quality photos/videos',
+      'Promote your property with “Featured” tag',
+    ],
+  },
+  {
+    id: 'apartment',
+    code: 'apartment',
+    name: 'Apartment',
+    description:
+      'Smart living stacked with convenience—urban rhythm in a compact, curated shell.',
+    currency: 'KD',
+    monthlyPrice: 10,
+    annualPrice: 10,
+    features: [
+      'Post up to 3 apartment listings',
+      'Standard placement in search results',
+      'Photo uploads included',
+      'Easy property management dashboard',
+    ],
+  },
+];
+
 const Home: React.FC = () => {
+  const authState: any = useSelector((state: any) => state.authState);
+
   const [index, setIndex] = useState(0); // 0 = Hero, 1 = Stacked, 2 = Partner, 3 = WhyChoose
   const [currentBox, setCurrentBox] = useState(1); // active box (1–4)
   const [howStep, setHowStep] = useState(0); // 0 = heading center, 1 = heading top + text center
@@ -20,6 +91,22 @@ const Home: React.FC = () => {
   const [hideBottomImg, setHideBottomImg] = useState(false);
   const [hideHLBottomImg, setHideHLBottomImg] = useState(false);
   const [hideHowBottomImg, setHideHowBottomImg] = useState(false);
+  // ... aapke existing states ke baad:
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual');
+  const [plans, setPlans] = useState<Plan[]>(defaultPlans);
+  const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const navigate = useNavigate();
+
+  const { toast } = useToast();
+  const ToastHandler = (text: string, color = 'red') =>
+    toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+      ),
+      style: { backgroundColor: color, color: 'white' },
+    });
   const boxes = [
     {
       id: 1,
@@ -122,9 +209,62 @@ const Home: React.FC = () => {
   const SCROLL_COOLDOWN = 700; // ms (tweak if needed)
   // const isMobile=1;
   // const [lastScrollY, setLastScrollY] = useState(0);
+  //   const handleToggle = () => {
+  //     setIsToggled(!isToggled);
+  //   };
   const handleToggle = () => {
-    setIsToggled(!isToggled);
+    setBillingCycle((prev) => (prev === 'annual' ? 'monthly' : 'annual'));
   };
+
+  const cycleNote = useMemo(
+    () =>
+      billingCycle === 'annual'
+        ? '/property per month (billed annually)'
+        : '/property per month',
+    [billingCycle]
+  );
+
+  const priceFor = (p: Plan) =>
+    billingCycle === 'annual' ? p.annualPrice : p.monthlyPrice;
+
+  const openSubscribe = (p: Plan) => {
+    if (!authState.user) {
+      navigate('/admin-panel/auth/login');
+      return;
+    }
+    setSelectedPlan(p);
+    setIsModalOpen(true);
+  };
+
+  const nameKey = (s: string) => (s || '').trim().toLowerCase();
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await plan.planService(); // GET subscriptions/list
+        if (!mounted) return;
+        const items = res?.data?.items ?? res?.data?.plans ?? res?.data ?? [];
+        const map: Record<string, string> = {};
+        (Array.isArray(items) ? items : []).forEach((it: any) => {
+          const nm = (it?.plan_name ?? '').toString();
+          const id = it?.id != null ? String(it.id) : '';
+          if (nm && id) map[nameKey(nm)] = id;
+        });
+        setPlans(
+          defaultPlans.map((p) => ({ ...p, id: map[nameKey(p.name)] ?? p.id }))
+        );
+      } catch {
+        setPlans(defaultPlans);
+      } finally {
+        setLoadingPlans(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
@@ -140,360 +280,6 @@ const Home: React.FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // useEffect(() => {
-  //     const handleWheel = (e: WheelEvent) => {
-  //         e.preventDefault();
-
-  //         if (wheelLockRef.current) return;
-  //         wheelLockRef.current = true;
-
-  //         const delta = e.deltaY > 0 ? 1 : -1;
-  //         const unlock = () => setTimeout(() => { wheelLockRef.current = false; }, SCROLL_COOLDOWN);
-
-  //         // ---------- Footer locked mode ----------
-  //         if (showFooter) {
-  //             if (delta < 0) {
-  //                 // scroll up blocked
-  //             }
-  //             unlock();
-  //             return;
-  //         }
-
-  //         // ---------- Normal scroll logic ----------
-  //         if (delta > 0) { // scroll down
-  //             switch (index) {
-  //                 case 0:
-  //                     setIndex(1); // Hero → Highlight (Step 0)
-  //                     break;
-
-  //                 case 1: {
-  //                     // Highlight PPT-style
-  //                     if (howStep === 0) {
-  //                         setHowStep(1); // start slides
-  //                     } else {
-  //                         if (currentBox < TOTAL_HIGHLIGHT) setCurrentBox(p => Math.min(TOTAL_HIGHLIGHT, p + 1));
-  //                         else setIndex(3); // to Partner
-  //                     }
-  //                     break;
-  //                 }
-
-  //                 case 3:
-  //                     setIndex(4); // Partner → WhyChoose
-  //                     break;
-
-  //                 case 4:
-  //                     // WhyChoose → How (reset how sequence)
-  //                     setHowStep(0);
-  //                     setReplicaBox(1);
-  //                     setIndex(5);
-  //                     break;
-
-  //                 // case 5:
-  //                 //     // How PPT-style
-  //                 //     if (howStep === 0) {
-  //                 //         setHowStep(1);
-  //                 //     } else {
-  //                 //         if (replicaBox < TOTAL_REPLICA) setReplicaBox(p => Math.min(TOTAL_REPLICA, p + 1));
-  //                 //         else setIndex(7);
-  //                 //     }
-  //                 //     break;
-  //                 case 5:
-  //                     if (howStep === 0) setHowStep(1);
-  //                     else if (howStep === 1) setHowStep(2);
-  //                     else {
-  //                         if (replicaBox < TOTAL_REPLICA) setReplicaBox(p => Math.min(TOTAL_REPLICA, p + 1));
-  //                         else setIndex(7);
-  //                     }
-  //                     break;
-
-  //                 case 7: setIndex(8); break;
-  //                 case 8: setIndex(9); break;
-
-  //                 case 9:
-  //                     if (pricingStep === 0) setPricingStep(1);
-  //                     else setIndex(10);
-  //                     break;
-
-  //                 case 10:
-  //                     setShowFooter(true);
-  //                     break;
-
-  //                 default: break;
-  //             }
-  //         } else { // scroll up
-  //             switch (index) {
-  //                 case 1: {
-  //                     // Highlight reverse
-  //                     if (howStep === 1) {
-  //                         if (currentBox > 1) setCurrentBox(p => Math.max(1, p - 1));
-  //                         else setHowStep(0);
-  //                     } else {
-  //                         setIndex(0);
-  //                     }
-  //                     break;
-  //                 }
-
-  //                 case 3:
-  //                     // back into Highlight with slides completed (to walk back)
-  //                     setIndex(1);
-  //                     setHowStep(1);
-  //                     setCurrentBox(TOTAL_HIGHLIGHT);
-  //                     break;
-
-  //                 case 4:
-  //                     setIndex(3);
-  //                     break;
-
-  //                 // case 5:
-  //                 //     // How reverse
-  //                 //     if (howStep === 1) {
-  //                 //         if (replicaBox > 1) setReplicaBox(p => Math.max(1, p - 1));
-  //                 //         else setHowStep(0);
-  //                 //     } else {
-  //                 //         setIndex(4);
-  //                 //     }
-  //                 //     break;
-  //                 case 5:
-  //                     if (howStep === 2) {
-  //                         if (replicaBox > 1) setReplicaBox(p => Math.max(1, p - 1));
-  //                         else setHowStep(1);
-  //                     } else if (howStep === 1) {
-  //                         setHowStep(0);
-  //                     } else {
-  //                         setIndex(4);
-  //                     }
-  //                     break;
-
-  //                 case 7:
-  //                     if (newPartnerBox > 1) {
-  //                         setNewPartnerBox(p => p - 1);
-  //                     } else {
-  //                         setIndex(5);
-  //                         setHowStep(1);
-  //                         setReplicaBox(TOTAL_REPLICA);
-  //                     }
-  //                     break;
-
-  //                 case 8:
-  //                     if (newAboutBox > 1) setNewAboutBox(p => p - 1);
-  //                     else { setIndex(7); setNewPartnerBox(4); }
-  //                     break;
-
-  //                 case 9:
-  //                     if (pricingStep === 1) setPricingStep(0);
-  //                     else setIndex(8);
-  //                     break;
-
-  //                 case 10:
-  //                     setIndex(9);
-  //                     break;
-
-  //                 default: break;
-  //             }
-  //         }
-
-  //         unlock();
-  //     };
-
-  //     window.addEventListener("wheel", handleWheel, { passive: false });
-  //     return () => window.removeEventListener("wheel", handleWheel);
-  // }, [
-  //     index,
-  //     currentBox,
-  //     replicaBox,
-  //     howStep,
-  //     newPartnerBox,
-  //     newAboutBox,
-  //     pricingStep,
-  //     showFooter,
-  //     TOTAL_HIGHLIGHT,
-  //     TOTAL_REPLICA,
-  // ]);
-
-  // ✅ Add this at component top
-  // const [hideBottomImg, setHideBottomImg] = useState(false);
-
-  // useEffect(() => {
-  //     const handleWheel = (e: WheelEvent) => {
-  //         e.preventDefault();
-
-  //         if (wheelLockRef.current) return;
-  //         wheelLockRef.current = true;
-
-  //         const delta = e.deltaY > 0 ? 1 : -1;
-  //         const unlock = () =>
-  //             setTimeout(() => {
-  //                 wheelLockRef.current = false;
-  //             }, SCROLL_COOLDOWN);
-
-  //         // ---------- Footer locked mode ----------
-  //         if (showFooter) {
-  //             if (delta < 0) {
-  //                 // scroll up blocked
-  //             }
-  //             unlock();
-  //             return;
-  //         }
-
-  //         // 👇 While on Pricing step-0, any wheel should hide the bottom image immediately
-  //         if (index === 9 && pricingStep === 0) {
-  //             setHideBottomImg(true);
-  //         }
-
-  //         // ---------- Normal scroll logic ----------
-  //         if (delta > 0) {
-  //             // scroll down
-  //             switch (index) {
-  //                 case 0:
-  //                     setIndex(1); // Hero → Highlight (Step 0)
-  //                     break;
-
-  //                 case 1: {
-  //                     // Highlight PPT-style
-  //                     if (howStep === 0) {
-  //                         setHowStep(1); // start slides
-  //                     } else {
-  //                         if (currentBox < TOTAL_HIGHLIGHT)
-  //                             setCurrentBox((p) => Math.min(TOTAL_HIGHLIGHT, p + 1));
-  //                         else setIndex(3); // to Partner
-  //                     }
-  //                     break;
-  //                 }
-
-  //                 case 3:
-  //                     setIndex(4); // Partner → WhyChoose
-  //                     break;
-
-  //                 case 4:
-  //                     // WhyChoose → How (reset how sequence)
-  //                     setHowStep(0);
-  //                     setReplicaBox(1);
-  //                     setIndex(5);
-  //                     break;
-
-  //                 case 5:
-  //                     if (howStep === 0) setHowStep(1);
-  //                     else if (howStep === 1) setHowStep(2);
-  //                     else {
-  //                         if (replicaBox < TOTAL_REPLICA)
-  //                             setReplicaBox((p) => Math.min(TOTAL_REPLICA, p + 1));
-  //                         else setIndex(7);
-  //                     }
-  //                     break;
-
-  //                 case 7:
-  //                     setIndex(8);
-  //                     break;
-
-  //                 case 8:
-  //                     setIndex(9);          // enter Pricing
-  //                     setHideBottomImg(false); // 👈 show bottom image when entering step-0
-  //                     break;
-
-  //                 case 9:
-  //                     if (pricingStep === 0) setPricingStep(1);
-  //                     else setIndex(10);
-  //                     break;
-
-  //                 case 10:
-  //                     setShowFooter(true);
-  //                     break;
-
-  //                 default:
-  //                     break;
-  //             }
-  //         } else {
-  //             // scroll up
-  //             switch (index) {
-  //                 case 1: {
-  //                     // Highlight reverse
-  //                     if (howStep === 1) {
-  //                         if (currentBox > 1) setCurrentBox((p) => Math.max(1, p - 1));
-  //                         else setHowStep(0);
-  //                     } else {
-  //                         setIndex(0);
-  //                     }
-  //                     break;
-  //                 }
-
-  //                 case 3:
-  //                     // back into Highlight with slides completed (to walk back)
-  //                     setIndex(1);
-  //                     setHowStep(1);
-  //                     setCurrentBox(TOTAL_HIGHLIGHT);
-  //                     break;
-
-  //                 case 4:
-  //                     setIndex(3);
-  //                     break;
-
-  //                 case 5:
-  //                     if (howStep === 2) {
-  //                         if (replicaBox > 1) setReplicaBox((p) => Math.max(1, p - 1));
-  //                         else setHowStep(1);
-  //                     } else if (howStep === 1) {
-  //                         setHowStep(0);
-  //                     } else {
-  //                         setIndex(4);
-  //                     }
-  //                     break;
-
-  //                 case 7:
-  //                     if (newPartnerBox > 1) {
-  //                         setNewPartnerBox((p) => p - 1);
-  //                     } else {
-  //                         setIndex(5);
-  //                         setHowStep(1);
-  //                         setReplicaBox(TOTAL_REPLICA);
-  //                     }
-  //                     break;
-
-  //                 case 8:
-  //                     if (newAboutBox > 1) setNewAboutBox((p) => p - 1);
-  //                     else {
-  //                         setIndex(7);
-  //                         setNewPartnerBox(4);
-  //                     }
-  //                     break;
-
-  //                 case 9:
-  //                     if (pricingStep === 1) {
-  //                         setPricingStep(0);     // back to Pricing step-0
-  //                         setHideBottomImg(false); // 👈 reveal bottom image again
-  //                     } else {
-  //                         setIndex(8);
-  //                     }
-  //                     break;
-
-  //                 case 10:
-  //                     setIndex(9);
-  //                     break;
-
-  //                 default:
-  //                     break;
-  //             }
-  //         }
-
-  //         unlock();
-  //     };
-
-  //     window.addEventListener("wheel", handleWheel, { passive: false });
-  //     return () => window.removeEventListener("wheel", handleWheel);
-  // }, [
-  //     index,
-  //     currentBox,
-  //     replicaBox,
-  //     howStep,
-  //     newPartnerBox,
-  //     newAboutBox,
-  //     pricingStep,
-  //     showFooter,
-  //     TOTAL_HIGHLIGHT,
-  //     TOTAL_REPLICA,
-  //     // no need to add hideBottomImg here; we only set it inside
-  // ]);
-
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -728,172 +514,6 @@ const Home: React.FC = () => {
     </motion.section>
   );
 
-  // highlight section
-
-  // const HighlightSection = (
-  //     <motion.section
-  //         key="highlight"
-  //         className="absolute inset-0 w-full h-screen bg-[#DFF4EC] overflow-hidden"
-  //         initial={{ y: "100%" }}
-  //         animate={{ y: 0 }}
-  //         exit={{ y: "-100%" }}
-  //         transition={{ duration: 0.8, ease: "easeInOut" }}
-  //     >
-  //         <div className="relative w-full h-full max-w-[1537px] mx-auto">
-  //             <AnimatePresence mode="wait">
-  //                 {howStep === 0 ? (
-  //                     // -------- STEP 0: centered heading only --------
-  //                     <motion.div
-  //                         key="hl-center"
-  //                         className="absolute inset-0 flex items-center justify-center"
-  //                         initial={{ opacity: 0, scale: 0.98 }}
-  //                         animate={{ opacity: 1, scale: 1 }}
-  //                         exit={{ opacity: 0, scale: 0.98 }}
-  //                         transition={{ duration: 0.6, ease: "easeInOut" }}
-  //                     >
-  //                         <div className="text-center">
-  //                             <div className="flex gap-2 justify-center items-center">
-  //                                 <img src={assets.images.hiliteIcon} alt="icon" className="w-[138px] h-[134px]" />
-  //                                 <span className="font-normal text-[6vw] text-primary">Highlights</span>
-  //                             </div>
-  //                         </div>
-  //                     </motion.div>
-  //                 ) : (
-  //                     // -------- STEP 1: heading left, paragraph hides once currentBox >= 2, slides run here --------
-  //                     // -------- STEP 1: heading left, paragraph hides once currentBox >= 2, slides run here --------
-  //                     (() => {
-  //                         const pinned = currentBox >= 2;            // slide 2 aate hi heading pin + neighbors visible
-  //                         const showParagraph = currentBox === 1;    // paragraph only on first slide
-  //                         const REVEAL_NEXT = 135;                   // next slide kitna upar dikhana (content visible)
-  //                         const TOP_PREV = "0%";                     // prev slide top se kitna gap (content visible)
-  //                         const CURRENT_Z = 100;
-  //                         const NEXT_Z = 110;
-  //                         const PREV_Z = 90;
-
-  //                         return (
-  //                             <motion.div
-  //                                 key="hl-live"
-  //                                 className="absolute inset-0"
-  //                                 initial={{ opacity: 0, y: -8 }}
-  //                                 animate={{ opacity: 1, y: 0 }}
-  //                                 exit={{ opacity: 0, y: -8 }}
-  //                                 transition={{ duration: 0.5, ease: "easeInOut" }}
-  //                             >
-  //                                 {/* Header area */}
-  //                                 <div className="px-8 pt-8 relative flex justify-start items-center max-[576px]:flex-col">
-  //                                     {/* Heading group → slide 2 par left-0 pe pin with transition */}
-  //                                     <motion.div
-  //                                         layout
-  //                                         className={`flex items-center gap-2 shrink-0 ${pinned ? "absolute left-0 top-20 max-[1550px]:left-4 max-[1550px]:top-20" : ""}`}
-  //                                         initial={false}
-  //                                         animate={{ opacity: 1 }}
-  //                                         transition={{ layout: { duration: 0.4, ease: "easeInOut" } }}
-  //                                     >
-  //                                         <img src={assets.images.hiliteIcon} alt="icon" className="w-[36px] h-[36px]" />
-  //                                         <h2
-  //                                             className={`text-primary font-normal leading-none ${pinned ? "text-[24px]" : "text-[26px]"
-  //                                                 }`}
-  //                                         >
-  //                                             Highlights
-  //                                         </h2>
-  //                                     </motion.div>
-
-  //                                     {/* Paragraph — sirf first slide pe */}
-  //                                     <AnimatePresence initial={false} mode="wait">
-  //                                         {showParagraph && (
-  //                                             <motion.p
-  //                                                 key="hl-paragraph"
-  //                                                 className="text-primary/80 text-[16px] font-light leading-snug pl-[56px]" // thoda heading se offset
-  //                                                 initial={{ opacity: 0, y: 6 }}
-  //                                                 animate={{ opacity: 1, y: 0 }}
-  //                                                 exit={{ opacity: 0, y: -6 }}
-  //                                                 transition={{ duration: 0.25, ease: "easeOut" }}
-  //                                             >
-  //                                                 Rento isn’t just easier to use — it’s simpler to set up, quicker with support and
-  //                                                 built with the right features to grow with you.
-  //                                             </motion.p>
-  //                                         )}
-  //                                     </AnimatePresence>
-  //                                 </div>
-
-  //                                 {/* Slides container (same screen) */}
-  //                                 <div className="px-6 pt-4">
-  //                                     <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden max-w-[1220px] mx-auto max-[1600px]:h-[calc(100vh-60px)]  max-[1550px]:max-w-[1100px]">
-  //                                         {boxes.map((box) => {
-  //                                             let animate: Record<string, string | number> = {};
-  //                                             let zIndex = 0;
-
-  //                                             const order = box.id - currentBox;      // 0=current, 1=next, -1=previous
-
-  //                                             if (order === 0) {
-  //                                                 // current slide centered
-  //                                                 animate = { top: "50%", left: "50%", x: "-50%", y: "-50%", scale: 0.96 };
-  //                                                 zIndex = CURRENT_Z;
-  //                                             } else if (order === -1) {
-  //                                                 // immediate PREVIOUS: bring to top area so content shows
-  //                                                 animate = { top: TOP_PREV, left: "50%", x: "-50%", y: 0, scale: 0.92 };
-  //                                                 zIndex = PREV_Z;
-  //                                             } else if (order < -1) {
-  //                                                 // older previous: push further up (hide)
-  //                                                 animate = { top: "-140px", left: "50%", x: "-50%", y: 0, scale: 0.9 };
-  //                                                 zIndex = box.id;
-  //                                             } else if (order === 1) {
-  //                                                 // NEXT: reveal enough from bottom so content is visible
-  //                                                 animate = { top: `calc(100% - ${REVEAL_NEXT}px)`, left: "50%", x: "-50%", y: 0, scale: 1 };
-  //                                                 zIndex = NEXT_Z;
-  //                                             } else {
-  //                                                 // future > next: keep below viewport
-  //                                                 animate = { top: "calc(100% + 140px)", left: "50%", x: "-50%", y: 0, scale: 1 };
-  //                                                 zIndex = box.id;
-  //                                             }
-
-  //                                             // Content visibility:
-  //                                             // - Before slide 2: next content hidden
-  //                                             // - After slide 2: prev & next content visible
-  //                                             const hideInner =
-  //                                                 order >= 2 || order <= -2 || (order === 1 && !pinned); // hide only deeper slides, and next before pin
-
-  //                                             return (
-  //                                                 <motion.div
-  //                                                     key={box.id}
-  //                                                     className="mx-auto absolute bg-white rounded-2xl  flex items-center justify-center w-full h-[68vh]"
-  //                                                     style={{
-  //                                                         zIndex,
-  //                                                         backgroundImage: `url(${box.bg})`,
-  //                                                         backgroundSize: "cover",
-  //                                                         backgroundPosition: "center",
-  //                                                     }}
-  //                                                     animate={animate}
-  //                                                     initial={false}
-  //                                                     transition={{ duration: 0.8, ease: "easeInOut" }}
-  //                                                 >
-  //                                                     <div
-  //                                                         className={[
-  //                                                             "p-6 rounded-lg absolute inset-0 transition-opacity duration-300",
-  //                                                             hideInner ? "opacity-0 pointer-events-none" : "opacity-100",
-  //                                                         ].join(" ")}
-  //                                                     >
-  //                                                         <h3 className="text-[40px] font-normal mt-[-10px] mb-4 max-[1550px]:text-[34px]" style={{ color: box.titleColor }}>
-  //                                                             {box.title}
-  //                                                         </h3>
-  //                                                         <p className="text-[21px] font-light max-w-5xl" style={{ color: box.descColor }}>
-  //                                                             {box.description}
-  //                                                         </p>
-  //                                                     </div>
-  //                                                 </motion.div>
-  //                                             );
-  //                                         })}
-  //                                     </div>
-  //                                 </div>
-  //                             </motion.div>
-  //                         );
-  //                     })()
-
-  //                 )}
-  //             </AnimatePresence>
-  //         </div>
-  //     </motion.section>
-  // );
   const HighlightSection = (
     <motion.section
       key="highlight"
@@ -1141,320 +761,6 @@ const Home: React.FC = () => {
     </motion.section>
   );
 
-  // const HighlightSection = (
-  //   <motion.section
-  //     key="highlight"
-  //     className="absolute inset-0 w-full h-screen bg-[#DFF4EC] overflow-hidden"
-  //     initial={{ y: "100%" }}
-  //     animate={{ y: 0 }}
-  //     exit={{ y: "-100%" }}
-  //     transition={{ duration: 0.8, ease: "easeInOut" }}
-  //   >
-  //     <div className="relative w-full h-full">
-  //       <AnimatePresence mode="wait">
-  //         {howStep === 0 ? (
-  //           // -------- STEP 0: centered heading only --------
-  //           <motion.div
-  //             key="hl-center"
-  //             className="absolute inset-0 flex items-center justify-center"
-  //             initial={{ opacity: 0, scale: 0.98 }}
-  //             animate={{ opacity: 1, scale: 1 }}
-  //             exit={{ opacity: 0, scale: 0.98 }}
-  //             transition={{ duration: 0.6, ease: "easeInOut" }}
-  //           >
-  //             <div className="text-center">
-  //               <div className="flex gap-2 justify-center items-center">
-  //                 <img src={assets.images.hiliteIcon} alt="icon" className="w-[50px] h-[50px]" />
-  //                 <span className="font-normal text-[40px] text-primary">Highlight</span>
-  //               </div>
-  //             </div>
-  //           </motion.div>
-  //         ) : (
-  //           // -------- STEP 1: slide-in-place + responsive compact mode when currentBox >=2 --------
-  //           (() => {
-  //             const GAP = 6;             // space between future slides
-  //             const PEEK = 36;           // how much of the next slide peeks from bottom
-  //             const BOTTOM_PX = 8;       // = bottom-2
-  //             const baselineTop = `calc(100% - ${PEEK + BOTTOM_PX}px)`;
-
-  //             const isCompact = howStep === 1 && currentBox >= 2;   // 👈 slide 2 se compact row
-  //             const showParagraph = !isCompact && currentBox === 1; // only on first slide
-
-  //             return (
-  //               <motion.div
-  //                 key={isCompact ? "hl-compact" : "hl-live"}
-  //                 className="absolute inset-0"
-  //                 initial={{ opacity: 0, y: -8 }}
-  //                 animate={{ opacity: 1, y: 0 }}
-  //                 exit={{ opacity: 0, y: -8 }}
-  //                 transition={{ duration: 0.5, ease: "easeInOut" }}
-  //               >
-  //                 {/* Wrap everything in a centered max-width container */}
-  //                 <div className="px-6 pt-6">
-  //                   <div
-  //                     className={
-  //                       "mx-auto max-w-[1220px] " +
-  //                       (isCompact ? "flex items-start gap-6" : "")
-  //                     }
-  //                   >
-  //                     {/* Heading (left) */}
-  //                     <div className={"shrink-0 " + (isCompact ? "pt-2" : "")}>
-  //                       <div className="flex items-center gap-2">
-  //                         <img src={assets.images.hiliteIcon} alt="icon" className={isCompact ? "w-[36px] h-[36px]" : "w-[40px] h-[40px]"} />
-  //                         <h2 className={"text-primary font-semibold leading-none " + (isCompact ? "text-[26px]" : "text-[28px]")}>
-  //                           Highlight
-  //                         </h2>
-  //                       </div>
-
-  //                       {/* Paragraph only on first slide; hides exactly when slide changes */}
-  //                       <AnimatePresence initial={false} mode="wait">
-  //                         {showParagraph && (
-  //                           <motion.p
-  //                             key="hl-paragraph"
-  //                             className="mt-3 text-primary/80 text-[16px] font-light leading-snug max-w-[900px]"
-  //                             initial={{ opacity: 0, y: 6 }}
-  //                             animate={{ opacity: 1, y: 0 }}
-  //                             exit={{ opacity: 0, y: -6 }}
-  //                             transition={{ duration: 0.25, ease: "easeOut" }}
-  //                           >
-  //                             Rento isn’t just easier to use — it’s simpler to set up, quicker
-  //                             with support,{" "}
-  //                             <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
-  //                               and built with the right features to grow with you.
-  //                             </span>
-  //                           </motion.p>
-  //                         )}
-  //                       </AnimatePresence>
-  //                     </div>
-
-  //                     {/* Slides (right in compact; below in expanded) */}
-  //                     <div className={isCompact ? "flex-1" : "mt-5 w-full"}>
-  //                       <div className="relative w-full h-[calc(100vh-140px)] overflow-hidden rounded-2xl">
-  //                         {boxes.map((box) => {
-  //                           let animate: Record<string, string | number> = {};
-  //                           let zIndex = 0;
-
-  //                           if (box.id < currentBox) {
-  //                             // past slides: stack to top a bit
-  //                             animate = { top: 10, left: "50%", x: "-50%", y: 0, scale: 0.92 };
-  //                             zIndex = box.id;
-  //                           } else if (box.id === currentBox) {
-  //                             // active centered
-  //                             animate = { top: "50%", left: "50%", x: "-50%", y: "-50%", scale: 0.96 };
-  //                             zIndex = 100;
-  //                           } else {
-  //                             // future slides: bottom baseline + spacing
-  //                             const order = box.id - currentBox; // 1 = next
-  //                             const yLift = order === 1 ? 0 : -(order - 1) * GAP;
-  //                             animate = { top: baselineTop, left: "50%", x: "-50%", y: yLift, scale: 1 };
-  //                             zIndex = box.id;
-  //                           }
-
-  //                           return (
-  //                             <motion.div
-  //                               key={box.id}
-  //                               className="mx-auto absolute bg-white rounded-2xl shadow-2xl flex items-center justify-center w-full h-[78vh]"
-  //                               style={{
-  //                                 zIndex,
-  //                                 backgroundImage: `url(${box.bg})`,
-  //                                 backgroundSize: "cover",
-  //                                 backgroundPosition: "center",
-  //                               }}
-  //                               animate={animate}
-  //                               initial={false}
-  //                               transition={{ duration: 0.8, ease: "easeInOut" }}
-  //                             >
-  //                               <div className="p-6 rounded-lg absolute inset-0">
-  //                                 <h3 className="text-[40px] font-normal mb-4" style={{ color: box.titleColor }}>
-  //                                   {box.title}
-  //                                 </h3>
-  //                                 <p className="text-[21px] font-light max-w-5xl" style={{ color: box.descColor }}>
-  //                                   {box.description}
-  //                                 </p>
-  //                               </div>
-  //                             </motion.div>
-  //                           );
-  //                         })}
-  //                       </div>
-  //                     </div>
-  //                   </div>
-  //                 </div>
-  //               </motion.div>
-  //             );
-  //           })()
-  //         )}
-  //       </AnimatePresence>
-  //     </div>
-  //   </motion.section>
-  // );
-
-  // const HighlightSection = (
-  //     <motion.section
-  //         key="highlight"
-  //         className="absolute inset-0 w-full h-screen bg-[#DFF4EC] overflow-hidden"
-  //         initial={{ y: "100%" }}
-  //         animate={{ y: 0 }}
-  //         exit={{ y: "-100%" }}
-  //         transition={{ duration: 0.8, ease: "easeInOut" }}
-  //     >
-  //         <div className="relative w-full h-full">
-  //             <AnimatePresence mode="wait">
-  //                 {howStep === 0 ? (
-  //                     // -------- STEP 0: centered heading only --------
-  //                     <motion.div
-  //                         key="hl-center"
-  //                         className="absolute inset-0 flex items-center justify-center"
-  //                         initial={{ opacity: 0, scale: 0.98 }}
-  //                         animate={{ opacity: 1, scale: 1 }}
-  //                         exit={{ opacity: 0, scale: 0.98 }}
-  //                         transition={{ duration: 0.6, ease: "easeInOut" }}
-  //                     >
-  //                         <div className="text-center">
-  //                             <div className="flex gap-2 justify-center items-center">
-  //                                 <img src={assets.images.hiliteIcon} alt="icon" className="w-[50px] h-[50px]" />
-  //                                 <span className="font-normal text-[40px] text-primary">Highlight</span>
-  //                             </div>
-  //                         </div>
-  //                     </motion.div>
-  //                 ) : (
-  //                     // -------- STEP 1: same screen — slide 2 par compact row (heading + slides inline) --------
-  //                     (() => {
-  //                         const GAP = 6;              // space between future slides
-  //                         const PEEK = 36;            // how much of next slide peeks
-  //                         const BOTTOM_PX = 8;        // bottom-2
-  //                         const baselineTop = `calc(100% - ${PEEK + BOTTOM_PX}px)`;
-
-  //                         const isCompact = howStep === 1 && currentBox >= 2;   // 👈 slide 2 se row layout
-  //                         const showParagraph = !isCompact && currentBox === 1; // paragraph only on slide 1
-
-  //                         return (
-  //                             <motion.div
-  //                                 key="hl-live"
-  //                                 className="absolute inset-0"
-  //                                 initial={{ opacity: 0, y: -6 }}
-  //                                 animate={{ opacity: 1, y: 0 }}
-  //                                 exit={{ opacity: 0, y: -6 }}
-  //                                 transition={{ duration: 0.4, ease: "easeInOut" }}
-  //                             >
-  //                                 {/* Centered container with responsive ROW when compact */}
-  //                                 <div className="px-6 pt-6">
-  //                                     <div
-  //                                         className={[
-  //                                             "mx-auto max-w-[1220px] grid gap-6 transition-all duration-300",
-  //                                             "items-start",               // vertical center for row layout
-  //                                             "grid-cols-12",               // always 12-col grid
-  //                                         ].join(" ")}
-  //                                     >
-  //                                         {/* Heading + (optional) paragraph */}
-  //                                         <div
-  //                                             className={[
-  //                                                 "transition-all duration-300",
-  //                                                 isCompact ? "col-span-12 md:col-span-4" : "col-span-12",
-  //                                             ].join(" ")}
-  //                                         >
-  //                                             <div className="flex items-center gap-2 pt-3">
-  //                                                 <img
-  //                                                     src={assets.images.hiliteIcon}
-  //                                                     alt="icon"
-  //                                                     className={isCompact ? "w-[36px] h-[36px]" : "w-[40px] h-[40px]"}
-  //                                                 />
-  //                                                 <h2
-  //                                                     className={[
-  //                                                         "text-primary font-semibold leading-none transition-all duration-300",
-  //                                                         isCompact ? "text-[26px]" : "text-[28px]",
-  //                                                     ].join(" ")}
-  //                                                 >
-  //                                                     Highlight
-  //                                                 </h2>
-  //                                             </div>
-
-  //                                             {/* Paragraph — hides the exact tick slide changes to 2 */}
-  //                                             <AnimatePresence initial={false} mode="wait">
-  //                                                 {showParagraph && (
-  //                                                     <motion.p
-  //                                                         key="hl-paragraph"
-  //                                                         className="mt-3 text-primary/80 text-[16px] font-light leading-snug max-w-[900px]"
-  //                                                         initial={{ opacity: 0, y: 6 }}
-  //                                                         animate={{ opacity: 1, y: 0 }}
-  //                                                         exit={{ opacity: 0, y: -6 }}
-  //                                                         transition={{ duration: 0.22, ease: "easeOut" }}
-  //                                                     >
-  //                                                         Rento isn’t just easier to use — it’s simpler to set up, quicker
-  //                                                         with support,{" "}
-  //                                                         <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
-  //                                                             and built with the right features to grow with you.
-  //                                                         </span>
-  //                                                     </motion.p>
-  //                                                 )}
-  //                                             </AnimatePresence>
-  //                                         </div>
-
-  //                                         {/* Slides container — same screen; right side in compact, full width otherwise */}
-  //                                         <div
-  //                                             className={[
-  //                                                 "transition-all duration-300",
-  //                                                 isCompact ? "col-span-12 md:col-span-8" : "col-span-12",
-  //                                             ].join(" ")}
-  //                                         >
-  //                                             <div className="relative w-full h-[calc(100vh-140px)] overflow-hidden rounded-2xl">
-  //                                                 {boxes.map((box) => {
-  //                                                     let animate: Record<string, string | number> = {};
-  //                                                     let zIndex = 0;
-
-  //                                                     if (box.id < currentBox) {
-  //                                                         // past slides
-  //                                                         animate = { top: 10, left: "50%", x: "-50%", y: 0, scale: 0.92 };
-  //                                                         zIndex = box.id;
-  //                                                     } else if (box.id === currentBox) {
-  //                                                         // active centered
-  //                                                         animate = { top: "50%", left: "50%", x: "-50%", y: "-50%", scale: 0.96 };
-  //                                                         zIndex = 100;
-  //                                                     } else {
-  //                                                         // future slides: bottom baseline + spacing, next doesn't stick
-  //                                                         const order = box.id - currentBox;     // 1 = next
-  //                                                         const yLift = order === 1 ? 0 : -(order - 1) * GAP;
-  //                                                         animate = { top: baselineTop, left: "50%", x: "-50%", y: yLift, scale: 1 };
-  //                                                         zIndex = box.id;
-  //                                                     }
-
-  //                                                     return (
-  //                                                         <motion.div
-  //                                                             key={box.id}
-  //                                                             className="mx-auto absolute bg-white rounded-2xl shadow-2xl flex items-center justify-center w-full h-[78vh]"
-  //                                                             style={{
-  //                                                                 zIndex,
-  //                                                                 backgroundImage: `url(${box.bg})`,
-  //                                                                 backgroundSize: "cover",
-  //                                                                 backgroundPosition: "center",
-  //                                                             }}
-  //                                                             animate={animate}
-  //                                                             initial={false}
-  //                                                             transition={{ duration: 0.8, ease: "easeInOut" }}
-  //                                                         >
-  //                                                             <div className="p-6 rounded-lg absolute inset-0">
-  //                                                                 <h3 className="text-[40px] font-normal mb-4" style={{ color: box.titleColor }}>
-  //                                                                     {box.title}
-  //                                                                 </h3>
-  //                                                                 <p className="text-[21px] font-light max-w-5xl" style={{ color: box.descColor }}>
-  //                                                                     {box.description}
-  //                                                                 </p>
-  //                                                             </div>
-  //                                                         </motion.div>
-  //                                                     );
-  //                                                 })}
-  //                                             </div>
-  //                                         </div>
-  //                                     </div>
-  //                                 </div>
-  //                             </motion.div>
-  //                         );
-  //                     })()
-  //                 )}
-  //             </AnimatePresence>
-  //         </div>
-  //     </motion.section>
-  // );
-
   // ---------------- Partner Section ----------------
   const PartnerSection = (
     <motion.section
@@ -1512,342 +818,6 @@ const Home: React.FC = () => {
       </div>
     </motion.section>
   );
-
-  // // ----------------Replica----------------
-
-  // const HowSection = (
-  //     <motion.section
-  //         key="how"
-  //         className="absolute inset-0 w-full h-screen bg-[#DFF4EC] overflow-hidden"
-  //         initial={{ y: "100%" }}
-  //         animate={{ y: 0 }}
-  //         exit={{ y: "-100%" }}
-  //         transition={{ duration: 0.8, ease: "easeInOut" }}
-  //     >
-  //         <div className="relative w-full h-full">
-  //             <AnimatePresence mode="wait">
-  //                 {howStep === 0 ? (
-  //                     // -------- STEP 0: centered heading only --------
-  //                     <motion.div
-  //                         key="how-center"
-  //                         className="absolute inset-0 flex items-center justify-center"
-  //                         initial={{ opacity: 0, scale: 0.98 }}
-  //                         animate={{ opacity: 1, scale: 1 }}
-  //                         exit={{ opacity: 0, scale: 0.98 }}
-  //                         transition={{ duration: 0.6, ease: "easeInOut" }}
-  //                     >
-  //                         <div className="text-center">
-  //                             <div className="flex gap-2 justify-center items-center">
-  //                                 <img src={assets.images.howorkIcon} alt="icon" className="w-[50px] h-[50px]" />
-  //                                 <span className="font-normal text-[40px] text-primary">How It Works</span>
-  //                             </div>
-  //                         </div>
-  //                     </motion.div>
-  //                 ) : (
-  //                     // -------- STEP 1: heading left, paragraph hides once replicaBox >= 2, slides run here --------
-  //                     (() => {
-  //                         // const GAP = 6;           // future slides ke beech space lift per level
-  //                         // const PEEK = 36;         // bottom peek pixels
-  //                         // const BOTTOM_2 = -20;      // bottom-2 = 8px
-  //                         // const baselineTop = `calc(100% - ${PEEK + BOTTOM_2}px)`;
-  //                         const showParagraph = replicaBox === 1; // slide 2 aate hi hide
-
-  //                         return (
-  //                             <motion.div
-  //                                 key="how-live"
-  //                                 className="absolute inset-0"
-  //                                 initial={{ opacity: 0, y: -8 }}
-  //                                 animate={{ opacity: 1, y: 0 }}
-  //                                 exit={{ opacity: 0, y: -8 }}
-  //                                 transition={{ duration: 0.5, ease: "easeInOut" }}
-  //                             >
-  //                                 {/* Header row (left) */}
-  //                                 <div className="px-8 pt-8 flex items-center gap-6 max-[576px]:flex-col">
-  //                                     <div className="flex items-center gap-2 shrink-0">
-  //                                         <img src={assets.images.howorkIcon} alt="icon" className="w-[36px] h-[36px]" />
-  //                                         <h2 className="text-primary font-semibold text-[26px] leading-none">
-  //                                             How It Works
-  //                                         </h2>
-  //                                     </div>
-
-  //                                     {/* Paragraph first slide pe hi dikhayen */}
-  //                                     <AnimatePresence initial={false} mode="wait">
-  //                                         {showParagraph && (
-  //                                             <motion.p
-  //                                                 key="how-paragraph"
-  //                                                 className="text-primary/80 text-[16px] font-light leading-snug max-w-[900px]"
-  //                                                 initial={{ opacity: 0, y: 6 }}
-  //                                                 animate={{ opacity: 1, y: 0 }}
-  //                                                 exit={{ opacity: 0, y: -6 }}
-  //                                                 transition={{ duration: 0.3, ease: "easeOut" }}
-  //                                             >
-  //                                                 Our platform is built for landlords, managers, and tenants —{" "}
-  //                                                 <span className="pt-2 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
-  //                                                     four smart portals, tailored for every role.
-  //                                                 </span>
-  //                                             </motion.p>
-  //                                         )}
-  //                                     </AnimatePresence>
-  //                                 </div>
-
-  //                                 {/* Slides container lives on the SAME screen */}
-  //                                 <div className="px-6 pt-4">
-  //                                     <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden ">
-
-  //                                         {repboxes.map((box) => {
-  //                                             const REVEAL = 100;        // bottom-[30px] pe next slide ki tail
-  //                                             const CURRENT_Z = 100;
-  //                                             const NEXT_Z = 110;
-
-  //                                             let animate: Record<string, string | number> = {};
-  //                                             let zIndex = 0;
-
-  //                                             const order = box.id - replicaBox; // 0 = current, 1 = next, 2+ = future
-
-  //                                             if (box.id < replicaBox) {
-  //                                                 // Past slides: thoda upar stack
-  //                                                 animate = { top: 10, left: "50%", x: "-50%", y: 0, scale: 0.92 };
-  //                                                 zIndex = box.id; // lower z
-  //                                             } else if (order === 0) {
-  //                                                 // Current slide: center
-  //                                                 animate = { top: "50%", left: "50%", x: "-50%", y: "-50%", scale: 0.96 };
-  //                                                 zIndex = CURRENT_Z; // e.g., z-1 in your naming
-  //                                             } else if (order === 1) {
-  //                                                 // Next slide: sirf tail dikhani — container ke bottom se 30px upar
-  //                                                 animate = { top: `calc(100% - ${REVEAL}px)`, left: "50%", x: "-50%", y: 0, scale: 1 };
-  //                                                 zIndex = NEXT_Z; // e.g., z-11 (current se upar layer)
-  //                                             } else {
-  //                                                 // Future slides: viewport ke niche push kar do (bilkul na dikhay)
-  //                                                 animate = { top: "calc(100% + 120px)", left: "50%", x: "-50%", y: 0, scale: 1 };
-  //                                                 zIndex = box.id; // doesn’t matter much, they’re hidden
-  //                                             }
-
-  //                                             // content hide rule: next & future slides ka content invisible
-  //                                             const hideInner = order >= 1;
-
-  //                                             return (
-  //                                                 <motion.div
-  //                                                     key={box.id}
-  //                                                     className="mx-auto absolute bg-white rounded-2xl shadow-2xl flex items-center justify-center w-full h-[78vh]"
-  //                                                     style={{
-  //                                                         zIndex,
-  //                                                         backgroundImage: `url(${box.bg})`,
-  //                                                         backgroundSize: "cover",
-  //                                                         backgroundPosition: "center",
-  //                                                     }}
-  //                                                     animate={animate}
-  //                                                     initial={false}
-  //                                                     transition={{ duration: 0.8, ease: "easeInOut" }}
-  //                                                 >
-  //                                                     <div
-  //                                                         className={[
-  //                                                             "p-6 rounded-lg absolute inset-0 transition-opacity duration-300",
-  //                                                             hideInner ? "opacity-0 pointer-events-none" : "opacity-100",
-  //                                                         ].join(" ")}
-  //                                                     >
-  //                                                         <h3 className="text-[40px] font-normal mb-1" style={{ color: box.titleColor }}>
-  //                                                             {box.title}
-  //                                                         </h3>
-  //                                                         <p className="text-[21px] font-light max-w-5xl" style={{ color: box.descColor }}>
-  //                                                             {box.description}
-  //                                                         </p>
-  //                                                             <ul className="list-disc pl-4 space-y-2 mt-5">
-  //                                                             {box.bullets?.map((bullet, idx) => (
-  //                                                                 <li
-  //                                                                     key={idx}
-  //                                                                     className="text-[18px] font-light"
-  //                                                                     style={{ color: box.descColor }}
-  //                                                                 >
-  //                                                                     {bullet}
-  //                                                                 </li>
-  //                                                             ))}
-  //                                                         </ul>
-  //                                                     </div>
-  //                                                 </motion.div>
-  //                                             );
-  //                                         })}
-
-  //                                     </div>
-  //                                 </div>
-  //                             </motion.div>
-  //                         );
-  //                     })()
-  //                 )}
-  //             </AnimatePresence>
-  //         </div>
-  //     </motion.section>
-  // );
-
-  // const HowSection = (
-  //     <motion.section
-  //         key="how"
-  //         className="absolute inset-0 w-full h-screen bg-[#DFF4EC] overflow-hidden"
-  //         initial={{ y: "100%" }}
-  //         animate={{ y: 0 }}
-  //         exit={{ y: "-100%" }}
-  //         transition={{ duration: 0.8, ease: "easeInOut" }}
-  //     >
-  //         <div className="relative w-full h-full">
-  //             <AnimatePresence mode="wait">
-  //                 {howStep === 0 ? (
-  //                     // -------- STEP 0: centered heading only --------
-  //                     <motion.div
-  //                         key="how-center"
-  //                         className="absolute inset-0 flex items-center justify-center"
-  //                         initial={{ opacity: 0, scale: 0.98 }}
-  //                         animate={{ opacity: 1, scale: 1 }}
-  //                         exit={{ opacity: 0, scale: 0.98 }}
-  //                         transition={{ duration: 0.6, ease: "easeInOut" }}
-  //                     >
-  //                         <div className="text-center">
-  //                             <div className="flex gap-2 justify-center items-center">
-  //                                 <img src={assets.images.howorkIcon} alt="icon" className="w-[50px] h-[50px]" />
-  //                                 <span className="font-normal text-[40px] text-primary">How It Works</span>
-  //                             </div>
-  //                         </div>
-  //                     </motion.div>
-  //                 ) : howStep === 1 ? (
-  //                     // -------- STEP 1: heading goes TOP, gradient paragraph in CENTER --------
-  //                     <motion.div
-  //                         key="how-top-with-paragraph"
-  //                         className="absolute inset-0"
-  //                         initial={{ opacity: 0 }}
-  //                         animate={{ opacity: 1 }}
-  //                         exit={{ opacity: 0 }}
-  //                         transition={{ duration: 0.4, ease: "easeInOut" }}
-  //                     >
-  //                         {/* Heading pinned to TOP (left) */}
-  //                         <motion.div
-  //                             className="absolute flex items-center gap-2"
-  //                             initial={{ y: -30, opacity: 0 }}
-  //                             animate={{ y: 0, opacity: 1 }}
-  //                             exit={{ y: -20, opacity: 0 }}
-  //                             transition={{ duration: 0.5, ease: "easeOut" }}
-  //                             style={{ top: 24, left: 30 }}
-  //                         >
-  //                             <img src={assets.images.howorkIcon} alt="icon" className="w-[36px] h-[36px]" />
-  //                             <h2 className="text-primary font-semibold text-[26px] leading-none">
-  //                                 How It Works
-  //                             </h2>
-  //                         </motion.div>
-
-  //                         {/* Center paragraph with gradient */}
-  //                         <motion.p
-  //                             className="absolute text-center text-[22px] md:text-[26px] font-light leading-snug px-6"
-  //                             initial={{ opacity: 0, y: 10 }}
-  //                             animate={{ opacity: 1, y: 0 }}
-  //                             exit={{ opacity: 0, y: -10 }}
-  //                             transition={{ duration: 0.45, ease: "easeOut" }}
-  //                             style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
-  //                         >
-  //                             <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
-  //                                 Built for landlords, managers, and tenants—four smart portals, tailored for every role.
-  //                             </span>
-  //                         </motion.p>
-  //                     </motion.div>
-  //                 ) : (
-  //                     // -------- STEP 2: start slides (heading left, paragraph hidden) --------
-  //                     (() => {
-  //                         const REVEAL = 100;     // next slide tail
-  //                         const CURRENT_Z = 100;
-  //                         const NEXT_Z = 110;
-
-  //                         return (
-  //                             <motion.div
-  //                                 key="how-live"
-  //                                 className="absolute inset-0"
-  //                                 initial={{ opacity: 0, y: -8 }}
-  //                                 animate={{ opacity: 1, y: 0 }}
-  //                                 exit={{ opacity: 0, y: -8 }}
-  //                                 transition={{ duration: 0.5, ease: "easeInOut" }}
-  //                             >
-  //                                 {/* Heading (left, top) */}
-  //                                 <div className="px-8 pt-8 flex items-center gap-6">
-  //                                     <div className="flex items-center gap-2 shrink-0">
-  //                                         <img src={assets.images.howorkIcon} alt="icon" className="w-[36px] h-[36px]" />
-  //                                         <h2 className="text-primary font-semibold text-[26px] leading-none">
-  //                                             How It Works
-  //                                         </h2>
-  //                                     </div>
-  //                                     {/* paragraph intentionally hidden in step 2 */}
-  //                                 </div>
-
-  //                                 {/* Slides container (same screen) */}
-  //                                 <div className="px-6 pt-4">
-  //                                     <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden">
-  //                                         {repboxes.map((box) => {
-  //                                             let animate: Record<string, string | number> = {};
-  //                                             let zIndex = 0;
-
-  //                                             const order = box.id - replicaBox; // 0=current, 1=next, 2+=future
-
-  //                                             if (box.id < replicaBox) {
-  //                                                 animate = { top: 10, left: "50%", x: "-50%", y: 0, scale: 0.92 };
-  //                                                 zIndex = box.id;
-  //                                             } else if (order === 0) {
-  //                                                 animate = { top: "50%", left: "50%", x: "-50%", y: "-50%", scale: 0.96 };
-  //                                                 zIndex = CURRENT_Z;
-  //                                             } else if (order === 1) {
-  //                                                 animate = { top: `calc(100% - ${REVEAL}px)`, left: "50%", x: "-50%", y: 0, scale: 1 };
-  //                                                 zIndex = NEXT_Z;
-  //                                             } else {
-  //                                                 animate = { top: "calc(100% + 120px)", left: "50%", x: "-50%", y: 0, scale: 1 };
-  //                                                 zIndex = box.id;
-  //                                             }
-
-  //                                             const hideInner = order >= 1;
-
-  //                                             return (
-  //                                                 <motion.div
-  //                                                     key={box.id}
-  //                                                     className="mx-auto absolute bg-white rounded-2xl shadow-2xl flex items-center justify-center w-full h-[78vh]"
-  //                                                     style={{
-  //                                                         zIndex,
-  //                                                         backgroundImage: `url(${box.bg})`,
-  //                                                         backgroundSize: "cover",
-  //                                                         backgroundPosition: "center",
-  //                                                     }}
-  //                                                     animate={animate}
-  //                                                     initial={false}
-  //                                                     transition={{ duration: 0.8, ease: "easeInOut" }}
-  //                                                 >
-  //                                                     <div
-  //                                                         className={[
-  //                                                             "p-6 rounded-lg absolute inset-0 transition-opacity duration-300",
-  //                                                             hideInner ? "opacity-0 pointer-events-none" : "opacity-100",
-  //                                                         ].join(" ")}
-  //                                                     >
-  //                                                         <h3 className="text-[40px] font-normal mb-1" style={{ color: box.titleColor }}>
-  //                                                             {box.title}
-  //                                                         </h3>
-  //                                                         {box.description && (
-  //                                                             <p className="text-[21px] font-light max-w-5xl" style={{ color: box.descColor }}>
-  //                                                                 {box.description}
-  //                                                             </p>
-  //                                                         )}
-  //                                                         {!!box.bullets?.length && (
-  //                                                             <ul className="list-disc pl-4 space-y-2 mt-5">
-  //                                                                 {box.bullets.map((bullet, idx) => (
-  //                                                                     <li key={idx} className="text-[18px] font-light" style={{ color: box.descColor }}>
-  //                                                                         {bullet}
-  //                                                                     </li>
-  //                                                                 ))}
-  //                                                             </ul>
-  //                                                         )}
-  //                                                     </div>
-  //                                                 </motion.div>
-  //                                             );
-  //                                         })}
-  //                                     </div>
-  //                                 </div>
-  //                             </motion.div>
-  //                         );
-  //                     })()
-  //                 )}
-  //             </AnimatePresence>
-  //         </div>
-  //     </motion.section>
-  // );
 
   const HowSection = (
     <motion.section
@@ -2235,6 +1205,8 @@ const Home: React.FC = () => {
   );
 
   // ---------------- Pricing Section ----------------
+  const [isModalOpen, setIsModalOpen] = useState(false); // put alongside other pricing states
+
   const PricingSection = (
     <motion.section
       key="pricing"
@@ -2246,36 +1218,6 @@ const Home: React.FC = () => {
     >
       <div className="w-full h-full relative flex items-center justify-center price-step">
         <AnimatePresence mode="wait">
-          {/* {pricingStep === 0 && (
-                                <motion.h2
-                                    key="pricing-step0"
-                                    className="text-[#DFF4EC] font-medium absolute"
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{
-                                        top: "50%",
-                                        left: "50%",
-                                        x: "-50%",
-                                        y: "-50%",
-                                        fontSize: "96px",
-                                        opacity: 1,
-                                        scale: 1,
-                                    }}
-                                    exit={{ opacity: 0, scale: 0.8 }}
-                                    transition={{ duration: 0.8, ease: "easeInOut" }}
-                                >
-                                    <div className="flex justify-center gap-3">
-                                        <img src={assets.images.priceIcon} alt="icon" className="w-[135px] h-[135px]" />
-                                        Pricing
-                                    </div>
-
-                                       <div className="flex justify-center gap-3 mt-4 max-w-[1220px] mx-auto  absolute  bottom-0 left-0 right-0">
-                                        <img src={assets.images.bottomPrice} alt="banner" className="w-full max-w-full h-full"/>
-                                    </div>
-
-                                 
-                                </motion.h2>
-                                
-                            )} */}
           {pricingStep === 0 && (
             <>
               <motion.h2
@@ -2304,7 +1246,6 @@ const Home: React.FC = () => {
                 </div>
               </motion.h2>
 
-              {/* 👇 Fixed bottom banner (hides on first scroll) */}
               <AnimatePresence>
                 {!hideBottomImg && (
                   <motion.div
@@ -2328,6 +1269,7 @@ const Home: React.FC = () => {
 
           {pricingStep === 1 && (
             <>
+              {/* Heading + toggle row */}
               <motion.h2
                 key="pricing-step1-heading"
                 className="text-white font-bold absolute"
@@ -2356,20 +1298,25 @@ const Home: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="flex items-center space-x-2 ">
+                    <div className="flex items-center space-x-2">
                       <div
                         className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-                          isToggled
+                          billingCycle === 'annual'
                             ? 'bg-gradient-to-r from-green-500 to-blue-500'
                             : 'bg-gray-300'
                         }`}
                         onClick={handleToggle}
+                        role="switch"
+                        aria-checked={billingCycle === 'annual'}
+                        aria-label="Toggle billing cycle"
                       >
                         <div
                           className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${
-                            isToggled ? 'translate-x-6' : 'translate-x-0'
+                            billingCycle === 'annual'
+                              ? 'translate-x-6'
+                              : 'translate-x-0'
                           }`}
-                        ></div>
+                        />
                       </div>
                       <span className="text-[#DFF4EC] font-light text-[20px] select-none">
                         Annually (Save up to 50%)
@@ -2377,108 +1324,88 @@ const Home: React.FC = () => {
                     </div>
                   </div>
 
-                  <p className="text-[18px] font-light text-[#DFF4EC] mt-[-10px]  leading-snug  ">
+                  <p className="text-[18px] font-light text-[#DFF4EC] mt-[-10px] leading-snug">
                     Simple pricing. No hidden fees. Pay only for the properties
                     you manage.
                   </p>
                 </div>
               </motion.h2>
 
+              {/* Cards container */}
               <motion.div
-                key="pricing-red-box"
-                className="absolute bottom-5 w-full max-[1540px]:h-[83vh] max-[1540px]:bottom-0  "
+                key="pricing-cards"
+                className="absolute bottom-5 w-full max-[1540px]:h-[83vh] max-[1540px]:bottom-0"
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: '100%', opacity: 0 }}
                 transition={{ duration: 0.8, ease: 'easeInOut' }}
               >
-                <div className="flex justify-center gap-6 items-center flex-wrap p-4 max-w-[1200px] mx-auto mt-5 ">
-                  {/* Building */}
-                  <div className="flex-1 min-w-[280px] h-full">
-                    <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
-                      <div className="space-y-4 mb-8">
-                        <h2 className="text-[36px] font-medium group-hover:text-white">
-                          Building
-                        </h2>
-                        <h1 className="text-[64px] font-medium tracking-tight group-hover:text-white">
-                          40KD
-                        </h1>
-                        <p className="text-[20px] font-normal group-hover:text-white">
-                          /property per month (billed annually)
-                        </p>
-                      </div>
-                      <p className="text-[20px] font-light mb-8 group-hover:text-white truncate">
-                        A bold structure built for purpose and scale—where
-                        design meets ambition in every floor.
-                      </p>
-                      <button className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500">
-                        Subscribe Now
-                      </button>
+                <div className="flex justify-center gap-6 items-center flex-wrap p-4 max-w-[1200px] mx-auto mt-5">
+                  {loadingPlans ? (
+                    <div className="text-[#DFF4EC] text-lg py-10">
+                      Loading plans…
                     </div>
-                  </div>
+                  ) : (
+                    plans.slice(0, 3).map((p) => (
+                      <div key={p.id} className="flex-1 min-w-[280px] h-full">
+                        <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
+                          <div className="space-y-4 mb-8">
+                            <h2 className="text-[36px] font-medium group-hover:text-white">
+                              {p.name}
+                            </h2>
+                            <h1 className="text-[64px] font-medium tracking-tight group-hover:text-white">
+                              {priceFor(p)}
+                              {p.currency}
+                            </h1>
+                            <p className="text-[20px] font-normal group-hover:text-white">
+                              {cycleNote}
+                            </p>
+                          </div>
 
-                  {/* House/Villa */}
-                  <div className="flex-1 min-w-[280px] h-full">
-                    <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
-                      <div className="space-y-4 mb-8">
-                        <h2 className="text-[36px] font-medium group-hover:text-white">
-                          House/Villa
-                        </h2>
-                        <h1 className="text-[64px] font-medium tracking-tight group-hover:text-white">
-                          20KD
-                        </h1>
-                        <p className="text-[20px] font-normal group-hover:text-white">
-                          /property per month (billed annually)
-                        </p>
-                      </div>
-                      <p className="text-[20px] font-light group-hover:text-white mb-8 truncate">
-                        A personal sanctuary wrapped in style and space, crafted
-                        for comfort and character.
-                      </p>
-                      <button className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500">
-                        Subscribe Now
-                      </button>
-                    </div>
-                  </div>
+                          <ul className="space-y-4 mb-8">
+                            {(p.features?.length
+                              ? p.features
+                              : defaultPlans.find((d) => d.code === p.code)
+                                  ?.features || []
+                            ).map((f, i) => (
+                              <li key={i} className="flex items-start">
+                                <span className="text-xl mr-2 leading-none">
+                                  •
+                                </span>
+                                <span className="group-hover:text-white">
+                                  {f}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
 
-                  {/* Apartment */}
-                  <div className="flex-1 min-w-[280px] h-full">
-                    <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
-                      <div className="space-y-4 mb-8">
-                        <h2 className="text-[36px] font-medium group-hover:text-white">
-                          Apartment
-                        </h2>
-                        <h1 className="text-[64px] font-medium tracking-tight group-hover:text-white">
-                          10KD
-                        </h1>
-                        <p className="text-[20px] font-normal group-hover:text-white">
-                          /property per month (billed annually)
-                        </p>
+                          <p className="text-[20px] font-light mb-8 group-hover:text-white truncate">
+                            {p.description ||
+                              defaultPlans.find((d) => d.code === p.code)
+                                ?.description ||
+                              'Flexible plan tailored for property managers and landlords.'}
+                          </p>
+
+                          <button
+                            className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
+                            onClick={() => openSubscribe(p)}
+                          >
+                            Subscribe Now
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-[20px] font-light group-hover:text-white mb-8 truncate">
-                        Smart living stacked with convenience—urban rhythm in a
-                        compact, curated shell.
-                      </p>
-                      <button className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500">
-                        Subscribe Now
-                      </button>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
-                <div className="flex justify-between gap-6 items-center flex-wrap  max-w-[1200px] mx-auto mt-5 ">
-                  <p className="text-[18px] font-light text-[#DFF4EC]   leading-snug  ">
+
+                <div className="flex justify-between gap-6 items-center flex-wrap max-w-[1200px] mx-auto mt-5">
+                  <p className="text-[18px] font-light text-[#DFF4EC] leading-snug">
                     Simple pricing. No hidden fees. Pay only for the properties
                     you manage.
                   </p>
-                  <button
-                    className="inline-flex items-center rounded-xl p-[2px]
-         bg-gradient-to-r from-green-400 to-blue-500"
-                  >
+                  <button className="inline-flex items-center rounded-xl p-[2px] bg-gradient-to-r from-green-400 to-blue-500">
                     <span className="rounded-[10px] bg-[#141c4e] px-5 py-2">
-                      <span
-                        className="bg-gradient-to-r from-green-400 to-blue-500
-             bg-clip-text text-transparent font-semibold"
-                      >
+                      <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent font-semibold">
                         Get Started
                       </span>
                     </span>
@@ -2491,6 +1418,7 @@ const Home: React.FC = () => {
       </div>
     </motion.section>
   );
+
   // ---------------- New Slide-in Section ----------------
   const ContactSection = (
     <motion.section
@@ -2726,10 +1654,6 @@ const Home: React.FC = () => {
                   aljaser@rento.online
                 </li>
               </ul>
-              {/* <div className="flex gap-4 max-[768px]:mt-5">
-                                <Link to="/privacy" className="text-white/50 text-[16px]">Privacy Policy</Link>
-                                <Link to="/terms" className="text-white/50 text-[16px]">Terms & Conditions</Link>
-                            </div> */}
             </div>
 
             <div className="flex justify-between items-center">
@@ -2787,6 +1711,12 @@ const Home: React.FC = () => {
             {index === 10 && ContactSection}
             {showFooter && FooterSection}
           </AnimatePresence>
+          <SelectedPlanModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            plan={selectedPlan}
+            billingCycle={billingCycle}
+          />
         </div>
       ) : (
         <div className="w-full h-auto relative">
