@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { setCollapsedSidebar } from '@/redux/features/appSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/redux-hooks';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { User2, LogOut, ChevronDown } from 'lucide-react';
 import { getItem } from '@/utils/storage';
 import { logout } from '@/redux/features/authSlice';
@@ -19,13 +19,14 @@ type Props = { title?: string };
 
 export const TopBar = ({ title }: Props) => {
   const user: any = getItem('USER');
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const collapsedSidebar = useAppSelector((s) => s.appState.collapsedSidebar);
 
   const handleLogout = () => dispatch(logout());
 
   const name = user?.fname + ' ' + user?.lname || 'Admin';
-  const role = user?.role.name =="User" ? "Tenant": user?.role?.name || "" ;
+  const role = user?.role.name == 'User' ? 'Tenant' : user?.role?.name || '';
   const email = user?.email || 'a2@gmail.com'; // replace with real email if available
   const initial = name?.trim()?.[0] ?? 'A';
 
@@ -35,8 +36,9 @@ export const TopBar = ({ title }: Props) => {
         {!collapsedSidebar && (
           <div className="text-white -ml-4">
             <img
+              onClick={() => navigate('/')}
               src={assets.images.companyIcon}
-              className="h-6 w-auto object-contain"
+              className="h-6 w-auto object-contain cursor-pointer"
             />
           </div>
         )}
@@ -61,12 +63,14 @@ export const TopBar = ({ title }: Props) => {
                 className="w-8 h-8 rounded-full object-cover"
               />
               <div className="hidden sm:block group-hover:opacity-50">
-                <div className="uppercase text-white text-sm leading-tight mb-1">{name}</div>
+                <div className="uppercase text-white text-sm leading-tight mb-1">
+                  {name}
+                </div>
                 <div className="uppercase text-xs leading-tight text-sidebar-accent-foreground">
                   {role}
                 </div>
               </div>
-              <ChevronDown  className="text-white h-8 w-8 group-hover:opacity-50"/>
+              <ChevronDown className="text-white h-8 w-8 group-hover:opacity-50" />
             </button>
           </DropdownMenuTrigger>
 

@@ -15,7 +15,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { getItem } from '@/utils/storage';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { PERMISSIONS } from '@/utils/constants';
 import { hasPermission } from '@/utils/hasPermission';
@@ -24,11 +24,12 @@ import { useAppSelector } from '@/redux/redux-hooks';
 export function MainSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const navigate = useNavigate();
   const collapsedSidebar = useAppSelector(
     (state) => state.appState.collapsedSidebar
   );
   const authState: any = useSelector((state: any) => state.authState);
-  
+
   const appState: any = useSelector((state: any) => state.appState);
   const shop: any = getItem('SHOP_TENANT');
   const userRoles: any = getItem('USER');
@@ -305,8 +306,9 @@ export function MainSidebar({
         {collapsedSidebar && (
           <div className="text-white max-w-[110px] ml-5 m-auto mt-8">
             <img
+              onClick={() => navigate('/')}
               src={assets.images.companyIcon}
-              className="max-w-full w-full h-full object-contain"
+              className="max-w-full w-full h-full object-contain cursor-pointer"
             />
           </div>
         )}
