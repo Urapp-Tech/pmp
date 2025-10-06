@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 function StaticLayoutOutlet() {
   return (
     <div className="">
-        <Toaster />
+      <Toaster />
       <Outlet />
     </div>
   );

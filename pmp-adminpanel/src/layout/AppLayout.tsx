@@ -6,10 +6,10 @@ import { useSelector } from 'react-redux';
 import { Navigate, Outlet } from 'react-router-dom';
 
 function AppLayout() {
-  const authState: any = useSelector((state: any) => state.authState);
-  if (!authState.user) {
-    return <Navigate to="/admin-panel/auth" />;
-  }
+  // const authState: any = useSelector((state: any) => state.authState);
+  // if (!authState.user) {
+  //   return <Navigate to="/admin-panel/auth" />;
+  // }
 
   return (
     <SidebarProvider className="bg-panel">

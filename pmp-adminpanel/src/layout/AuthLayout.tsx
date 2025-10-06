@@ -7,7 +7,7 @@ function AuthLayout() {
   // console.log('auth', authState);
 
   if (authState.user && authState.user.access_token) {
-    return <Navigate to="../dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (
