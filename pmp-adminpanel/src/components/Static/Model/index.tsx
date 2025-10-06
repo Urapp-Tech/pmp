@@ -80,7 +80,10 @@ const SelectedPlanModal = ({
       if (res?.data?.payment_link) {
         window.location.href = res?.data?.payment_link;
       } else {
-        ToastHandler('Payment link not found please try again');
+        ToastHandler(
+          'Your request is being processed. Admin will contact you soon.',
+          'green'
+        );
       }
     } catch (e: any) {
       ToastHandler(e?.message || 'Unexpected error');
