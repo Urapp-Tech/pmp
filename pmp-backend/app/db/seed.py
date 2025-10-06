@@ -82,10 +82,7 @@ def seed_subscriptions(db):
     for r in rows:
         exists = (
             db.query(Subscription)
-            .filter(
-                (Subscription.id == r["id"])
-                | (Subscription.plan_name == r["plan_name"])
-            )
+            .filter((Subscription.plan_name == r["plan_name"]))
             .first()
         )
         if exists:
