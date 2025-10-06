@@ -7,7 +7,8 @@ from typing import List, Optional
 
 class PropertyUnitLOV(BaseModel):
     id: UUID
-    name: str
+    name: Optional[str]
+    unit_no: Optional[str]
     rent: Optional[str]
 
     class Config:
@@ -15,5 +16,6 @@ class PropertyUnitLOV(BaseModel):
 
 
 class BuildingUnitsLOV(BaseModel):
-    name: str
+    name: Optional[str]
+    # unit_no: str
     items: List[PropertyUnitLOV]

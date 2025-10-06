@@ -182,6 +182,7 @@ const PropertyManagers = () => {
         const users = row.getValue('assignedUnits') as {
           id: string;
           name: string;
+          unit_no: string;
         }[];
 
         if (!users || users.length === 0) {
@@ -220,10 +221,12 @@ const PropertyManagers = () => {
             <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
               {visibleUsers.map((user, index) => {
                 const bgColor = getColorClass(user.id);
-                const initial = user.name?.charAt(0).toUpperCase() || 'U';
+                const initial = user.unit_no?.charAt(0).toUpperCase() || 'U';
+                console.log(user);
+                
                 return (
                   <Avatar key={user.id + index}>
-                    <AvatarImage src={user.name ?? ''} alt={`@user-${index}`} />
+                    <AvatarImage src={user.unit_no ?? ''} alt={`@user-${index}`} />
                     <AvatarFallback className={`text-white ${bgColor}`}>
                       {initial}
                     </AvatarFallback>

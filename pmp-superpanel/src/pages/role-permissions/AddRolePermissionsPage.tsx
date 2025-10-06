@@ -179,7 +179,7 @@ const AddRolePermissionsPage = () => {
                     <Input
                       className="rounded-[20px] h-[60px] px-5 bg-earth-bg  text-secondary-bg mt-2 text-[14px] font-medium outline-none focus:outline-none focus:border-none focus-visible:ring-offset-[0] focus-visible:ring-0"
                       id="name"
-                      placeholder="Ex: Manager / User"
+                      placeholder="Ex: Manager / Tenant"
                       type="text"
                       {...register('name', {
                         required: 'Please enter role name',

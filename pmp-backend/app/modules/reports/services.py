@@ -34,7 +34,7 @@ def get_invoice_report_service(
 ) -> Dict[str, Any]:
     query = db.query(Invoice).options(
         joinedload(Invoice.items),
-        joinedload(Invoice.tenant).load_only(Tenant.id, Tenant.contract_number),
+        joinedload(Invoice.tenant).load_only(Tenant.id, Tenant.contract_number, Tenant.legal_case),
         joinedload(Invoice.tenant)
         .joinedload(Tenant.property_unit)
         .joinedload(PropertyUnit.property)
@@ -100,7 +100,7 @@ def get_invoice_report_service(
         if not tenants:
             return {
                 "success": True,
-                "message": "User not found.",
+                "message": "Tenant not found.",
                 "total": 0,
                 "items": [],
                 "total_paid": 0,
@@ -146,7 +146,7 @@ def get_invoice(db: Session, invoice_id: UUID) -> Invoice | None:
                 Tenant.user
             ),  # Load full user (or add .load_only if needed)
             joinedload(Invoice.tenant)
-            .load_only(Tenant.id, Tenant.contract_number)
+            .load_only(Tenant.id, Tenant.contract_number, Tenant.legal_case)
             .joinedload(Tenant.property_unit)
             .load_only(PropertyUnit.id, PropertyUnit.unit_no)
             .joinedload(PropertyUnit.property)

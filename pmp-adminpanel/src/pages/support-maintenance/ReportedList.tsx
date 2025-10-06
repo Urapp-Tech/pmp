@@ -142,7 +142,7 @@ const ReportedTicketsList = () => {
       accessorKey: 'role_name',
       header: 'ROLE',
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('role_name')}</div>
+        <div className="capitalize">{row.getValue('role_name') =="User" ? "Tenant" : row.getValue('role_name')}</div>
       ),
     },
     {

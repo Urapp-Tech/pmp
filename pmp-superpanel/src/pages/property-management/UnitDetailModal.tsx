@@ -135,6 +135,10 @@ const UnitDetailsModal = ({
               <strong className="font-semibold">Account No</strong>
               <p className="pt-1">{property.account_no}</p>
             </div>
+            <div>
+              <strong className="font-semibold">IBAN No.</strong>
+              <p className="pt-1">{property.iban_no}</p>
+            </div>
             {/* <div>
             <strong>Status:</strong>{' '}
             <span
@@ -165,7 +169,7 @@ const UnitDetailsModal = ({
                     <AccordionTrigger className="px-6 mx-4 my-2 py-4 text-[15px] font-medium text-gray-800 bg-white border-secondary-bg border-b-2 outline-none hover:outline-none transition rounded-t-2xl focus:outline-none focus:ring-0 focus-visible:ring-0">
                       <div className="w-full flex justify-between items-center">
                         <span className="text-lg font-semibold">
-                          {unit.name} - {unit.unit_no}{' '}
+                          {unit.unit_no}{' '}
                           {unit.is_active === false && (
                             <span
                               className={cn(
@@ -196,7 +200,7 @@ const UnitDetailsModal = ({
                       <div className="grid grid-cols-2 md:grid-cols-2 gap-4 text-sm text-primary-bg capitalize">
                         <div>
                           <strong className="font-semibold">
-                            Assigned User
+                            Assigned Tenant
                           </strong>
                           <p className="pt-1">
                             {unit.assignedUnitUserName ?? 'Not Assigned'}

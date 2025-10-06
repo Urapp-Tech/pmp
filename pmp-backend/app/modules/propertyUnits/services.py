@@ -49,6 +49,14 @@ def get_units_lov_by_manager(landlord_id: UUID, db: Session):
         result.append(BuildingUnitsLOV(name=prop.name, items=items))
 
     return result
+    # result = [
+    #     BuildingUnitsLOV(
+    #         name=prop.name,
+    #         items=[PropertyUnitLOV(unit) for unit in prop.units]
+    #     )
+    #     for prop in properties if prop.units
+    # ]
+    # return result
 
 
 def get_available_units_lov_by_landlord(landlord_id: UUID, db: Session):

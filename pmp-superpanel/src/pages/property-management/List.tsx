@@ -328,7 +328,7 @@ const PropertyList = () => {
                   list.map((item: any) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.landlord_name}</TableCell>
+                      <TableCell className='capitalize'>{item.landlord_name}</TableCell>
                       <TableCell>{item.address}</TableCell>
                       {/* <TableCell>{item.status}</TableCell> */}
                       {/* <TableCell>

@@ -41,7 +41,7 @@ type Props = {
 
 type GroupedOption = {
   label: string;
-  options: { id: string; name: string }[];
+  options: { id: string; name: string; unit_no: string }[];
 };
 
 const CreateContractDialog = ({
@@ -135,7 +135,7 @@ const CreateContractDialog = ({
           label: building.name,
           options: building.items.map((unit) => ({
             id: unit.id,
-            name: unit.name,
+            name: unit.unit_no,
             rent: unit.rent,
           })),
         })

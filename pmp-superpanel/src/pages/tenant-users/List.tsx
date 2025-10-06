@@ -175,7 +175,7 @@ const TenantUsers = () => {
       accessorKey: 'roleName',
       header: 'ROLE',
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('roleName')}</div>
+        <div className="capitalize">{row.getValue('roleName') == "User"? "Tenant": row.getValue('roleName')}</div>
       ),
     },
     {
@@ -512,7 +512,7 @@ const TenantUsers = () => {
                   label=""
                   items={[
                     { id: 'All', name: 'All' },
-                    { id: 'User', name: 'User' },
+                    { id: 'User', name: 'Tenant' },
                     { id: 'Manager', name: 'Manager' },
                     { id: 'Landlord', name: 'Landlord' },
                   ]}

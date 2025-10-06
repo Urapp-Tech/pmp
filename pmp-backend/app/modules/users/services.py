@@ -410,7 +410,7 @@ def get_assigned_units_managers(
         # ✅ Assigned units for manager
         if role_name == "Manager":
             assigned_units = (
-                db.query(PropertyUnit.id, PropertyUnit.name)
+                db.query(PropertyUnit.id, PropertyUnit.name, PropertyUnit.unit_no)
                 .join(Manager, Manager.assign_property_unit == PropertyUnit.id)
                 .filter(
                     Manager.manager_user_id == u.id,
@@ -423,6 +423,7 @@ def get_assigned_units_managers(
                 {
                     "id": str(unit.id),
                     "name": unit.name,
+                    "unit_no": unit.unit_no,
                 }
                 for unit in assigned_units
             ]

@@ -16,10 +16,10 @@ import { getItem } from '@/utils/storage';
 import { Loader2, X } from 'lucide-react';
 import { MultiSelectGroupedDropDown } from '@/components/DropDown/MultiSelectGroupedDropDown';
 
-type Lov = { id: string; name: string };
+type Lov = { id: string; name: string; unit_no:string};
 type GroupedOption = {
   label: string; // building name
-  options: { id: string; name: string }[]; // units
+  options: { id: string; name: string; unit_no:string }[]; // units
 };
 
 type Props = {
@@ -46,13 +46,14 @@ const AssignUserDialog = ({
   const fetchUnitsLOV = async () => {
     try {
       const res = await service.Lov(userDetails?.landlordId);
-      // console.log('raw response', res);
+      console.log('raw response', res);
       const groupedUnits = res.data.map(
         (building: { name: string; items: Lov[] }) => ({
           label: building.name,
           options: building.items.map((unit) => ({
             id: unit.id,
-            name: unit.name,
+            name: unit.unit_no,
+            // unit_no:
           })),
         })
       );
@@ -90,7 +91,7 @@ const AssignUserDialog = ({
           {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
           <div className="h-16 rounded-t-3xl relative flex items-center justify-center">
             <DialogTitle className="text-primary-bg mt-2 text-4xl font-semibold tracking-wide">
-              Assign Users
+              Assign Tenants
             </DialogTitle>
             {/* 3) Custom rounded close button */}
             <button

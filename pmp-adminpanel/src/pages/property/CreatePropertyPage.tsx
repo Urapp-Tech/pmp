@@ -42,7 +42,7 @@ const CreatePropertyPage = () => {
   const [openItems, setOpenItems] = useState<string[]>([]);
 
   const makeEmptyUnit: any = () => ({
-    name: '',
+    // name: '',
     unit_no: '',
     unit_type: '',
     size: '',
@@ -65,7 +65,7 @@ const CreatePropertyPage = () => {
       status: '',
       units: [
         {
-          name: '',
+          // name: '',
           unit_no: '',
           unit_type: '',
           size: '',
@@ -245,7 +245,7 @@ const CreatePropertyPage = () => {
         const { data, meta } = results;
 
         const REQUIRED_COLUMNS = [
-          'name',
+          // 'name',
           'unit_no',
           'unit_type',
           'size',
@@ -301,7 +301,7 @@ const CreatePropertyPage = () => {
 
           // Build final validated unit object
           validRows.push({
-            name: row.name,
+            // name: row.name,
             unit_no: row.unit_no,
             unit_type: row.unit_type.toLowerCase(),
             size: row.size,
@@ -701,9 +701,10 @@ const CreatePropertyPage = () => {
                   {...form.register('iban_no', {
                     required: 'This field is required',
                     pattern: {
-                      value: /^QA\d{2}[A-Z]{4}\d{21}$/,
+                      value: /^[A-Z0-9]{30}$/,
+                      // value: /^QA\d{2}[A-Z]{4}\d{21}$/,
                       message:
-                        'IBAN must start with QA, have 2 check digits, 4-letter bank code, and 21-digit account number',
+                        'IBAN must be 30 characters long e.g. KW47KFHO0000000000201050199391',
                     },
                   })}
                   className="rounded-[18px] h-[50px] px-5 bg-dialogBg focus-visible:ring-0"
@@ -720,8 +721,8 @@ const CreatePropertyPage = () => {
                   {...form.register('account_no', {
                     required: 'This field is required',
                     pattern: {
-                      value: /^\d{21}$/,
-                      message: 'Account number must be exactly 21 digits',
+                      value: /^\d{12}$/,
+                      message: 'Account number must be exactly 12 digits',
                     },
                   })}
                   className="rounded-[18px] h-[50px] px-5 bg-dialogBg focus-visible:ring-0"
@@ -791,7 +792,7 @@ const CreatePropertyPage = () => {
                 className="bg-dialogBg my-2"
               />
               <p className="text-xs text-primary-bg mt-1">
-                CSV should include columns: name, unit_no, size, rent,
+                CSV should include columns:  unit_no, size, rent,
                 description, bedrooms, bathrooms, water_meter,
                 electricity_meter, [unit_type is only (commercial, residential),
                 status is only (available, not_available)]
@@ -818,7 +819,7 @@ const CreatePropertyPage = () => {
                     <div className="rounded-[16px] border border-scrollbar bg-secondary-bg p-4">
                       {/* Row 1: Name | Unit No. | Unit Type */}
                       <div className="grid grid-cols-12 gap-4">
-                        <div className="col-span-12 md:col-span-4">
+                        {/* <div className="col-span-12 md:col-span-4">
                           <FormLabel className="text-sm font-semibold text-primary-bg">
                             Name
                           </FormLabel>
@@ -833,7 +834,7 @@ const CreatePropertyPage = () => {
                               *{errors.units[index]?.name?.message as string}
                             </FormMessage>
                           )}
-                        </div>
+                        </div> */}
 
                         <div className="col-span-12 md:col-span-4">
                           <FormLabel className="text-sm font-semibold text-primary-bg">
@@ -870,45 +871,6 @@ const CreatePropertyPage = () => {
                             customClassName="p-select-field my-0 w-full"
                           />
                         </div>
-                      </div>
-
-                      {/* Row 2: Size | Rent | Status */}
-                      <div className="grid grid-cols-12 gap-4 mt-4">
-                        <div className="col-span-12 md:col-span-4">
-                          <FormLabel className="text-sm font-semibold text-primary-bg">
-                            Size
-                          </FormLabel>
-                          <Input
-                            {...form.register(`units.${index}.size`, {
-                              required: 'Size is required',
-                            })}
-                            className="rounded-[18px] h-[44px] px-4 bg-dialogBg focus-visible:ring-0"
-                          />
-                          {errors.units?.[index]?.size && (
-                            <FormMessage>
-                              *{errors.units[index]?.size?.message as string}
-                            </FormMessage>
-                          )}
-                        </div>
-
-                        <div className="col-span-12 md:col-span-4">
-                          <FormLabel className="text-sm font-semibold text-primary-bg">
-                            Rent
-                          </FormLabel>
-                          <Input
-                            type="number"
-                            {...form.register(`units.${index}.rent`, {
-                              required: 'Rent is required',
-                            })}
-                            className="rounded-[18px] h-[44px] px-4 bg-dialogBg focus-visible:ring-0"
-                          />
-                          {errors.units?.[index]?.rent && (
-                            <FormMessage>
-                              *{errors.units[index]?.rent?.message as string}
-                            </FormMessage>
-                          )}
-                        </div>
-
                         <div className="col-span-12 md:col-span-4">
                           <FormLabel className="text-sm font-semibold text-primary-bg">
                             Status
@@ -929,6 +891,72 @@ const CreatePropertyPage = () => {
                         </div>
                       </div>
 
+                      {/* Row 2: Size | Rent | Status */}
+                      <div className="grid grid-cols-12 gap-4 mt-4">
+                       
+
+                        <div className="col-span-12 md:col-span-4">
+                          <FormLabel className="text-sm font-semibold text-primary-bg">
+                            Rent
+                          </FormLabel>
+                          <Input
+                            type="number"
+                            {...form.register(`units.${index}.rent`, {
+                              required: 'Rent is required',
+                            })}
+                            className="rounded-[18px] h-[44px] px-4 bg-dialogBg focus-visible:ring-0"
+                          />
+                          {errors.units?.[index]?.rent && (
+                            <FormMessage>
+                              *{errors.units[index]?.rent?.message as string}
+                            </FormMessage>
+                          )}
+                        </div>
+<div className="col-span-12 md:col-span-4">
+                          <FormLabel className="text-sm font-semibold text-primary-bg">
+                            Water Meter
+                          </FormLabel>
+                          <Input
+                            {...form.register(`units.${index}.water_meter`, {
+                              required: 'Water meter is required',
+                            })}
+                            className="rounded-[18px] h-[44px] px-4 bg-dialogBg focus-visible:ring-0"
+                          />
+                          {errors.units?.[index]?.water_meter && (
+                            <FormMessage>
+                              *
+                              {
+                                errors.units[index]?.water_meter
+                                  ?.message as string
+                              }
+                            </FormMessage>
+                          )}
+                        </div>
+                        <div className="col-span-12 md:col-span-4">
+                          <FormLabel className="text-sm font-semibold text-primary-bg">
+                            Electricity Meter
+                          </FormLabel>
+                          <Input
+                            {...form.register(
+                              `units.${index}.electricity_meter`,
+                              {
+                                required: 'Electricity meter is required',
+                              }
+                            )}
+                            className="rounded-[18px] h-[44px] px-4 bg-dialogBg focus-visible:ring-0"
+                          />
+                          {errors.units?.[index]?.electricity_meter && (
+                            <FormMessage>
+                              *
+                              {
+                                errors.units[index]?.electricity_meter
+                                  ?.message as string
+                              }
+                            </FormMessage>
+                          )}
+                        </div>
+                      </div>
+
                       {/* Row 3: Description */}
                       <div className="mt-4">
                         <FormLabel className="text-sm font-semibold text-primary-bg">
@@ -942,6 +970,22 @@ const CreatePropertyPage = () => {
 
                       {/* Row 4: Bedrooms | Bathrooms | Water Meter */}
                       <div className="grid grid-cols-12 gap-4 mt-4">
+                         <div className="col-span-12 md:col-span-4">
+                          <FormLabel className="text-sm font-semibold text-primary-bg">
+                            Size
+                          </FormLabel>
+                          <Input
+                            {...form.register(`units.${index}.size`, {
+                              required: 'Size is required',
+                            })}
+                            className="rounded-[18px] h-[44px] px-4 bg-dialogBg focus-visible:ring-0"
+                          />
+                          {errors.units?.[index]?.size && (
+                            <FormMessage>
+                              *{errors.units[index]?.size?.message as string}
+                            </FormMessage>
+                          )}
+                        </div>
                         <div className="col-span-12 md:col-span-4">
                           <FormLabel className="text-sm font-semibold text-primary-bg">
                             Bedrooms
@@ -981,55 +1025,13 @@ const CreatePropertyPage = () => {
                           )}
                         </div>
 
-                        <div className="col-span-12 md:col-span-4">
-                          <FormLabel className="text-sm font-semibold text-primary-bg">
-                            Water Meter
-                          </FormLabel>
-                          <Input
-                            {...form.register(`units.${index}.water_meter`, {
-                              required: 'Water meter is required',
-                            })}
-                            className="rounded-[18px] h-[44px] px-4 bg-dialogBg focus-visible:ring-0"
-                          />
-                          {errors.units?.[index]?.water_meter && (
-                            <FormMessage>
-                              *
-                              {
-                                errors.units[index]?.water_meter
-                                  ?.message as string
-                              }
-                            </FormMessage>
-                          )}
-                        </div>
                       </div>
 
                       {/* Row 5: Electricity Meter | Unit Pictures */}
                       <div className="grid grid-cols-12 gap-4 mt-4">
-                        <div className="col-span-12 md:col-span-3">
-                          <FormLabel className="text-sm font-semibold text-primary-bg">
-                            Electricity Meter
-                          </FormLabel>
-                          <Input
-                            {...form.register(
-                              `units.${index}.electricity_meter`,
-                              {
-                                required: 'Electricity meter is required',
-                              }
-                            )}
-                            className="rounded-[18px] h-[44px] px-4 bg-dialogBg focus-visible:ring-0"
-                          />
-                          {errors.units?.[index]?.electricity_meter && (
-                            <FormMessage>
-                              *
-                              {
-                                errors.units[index]?.electricity_meter
-                                  ?.message as string
-                              }
-                            </FormMessage>
-                          )}
-                        </div>
+                        
 
-                        <div className="col-span-12 md:col-span-9">
+                        <div className="col-span-12 md:col-span-12">
                           <FormLabel className="text-sm font-semibold text-primary-bg">
                             Unit Pictures
                           </FormLabel>

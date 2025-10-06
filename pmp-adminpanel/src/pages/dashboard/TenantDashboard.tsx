@@ -206,9 +206,9 @@ function Dashboard() {
                                         </span>
                                       </div>
                                     )}
-                                    <p className="text-lg mb-2 font-bold">
+                                    {/* <p className="text-lg mb-2 font-bold">
                                       {i + 1}. {unit.name}{' '}
-                                    </p>
+                                    </p> */}
                                     {/* <p>
                                       <strong>Unit Name:</strong> {unit.name}
                                     </p> */}
