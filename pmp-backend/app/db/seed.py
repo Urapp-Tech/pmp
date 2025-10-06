@@ -6,6 +6,7 @@ from app.models.permissions import Permission
 from app.models.super_admins import SuperAdmin
 from app.models.landlords import Landlord
 from app.models.users import User
+from app.models.subscriptions import Subscription
 from app.utils.bcrypt import hash_password
 from app.utils.slug import to_kebab_case
 
@@ -48,6 +49,70 @@ def seed_permissions(
     print(f"✅ Seeded permissions for: {parent_name}")
 
 
+def seed_subscriptions(db):
+    """Seed fixed subscription plans (idempotent)."""
+    rows = [
+        {
+            "plan_name": "Apartment",
+            "description": "apartment descriptions",
+            "amount": 10.0,
+            "currency": "KWD",
+            "duration_in_days": 30,
+            "is_active": True,
+        },
+        {
+            "plan_name": "Villa/House",
+            "description": "villa or house descriptions",
+            "amount": 20.0,
+            "currency": "KWD",
+            "duration_in_days": 30,
+            "is_active": True,
+        },
+        {
+            "plan_name": "Building",
+            "description": "Building descriptions",
+            "amount": 40.0,
+            "currency": "KWD",
+            "duration_in_days": 30,
+            "is_active": True,
+        },
+    ]
+
+    created = 0
+    for r in rows:
+        exists = (
+            db.query(Subscription)
+            .filter(
+                (Subscription.id == r["id"])
+                | (Subscription.plan_name == r["plan_name"])
+            )
+            .first()
+        )
+        if exists:
+            print(f"ℹ️ Subscription plan '{r['plan_name']}' already exists.")
+            continue
+
+        db.add(
+            Subscription(
+                id=uuid4(),
+                plan_name=r["plan_name"],
+                description=r["description"],
+                amount=r["amount"],
+                currency=r["currency"],
+                duration_in_days=r["duration_in_days"],
+                is_active=r["is_active"],
+                # created_at / updated_at assumed to default in DB/model; set explicitly if required
+            )
+        )
+        created += 1
+
+    if created:
+        db.commit()
+        print(f"✅ Seeded {created} subscription plan(s).")
+    else:
+        print("ℹ️ No new subscription plans to seed.")
+
+
 def seed_roles_permissions_users():
     db = SessionLocal()
     try:
@@ -65,15 +130,27 @@ def seed_roles_permissions_users():
 
         # 2. Permissions
         modules = [
-            "Landlord", "Manager", "User", "Tenant Contract", "Property",
-            "Invoice", "Receipts", "Financial Reports", "Bank Settlement",
-            "Maintaince Request", "Plan Flexibity", "Rental Collection",
-            "Tenant Rental", "Roles",
+            "Landlord",
+            "Manager",
+            "User",
+            "Tenant Contract",
+            "Property",
+            "Invoice",
+            "Receipts",
+            "Financial Reports",
+            "Bank Settlement",
+            "Maintaince Request",
+            "Plan Flexibity",
+            "Rental Collection",
+            "Tenant Rental",
+            "Roles",
         ]
         actions = ["create", "view", "update", "delete"]
         for module in modules:
             seed_permissions(db, f"{module} Management", actions)
         db.commit()
+
+        seed_subscriptions(db)
 
         # 3. Super Admin User
         email = "superadmin@gmail.com"
