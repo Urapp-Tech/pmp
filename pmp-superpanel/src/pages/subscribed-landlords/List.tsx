@@ -209,12 +209,27 @@ const SubLandlords = () => {
       id: 'actions',
       header: 'ACTIONS',
       cell: ({ row }) => {
-        const { id, status } = row.original;
+        const { id, status } = row.original ?? {};
+        // handle both camelCase and snake_case just in case
+        const rawDue = row.original?.due_amount ?? 0;
+
+        const s = String(status || '').toLowerCase();
+        const isRejected = s === 'rejected';
+        const isPending = s === 'pending';
+
+        // normalize "0", "0.00", number, null/undefined
+        const due = Number.parseFloat(String(rawDue || '0'));
+        const canEdit =
+          !isPending && !isRejected && Number.isFinite(due) && due > 0;
+
+        if (isRejected) return null; // no actions if rejected
 
         return (
           <div className="flex justify-start items-center">
             <div className="flex gap-4">
-              {status === 'pending' ? (
+              {Number.isFinite(due) && due <= 0 ? (
+                'PAID'
+              ) : isPending ? (
                 <>
                   <CircleCheck
                     className="text-primary-bg cursor-pointer"
@@ -228,11 +243,14 @@ const SubLandlords = () => {
                   />
                 </>
               ) : (
-                <img
-                  onClick={() => handleActionMenu('edit', id)}
-                  src={assets.images.editPencil}
-                  className="text-primary-bg cursor-pointer h-8 w-8"
-                />
+                canEdit && (
+                  <img
+                    onClick={() => handleActionMenu('edit', id)}
+                    src={assets.images.editPencil}
+                    className="text-primary-bg cursor-pointer h-8 w-8"
+                    alt="Edit"
+                  />
+                )
               )}
             </div>
           </div>
