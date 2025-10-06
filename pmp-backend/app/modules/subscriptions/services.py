@@ -233,6 +233,46 @@ def get_subscription(db: Session, subscription_id: UUID) -> Optional[Subscriptio
 # Subscribed Landlords flow
 # ============================================================
 
+# constants
+PAYMENT_STATUS = {
+    "PENDING": "PENDING",
+    "PAID": "PAID",
+    "FAILED": "FAILED",
+}
+UNPAID_STATES = {PAYMENT_STATUS["PENDING"]}
+
+
+def _latest_unpaid_subscription_payment(db, plan_id: UUID, user_id: UUID):
+    return (
+        db.query(PaymentHistory)
+        .filter(
+            PaymentHistory.payment_type == "SUBSCRIPTION",
+            PaymentHistory.subscription_id == plan_id,
+            PaymentHistory.user_id == user_id,
+            PaymentHistory.status.in_(UNPAID_STATES),
+        )
+        .order_by(PaymentHistory.created_at.desc())
+        .first()
+    )
+
+
+def _supersede_unpaid(db, ph: PaymentHistory, reason: str):
+    ph.status = PAYMENT_STATUS["FAILED"]  # <-- was "FAIL"
+    ph.updated_at = func.now()  # <-- was 'now()' string
+    # optionally store reason in a JSON meta field if you have one
+    db.add(ph)
+
+
+def _rotate_mf_payment_link(db, rec: SubscribedLandlord, new_amount: Decimal):
+    user = _get_landlord_user(db, rec.landlord_id)
+    old = _latest_unpaid_subscription_payment(db, rec.subscription_id, user.id)
+    if old:
+        _supersede_unpaid(db, old, "Reissued after admin update")
+    new_ph = _create_subscription_payment_history(db, rec, amount_override=new_amount)
+    rec.payment_link = new_ph.payment_url
+    db.add(rec)
+    return new_ph
+
 
 def list_subscribed_landlords(
     db,
@@ -387,7 +427,7 @@ def _get_landlord_user(db: Session, landlord_id: UUID) -> User:
 
 
 def _create_subscription_payment_history(
-    db: Session, rec: SubscribedLandlord
+    db: Session, rec: SubscribedLandlord, *, amount_override: Optional[Decimal] = None
 ) -> PaymentHistory:
     plan = db.query(Subscription).filter(Subscription.id == rec.subscription_id).first()
     if not plan:
@@ -400,19 +440,24 @@ def _create_subscription_payment_history(
     )
     customer_email = (user.email or "").strip()
 
-    # Create the invoice first (FK)
+    # internal invoice (your FK)
     invoice_id = _ensure_subscription_invoice(db, rec=rec, user=user, plan=plan)
 
-    # Amount to charge = due_amount (or total if no discount)
+    # amount to charge (use override if given)
     amount = float(
-        _dec(rec.due_amount if rec.due_amount is not None else rec.total_amount)
+        _dec(
+            amount_override
+            if amount_override is not None
+            else (rec.due_amount if rec.due_amount is not None else rec.total_amount)
+        )
     )
+    if amount <= 0:
+        raise ValueError("Nothing to charge; amount is 0")
+
     currency_iso = plan.currency or "KWD"
 
-    # 1) InitiatePayment
     payment_method_id = _pick_payment_method(amount, currency_iso)
 
-    # 2) ExecutePayment
     payload = {
         "PaymentMethodId": payment_method_id,
         "CustomerName": customer_name,
@@ -423,7 +468,7 @@ def _create_subscription_payment_history(
         "CallBackUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/callback",
         "ErrorUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/error",
         "Language": "en",
-        "InvoiceValue": float(amount),
+        "InvoiceValue": amount,
     }
 
     ep_resp = requests.post(
@@ -440,18 +485,19 @@ def _create_subscription_payment_history(
     row = PaymentHistory(
         invoice_id=str(invoice_id),
         user_id=user.id,
+        # TIP: prefer linking to the *instance* (subscribed_landlords.id):
+        # keeps history unambiguous; you also handle planId elsewhere anyway.
         subscription_id=rec.subscription_id,
         property_unit_id=None,
         payload=ep_json,
         payment_id=str(mf_invoice_id),
-        amount=amount,  # <-- multiplied/due amount
+        amount=amount,
         currency=currency_iso,
         payment_type="SUBSCRIPTION",
         payment_url=invoice_url,
         status="PENDING",
     )
     db.add(row)
-
     rec.payment_link = invoice_url
     db.add(rec)
 
@@ -587,22 +633,21 @@ def admin_update(
 
     plan = db.query(Subscription).filter(Subscription.id == rec.subscription_id).first()
 
-    # If holdings provided, update first
+    prior_due = _dec(rec.due_amount or 0)
+
     if holding_properties is not None:
         rec.holding_properties = int(holding_properties)
 
-    # Recompute total from unit × holdings unless admin explicitly overrides total_amount
     if total_amount is not None:
         rec.total_amount = _dec(total_amount)
     else:
         if plan:
             unit_price = _dec(plan.amount)
-            rec.total_amount = unit_price * Decimal(int(rec.holding_properties))
+            rec.total_amount = unit_price * Decimal(int(rec.holding_properties or 0))
 
     if discounted_amount is not None:
         rec.discounted_amount = _dec(discounted_amount)
 
-    # due_amount: explicit value has priority; otherwise recompute from total − discount
     if due_amount is not None:
         rec.due_amount = _dec(due_amount)
     else:
@@ -611,6 +656,51 @@ def admin_update(
         )
 
     db.add(rec)
+    db.flush()  # ensure latest amounts for link rotation
+
+    new_due = _dec(rec.due_amount or 0)
+
+    if new_due != prior_due:
+        # Use PLAN id + landlord user to scope payments to this landlord+plan
+        user = _get_landlord_user(db, rec.landlord_id)
+
+        latest_ph_any = (
+            db.query(PaymentHistory)
+            .filter(
+                PaymentHistory.payment_type == "SUBSCRIPTION",
+                PaymentHistory.subscription_id == rec.subscription_id,  # PLAN ID
+                PaymentHistory.user_id == user.id,
+            )
+            .order_by(PaymentHistory.created_at.desc())
+            .first()
+        )
+        latest_status = (
+            str(latest_ph_any.status).upper()
+            if latest_ph_any and latest_ph_any.status
+            else None
+        )
+
+        if latest_status == PAYMENT_STATUS["PAID"]:
+            # already settled; if you need adjustments, handle via refund/credit outside
+            pass
+        else:
+            if new_due <= Decimal("0"):
+                # nothing to pay: FAIL any pending and clear link
+                unpaid = _latest_unpaid_subscription_payment(
+                    db, rec.subscription_id, user.id
+                )  # plan id
+                if unpaid:
+                    _supersede_unpaid(
+                        db, unpaid, "Zero due after update"
+                    )  # sets status="FAIL"
+                rec.payment_link = None
+                db.add(rec)
+            else:
+                # rotate MF link for new amount (helper FAILs old PENDING)
+                _rotate_mf_payment_link(
+                    db, rec, new_amount=new_due
+                )  # uses plan id internally
+
     db.commit()
     db.refresh(rec)
     return rec
