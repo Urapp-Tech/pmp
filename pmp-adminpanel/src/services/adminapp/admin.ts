@@ -59,7 +59,7 @@ const forgetPassword = (userData: { email: string }) => {
 };
 
 const verifyOTP = (userData: { email: any; otp: any }) => {
-  return network.post(`${LANDLORD_USERS}/email/verification`, userData);
+  return network.post(`${LANDLORD_USERS}/email/otp/verified`, userData);
 };
 
 const newPassword = (userData: { email: any; password: any }) => {

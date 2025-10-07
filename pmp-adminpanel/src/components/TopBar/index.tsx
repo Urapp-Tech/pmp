@@ -23,7 +23,10 @@ export const TopBar = ({ title }: Props) => {
   const dispatch = useAppDispatch();
   const collapsedSidebar = useAppSelector((s) => s.appState.collapsedSidebar);
 
-  const handleLogout = () => dispatch(logout());
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/');
+  };
 
   const name = user?.fname + ' ' + user?.lname || 'Admin';
   const role = user?.role.name == 'User' ? 'Tenant' : user?.role?.name || '';

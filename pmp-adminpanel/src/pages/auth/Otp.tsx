@@ -111,7 +111,7 @@ const Otp = () => {
 
     const userData: any = {
       email: state.trim().replace(/\s+/g, ''),
-      code,
+      otp: code,
     };
     try {
       // try common method names; fall back to a local success if none exis
@@ -168,7 +168,7 @@ const Otp = () => {
                 OTP Verification
               </h2>
               <span className="text-primary-bg text-sm">
-                4 digit code has been sent to john_doe@rento.com
+                4 digit code has been sent to {state}
               </span>
             </div>
 

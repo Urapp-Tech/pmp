@@ -248,7 +248,7 @@ const ProfilePage = () => {
                     <tr className="text-primary-bg">
                       <th className="px-4 py-3">Date</th>
                       <th className="px-4 py-3">Plan</th>
-                      <th className="px-4 py-3">Units</th>
+                      <th className="px-4 py-3">Properties</th>
                       <th className="px-4 py-3">Amount</th>
                       <th className="px-4 py-3">Currency</th>
                       <th className="px-4 py-3">Status</th>
