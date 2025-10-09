@@ -10,6 +10,7 @@ from app.models.roles import Role, RolePermission
 from app.models.managers import Manager
 from app.models.property_units import PropertyUnit
 from app.models.payment_history import PaymentHistory
+from app.models.super_admins import SuperAdmin
 from typing import Dict, Any, Optional, List, Tuple
 from math import ceil
 from collections import defaultdict
@@ -595,66 +596,321 @@ def get_users_lov_by_landlord(landlord_id: UUID, db: Session) -> List[UserLOV]:
 #     )
 
 
+# def get_all_active_users_service(
+#     db: Session,
+#     page: int = 1,
+#     limit: int = 10,
+#     search: Optional[str] = None,
+#     role_filter: Optional[str] = None,
+# ):
+#     skip = (page - 1) * limit
+#     query = db.query(User).options(joinedload(User.role))
+
+#     # Search filter
+#     if search:
+#         query = query.filter(
+#             or_(
+#                 User.fname.ilike(f"%{search}%"),
+#                 User.lname.ilike(f"%{search}%"),
+#                 User.email.ilike(f"%{search}%"),
+#                 User.phone.ilike(f"%{search}%"),
+#             )
+#         )
+
+#     # Role filter (exclude 'All')
+#     if role_filter and role_filter.lower() != "all":
+#         query = query.join(User.role).filter(Role.name.ilike(role_filter))
+
+#     total = query.count()
+
+#     users = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+
+#     items = []
+
+#     for user in users:
+#         user_data = {
+#             "id": str(user.id),
+#             "fname": user.fname,
+#             "lname": user.lname,
+#             "email": user.email,
+#             "phone": user.phone,
+#             "isLandlord": user.is_landlord,
+#             "landlordId": str(user.landlord_id) if user.landlord_id else None,
+#             "roleId": str(user.role_id) if user.role_id else None,
+#             "roleName": user.role.name if user.role else None,
+#             "profilePic": user.profile_pic,
+#             "gender": user.gender,
+#             "isActive": user.is_active,
+#             "isVerified": user.is_verified,
+#             "createdAt": user.created_at.isoformat(),
+#             "updatedAt": user.updated_at.isoformat(),
+#             "userProperty": None,
+#             "userPropertyUnit": None,
+#         }
+
+#         user_data["assignedProperty"] = []
+#         user_data["assignedPropertyUnit"] = []
+
+#         # Only for users with role "user"
+#         if user_data.get("roleName", "").lower() == "user":
+#             tenants = (
+#                 db.query(Tenant)
+#                 .filter(Tenant.user_id == user.id, Tenant.is_approved == True)
+#                 .all()
+#             )
+#             for tenant in tenants:
+#                 unit = (
+#                     db.query(PropertyUnit).filter_by(id=tenant.property_unit_id).first()
+#                 )
+#                 if unit:
+#                     prop = db.query(Property).filter_by(id=unit.property_id).first()
+#                     if prop:
+#                         user_data["assignedProperty"].append(prop.name)
+#                         user_data["assignedPropertyUnit"].append(unit.name)
+
+#         items.append(user_data)
+
+#     return {
+#         "success": True,
+#         "total": total,
+#         "page": page,
+#         "size": limit,
+#         "items": items,
+#     }
+
+
+# landlord user profile
+
+
+def _now_dt():
+    return datetime.now(timezone.utc)
+
+
+def _split_name(full: Optional[str]) -> tuple[str, str]:
+    s = (full or "").strip()
+    if not s:
+        return "", ""
+    parts = s.split()
+    if len(parts) == 1:
+        return parts[0], ""
+    return parts[0], " ".join(parts[1:])
+
+
+def _map_user_row(db_user: User) -> dict:
+    return {
+        "id": str(db_user.id),
+        "fname": db_user.fname,
+        "lname": db_user.lname,
+        "email": db_user.email,
+        "phone": db_user.phone,
+        "isLandlord": db_user.is_landlord,
+        "landlordId": str(db_user.landlord_id) if db_user.landlord_id else None,
+        "roleId": str(db_user.role_id) if db_user.role_id else None,
+        "roleName": db_user.role.name if db_user.role else None,
+        "profilePic": db_user.profile_pic,
+        "gender": db_user.gender,
+        "isActive": db_user.is_active,
+        "isVerified": bool(db_user.is_verified),  # <- always a boolean
+        "createdAt": db_user.created_at.isoformat() if db_user.created_at else None,
+        "updatedAt": db_user.updated_at.isoformat() if db_user.updated_at else None,
+        "userProperty": None,
+        "userPropertyUnit": None,
+        "assignedProperty": [],
+        "assignedPropertyUnit": [],
+        # internal helpers
+        "_dt": db_user.created_at or _now_dt(),
+        "_kind": "user",
+        "_uuid": db_user.id,  # keep original UUID for joins later
+    }
+
+
+def _map_superadmin_row(sa: SuperAdmin, role: Optional[Role]) -> dict:
+    fname, lname = _split_name(getattr(sa, "name", None))
+    role_name = role.name if role else "Super Admin"  # root shows "Super Admin"
+    return {
+        "id": str(sa.id),
+        "fname": fname or None,
+        "lname": lname or None,
+        "email": sa.email,
+        "phone": getattr(sa, "phone", None),
+        "isLandlord": False,
+        "landlordId": None,
+        "roleId": str(sa.role_id) if sa.role_id else None,
+        "roleName": role_name,
+        "profilePic": None,
+        "gender": None,
+        "isActive": bool(getattr(sa, "is_active", True)),
+        "isVerified": False,  # <- ALWAYS a boolean for superadmins
+        "createdAt": (
+            sa.created_at.isoformat() if getattr(sa, "created_at", None) else None
+        ),
+        "updatedAt": (
+            sa.updated_at.isoformat() if getattr(sa, "updated_at", None) else None
+        ),
+        "userProperty": None,
+        "userPropertyUnit": None,
+        "assignedProperty": [],
+        "assignedPropertyUnit": [],
+        "_dt": getattr(sa, "created_at", None) or _now_dt(),
+        "_kind": "superuser",
+        "_uuid": sa.id,
+    }
+
+
 def get_all_active_users_service(
-    db: Session,
+    db,
     page: int = 1,
     limit: int = 10,
     search: Optional[str] = None,
     role_filter: Optional[str] = None,
 ):
+    page = max(1, int(page))
+    limit = max(1, min(int(limit), 200))
     skip = (page - 1) * limit
-    query = db.query(User).options(joinedload(User.role))
+    role_mode = (role_filter or "All").strip().lower()
 
-    # Search filter
+    # --- base user query (for regular Users table) ---
+    user_q = db.query(User).options(joinedload(User.role))
+
     if search:
-        query = query.filter(
+        like = f"%{search}%"
+        user_q = user_q.filter(
             or_(
-                User.fname.ilike(f"%{search}%"),
-                User.lname.ilike(f"%{search}%"),
-                User.email.ilike(f"%{search}%"),
-                User.phone.ilike(f"%{search}%"),
+                User.fname.ilike(like),
+                User.lname.ilike(like),
+                User.email.ilike(like),
+                User.phone.ilike(like),
             )
         )
 
-    # Role filter (exclude 'All')
-    if role_filter and role_filter.lower() != "all":
-        query = query.join(User.role).filter(Role.name.ilike(role_filter))
+    # Apply role filter to regular users if the caller asked for a specific role
+    # We leave 'all' and 'superusers' to be handled separately
+    if role_mode not in ("all", "superusers") and role_mode:
+        user_q = user_q.join(User.role).filter(Role.name.ilike(role_filter))
 
-    total = query.count()
+    # --- superadmins (sub-superadmins only) query ---
+    # Only needed if role=All or role=Superusers
+    super_items = []
+    total_super = 0
+    if role_mode in ("all", "superusers"):
+        sa_q = (
+            db.query(SuperAdmin, Role)
+            .outerjoin(Role, Role.id == SuperAdmin.role_id)
+            .filter(SuperAdmin.role_id.isnot(None))  # sub-superadmins only
+        )
+        if search:
+            like = f"%{search}%"
+            sa_q = sa_q.filter(
+                or_(
+                    func.lower(SuperAdmin.name).ilike(func.lower(like)),
+                    func.lower(SuperAdmin.email).ilike(func.lower(like)),
+                    func.coalesce(SuperAdmin.phone, "").ilike(like),
+                )
+            )
 
-    users = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+        if role_mode == "superusers":
+            # paginate superusers alone
+            total_super = sa_q.count()
+            sa_rows = (
+                sa_q.order_by(SuperAdmin.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
+            super_items = [_map_superadmin_row(sa, role) for (sa, role) in sa_rows]
 
-    items = []
+            return {
+                "success": True,
+                "total": total_super,
+                "page": page,
+                "size": limit,
+                "items": [
+                    {k: v for k, v in d.items() if k != "_dt" and k != "_kind"}
+                    for d in super_items
+                ],
+            }
 
-    for user in users:
-        user_data = {
-            "id": str(user.id),
-            "fname": user.fname,
-            "lname": user.lname,
-            "email": user.email,
-            "phone": user.phone,
-            "isLandlord": user.is_landlord,
-            "landlordId": str(user.landlord_id) if user.landlord_id else None,
-            "roleId": str(user.role_id) if user.role_id else None,
-            "roleName": user.role.name if user.role else None,
-            "profilePic": user.profile_pic,
-            "gender": user.gender,
-            "isActive": user.is_active,
-            "isVerified": user.is_verified,
-            "createdAt": user.created_at.isoformat(),
-            "updatedAt": user.updated_at.isoformat(),
-            "userProperty": None,
-            "userPropertyUnit": None,
+        # role=All: we’ll merge with regular users after we fetch them
+
+    # --- default flow for regular users (landlord/manager/user/etc.) ---
+    if role_mode not in ("all", "superusers"):
+        total = user_q.count()
+        users = user_q.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+
+        items = []
+        for user in users:
+            data = _map_user_row(user)
+
+            # Existing tenant assignment enrichment (only for role "user")
+            if (data.get("roleName") or "").lower() == "user":
+                tenants = (
+                    db.query(Tenant)
+                    .filter(Tenant.user_id == user.id, Tenant.is_approved == True)
+                    .all()
+                )
+                for tenant in tenants:
+                    unit = (
+                        db.query(PropertyUnit)
+                        .filter_by(id=tenant.property_unit_id)
+                        .first()
+                    )
+                    if unit:
+                        prop = db.query(Property).filter_by(id=unit.property_id).first()
+                        if prop:
+                            data["assignedProperty"].append(prop.name)
+                            data["assignedPropertyUnit"].append(unit.name)
+
+            items.append({k: v for k, v in data.items() if k != "_dt" and k != "_kind"})
+
+        return {
+            "success": True,
+            "total": total,
+            "page": page,
+            "size": limit,
+            "items": items,
         }
 
-        user_data["assignedProperty"] = []
-        user_data["assignedPropertyUnit"] = []
+    # --- role = All: merge regular users + sub-superadmins, then paginate ---
+    # fetch ALL matching rows for both sides, merge, sort, slice
+    # (simple + reliable; adjust if you expect millions of rows)
+    user_rows = user_q.order_by(User.created_at.desc()).all()
+    user_items = [_map_user_row(u) for u in user_rows]
 
-        # Only for users with role "user"
-        if user_data.get("roleName", "").lower() == "user":
+    # for superusers we already built sa_q above
+    sa_q_all = (
+        db.query(SuperAdmin, Role)
+        .outerjoin(Role, Role.id == SuperAdmin.role_id)
+        .filter(SuperAdmin.role_id.isnot(None))
+    )
+    if search:
+        like = f"%{search}%"
+        sa_q_all = sa_q_all.filter(
+            or_(
+                func.lower(SuperAdmin.name).ilike(func.lower(like)),
+                func.lower(SuperAdmin.email).ilike(func.lower(like)),
+                func.coalesce(SuperAdmin.phone, "").ilike(like),
+            )
+        )
+    sa_rows_all = sa_q_all.order_by(SuperAdmin.created_at.desc()).all()
+    super_items_all = [_map_superadmin_row(sa, role) for (sa, role) in sa_rows_all]
+
+    merged = user_items + super_items_all
+    total_all = len(merged)
+    # sort by datetime, newest first (use real datetime fallback)
+    merged.sort(key=lambda d: (d.get("_dt") or _now_dt()), reverse=True)
+
+    page_slice = merged[skip : skip + limit]
+    # enrich tenant assignment for sliced "user" items only (keep it efficient)
+    items = []
+    for data in page_slice:
+        if (
+            data.get("_kind") == "user"
+            and (data.get("roleName") or "").lower() == "user"
+        ):
+            user_uuid = data.get("_uuid")  # actual UUID from the ORM row
             tenants = (
                 db.query(Tenant)
-                .filter(Tenant.user_id == user.id, Tenant.is_approved == True)
+                .filter(Tenant.user_id == user_uuid, Tenant.is_approved == True)
                 .all()
             )
             for tenant in tenants:
@@ -664,21 +920,21 @@ def get_all_active_users_service(
                 if unit:
                     prop = db.query(Property).filter_by(id=unit.property_id).first()
                     if prop:
-                        user_data["assignedProperty"].append(prop.name)
-                        user_data["assignedPropertyUnit"].append(unit.name)
+                        data["assignedProperty"].append(prop.name)
+                        data["assignedPropertyUnit"].append(unit.name)
 
-        items.append(user_data)
+        # strip internal keys before returning
+        items.append(
+            {k: v for k, v in data.items() if k not in ("_dt", "_kind", "_uuid")}
+        )
 
     return {
         "success": True,
-        "total": total,
+        "total": total_all,
         "page": page,
         "size": limit,
         "items": items,
     }
-
-
-# landlord user profile
 
 
 def _tz_aware(dt):

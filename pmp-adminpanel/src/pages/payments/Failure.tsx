@@ -28,7 +28,7 @@ export default function FailurePage() {
               className="btn-black-fill w-full p-0 py-2 text-quinary-bg bg-primary-bg/75 h-[60px] text-[16px] font-semibold rounded-[20px]"
               color="inherit"
               title="Login"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/admin-panel/profile/list`)}
             >
               Try Again
             </Button>

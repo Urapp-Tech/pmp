@@ -27,7 +27,7 @@ export default function SuccessPage() {
             <Button
               className="w-full p-0 py-2 text-quinary-bg bg-primary-bg/75 h-[60px] text-[16px] font-semibold  rounded-[20px]"
               color="inherit"
-              onClick={() => navigate(`/admin-panel/dashboard`)}
+              onClick={() => navigate(`/admin-panel/profile/list`)}
             >
               Back to Home
             </Button>

@@ -108,3 +108,7 @@ class AdminUpdateRequest(BaseModel):
 class RenewalPaidRequest(BaseModel):
     # called after successful renewal (webhook/callback)
     extend_days: Optional[int] = None  # if omitted, uses plan.duration_in_days
+
+
+class CancelRequest(BaseModel):
+    reason: Optional[str] = None

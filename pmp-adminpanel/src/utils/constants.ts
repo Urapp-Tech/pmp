@@ -120,4 +120,10 @@ export const PERMISSIONS = {
     UPDATE: 'Update Tenant Rental Management',
     DELETE: 'Delete Tenant Rental Management',
   },
+  LANDLORD_PAYMENT: {
+    VIEW: 'View Landlord Payment Management',
+    CREATE: 'Create Landlord Payment Management',
+    UPDATE: 'Update Landlord Payment Management',
+    DELETE: 'Delete Landlord Payment Management',
+  },
 };

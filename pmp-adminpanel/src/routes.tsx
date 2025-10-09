@@ -12,6 +12,8 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import NewPassword from './pages/auth/NewPassword';
 import StaticLayoutOutlet from './layout/StaticLayoutOutlet';
 import Signup from './pages/auth/Signup';
+import LandlordPayments from './pages/landlord-payments/List';
+import CollectionReports from './pages/collection-reports/List';
 
 const AddRolePermissionsPage = lazy(
   () => import('@/pages/role-permissions/AddRolePermissionsPage')
@@ -371,6 +373,40 @@ export const routeObjects: RouteObject[] = [
                 element: (
                   <Suspense fallback={<div>Loading...</div>}>
                     <InvoiceReport />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'tenant-payments',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <LandlordPayments />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'collection-reports',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <CollectionReports />
                   </Suspense>
                 ),
               },

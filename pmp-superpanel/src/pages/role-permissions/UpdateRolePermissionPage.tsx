@@ -178,25 +178,28 @@ const UpdateRolePermissionPage = () => {
   }, []);
 
   return mainIsLoader ? (
-    <div className="flex justify-center bg-white h-[80%] rounded-[20px]  items-center">
+    <div className="flex justify-center h-[80%] items-center">
       <Loader2 className="animate-spin" />
     </div>
   ) : (
-    <div className="grid grid-cols-12 bg-white p-2 rounded-[20px]">
+    <div className="grid grid-cols-12 p-2">
       <div className="col-span-5 p-5">
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="">
               <div className="form-group w-full gap-3">
-                <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
-                  Roles & Permissions
+                <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
+                  ROLE & PERMISSIONS
                 </h2>
-                <h5 className="text-lunar-bg font-semibold text-[14px] leading-normal capitalize mt-8 mb-4">
+                <h5 className="text-primary-bg font-semibold text-[14px] leading-normal capitalize mt-8 mb-4">
                   Update Role
                 </h5>
                 <FormControl className="m-1 w-full">
                   <div className="">
-                    <FormLabel htmlFor="name" className="text-sm font-semibold">
+                    <FormLabel
+                      htmlFor="name"
+                      className="text-sm font-semibold text-primary-bg"
+                    >
                       Name{' '}
                       {state?.name === 'User' ||
                       state?.name === 'Manager' ||
@@ -223,7 +226,7 @@ const UpdateRolePermissionPage = () => {
                     )}
                   </div>
                 </FormControl>
-                <div className="flex items-center justify-between mt-6">
+                <div className="flex items-center justify-between mt-6 text-primary-bg">
                   <FormLabel
                     htmlFor="permissions"
                     className="text-sm font-semibold block"
@@ -246,7 +249,7 @@ const UpdateRolePermissionPage = () => {
                     </label>
                   </div>
                 </div>
-                <div className="mt-2">
+                <div className="mt-2 text-primary-bg">
                   {list?.map((item: any, index: number) => (
                     <div className="mt-2" key={index}>
                       <FormLabel
@@ -264,6 +267,7 @@ const UpdateRolePermissionPage = () => {
                               onCheckedChange={(isChecked: any) =>
                                 handleCheckboxChange(child.id, isChecked)
                               }
+                              className="peer-checked:bg-scrollbar"
                             />
                             <label
                               htmlFor={child.id}
@@ -294,7 +298,7 @@ const UpdateRolePermissionPage = () => {
               <Button
                 disabled={isLoader}
                 type="submit"
-                className="mt-7 ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                className="mt-7 ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
               >
                 {isLoader ? <Loader2 className="animate-spin" /> : 'Update'}
               </Button>

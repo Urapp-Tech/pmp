@@ -1,8 +1,5 @@
-import { TopBar } from '@/components/TopBar';
-import { Button } from '@/components/ui/button';
 import { SidebarInset } from '@/components/ui/sidebar';
 
-import usersService from '@/services/adminapp/users';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -15,25 +12,15 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  Airplay,
-  Loader2,
-  // ChevronDown,
-  FileText,
-  Pencil,
-  Trash2,
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { Checkbox } from '@/components/ui/checkbox';
+import assets from '@/assets/images';
 import DeleteDialog from '@/components/DeletePopup';
 import { Paginator } from '@/components/Paginator';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  //   DropdownMenuLabel,
-  //   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
@@ -47,15 +34,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import service from '@/services/adminapp/support-tickets';
+import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
+import { handleErrorMessage } from '@/utils/helper';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
-import OfficeUsersCreationDialog from './CreateDialog';
-import OfficeUserUpdateDialog from './UpdateDialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials, handleErrorMessage } from '@/utils/helper';
-import { ASSET_BASE_URL } from '@/utils/constants';
 import StatusChangeDialog from './StatusDialog';
-import assets from '@/assets/images';
+import { usePermission } from '@/utils/hasPermission';
 
 export type Users = {
   id: string; // UUID
@@ -86,6 +70,7 @@ const Blogs = () => {
   // console.log('userDetails', userDetails);
 
   const { toast } = useToast();
+  const { can } = usePermission();
 
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
@@ -143,9 +128,9 @@ const Blogs = () => {
           className={`capitalize ${row.getValue('status') === 'open' ? 'bg-scrollbar text-primary-bg' : row.getValue('status') === 'in_progress' ? 'bg-primary-bg-dark text-sidebar-accent-foreground' : 'bg-primary-bg-dark text-sidebar-accent-foreground'} text-center w-[75px] h-[30px] rounded text-[10px] leading-normal flex items-center justify-center font-semibold py-[1px] border-secondary-bg border-2`}
         >
           {String(row.getValue('status') ?? '')
-  .toLowerCase()
-  .replace(/_/g, ' ')
-  .replace(/\b\w/g, c => c.toUpperCase())}
+            .toLowerCase()
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, (c) => c.toUpperCase())}
         </div>
       ),
     },
@@ -220,65 +205,27 @@ const Blogs = () => {
 
         return (
           <div className="flex justify-start items-center">
-            {status === 'closed' ? null : (
-              <>
-                <div className="pr-6">
-                  <img
-                    src={assets.images.editPencil}
-                    className="h-8 w-8 object-contain cursor-pointer"
-                    onClick={() => handleActionMenu('status', id)}
-                  />
-                  {/* <Airplay
-                    className="text-primary-bg cursor-pointer"
-                    size={20}
-                    onClick={() => handleActionMenu('status', id)}
-                  /> */}
-                </div>
-
-                {/* <div>
-                  <Pencil
-                    className="text-lunar-bg cursor-pointer"
-                    onClick={() => handleActionMenu('edit', id)}
-                    size={20}
-                  />
-                </div> */}
-                <div className="pl-3">
-                  <img
-                    src={assets.images.deleted}
-                    className="h-8 w-8 object-contain cursor-pointer"
-                    onClick={() => handleActionMenu('delete', id)}
-                  />
-                  {/* <Trash2
-                    className="text-primary-bg cursor-pointer"
-                    size={20}
-                    onClick={() => handleActionMenu('delete', id)}
-                  /> */}
-                </div>
-              </>
-            )}
+            {status === 'closed'
+              ? null
+              : can(PERMISSIONS.SUPPORT_TICKETS.UPDATE) && (
+                  <>
+                    <div className="pr-6">
+                      <img
+                        src={assets.images.editPencil}
+                        className="h-8 w-8 object-contain cursor-pointer"
+                        onClick={() => handleActionMenu('status', id)}
+                      />
+                    </div>
+                    <div className="pl-3">
+                      <img
+                        src={assets.images.deleted}
+                        className="h-8 w-8 object-contain cursor-pointer"
+                        onClick={() => handleActionMenu('delete', id)}
+                      />
+                    </div>
+                  </>
+                )}
           </div>
-          // <DropdownMenu>
-          //   <DropdownMenuTrigger asChild>
-          //     <Button variant="ghost" className="h-8 w-8 p-0">
-          //       <span className="sr-only">Open menu</span>
-          //       <MoreHorizontal />
-          //     </Button>
-          //   </DropdownMenuTrigger>
-          //   <DropdownMenuContent align="end">
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('edit', id)}
-          //     >
-          //       Edit
-          //     </DropdownMenuItem>
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('delete', id)}
-          //     >
-          //       Delete
-          //     </DropdownMenuItem>
-          //   </DropdownMenuContent>
-          // </DropdownMenu>
         );
       },
     },

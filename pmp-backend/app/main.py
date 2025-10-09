@@ -23,6 +23,8 @@ from app.modules.dashboardActivities.routes import router as dashboard_activity_
 from app.modules.reports.routes import router as report_router
 from app.modules.contact.routes import router as contact_router
 from app.modules.subscriptions.routes import router as subscriptions_router
+from app.modules.manualPayments.routes import router as manual_payments_router
+from app.modules.collectionReports.routes import router as collection_reports_router
 
 from app.schedulers.scheduler import scheduler
 from app.schedulers.invoice_scheduler import schedule_invoice_generation
@@ -173,6 +175,12 @@ app.include_router(
 )
 app.include_router(
     subscriptions_router, prefix="/admin", tags=["Admin - Subscriptions"]
+)
+app.include_router(
+    manual_payments_router, prefix="/admin", tags=["Admin - Manual Payments"]
+)
+app.include_router(
+    collection_reports_router, prefix="/admin", tags=["Admin - Collection Reports"]
 )
 
 

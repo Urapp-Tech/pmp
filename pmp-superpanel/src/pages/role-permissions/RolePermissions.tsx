@@ -51,6 +51,7 @@ import OfficeUsersCreationDialog from './AddRolePermissionsPage';
 import OfficeUserUpdateDialog from './UpdateRolePermissionPage';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router';
+import assets from '@/assets/images';
 
 export type Users = {
   id: string; // UUID
@@ -143,25 +144,40 @@ const RolePermissions = () => {
         // // console.log('row.original: ', row.original);
 
         return key !== 'SUPER_ADMIN' ? (
-          <div className="flex justify-center items-center">
+          <div className="flex justify-center items-center gap-2">
             <div>
-              <Pencil
+              <img
+                onClick={() =>
+                  navigate(`../edit/${id}`, { state: row.original })
+                }
+                src={assets.images.editPencil}
+                className="text-primary-bg cursor-pointer h-8 w-8"
+              />
+              {/* <Pencil
                 className="text-lunar-bg cursor-pointer"
                 onClick={() =>
                   navigate(`../edit/${id}`, { state: row.original })
                 }
                 size={20}
-              />
+              /> */}
             </div>
-            <div className="pl-3">
-              <Trash2
+            <div className="">
+              <img
+                onClick={() => {
+                  setDeleteOpen(true);
+                  setEditFormData(row.original);
+                }}
+                src={assets.images.deleted}
+                className="text-primary-bg cursor-pointer h-8 w-8"
+              />
+              {/* <Trash2
                 onClick={() => {
                   setDeleteOpen(true);
                   setEditFormData(row.original);
                 }}
                 className="text-lunar-bg cursor-pointer"
                 size={20}
-              />
+              /> */}
             </div>
           </div>
         ) : (
@@ -296,13 +312,13 @@ const RolePermissions = () => {
   });
 
   return (
-    <div className="bg-white p-2 rounded-[20px] shadow-2xl mt-5">
-      <TopBar title="Role & Permissions" />
+    <div className="mt-5">
+      {/* <TopBar title="Role & Permissions" /> */}
       <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
-              Roles & Permissions
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
+              ROLES & PERMISSIONS
             </h2>
             <div className="flex gap-3 items-center">
               <Input
@@ -315,7 +331,7 @@ const RolePermissions = () => {
               <DropdownMenu>
                 <Button
                   onClick={() => navigate('../add')}
-                  className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                  className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
                   variant={'outline'}
                 >
                   + Add Role

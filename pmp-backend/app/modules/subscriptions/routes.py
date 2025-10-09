@@ -17,6 +17,7 @@ from app.modules.subscriptions.schemas import (
     AdminRejectRequest,
     AdminUpdateRequest,
     RenewalPaidRequest,
+    CancelRequest,
 )
 from app.modules.subscriptions import services
 
@@ -90,7 +91,9 @@ def list_subscribed_landlords(
     page: int = Query(1, ge=1),
     pageSize: int = Query(20, ge=1, le=200),
     q: Optional[str] = Query(None),
-    status: Optional[str] = Query(None, pattern="^(pending|approved|rejected)$"),
+    status: Optional[str] = Query(
+        None, pattern="^(pending|approved|rejected|cancelled)$"
+    ),
     landlord_id: Optional[str] = Query(None),  # or UUID if you prefer
     subscription_id: Optional[str] = Query(None),  # or UUID if you prefer
     db: Session = Depends(get_db),
@@ -207,6 +210,25 @@ def renewal_paid(
     try:
         rec = services.mark_renewal_paid_and_extend(
             db, record_id, extend_days=body.extend_days
+        )
+        return rec
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@subr.post("/cancel/{record_id}", response_model=SubscribedLandlordOut)
+def cancel_subscription(
+    record_id: UUID,
+    body: Optional[CancelRequest] = None,
+    db: Session = Depends(get_db),
+    current_user_id: Optional[UUID] = None,  # pass auth user if you have it
+):
+    try:
+        rec = services.cancel_subscription(
+            db,
+            record_id,
+            cancelled_by=current_user_id,
+            reason=(body.reason if body else None),
         )
         return rec
     except ValueError as e:

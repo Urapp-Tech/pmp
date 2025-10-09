@@ -136,6 +136,21 @@ export function MainSidebar({
       items: [],
     },
     {
+      title: 'TENANT PAYMENTS',
+      url: '/admin-panel/tenant-payments',
+      icon: assets.images.tenantIcon,
+      permission: PERMISSIONS.LANDLORD_PAYMENT.VIEW,
+      items: [],
+    },
+    {
+      title: 'COLLECTION REPORTS',
+      url: '/admin-panel/collection-reports',
+      icon: assets.images.tenantIcon,
+      permission: PERMISSIONS.LANDLORD_PAYMENT.VIEW,
+      role: ['Landlord'],
+      items: [],
+    },
+    {
       title: 'RECEIPTS',
       url: '/admin-panel/receipts',
       icon: assets.images.receiptIcon,

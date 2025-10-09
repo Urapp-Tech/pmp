@@ -86,7 +86,7 @@ def _ensure_subscription_invoice(
         discount_amount=discount_amount,
         due_amount=due_amount,  # <-- due
         currency=currency,
-        status="UNPAID",
+        status="unpaid",
         payment_date=None,
         invoice_date=now,
         due_date=rec.expiration_date or (now + timedelta(days=7)),
@@ -568,6 +568,9 @@ def admin_approve(
     if not rec:
         raise ValueError("Subscription request not found")
 
+    if (rec.status or "").lower() == "cancelled":
+        raise ValueError("Cancelled subscription cannot be approved")
+
     plan = db.query(Subscription).filter(Subscription.id == rec.subscription_id).first()
     if not plan:
         raise ValueError("Plan not found")
@@ -630,6 +633,9 @@ def admin_update(
     )
     if not rec:
         raise ValueError("Subscription record not found")
+
+    if (rec.status or "").lower() == "cancelled":
+        raise ValueError("Cancelled subscription cannot be updated")
 
     plan = db.query(Subscription).filter(Subscription.id == rec.subscription_id).first()
 
@@ -809,3 +815,48 @@ def expire_and_deactivate_properties(db: Session) -> int:
     if count:
         db.commit()
     return count
+
+
+def cancel_subscription(
+    db: Session,
+    record_id: UUID,
+    *,
+    cancelled_by: Optional[UUID] = None,
+    reason: Optional[str] = None,
+) -> SubscribedLandlord:
+    rec = (
+        db.query(SubscribedLandlord).filter(SubscribedLandlord.id == record_id).first()
+    )
+    if not rec:
+        raise ValueError("Subscription not found")
+
+    # If already cancelled, return as-is
+    if (rec.status or "").lower() == "cancelled":
+        return rec
+
+    # If rejected, nothing to cancel
+    if (rec.status or "").lower() == "rejected":
+        raise ValueError("Subscription is rejected; nothing to cancel")
+
+    # Fail any unpaid MF link for this landlord+plan
+    user = _get_landlord_user(db, rec.landlord_id)
+    pending_ph = _latest_unpaid_subscription_payment(db, rec.subscription_id, user.id)
+    if pending_ph:
+        _supersede_unpaid(db, pending_ph, reason or "Cancelled by user/admin")
+
+    # Finalize the record
+    rec.status = "cancelled"
+    rec.payment_link = None
+    rec.due_amount = Decimal("0")
+    rec.expiration_date = _now()  # stop immediately
+
+    # Optional: store who cancelled (reuse approved_by if you like, or add a new column later)
+    if cancelled_by:
+        rec.approved_by = (
+            cancelled_by  # or a dedicated cancelled_by column if you add one
+        )
+
+    db.add(rec)
+    db.commit()
+    db.refresh(rec)
+    return rec
