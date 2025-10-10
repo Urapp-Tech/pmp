@@ -304,7 +304,8 @@ const Invoices = () => {
         ['INV#', `${inv.invoice_no ?? '—'}`],
         ['DATE', `${inv.invoice_date ?? '—'}`],
         ['VALID DATE', `${inv.due_date ?? '—'}`],
-        ['FINAL AMOUNT', `${fmt(inv.total_amount, currency)}`],
+        ['Contract#', `${inv?.tenant?.contract_number ?? '—'}`],
+        ['AMOUNT', `${fmt(inv.total_amount, currency)}`],
       ];
       doc.setFontSize(10);
       leftRows.forEach(([k, v]) => {
@@ -347,11 +348,21 @@ const Invoices = () => {
       doc.text(tenantName, COL3_X, BASE_Y + 20);
       doc.setFont('helvetica', 'normal');
       doc.text(tenantWrapped, COL3_X, BASE_Y + 36);
-
+      const leftRowTanent: Array<[string, string]> = [
+        ['LEGAL CASE:', `${inv?.tenant?.legal_case ? 'YES' : 'NO'}`],
+      ];
+      doc.setFontSize(10);
+      leftRowTanent.forEach(([k, v]) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(k, COL3_X, BASE_Y + 52);
+        doc.setFont('helvetica', 'normal');
+        doc.text(v, COL3_X + 80, BASE_Y + 52);
+        y += 16;
+      });
       // ---------------- Table header
       const tLeft = MARGIN_L;
       const tRight = W - MARGIN_R;
-      let ty = BASE_Y + 80;
+      let ty = BASE_Y + 100;
 
       doc.setFillColor(COLORS.navy);
       doc.setTextColor('#FFFFFF');
@@ -473,14 +484,20 @@ const Invoices = () => {
               {hasPending ? (
                 <>
                   <div className=" inline-block h-2 w-2 rounded-full bg-scrollbar" />
-                  <Link to={`/super-admin/invoices/detail/${row.original.id}`}  className="underline text-textinv">
+                  <Link
+                    to={`/super-admin/invoices/detail/${row.original.id}`}
+                    className="underline text-textinv"
+                  >
                     {row.original.invoice_no}
                   </Link>
                 </>
               ) : (
                 <>
                   <div className="inline-block h-2 w-2 rounded-full bg-offground" />
-                  <Link to={`/super-admin/invoices/detail/${row.original.id}`} className="underline  text-textinv">
+                  <Link
+                    to={`/super-admin/invoices/detail/${row.original.id}`}
+                    className="underline  text-textinv"
+                  >
                     {row.original.invoice_no}
                   </Link>
                 </>
@@ -531,9 +548,9 @@ const Invoices = () => {
         cell: ({ row }) => {
           return (
             <div className="leading-tight">
-                <div className="text-sm  capitalize text-primary-bg">
-                  {dayjs(row.original.due_date).format('YYYY-MM-DD')}
-                </div>
+              <div className="text-sm  capitalize text-primary-bg">
+                {dayjs(row.original.due_date).format('YYYY-MM-DD')}
+              </div>
             </div>
           );
         },
@@ -544,9 +561,9 @@ const Invoices = () => {
         cell: ({ row }) => {
           return (
             <div className="leading-tight">
-                <div className="text-sm  capitalize text-primary-bg">
-                  {row.original.status}
-                </div>
+              <div className="text-sm  capitalize text-primary-bg">
+                {row.original.status}
+              </div>
             </div>
           );
         },

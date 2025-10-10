@@ -249,6 +249,8 @@ const Invoices = () => {
       doc.setFillColor(COLORS.white);
       doc.rect(0, 0, W, HEADER_H, 'F');
 
+      // 20rem radius in PDF points (1rem≈16px, 1px≈72/96 pt => 0.75pt)
+      const PT_PER_PX = 72 / 96;
       const CUT_R = 0; // 20rem → 320px → 240pt
 
       // Clip to the header band so the cut doesn't spill below it
@@ -348,7 +350,8 @@ const Invoices = () => {
         ['INV#', `${inv.invoice_no ?? '—'}`],
         ['DATE', `${inv.invoice_date ?? '—'}`],
         ['VALID DATE', `${inv.due_date ?? '—'}`],
-        ['FINAL AMOUNT', `${fmt(inv.total_amount, currency)}`],
+        ['Contract#', `${inv?.tenant?.contract_number ?? '—'}`],
+        ['AMOUNT', `${fmt(inv.total_amount, currency)}`],
       ];
       doc.setFontSize(10);
       leftRows.forEach(([k, v]) => {
@@ -391,11 +394,21 @@ const Invoices = () => {
       doc.text(tenantName, COL3_X, BASE_Y + 20);
       doc.setFont('helvetica', 'normal');
       doc.text(tenantWrapped, COL3_X, BASE_Y + 36);
-
+      const leftRowTanent: Array<[string, string]> = [
+        ['LEGAL CASE:', `${inv?.tenant?.legal_case ? 'YES' : 'NO'}`],
+      ];
+      doc.setFontSize(10);
+      leftRowTanent.forEach(([k, v]) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(k, COL3_X, BASE_Y + 52);
+        doc.setFont('helvetica', 'normal');
+        doc.text(v, COL3_X + 80, BASE_Y + 52);
+        y += 16;
+      });
       // ---------------- Table header
       const tLeft = MARGIN_L;
       const tRight = W - MARGIN_R;
-      let ty = BASE_Y + 80;
+      let ty = BASE_Y + 100;
 
       doc.setFillColor(COLORS.navy);
       doc.setTextColor('#FFFFFF');

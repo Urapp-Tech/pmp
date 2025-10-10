@@ -290,10 +290,10 @@ const InvoiceReport = () => {
     );
 
     // ---------------- Three-column info blocks
-    const COL_W = CONTENT_W / 2;
+    const COL_W = CONTENT_W / 3;
     const COL1_X = MARGIN_L;
     const COL2_X = MARGIN_L + COL_W;
-    const COL3_X = MARGIN_L + COL_W * 1.5;
+    const COL3_X = MARGIN_L + COL_W * 2;
     const BASE_Y = TITLE_Y + 60;
 
     doc.setTextColor(COLORS.navy);
@@ -310,7 +310,8 @@ const InvoiceReport = () => {
       ['INV#', `${invoice.invoice_no ?? '—'}`],
       ['DATE', `${invoice.invoice_date ?? '—'}`],
       ['VALID DATE', `${invoice.due_date ?? '—'}`],
-      ['FINAL AMOUNT', `${fmt(invoice.total_amount, currency)}`],
+      ['Contract#', `${invoice?.tenant?.contract_number ?? '—'}`],
+      ['AMOUNT', `${fmt(invoice.total_amount, currency)}`],
     ];
     doc.setFontSize(10);
     leftRows.forEach(([k, v]) => {
@@ -352,11 +353,21 @@ const InvoiceReport = () => {
     doc.text(tenantName, COL3_X, BASE_Y + 20);
     doc.setFont('helvetica', 'normal');
     doc.text(tenantWrapped, COL3_X, BASE_Y + 36);
-
+    const leftRowTanent: Array<[string, string]> = [
+      ['LEGAL CASE:', `${invoice?.tenant?.legal_case ? 'YES' : 'NO'}`],
+    ];
+    doc.setFontSize(10);
+    leftRowTanent.forEach(([k, v]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(k, COL3_X, BASE_Y + 52);
+      doc.setFont('helvetica', 'normal');
+      doc.text(v, COL3_X + 80, BASE_Y + 52);
+      y += 16;
+    });
     // ---------------- Table header
     const tLeft = MARGIN_L;
     const tRight = W - MARGIN_R;
-    let ty = BASE_Y + 80;
+    let ty = BASE_Y + 100;
 
     doc.setFillColor(COLORS.navy);
     doc.setTextColor('#FFFFFF');
