@@ -2,13 +2,14 @@ from sqlalchemy import Column, String, ForeignKey, TIMESTAMP, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from uuid import uuid4
-import enum
+from sqlalchemy import Enum as SAEnum
+import enum as py_enum
 
 
 from app.db.database import Base  # Adjust import as needed
 
 
-class InvoiceStatus(str, enum.Enum):
+class InvoiceStatus(str, py_enum.Enum):
     paid = "paid"
     un_paid = "un_paid"
 
@@ -49,6 +50,11 @@ class Invoice(Base):
     )
     updated_at = Column(
         TIMESTAMP(timezone=True), server_default=text("now()"), nullable=False
+    )
+    submitted_type = Column(
+        SAEnum("auto", "manual", name="submittedtype"),
+        nullable=False,
+        server_default="auto",
     )
 
     # Relationships (optional, if models exist)

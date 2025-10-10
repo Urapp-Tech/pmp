@@ -780,7 +780,7 @@ const Invoices = () => {
                   { id: 'rentalUsers', name: 'Rental Users' },
                   {
                     id: 'landlordSubscriptions',
-                    name: 'Landlord Subscriptions',
+                    name: 'Subscriptions',
                   },
                 ]}
                 placeholder="Choose an option"

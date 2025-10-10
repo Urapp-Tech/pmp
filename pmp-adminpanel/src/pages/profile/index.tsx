@@ -2,10 +2,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   CheckCircle,
-  ExternalLink,
   Clock,
   Pencil,
   CircleDollarSign,
+  ExternalLink,
 } from 'lucide-react';
 import { getItem } from '@/utils/storage';
 import { ASSET_BASE_URL } from '@/utils/constants';
@@ -25,6 +25,9 @@ import {
 } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
 import ProfileModal from '@/components/Profile/ProfileModal';
+// import { toast } from '@/hooks/use-toast';
+// import { useDispatch } from 'react-redux';
+
 const ProfilePage = () => {
   const dispatch = useAppDispatch();
   const user: any = getItem('USER');
@@ -32,9 +35,25 @@ const ProfilePage = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // const dispatch = useDispatch();
   const landlordId = user?.landlordId;
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [actionId, setActionId] = useState<string | null>(null); // disable buttons while processing
+
+  const ToastHandler = (text: string) => {
+    return toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
+      ),
+      style: {
+        backgroundColor: '#5CB85C',
+        color: 'white',
+        zIndex: 9999,
+      },
+    });
+  };
 
   const fetchProfile = async () => {
     if (!landlordId) return;
@@ -44,8 +63,40 @@ const ProfilePage = () => {
         historyPage: 1,
         historySize: 10,
       });
+
       if (res?.data?.success) {
-        setProfile(res.data.data);
+        const data = res.data.data;
+        setProfile(data);
+
+        // ---- update allowedHoldingProperties if we see a PAID history row ----
+        const items: any[] = Array.isArray(data?.history?.items)
+          ? data.history.items.slice()
+          : [];
+
+        // ensure newest-first (backend already orders desc, this is just defensive)
+        items.sort(
+          (a, b) =>
+            new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf()
+        );
+
+        // find the latest PAID row with a valid holdingProperties
+        const latestPaid = items.find(
+          (it) =>
+            String(it?.status || '').toUpperCase() === 'PAID' &&
+            it?.holdingProperties != null
+        );
+
+        if (latestPaid) {
+          const hp = Number(latestPaid.holdingProperties) || 0;
+
+          // only update if different from what we have stored
+          const currentHP = Number(user?.allowedHoldingProperties ?? 0);
+          if (hp !== currentHP) {
+            const updatedUser = { ...user, allowedHoldingProperties: hp };
+            // This will also setItem('USER', updatedUser) via your reducer
+            dispatch(login(updatedUser));
+          }
+        }
       }
     } finally {
       setLoading(false);
@@ -55,6 +106,37 @@ const ProfilePage = () => {
   useEffect(() => {
     fetchProfile();
   }, [landlordId]);
+
+  // cancel API
+  const cancelSubscription = async (recordId: string) => {
+    const ok = window.confirm(
+      'Are you sure you want to cancel this subscription?'
+    );
+    if (!ok) return;
+    setActionId(recordId);
+    try {
+      if (typeof (service as any).cancelSubscribedLandlord === 'function') {
+        await service.cancelSubscribedLandlord(recordId, {
+          reason: 'User requested cancellation',
+        });
+      } else {
+        throw new Error(
+          'Add cancelSubscribedLandlord() or .post() to your service'
+        );
+      }
+      ToastHandler('Subscription cancelled successfully');
+      await fetchProfile();
+      // optional: toast success
+    } catch (e: any) {
+      console.error(e);
+      ToastHandler('Failed to cancel subscription');
+      // window.alert(
+      //   e?.response?.data?.detail || 'Failed to cancel subscription'
+      // );
+    } finally {
+      setActionId(null);
+    }
+  };
 
   const subscriptions = profile?.subscriptions || [];
   const anyActive = useMemo(
@@ -142,12 +224,12 @@ const ProfilePage = () => {
             </p>
             <div className="flex gap-2 mt-3 flex-wrap justify-center">
               {user?.role && (
-                <Badge className="bg-primary-bg text-white px-3 py-1 text-sm rounded-full">
+                <Badge className="bg-primary-bg text-white px-3 py-1 text-sm rounded-full hover:!bg-primary-bg">
                   {user.role.name}
                 </Badge>
               )}
               {user?.isVerified && (
-                <Badge className="bg-green-600 text-white px-3 py-1 text-sm rounded-full">
+                <Badge className="bg-green-500 text-white px-3 py-1 text-sm rounded-full hover:!bg-green-500">
                   Verified
                 </Badge>
               )}
@@ -162,7 +244,7 @@ const ProfilePage = () => {
               </Button>
             </div>
 
-            {/* Metadata (no subscription boxes here anymore) */}
+            {/* Metadata */}
             <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6 w-full text-left">
               <div className="bg-secondary-bg rounded-xl p-4 shadow-inner">
                 <p className="text-primary-bg text-sm">Account Status</p>
@@ -197,24 +279,36 @@ const ProfilePage = () => {
               ) : (
                 <Accordion type="multiple" className="space-y-4">
                   {subscriptions
-                    .slice() // avoid mutating original
+                    .slice()
                     .sort(
                       (a: any, b: any) =>
                         new Date(b.createdAt).valueOf() -
                         new Date(a.createdAt).valueOf()
                     )
                     .map((s: any) => {
+                      const sStatus = String(s.status || '').toLowerCase();
                       const expires = s.expirationDate
                         ? dayjs(s.expirationDate).format('DD MMM YYYY')
                         : '-';
-                      const due = s.dueAmount ?? s.totalAmount ?? '0.000';
-                      const showPay = !!s.paymentLink && !!s.showPayNow;
+                      const dueRaw = s.dueAmount ?? s.totalAmount ?? '0.000';
+                      const due = Number.parseFloat(
+                        String(dueRaw || '0')
+                      ).toFixed(3);
+                      const showPay =
+                        sStatus === 'approved' &&
+                        !!s.paymentLink &&
+                        !!s.showPayNow; // backend decides timing
+                      const canCancel =
+                        sStatus !== 'rejected' && sStatus !== 'cancelled';
+
                       const statusTone =
-                        s.status === 'approved'
+                        sStatus === 'approved'
                           ? 'bg-emerald-50 text-emerald-700'
-                          : s.status === 'pending'
+                          : sStatus === 'pending'
                             ? 'bg-amber-50 text-amber-700'
-                            : 'bg-rose-50 text-rose-700';
+                            : sStatus === 'cancelled'
+                              ? 'bg-gray-100 text-gray-600'
+                              : 'bg-rose-50 text-rose-700';
 
                       return (
                         <AccordionItem
@@ -232,7 +326,7 @@ const ProfilePage = () => {
                                   <div className="text-lg font-semibold text-primary-bg">
                                     {s.planName}{' '}
                                     <span className="text-gray-400">
-                                      • {s.holdingProperties} units
+                                      • {s.holdingProperties} properties
                                     </span>
                                   </div>
                                   <div className="text-sm text-gray-500">
@@ -254,15 +348,17 @@ const ProfilePage = () => {
                                 >
                                   {s.status}
                                 </span>
-                                {!!s.daysToExpiry && (
-                                  <div className="hidden sm:flex items-center text-xs text-gray-500">
-                                    <Clock className="h-4 w-4 mr-1" />
-                                    {s.daysToExpiry} days left
-                                  </div>
-                                )}
+                                {!!s.daysToExpiry &&
+                                  sStatus !== 'cancelled' && (
+                                    <div className="hidden sm:flex items-center text-xs text-gray-500">
+                                      <Clock className="h-4 w-4 mr-1" />
+                                      {s.daysToExpiry} days left
+                                    </div>
+                                  )}
                               </div>
                             </div>
                           </AccordionTrigger>
+
                           <AccordionContent className="px-5 pb-5">
                             <div className="rounded-2xl overflow-hidden">
                               <div className="bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] p-5 text-white">
@@ -275,23 +371,62 @@ const ProfilePage = () => {
                                       {s.holdingProperties} allowed properties
                                     </div>
                                   </div>
+
                                   <div className="text-right">
                                     <div className="text-3xl font-semibold leading-tight">
-                                      {s.totalAmount} KWD
+                                      {Number(s.totalAmount || 0).toFixed(3)}{' '}
+                                      KWD
                                     </div>
                                     {s.discountedAmount &&
-                                      s.discountedAmount !== '0.000' && (
+                                      Number(s.discountedAmount) > 0 && (
                                         <div className="text-sm opacity-80">
-                                          Discount: {s.discountedAmount} KWD
+                                          Discount:{' '}
+                                          {Number(s.discountedAmount).toFixed(
+                                            3
+                                          )}{' '}
+                                          KWD
                                         </div>
                                       )}
                                     <div className="text-sm">
                                       Grand Total:{' '}
                                       <span className="font-semibold">
-                                        {s.dueAmount} KWD
+                                        {due} KWD
                                       </span>
                                     </div>
                                   </div>
+                                </div>
+
+                                {/* Actions row */}
+                                <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                                  {showPay && (
+                                    <a
+                                      className="inline-flex items-center gap-1"
+                                      href={s.paymentLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      <Button
+                                        className="hover:bg-scrollbar bg-white/10 text-white"
+                                        variant="outline"
+                                      >
+                                        Pay Now
+                                        <ExternalLink className="ml-1 h-4 w-4" />
+                                      </Button>
+                                    </a>
+                                  )}
+
+                                  {canCancel && (
+                                    <Button
+                                      variant="destructive"
+                                      className="hover:bg-scrollbar bg-scrollbar text-white"
+                                      disabled={actionId === s.id}
+                                      onClick={() => cancelSubscription(s.id)}
+                                    >
+                                      {actionId === s.id
+                                        ? 'Cancelling…'
+                                        : 'Cancel subscription'}
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -314,7 +449,7 @@ const ProfilePage = () => {
                     <tr className="text-primary-bg">
                       <th className="px-4 py-3">Date</th>
                       <th className="px-4 py-3">Plan</th>
-                      <th className="px-4 py-3">Units</th>
+                      <th className="px-4 py-3">Properties</th>
                       <th className="px-4 py-3">Amount</th>
                       <th className="px-4 py-3">Currency</th>
                       <th className="px-4 py-3">Status</th>
@@ -324,7 +459,7 @@ const ProfilePage = () => {
                   <tbody className="divide-y">
                     {profile?.history?.items?.length ? (
                       profile.history.items.map((it: any) => (
-                        <tr key={it.id} className="">
+                        <tr key={it.id}>
                           <td className="px-4 py-3">
                             {dayjs(it.createdAt).format('DD MMM YYYY')}
                           </td>
@@ -333,7 +468,8 @@ const ProfilePage = () => {
                             {it.holdingProperties ?? '-'}
                           </td>
                           <td className="px-4 py-3">
-                            {it.amount?.toFixed?.(3) ?? it.amount}
+                            {it.amount?.toFixed?.(3) ??
+                              Number(it.amount || 0).toFixed(3)}
                           </td>
                           <td className="px-4 py-3">{it.currency || 'KWD'}</td>
                           <td className="px-4 py-3 capitalize">
@@ -433,7 +569,7 @@ const ProfilePage = () => {
       />
       <Card className="w-full max-w-3xl rounded-3xl shadow-2xl border border-scrollbar">
         <CardContent className="p-6 flex flex-col items-center text-center">
-          {/* Profile Picture */}
+          {/* fallback view for non-landlord (unchanged) */}
           <div className="relative mb-6">
             <img
               src={
@@ -451,7 +587,6 @@ const ProfilePage = () => {
             )}
           </div>
 
-          {/* Name & Verified Badge */}
           <h1 className="capitalize text-3xl font-semibold text-primary-bg">
             {user.fname} {user.lname}
           </h1>
@@ -479,7 +614,6 @@ const ProfilePage = () => {
             </Button>
           </div>
 
-          {/* Metadata */}
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6 w-full text-left">
             <div className="bg-secondary-bg rounded-xl p-4 shadow-inner">
               <p className="text-primary-bg text-sm">Account Status</p>

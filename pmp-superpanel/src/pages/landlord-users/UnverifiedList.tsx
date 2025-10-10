@@ -464,8 +464,8 @@ const UnverifiedUsers = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
-              Users Requests
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
+              USER REQUESTS
             </h2>
             <div className="flex gap-3 items-center">
               <Input

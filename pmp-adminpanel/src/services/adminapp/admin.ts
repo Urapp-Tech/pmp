@@ -3,6 +3,8 @@ import network from '@/utils/network';
 
 const USERS = 'users';
 const LANDLORD_USERS = 'landlord-users';
+const SUBSCRIBED_LANDLORDS = 'subscribed-landlords';
+const SUBSCRIPTIONS = 'subscriptions';
 
 const loginService = (userData: { email: string; password: string }) => {
   return network.post(`${USERS}/login`, userData);
@@ -59,11 +61,18 @@ const forgetPassword = (userData: { email: string }) => {
 };
 
 const verifyOTP = (userData: { email: any; otp: any }) => {
-  return network.post(`${LANDLORD_USERS}/email/verification`, userData);
+  return network.post(`${LANDLORD_USERS}/email/otp/verified`, userData);
 };
 
 const newPassword = (userData: { email: any; password: any }) => {
   return network.post(`${LANDLORD_USERS}/new/password`, userData);
+};
+
+const cancelSubscribedLandlord = (id: any, data: { reason: any }) => {
+  return network.post(
+    `${SUBSCRIPTIONS}/${SUBSCRIBED_LANDLORDS}/cancel/${id}`,
+    data
+  );
 };
 
 export default {
@@ -77,4 +86,5 @@ export default {
   forgetPassword,
   verifyOTP,
   newPassword,
+  cancelSubscribedLandlord,
 };

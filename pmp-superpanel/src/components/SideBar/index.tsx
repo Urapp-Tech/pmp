@@ -7,6 +7,8 @@ import { Contact, Contact2Icon } from 'lucide-react';
 // import { NavProjects } from "@/components/nav-projects"
 // import { NavUser } from "@/components/nav-user"
 // import { TeamSwitcher } from "@/components/team-switcher"
+import { PERMISSIONS } from '@/utils/constants';
+import { hasPermission } from '@/utils/hasPermission';
 import assets from '@/assets/images';
 import {
   Sidebar,
@@ -32,6 +34,151 @@ export function MainSidebar({
   // const { logo, media } = appState;
   // console.log('authState', appState);
 
+  const rolePermissions = userRoles?.role?.permissions || [];
+
+  const userRole = userRoles?.role?.name;
+
+  const navItems = [
+    {
+      title: 'DASHBOARD',
+      url: '/super-admin/dashboard',
+      icon: assets.images.homeIcon,
+      items: [],
+    },
+    {
+      title: 'USERS',
+      url: '/super-admin/users',
+      icon: assets.images.usersIcon,
+      permission: PERMISSIONS.USER.VIEW,
+      items: [],
+    },
+    {
+      title: 'REPORTS',
+      url: '/super-admin/reports/analytics',
+      icon: assets.images.reportIcon,
+      permission: PERMISSIONS.GRAPHICAL_REPORT.VIEW,
+      items: [],
+    },
+    {
+      title: 'BANK TRANSACTIONS',
+      url: '/super-admin/bank-transaction',
+      icon: assets.images.bankTIcon,
+      permission: PERMISSIONS.BANK_SETTLEMENT.VIEW,
+      items: [],
+    },
+    {
+      title: 'SUBSCRIBED LANDLORDS',
+      url: '/super-admin/subscribed-landlords',
+      icon: assets.images.tenantIcon,
+      permission: PERMISSIONS.SUBSCRIBED_USER.VIEW,
+      items: [],
+    },
+    {
+      title: 'LANDLORD PAYMENTS',
+      url: '/super-admin/landlord-payments',
+      icon: assets.images.tenantIcon,
+      permission: PERMISSIONS.LANDLORD_PAYMENT.VIEW,
+      items: [],
+    },
+    {
+      title: 'LANDLORD REQUESTS',
+      url: '/super-admin/landlord-request',
+      icon: assets.images.tenantIcon,
+      permission: PERMISSIONS.LANDLORD_REQUEST.VIEW,
+      items: [],
+    },
+    {
+      title: 'INVOICES',
+      url: '/super-admin/invoices',
+      icon: assets.images.invoiceIcon,
+      permission: PERMISSIONS.INVOICE.VIEW,
+      items: [],
+    },
+    {
+      title: 'RECEIPTS',
+      url: '/super-admin/reports/invoices',
+      icon: assets.images.receiptIcon,
+      permission: PERMISSIONS.FINANCIAL_REPORT.VIEW,
+      items: [],
+    },
+    {
+      title: 'PROPERTY MANAGEMENT',
+      url: '/super-admin/property-management',
+      permission: PERMISSIONS.PROPERTY.VIEW,
+      icon: assets.images.propIcon,
+      items: [],
+    },
+    {
+      title: 'SECURITY AND LOGS',
+      url: '/super-admin/security-and-logs',
+      icon: assets.images.secLogsIcon,
+      permission: PERMISSIONS.SECURITYLOGS.VIEW,
+      items: [],
+    },
+    {
+      title: 'CONTACT US SUBMISSIONS',
+      url: '/super-admin/contact-us',
+      icon: assets.images.suppTicketIcon,
+      permission: PERMISSIONS.CONTACTUS.VIEW,
+      items: [],
+    },
+    {
+      title: 'ROLES AND PERMISSIONS',
+      url: '/super-admin/role-permissions',
+      icon: assets.images.secLogsIcon,
+      permission: PERMISSIONS.ROLE.VIEW,
+      items: [],
+    },
+    {
+      title: 'SUPPORT TICKETS',
+      url: '/super-admin/support-and-feedback',
+      icon: assets.images.suppTicketIcon,
+      permission: PERMISSIONS.SUPPORT_TICKETS.VIEW,
+      items: [],
+    },
+  ];
+
+  const filteredNavItems = navItems
+    .map((item) => {
+      const hasSubItems = Array.isArray(item.items) && item.items.length > 0;
+
+      const filteredItems = hasSubItems
+        ? item.items.filter((subItem: any) => {
+            const hasPermissionAccess =
+              !subItem.permission ||
+              hasPermission(rolePermissions, subItem.permission);
+
+            const hasRoleAccess =
+              !subItem.role ||
+              (Array.isArray(subItem.role)
+                ? subItem.role.includes(userRole)
+                : subItem.role === userRole);
+
+            return hasPermissionAccess && hasRoleAccess;
+          })
+        : item.items;
+
+      return {
+        ...item,
+        items: filteredItems,
+      };
+    })
+    .filter((item: any) => {
+      const hasPermissionAccess =
+        !item.permission || hasPermission(rolePermissions, item.permission);
+
+      const hasRoleAccess =
+        !item.role ||
+        (Array.isArray(item.role)
+          ? item.role.includes(userRole)
+          : item.role === userRole);
+
+      const hasVisibleSubItems =
+        !Array.isArray(item.items) || item.items.length >= 0;
+
+      return hasPermissionAccess && hasRoleAccess && hasVisibleSubItems;
+    });
+
   const data = {
     user: {
       name: `${authState?.user?.firstName} ${authState?.user?.lastName}`,
@@ -40,139 +187,7 @@ export function MainSidebar({
         authState?.user?.avatar ??
         `${authState?.user?.firstName?.charAt(0)}${authState?.user?.lastName?.charAt(0)}`,
     },
-    navMain: [
-      {
-        title: 'DASHBOARD',
-        url: '/super-admin/dashboard',
-        icon: assets.images.homeIcon,
-        items: [],
-      },
-      {
-        title: 'USERS',
-        url: '/super-admin/users',
-        icon: assets.images.usersIcon,
-        items: [],
-      },
-      {
-        title: 'REPORTS',
-        url: '/super-admin/reports/analytics',
-        icon: assets.images.reportIcon,
-        items: [],
-      },
-      {
-        title: 'BANK TRANSACTIONS',
-        url: '/super-admin/bank-transaction',
-        icon: assets.images.bankTIcon,
-        items: [],
-      },
-      {
-        title: 'SUBSCRIBED LANDLORDS',
-        url: '/super-admin/subscribed-landlords',
-        icon: assets.images.tenantIcon,
-        items: [],
-      },
-      {
-        title: 'LANDLORD REQUESTS',
-        url: '/super-admin/landlord-request',
-        icon: assets.images.tenantIcon,
-        items: [],
-      },
-      {
-        title: 'INVOICES',
-        url: '/super-admin/invoices',
-        icon: assets.images.invoiceIcon,
-        items: [],
-      },
-      {
-        title: 'RECEIPTS',
-        url: '/super-admin/reports/invoices',
-        icon: assets.images.receiptIcon,
-        items: [],
-      },
-      // {
-      //   title: 'Landlord Management',
-      //   url: '#',
-      //   icon: assets.images.adminUsersSidebarIcon,
-      //   items: [
-      //     {
-      //       title: 'Users',
-      //       url: '/super-admin/l-users',
-      //     },
-      //     {
-      //       title: 'Requests',
-      //       url: '/super-admin/l-users/request-list',
-      //     },
-      //   ],
-      // },
-      // {
-      //   title: 'Users',
-      //   url: '/super-admin/users',
-      //   icon: assets.images.adminUsersSidebarIcon,
-      //   items: [],
-      // },
-      {
-        title: 'PROPERTY MANAGEMENT',
-        url: '/super-admin/property-management',
-        icon: assets.images.propIcon,
-        items: [],
-      },
-      // {
-      //   title: 'Subscription Management',
-      //   url: '/super-admin/subscription-management',
-      //   icon: assets.images.rolePermissionsSidebarIcon,
-      //   items: [],
-      // },
-      {
-        title: 'SECURITY AND LOGS',
-        url: '/super-admin/security-and-logs',
-        icon: assets.images.secLogsIcon,
-        items: [],
-      },
-      {
-        title: 'CONTACT US SUBMISSIONS',
-        url: '/super-admin/contact-us',
-        icon: assets.images.suppTicketIcon,
-        items: [],
-      },
-      // {
-      //   title: 'Role Permissions',
-      //   url: '/super-admin/role-permissions',
-      //   icon: assets.images.pagesSidebarIcon,
-      //   items: [],
-      // },
-      {
-        title: 'SUPPORT TICKETS',
-        url: '/super-admin/support-and-feedback',
-        icon: assets.images.suppTicketIcon,
-        items: [],
-      },
-      // {
-      //   title: 'Operations',
-      //   url: '#',
-      //   icon: Users,
-      //   items: [
-      //     {
-      //       title: 'Categories',
-      //       url: '/dashboard/operations/categories',
-      //     },
-      //     {
-      //       title: 'Reports',
-      //       url: '/dashboard/operations/reports',
-      //     },
-      //   ],
-      // },
-      // {
-      //   title: 'Settings',
-      //   url: '#',
-      //   icon: Settings2,
-      //   items: [
-      //     {
-      //       title: 'Panel Settings',
-      //       url: '/admin/setting/panel-settings',
-      //     },
-      //   ],
-      // },
-    ],
+    navMain: filteredNavItems || [],
   };
 
   return (

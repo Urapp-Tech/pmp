@@ -2,8 +2,7 @@ import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { SidebarInset } from '@/components/ui/sidebar';
 
-import usersService from '@/services/adminapp/users';
-import service from '@/services/adminapp/contracts';
+import service from '@/services/adminapp/manual-payment';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -19,24 +18,18 @@ import {
 import {
   ArrowUpDown,
   Loader2,
-  CircleCheck,
-  CircleX,
+  // ChevronDown,
+  MapPinHouse,
   Pencil,
   Trash2,
-  FileText,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { Checkbox } from '@/components/ui/checkbox';
 import DeleteDialog from '@/components/DeletePopup';
 import { Paginator } from '@/components/Paginator';
-import contractService from '@/services/adminapp/contracts';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  //   DropdownMenuLabel,
-  //   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
@@ -50,18 +43,26 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import userService from '@/services/adminapp/users';
+import LandlordService from '@/services/adminapp/landlords';
+import SuperUserService from '@/services/adminapp/superadmin';
+// import contreactService from '@/services/adminapp/contracts';
 import { getItem } from '@/utils/storage';
 import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
-// import OfficeUsersCreationDialog from './CreateDialog';
-import OfficeUserUpdateDialog from './UpdateDialog';
+// import CreateContractDialog from './CreateContractDialog';
+// import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials, handleErrorMessage } from '@/utils/helper';
-import { usePermission } from '@/utils/hasPermission';
+// import { usePermission } from '@/utils/hasPermission';
 import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
-import dayjs from 'dayjs';
-import UpdateContractDialog from './UpdateDialog';
+import OfficeUserUpdateDialog from './UpdateDialog';
+import OfficeUserCreateDialog from './CreateDialog';
+import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
+import { useForm } from 'react-hook-form';
 import assets from '@/assets/images';
+import { usePermission } from '@/utils/hasPermission';
+import dayjs from 'dayjs';
 import AgreementDocsCell from './AgreementDocsCell';
+// import OfficeUserCreateDialog from './CreateDialog';
 
 export type Users = {
   id: string; // UUID
@@ -85,16 +86,17 @@ export type Users = {
   createdAt: string; // ISO date string for creation timestamp
   updatedAt: string; // ISO date string for update timestamp
   status: 'Active' | 'InActive';
-  userDetail: any;
-  unitDetail: any;
-  propertyUnitId?: any;
-  userId?: any;
+  docs?: any;
 };
 
-const ApprovedContracts = () => {
+const LandlordPayments = () => {
   const userDetails: any = getItem('USER');
   const { toast } = useToast();
   const { can } = usePermission();
+  // const { can } = usePermission();
+
+  const form = useForm<any>({ defaultValues: { userfilter: 'All' } });
+  const { control, watch } = form;
 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -108,10 +110,17 @@ const ApprovedContracts = () => {
   const [rowSelection, setRowSelection] = useState({});
 
   const [isLoader, setIsLoader] = useState(false);
-  const [mainIsLoader, setMainIsLoader] = useState(true);
+  const [mainIsLoader, setMainIsLoader] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const [fromDate, setFromDate] = useState(
+    dayjs().subtract(6, 'month').format('YYYY-MM-DD')
+  );
+  const [toDate, setToDate] = useState(
+    dayjs().add(6, 'month').format('YYYY-MM-DD')
+  );
 
   const ToastHandler = (text: string) => {
     return toast({
@@ -129,117 +138,69 @@ const ApprovedContracts = () => {
 
   const columns: ColumnDef<Users>[] = [
     {
-      accessorKey: 'userDetail.fname',
-      header: 'NAME',
-      cell: ({ row }: any) => {
-        const user = row.original.userDetail;
-        const tenantType = row.original?.tenantType || '';
+      accessorKey: 'invoice_no',
+      header: 'INVOICE NO.',
+      cell: ({ row }) => {
         return (
           <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarImage
-                src={`${ASSET_BASE_URL}${user?.profile_pic}` || ''}
-                alt={getInitials(user?.fname || '@fallback')}
-              />
-              <AvatarFallback>{getInitials(user?.fname || '')}</AvatarFallback>
-            </Avatar>
-            <div className="">
-              <div className="capitalize">
-                {user?.fname} {user?.lname}
-              </div>
-              <span className="text-gray-700 text-xs">({tenantType})</span>
-            </div>
+            <div className="capitalize">{row.getValue('invoice_no')}</div>
           </div>
         );
       },
     },
     {
-      accessorKey: 'property',
-      header: 'PROPERTY NAME',
-      cell: ({ row }) => {
-        const unit = row.original.unitDetail;
-        return <div className="capitalize">{unit?.property?.name}</div>;
-      },
-    },
-    {
-      accessorKey: 'unit_no',
-      header: 'UNIT NO.',
-      cell: ({ row }) => {
-        const unit = row.original.unitDetail;
-
-        return (
-          <div className="capitalize">
-            {/* {unit?.name} */}
-            {unit?.unitNo}
-            {/* <span className="text-gray-500 text-xs"> ()</span> */}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'contractNumber',
-      header: 'CONTRACT NUMBER',
+      accessorKey: 'landlord_name',
+      header: 'LANDLORD NAME',
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('contractNumber')}</div>
+        <div className="capitalize">{row.getValue('landlord_name')}</div>
       ),
     },
     {
-      accessorKey: 'rentPrice',
-      header: 'RENT PRICE',
+      accessorKey: 'amount',
+      header: 'AMOUNT',
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue('rentPrice')}</div>
+        <div className="capitalize">{row.getValue('amount')}</div>
       ),
     },
     {
-      accessorKey: 'contractStart',
-      header: 'CONTRACT START',
+      accessorKey: 'method',
+      header: 'METHOD',
       cell: ({ row }) => (
-        <div className="capitalize">
-          {dayjs(row.getValue('contractStart')).format('YYYY-MM-DD')}
-        </div>
+        <div className="capitalize">{row.getValue('method')}</div>
       ),
     },
     {
-      accessorKey: 'contractEnd',
-      header: 'CONTRACT END',
-      cell: ({ row }) => (
-        <div className="capitalize">
-          {dayjs(row.getValue('contractEnd')).format('YYYY-MM-DD')}
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'leavingDate',
-      header: 'LEAVING DATE',
-      cell: ({ row }) => (
-        <div className="capitalize">
-          {dayjs(row.getValue('leavingDate')).format('YYYY-MM-DD')}
-        </div>
-      ),
-    },
-
-    {
-      accessorKey: 'agreement_doc',
+      accessorKey: 'docs',
       header: 'AGREEMENT DOCS',
+      cell: ({ row }) => {
+        const { docs } = row.original;
+        return (
+          <AgreementDocsCell
+            value={docs?.attachments || []}
+            assetBaseUrl={ASSET_BASE_URL}
+            maxInline={3} // tweak if you want 2 or 4
+          />
+        );
+      },
+    },
+    {
+      accessorKey: 'created_at',
+      header: 'DATE',
       cell: ({ row }) => (
-        <AgreementDocsCell
-          value={row.getValue('agreement_doc')}
-          assetBaseUrl={ASSET_BASE_URL}
-          maxInline={3} // tweak if you want 2 or 4
-        />
+        <div className="capitalize">
+          {dayjs(row.getValue('created_at')).format('DD-MM-YYYY')}
+        </div>
       ),
     },
     {
-      id: 'actions',
+      id: 'status',
       header: 'ACTIONS',
-      enableHiding: false,
       cell: ({ row }) => {
-        // const payment = row.original;
         const { id } = row.original;
         return (
-          <div className="flex justify-center items-center">
-            {can(PERMISSIONS.USER_CONTRACT.UPDATE) && (
-              <div>
+          <div className="flex justify-start items-center">
+            {can(PERMISSIONS.LANDLORD_PAYMENT.UPDATE) && (
+              <div className="pl-4">
                 <img
                   onClick={() => handleActionMenu('edit', id)}
                   src={assets.images.editPencil}
@@ -247,54 +208,37 @@ const ApprovedContracts = () => {
                 />
               </div>
             )}
-            {/* 
-            {can(PERMISSIONS.USER_CONTRACT.DELETE) && (
-              <div className="pl-3">
-                <Trash2
-                  className="text-lunar-bg cursor-pointer"
-                  size={20}
-                  onClick={() => handleActionMenu('delete', id)}
-                />
-              </div>
-            )} */}
           </div>
         );
       },
     },
   ];
 
-  const handleActionMenu = async (type: string, actionId: string) => {
-    if (type === 'edit') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setEditOpen(true);
-    }
-    if (type === 'delete') {
-      const editData = list.find((item: any) => item.id === actionId);
-      setEditFormData(editData);
-      setEditOpen(true);
-    }
-  };
-
-  const fetchList = async () => {
+  const fetchUsers = async () => {
+    setMainIsLoader(true);
+    const constantPage = 1;
+    setPage(constantPage);
     try {
-      const users = await service.approvedList(
-        userDetails?.landlordId,
-        search,
-        page,
-        pageSize
-      );
+      const users = await service.list({
+        q: search,
+        constantPage,
+        pageSize,
+        dateFrom: fromDate,
+        dateTo: toDate,
+        role: 'superadmin',
+        actor_id: userDetails?.id,
+      });
       if (users.data.success) {
         setMainIsLoader(false);
         setList(users.data.items);
         setTotal(users.data.total);
       } else {
         setMainIsLoader(false);
-        console.log('error: ', users.data.message);
+        // console.log('error: ', users.data.message);
       }
     } catch (error: Error | unknown) {
       setMainIsLoader(false);
-      console.log('error: ', error);
+      // console.log('error: ', error);
     }
   };
 
@@ -304,68 +248,115 @@ const ApprovedContracts = () => {
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      fetchList();
+      fetchUsers();
     }
   };
 
   useEffect(() => {
-    fetchList();
-  }, []);
+    fetchUsers();
+  }, [watch('userfilter')]);
 
-  const deleteUserHandler = (data: any) => {
-    const userId = data.id;
+  const handlePageChange = async (newPage: any) => {
+    setMainIsLoader(true);
+    const nextPage = newPage + 1;
+    table.setPageIndex(nextPage);
+    try {
+      const users = await userService.tenantUserList(
+        search,
+        nextPage,
+        pageSize,
+        watch('userfilter')
+      );
+      if (users.data.success) {
+        setPage(nextPage);
+        setList(users.data.items);
+        setTotal(users.data.total);
+        setMainIsLoader(false);
+      } else {
+        setMainIsLoader(false);
+        ToastHandler(users.data.message);
+        // console.log('error: ', users.data.message);
+      }
+    } catch (error: Error | unknown) {
+      setMainIsLoader(false);
+      // console.log('error: ', error);
+    }
+  };
+
+  const handleActionMenu = (type: string, actionId: string) => {
+    if (type === 'edit') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setEditOpen(true);
+    }
+    if (type === 'delete') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setDeleteOpen(true);
+    }
+  };
+
+  const createHandler = (data: any) => {
     setIsLoader(true);
-    userService
-      .deleteUser(userId)
-      .then((updateItem) => {
-        if (updateItem.data.success) {
-          setDeleteOpen(false);
+    const actors = {
+      id: userDetails?.id,
+      role: 'superadmin',
+    };
+    service
+      .create(actors, data)
+      .then((item: any) => {
+        if (item.data.success) {
+          setIsOpen(false);
           setIsLoader(false);
-          setList((newArr: any) => {
-            return newArr.filter((item: any) => item.id !== userId);
-          });
+          setList([item.data.items, ...list]);
           let newtotal = total;
-          setTotal((newtotal -= 1));
-          toast({
-            description: updateItem.data.message,
-            className: cn(
-              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
-            ),
-            style: {
-              backgroundColor: '#FF5733',
-              color: 'white',
-            },
-          });
+          setTotal((newtotal += 1));
+          ToastHandler(item.data.msg);
         } else {
           setIsLoader(false);
+          ToastHandler(item.data.msg);
         }
       })
-      .catch((err: Error) => {
-        console.log('error: ', err);
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
         setIsLoader(false);
       });
   };
 
-  const handlePageChange = async (newPage: any) => {
-    table.setPageIndex(newPage);
-    try {
-      const users = await service.approvedList(
-        userDetails?.landlordId,
-        search,
-        newPage,
-        pageSize
-      );
-      if (users.data.success) {
-        setPage(newPage);
-        setList(users.data.items);
-        setTotal(users.data.total);
-      } else {
-        ToastHandler(users.data.message);
-        console.log('error: ', users.data.message);
-      }
-    } catch (error: Error | unknown) {
-      console.log('error: ', error);
-    }
+  const updateEmployeeHandler = (id: any, data: any) => {
+    console.log('id', id, data);
+    setIsLoader(true);
+    service
+      .update(id, data)
+      .then((updateItem: any) => {
+        if (updateItem.data.success) {
+          setEditOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.map((item: any) => {
+              if (item.id === updateItem.data.items.id) {
+                item.invoice_no = updateItem.data.items.invoice_no;
+                item.amount = updateItem.data.items.amount;
+                item.deposit_date = updateItem.data.items.deposit_date;
+                item.deposit_reference =
+                  updateItem.data.items.deposit_reference;
+                item.landlord_name = updateItem.data.items.landlord_name;
+                item.method = updateItem.data.items.method;
+                item.notes = updateItem.data.items.notes;
+                item.docs = updateItem.data.items.docs;
+              }
+              return { ...item };
+            });
+          });
+          ToastHandler(updateItem.data.msg);
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setIsLoader(false);
+      });
   };
 
   const table = useReactTable({
@@ -387,130 +378,116 @@ const ApprovedContracts = () => {
     },
   });
 
-  // const createEmployeeHandler = (data: any) => {
-  //   console.log('dadad', data);
-
-  //   setIsLoader(true);
-  //   const formData = new FormData();
-  //   formData.append('fname', data.fname);
-  //   formData.append('lname', data.lname);
-  //   formData.append('email', data.email);
-  //   formData.append('phone', data.phone);
-  //   formData.append('gender', data.gender);
-  //   formData.append('password', data.password);
-  //   formData.append('roleType', 'User');
-  //   formData.append('landlordId', userDetails?.landlordId);
-  //   if (data.profilePic) formData.append('profilePic', data.profilePic);
-  //   userService
-  //     .create(formData)
-  //     .then((item) => {
-  //       if (item.data.success) {
-  //         setIsOpen(false);
-  //         setIsLoader(false);
-  //         setList([item.data.items, ...list]);
-  //         let newtotal = total;
-  //         setTotal((newtotal += 1));
-  //       } else {
-  //         setIsLoader(false);
-  //         ToastHandler(item.data.message);
-  //       }
-  //     })
-  //     .catch((err: Error | any) => {
-  //       console.log('error: ', err);
-  //       ToastHandler(err?.response?.data?.detail[0]?.msg);
-  //       setIsLoader(false);
-  //     });
-  // };
-
-  const updateContractHandler = (data: any) => {
-    setIsLoader(true);
-    const formData = new FormData();
-    // console.log('data: ', data);
-
-    // Append all fields
-    formData.append('contractId', editFormData?.id);
-    formData.append('propertyUnitId', data.propertyUnitId);
-    formData.append('civilId', data.civilId || '');
-    formData.append('nationality', data.nationality || '');
-    formData.append('rentPrice', String(data.rentPrice));
-    formData.append('rentPayDay', String(data.rentPayDay));
-    formData.append('tenantType', data.tenantType || '');
-    formData.append('legalCase', String(data.legalCase) || 'false');
-    formData.append('contractStart', data.contractStart);
-    formData.append('contractEnd', data.contractEnd);
-    formData.append('leavingDate', data.leavingDate || '');
-    formData.append('paymentCycle', data.paymentCycle || '');
-    formData.append('language', data.language || '');
-
-    if (data.agreementDoc) {
-      // formData.append('agreementDoc', data.agreementDoc);
-      data.agreementDoc.forEach((f: any) => formData.append('agreementDoc', f));
-    }
-
-    contractService
-      .update(editFormData?.id, formData)
-      .then((item: any) => {
-        if (item.data.success) {
-          console.log('item: ', item.data.data);
-
-          const updatedItem = {
-            ...item.data.data,
-            propertyUnitId: item.data.data.propertyUnitId,
-            agreement_doc: Array.isArray(item.data.data.agreementDoc)
-              ? item.data.data.agreementDoc
-              : (item.data.data.agreementDoc || '').split(','),
-          };
-
-          setList((prev: any) =>
-            prev.map((contract: any) =>
-              contract.id === editFormData?.id
-                ? { ...contract, ...updatedItem }
-                : contract
-            )
-          );
-
-          setEditOpen(false);
-          setEditFormData(undefined);
-          setIsLoader(false);
-          ToastHandler('Contract Successfully Updated');
-        }
-      })
-      .catch((err: Error | any) => {
-        const error = handleErrorMessage(err);
-        console.log('error: ', error);
-
-        ToastHandler(error);
-        setIsLoader(false);
-      });
-  };
-
   return (
-    <div className=" p-2 mt-5">
-      <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <div className="p-2 mt-5">
+      {/* <TopBar title="Tenant Users" /> */}
+      <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0 m-5">
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
             <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
-              APPROVED CONTRACTS
+              LANDLORD PAYMENTS
             </h2>
             <div className="flex gap-3 items-center">
-              <Input
-                placeholder="Search contracts..."
-                value={search}
-                onChange={handleChange}
-                onKeyPress={handleKeyPress}
-                className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
-              />
+              <div className="flex items-center gap-3">
+                <div className="relative w-[200px]">
+                  <Input
+                    id="fromDate"
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    className="
+      w-full border-primary-bg pr-10
+      appearance-none
+      focus-visible:ring-0
+      [&::-webkit-calendar-picker-indicator]:opacity-0
+      [&::-webkit-clear-button]:hidden
+      [&::-ms-reveal]:hidden
+      [&::-ms-clear]:hidden
+    "
+                    placeholder="From date"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Open date picker"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                    onClick={() => {
+                      const el = document.getElementById(
+                        'fromDate'
+                      ) as HTMLInputElement | null;
+                      // @ts-ignore - not in all TS libs
+                      if (el && typeof el.showPicker === 'function')
+                        el.showPicker();
+                      else el?.focus();
+                    }}
+                  >
+                    <img
+                      src={assets.images.calender}
+                      alt="Calendar"
+                      className="h-4 w-4 pointer-events-none"
+                    />
+                  </button>
+                </div>
+
+                {/* To date */}
+                <div className="relative w-[200px]">
+                  <Input
+                    id="toDate"
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    className="
+      w-full border-primary-bg pr-10
+      appearance-none
+      focus-visible:ring-0
+      [&::-webkit-calendar-picker-indicator]:opacity-0
+      [&::-webkit-clear-button]:hidden
+      [&::-ms-reveal]:hidden
+      [&::-ms-clear]:hidden
+    "
+                    placeholder="To date"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Open date picker"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                    onClick={() => {
+                      const el = document.getElementById(
+                        'toDate'
+                      ) as HTMLInputElement | null;
+                      // @ts-ignore
+                      if (el && typeof el.showPicker === 'function')
+                        el.showPicker();
+                      else el?.focus();
+                    }}
+                  >
+                    <img
+                      src={assets.images.calender}
+                      alt="Calendar"
+                      className="h-4 w-4 pointer-events-none"
+                    />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center w-[261px]">
+                <Input
+                  placeholder="Search users..."
+                  value={search}
+                  onChange={handleChange}
+                  onKeyPress={handleKeyPress}
+                  className="w-[461px] h-[38px] rounded bg-mars-bg/50"
+                />
+              </div>
               <DropdownMenu>
-                {/* {can(PERMISSIONS.USER.CREATE) && (
+                {can(PERMISSIONS.LANDLORD_PAYMENT.CREATE) && (
                   <Button
                     onClick={() => setIsOpen(true)}
-                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded text-[12px] leading-[16px] font-semibold text-quinary-bg"
                     variant={'outline'}
                   >
                     + Add New
                   </Button>
-                )} */}
+                )}
                 <DropdownMenuContent align="end">
                   {table
                     .getAllColumns()
@@ -597,7 +574,7 @@ const ApprovedContracts = () => {
               <div className="my-5 flex justify-center w-full">
                 <Paginator
                   pageSize={pageSize}
-                  currentPage={page}
+                  currentPage={page - 1}
                   totalPages={total}
                   onPageChange={(pageNumber) => handlePageChange(pageNumber)}
                   showPreviousNext
@@ -609,35 +586,25 @@ const ApprovedContracts = () => {
           )}
         </div>
       </SidebarInset>
-      {/* {isOpen && (
-        <OfficeUsersCreationDialog
+      {isOpen && (
+        <OfficeUserCreateDialog
           isLoader={isLoader}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          callback={createEmployeeHandler}
+          callback={createHandler}
         />
-      )} */}
+      )}
       {editOpen && (
-        <UpdateContractDialog
+        <OfficeUserUpdateDialog
           isLoader={isLoader}
           isOpen={editOpen}
           setIsOpen={setEditOpen}
           formData={editFormData}
-          callback={updateContractHandler}
-        />
-      )}
-      {deleteOpen && (
-        <DeleteDialog
-          isLoader={isLoader}
-          isOpen={deleteOpen}
-          setIsOpen={setDeleteOpen}
-          title={'User'}
-          formData={editFormData}
-          callback={deleteUserHandler}
+          callback={updateEmployeeHandler}
         />
       )}
     </div>
   );
 };
 
-export default ApprovedContracts;
+export default LandlordPayments;

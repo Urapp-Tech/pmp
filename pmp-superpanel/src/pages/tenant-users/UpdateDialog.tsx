@@ -112,6 +112,7 @@ const OfficeUserUpdateDialog = ({
       landlordId: data.landlord,
       roleName: roleLov.filter((item: any) => item.id === data.role)[0]?.name,
     };
+    console.log('data>>', obj);
     // // console.log(
     //   's',
     //   obj?.roleName === 'User' || obj?.roleName === 'Manager'
@@ -120,9 +121,7 @@ const OfficeUserUpdateDialog = ({
     //   obj
     // );
     callback(
-      obj?.roleName === 'User' || obj?.roleName === 'Manager'
-        ? formData.id
-        : formData.landlordId,
+      obj?.roleName !== 'Landlord' ? formData.id : formData.landlordId,
       obj
     );
   };
@@ -353,26 +352,30 @@ const OfficeUserUpdateDialog = ({
                     />
                   </div>
                 )} */}
-                  <div className="w-full">
-                    <FormLabel
-                      htmlFor="gender"
-                      className="text-sm font-medium my-2 block"
-                    >
-                      Gender
-                    </FormLabel>
-                    <SingleSelectDropDown
-                      control={control}
-                      name="gender"
-                      label=""
-                      items={[
-                        { id: 'male', name: 'Male' },
-                        { id: 'female', name: 'Female' },
-                        { id: 'other', name: 'Other' },
-                      ]}
-                      placeholder="Choose an option"
-                      // rules={{ required: 'This field is required' }}
-                    />
-                  </div>
+                  {(formData?.roleName === 'Landlord' ||
+                    formData?.roleName === 'Manager' ||
+                    formData?.roleName === 'User') && (
+                    <div className="w-full">
+                      <FormLabel
+                        htmlFor="gender"
+                        className="text-sm font-medium my-2 block"
+                      >
+                        Gender
+                      </FormLabel>
+                      <SingleSelectDropDown
+                        control={control}
+                        name="gender"
+                        label=""
+                        items={[
+                          { id: 'male', name: 'Male' },
+                          { id: 'female', name: 'Female' },
+                          { id: 'other', name: 'Other' },
+                        ]}
+                        placeholder="Choose an option"
+                        // rules={{ required: 'This field is required' }}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <FormControl className="m-1 w-full">

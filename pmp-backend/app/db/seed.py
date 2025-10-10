@@ -141,6 +141,13 @@ def seed_roles_permissions_users():
             "Rental Collection",
             "Tenant Rental",
             "Roles",
+            "Support Ticket",
+            "Security Logs",
+            "Contact Us",
+            "Subscribed User",
+            "Landlord Request",
+            "Graphical Reports",
+            "Landlord Payment",
         ]
         actions = ["create", "view", "update", "delete"]
         for module in modules:

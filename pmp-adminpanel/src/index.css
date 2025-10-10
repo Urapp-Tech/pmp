@@ -969,29 +969,29 @@
 } */
 
 /* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 0.5rem;
-  /* width of vertical scrollbar */
-  height: 0.5rem;
-  /* height of horizontal scrollbar */
-}
+/* ::-webkit-scrollbar { */
+/* width: 0.5rem; */
+/* width of vertical scrollbar */
+/* height: 0.5rem; */
+/* height of horizontal scrollbar */
+/* } */
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  /* background of the scrollbar track */
-  border-radius: 0.625rem;
-}
+/* ::-webkit-scrollbar-track {
+  background: #f1f1f1; */
+/* background of the scrollbar track */
+/* border-radius: 0.625rem;
+} */
 
-::-webkit-scrollbar-thumb {
-  background: #00a65a;
-  /* green scrollbar thumb */
-  border-radius: 0.625rem;
-}
+/* ::-webkit-scrollbar-thumb {
+  background: #00a65a; */
+/* green scrollbar thumb */
+/* border-radius: 0.625rem;
+} */
 
-::-webkit-scrollbar-thumb:hover {
-  background: #008c4a;
-  /* darker green on hover */
-}
+/* ::-webkit-scrollbar-thumb:hover {
+  background: #008c4a; */
+/* darker green on hover */
+/* } */
 
 /* For Firefox */
 * {
@@ -1411,29 +1411,29 @@
 } */
 
 /* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 0.5rem;
-  /* width of vertical scrollbar */
-  height: 0.5rem;
-  /* height of horizontal scrollbar */
-}
+/* ::-webkit-scrollbar {
+  width: 0.5rem; */
+/* width of vertical scrollbar */
+/* height: 0.5rem; */
+/* height of horizontal scrollbar */
+/* } */
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  /* background of the scrollbar track */
-  border-radius: 0.625rem;
-}
+/* ::-webkit-scrollbar-track {
+  background: #f1f1f1; */
+/* background of the scrollbar track */
+/* border-radius: 0.625rem;
+} */
 
-::-webkit-scrollbar-thumb {
-  background: #00a65a;
-  /* green scrollbar thumb */
-  border-radius: 0.625rem;
-}
+/* ::-webkit-scrollbar-thumb {
+  background: #00a65a; */
+/* green scrollbar thumb */
+/* border-radius: 0.625rem;
+} */
 
-::-webkit-scrollbar-thumb:hover {
-  background: #008c4a;
-  /* darker green on hover */
-}
+/* ::-webkit-scrollbar-thumb:hover {
+  background: #008c4a; */
+/* darker green on hover */
+/* } */
 
 /* For Firefox */
 * {

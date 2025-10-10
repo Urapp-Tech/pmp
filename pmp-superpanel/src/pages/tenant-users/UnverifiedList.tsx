@@ -55,6 +55,8 @@ import OfficeUsersCreationDialog from './CreateDialog';
 import OfficeUserUpdateDialog from './UpdateDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/helper';
+import { PERMISSIONS } from '@/utils/constants';
+import { usePermission } from '@/utils/hasPermission';
 
 export type Users = {
   id: string; // UUID
@@ -83,6 +85,7 @@ export type Users = {
 const UnverifiedUsers = () => {
   const userDetails: any = getItem('USER');
   const { toast } = useToast();
+  const { can } = usePermission();
 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -188,44 +191,27 @@ const UnverifiedUsers = () => {
         // const payment = row.original;
         const { id } = row.original;
         return (
-          <div className="flex justify-end items-center gap-3">
-            <div
-              onClick={() => handleActionMenu('accept', id)}
-              className="hover:bg-mars-bg cursor-pointer border-[1px] border-lunar-bg rounded-[20px] px-2 py-1 flex items-center gap-2"
-            >
-              <CircleCheck className="text-lunar-bg cursor-pointer" size={20} />
-              <span>Accept</span>
+          can(PERMISSIONS.USER.UPDATE) && (
+            <div className="flex justify-end items-center gap-3">
+              <div
+                onClick={() => handleActionMenu('accept', id)}
+                className="hover:bg-mars-bg cursor-pointer border-[1px] border-lunar-bg rounded-[20px] px-2 py-1 flex items-center gap-2"
+              >
+                <CircleCheck
+                  className="text-lunar-bg cursor-pointer"
+                  size={20}
+                />
+                <span>Accept</span>
+              </div>
+              <div
+                onClick={() => handleActionMenu('reject', id)}
+                className="hover:bg-mars-bg cursor-pointer border-[1px] border-lunar-bg rounded-[20px] px-2 py-1 flex items-center gap-2"
+              >
+                <CircleX className="text-lunar-bg cursor-pointer" size={20} />
+                <span>Reject</span>
+              </div>
             </div>
-            <div
-              onClick={() => handleActionMenu('reject', id)}
-              className="hover:bg-mars-bg cursor-pointer border-[1px] border-lunar-bg rounded-[20px] px-2 py-1 flex items-center gap-2"
-            >
-              <CircleX className="text-lunar-bg cursor-pointer" size={20} />
-              <span>Reject</span>
-            </div>
-          </div>
-          // <DropdownMenu>
-          //   <DropdownMenuTrigger asChild>
-          //     <Button variant="ghost" className="h-8 w-8 p-0">
-          //       <span className="sr-only">Open menu</span>
-          //       <MoreHorizontal />
-          //     </Button>
-          //   </DropdownMenuTrigger>
-          //   <DropdownMenuContent align="end">
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('edit', id)}
-          //     >
-          //       Edit
-          //     </DropdownMenuItem>
-          //     <DropdownMenuItem
-          //       className="cursor-pointer"
-          //       onClick={() => handleActionMenu('delete', id)}
-          //     >
-          //       Delete
-          //     </DropdownMenuItem>
-          //   </DropdownMenuContent>
-          // </DropdownMenu>
+          )
         );
       },
     },
@@ -463,8 +449,8 @@ const UnverifiedUsers = () => {
         {/* admin content page height */}
         <div className="w-full">
           <div className="flex items-center py-4 justify-between">
-            <h2 className="text-primary-bg font-semibold text-[20px] leading-normal capitalize">
-              Users Requests
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
+              USER REQUESTS
             </h2>
             <div className="flex gap-3 items-center">
               <Input
