@@ -163,7 +163,7 @@ const Invoices = () => {
     try {
       const resp = await invoiceService.list(
         userDetails?.id,
-        userDetails?.role?.name,
+        'landlord',
         keySearch,
         pageNo,
         pageSize,
