@@ -492,7 +492,10 @@ const Invoices = () => {
       setCreateOpen(false);
 
       // fetchList();
-    } else ToastHandler(resp.data.message);
+    } else {
+      setIsLoader(false);
+      ToastHandler(resp.data.message);
+    }
   };
 
   const updateHandler = async (data: InvoiceFields) => {

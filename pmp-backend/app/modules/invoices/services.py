@@ -13,22 +13,101 @@ from sqlalchemy.orm import joinedload
 from app.utils.email_service import render_template, send_email
 
 # from datetime import datetime, timedelta
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, date, timezone, timedelta
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import or_, func
+from decimal import Decimal, InvalidOperation
 
 now = datetime.now(timezone.utc)
 
 
-def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
-    invoice = Invoice(**invoice_data.dict())
+def _to_decimal(val, default=None):
+    if val is None or val == "":
+        return default
+    try:
+        return Decimal(str(val))
+    except (InvalidOperation, TypeError, ValueError):
+        return default
+
+
+def _to_iso_date_str(val) -> str | None:
+    """
+    Accepts 'YYYY-MM-DD' string, datetime.date, datetime.datetime, or None.
+    Returns 'YYYY-MM-DD' string or None.
+    """
+    if val is None:
+        return None
+    if isinstance(val, date):
+        # datetime is also a date, so this covers both
+        return val.strftime("%Y-%m-%d")
+    if isinstance(val, str):
+        s = val.strip()
+        if not s:
+            return None
+        # try the common format you’re sending
+        try:
+            _ = datetime.strptime(s, "%Y-%m-%d")
+            return s
+        except Exception:
+            # last resort: try fromisoformat without time
+            try:
+                d = date.fromisoformat(s[:10])
+                return d.strftime("%Y-%m-%d")
+            except Exception:
+                return None
+    return None
+
+
+def create_invoice(db: Session, invoice_data) -> Invoice:
+    """
+    Create an invoice with safe defaults:
+      - submitted_type: 'auto' (required by DB NOT NULL)
+      - status: 'unpaid' if not provided
+      - due_amount: total_amount if not provided
+    """
+    # Normalize numeric-like fields that often arrive as strings
+    total_amount = _to_decimal(invoice_data.total_amount, default=Decimal("0"))
+    paid_amount = _to_decimal(invoice_data.paid_amount, default=None)
+    discount_amount = _to_decimal(invoice_data.discount_amount, default=None)
+    due_amount = _to_decimal(invoice_data.due_amount, default=None)
+
+    # Defaults
+    status = invoice_data.status or "unpaid"
+
+    # If due_amount not provided, set it to total_amount (your earlier data matches this)
+    if due_amount is None:
+        due_amount = total_amount
+
+    # Build the ORM instance
+    invoice = Invoice(
+        landlord_id=invoice_data.landlord_id,
+        tenant_id=invoice_data.tenant_id,
+        invoice_no=invoice_data.invoice_no,  # may be None; we handle next
+        total_amount=float(total_amount) if total_amount is not None else None,
+        paid_amount=float(paid_amount) if paid_amount is not None else None,
+        discount_amount=float(discount_amount) if discount_amount is not None else None,
+        due_amount=float(due_amount) if due_amount is not None else None,
+        currency=invoice_data.currency,
+        status=status,
+        payment_date=None,  # you can parse if you start sending this
+        invoice_date=_to_iso_date_str(invoice_data.invoice_date),
+        due_date=_to_iso_date_str(invoice_data.due_date),
+        description=invoice_data.description,
+        payment_method=invoice_data.payment_method,
+        qty=str(invoice_data.qty) if invoice_data.qty is not None else None,
+        created_by=invoice_data.created_by or "machine",
+        updated_by=invoice_data.updated_by,
+        submitted_type="auto",  # <<< CRITICAL: satisfy NOT NULL constraint
+    )
 
     # Auto-generate invoice_no if not provided
     if not invoice.invoice_no and invoice.landlord_id:
         invoice_no = generate_invoice_no(db, invoice.landlord_id)
         invoice.invoice_no = invoice_no
-        invoice.due_amount = invoice_data.total_amount
-    user = (
+        # keep due_amount as total_amount default (already set)
+
+    # (Optional) fetch tenant (for email)
+    tenant = (
         db.query(Tenant)
         .options(joinedload(Tenant.user))
         .filter(Tenant.id == invoice.tenant_id)
@@ -36,25 +115,41 @@ def create_invoice(db: Session, invoice_data: InvoiceCreate) -> Invoice:
     )
 
     db.add(invoice)
-    db.add(invoice)
     db.commit()
     db.refresh(invoice)
-    html_content = render_template(
-        "invoice_created.html",
-        {
-            "name": f"{user.user.fname} {user.user.lname}",
-            "invoice_title": invoice_no,
-            "status": invoice.status,
-            "due_date": datetime.strptime(invoice.due_date, "%Y-%m-%d").strftime(
-                "%d %B %Y"
-            ),
-        },
-    )
-    send_email(
-        to_email=user.user.email,
-        subject="Your Invoice has been created",
-        html_content=html_content,
-    )
+
+    # --- Email (safe) ---
+    try:
+        inv_no_for_email = invoice.invoice_no or "-"
+        due_date_str = "-"
+        if invoice.due_date:
+            # invoice.due_date is stored as 'YYYY-MM-DD' string (from _to_iso_date_str)
+            try:
+                due_date_str = datetime.strptime(invoice.due_date, "%Y-%m-%d").strftime(
+                    "%d %B %Y"
+                )
+            except Exception:
+                due_date_str = invoice.due_date
+
+        if tenant and tenant.user:
+            html_content = render_template(
+                "invoice_created.html",
+                {
+                    "name": f"{tenant.user.fname} {tenant.user.lname}".strip(),
+                    "invoice_title": inv_no_for_email,
+                    "status": invoice.status,
+                    "due_date": due_date_str,
+                },
+            )
+            send_email(
+                to_email=tenant.user.email,
+                subject="Your Invoice has been created",
+                html_content=html_content,
+            )
+    except Exception:
+        # Don’t break creation on email/render errors
+        pass
+
     return invoice
 
 
@@ -176,7 +271,11 @@ def get_all_invoices(
                 "size": limit,
                 "items": [],
             }
-        units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+        units = (
+            db.query(PropertyUnit)
+            .filter(PropertyUnit.property_id.in_(assigned_property_ids))
+            .all()
+        )
         assigned_unit_ids = [u.id for u in units]
         query = query.join(Invoice.tenant).filter(
             Tenant.property_unit_id.in_(assigned_unit_ids)

@@ -12,7 +12,6 @@ import {
 import { Loader2, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { TopBar } from '@/components/TopBar';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
 import reportsService from '@/services/adminapp/reports';
@@ -21,17 +20,6 @@ import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import assets from '@/assets/images';
 
-/**
- * InvoiceReport
- *
- * A React component that generates an invoice report based on the date range and
- * status filter selected by the user. The component fetches the report data from
- * the server and displays it in a table. The user can also download the report as
- * a PDF file.
- *
- * @param {object} props Component props
- * @returns {React.ReactElement} The rendered component
- */
 const InvoiceReport = () => {
   const navigate = useNavigate();
   const userDetails: any = getItem('USER');
@@ -41,8 +29,8 @@ const InvoiceReport = () => {
   const [toDate, setToDate] = useState(
     dayjs().add(6, 'month').format('YYYY-MM-DD')
   );
-  const [statusFilter, setStatusFilter] = useState('paid'); // Default to 'paid'
-  const [reportList, setReportList] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('paid');
+  const [reportList, setReportList] = useState<any[]>([]);
   const [totalPaid, setTotalPaid] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -68,17 +56,19 @@ const InvoiceReport = () => {
     setIsLoading(true);
     try {
       const payload = {
-        id: userDetails.id,
-        role: userDetails.role.name,
+        user_id: userDetails?.id,
+        role_id: userDetails?.role?.name, // "Landlord" | "Manager" | "User"
         from_date: from,
         to_date: to,
-        status: statusFilter, // optional
+        status: statusFilter,
       };
 
       const res = await reportsService.getReport(payload);
       if (res?.data?.success) {
-        const data = res.data.items;
+        const data = res.data.items || [];
         setReportList(data);
+
+        // backend also returns total_paid, but keep local calc consistent with UI
         const total = data.reduce(
           (sum: number, inv: any) =>
             sum + Math.floor(Number(inv.total_amount) || 0),
@@ -86,13 +76,19 @@ const InvoiceReport = () => {
         );
         setTotalPaid(total);
       } else {
-        toast({ description: res.data.message || 'Failed to fetch report' });
+        toast({ description: res?.data?.message || 'Failed to fetch report' });
       }
-    } catch (err) {
+    } catch {
       toast({ description: 'Something went wrong while fetching report.' });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const currency = useMemo(() => 'KWD', []);
+  const fmt = (v?: string | number, cur?: string) => {
+    const n = Number(v ?? 0);
+    return `${n.toLocaleString()} ${cur ?? ''}`.trim();
   };
 
   const downloadPDF = () => {
@@ -107,71 +103,40 @@ const InvoiceReport = () => {
       head: [
         [
           'Invoice No',
-          'Tenant',
+          'Tenant (Contract)',
           'Property',
           'Unit No',
           'Payment Date',
           'Paid Amount',
         ],
       ],
-
-      body: reportList?.map((inv: any) => {
-        const fullName =
-          `${inv.tenant?.user?.fname || ''} ${inv.tenant?.user?.lname || ''}`.trim();
-        const contractNo = inv.tenant?.contract_number || 'N/A';
-
+      body: reportList.map((inv: any) => {
+        const pd = inv.property_details || {};
+        const pay = inv.payment_details || {};
+        const name = pd.assigned_user_name || 'N/A';
+        const contract = pd.contract_no || 'N/A';
         return [
-          inv.invoice_no,
-          { fullName, contractNo }, // 💡 Custom object
-          inv.tenant?.property_unit?.property?.name || 'N/A',
-          inv.tenant?.property_unit?.unit_no || 'N/A',
-          inv.payment_date || inv.invoice_date || 'N/A',
-          `${inv.total_amount || '0'}`,
+          inv.invoice_no || '—',
+          `${name}\n(${contract})`,
+          pd.property_name || 'N/A',
+          pd.unit_no || 'N/A',
+          pay.payment_date || inv.invoice_date || 'N/A',
+          `${inv.paid_amount ?? inv.total_amount ?? 0}`,
         ];
       }),
-
       styles: {
         overflow: 'linebreak',
         fontSize: 9,
         cellPadding: 2,
-        minCellHeight: 14, // ✅ Ensures enough space for two lines
+        minCellHeight: 14,
       },
-
       columnStyles: {
         0: { cellWidth: 'auto' },
-        1: { cellWidth: 35 }, // ✅ Widen tenant column to prevent cut
+        1: { cellWidth: 45 }, // wider to fit 2 lines
         2: { cellWidth: 'auto' },
         3: { cellWidth: 'auto' },
         4: { cellWidth: 'auto' },
         5: { cellWidth: 'auto' },
-      },
-
-      didParseCell(data: any) {
-        if (data.section === 'body' && data.column.index === 1) {
-          data.row.height = 16; // ✅ Make room for 2-line tenant data
-          data.cell.text = ['']; // Hide default text
-        }
-      },
-
-      didDrawCell(data: any) {
-        if (data.section === 'body' && data.column.index === 1) {
-          const doc = data.doc;
-          const tenant = data.cell.raw || { fullName: '', contractNo: '' };
-          const x = data.cell.x + 2;
-          const y = data.cell.y + 5;
-
-          // Line 1: Full Name
-          doc.setFontSize(9.5);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(20);
-          doc.text(tenant.fullName, x, y);
-
-          // Line 2: Contract No
-          doc.setFontSize(7);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(120);
-          doc.text(`(${tenant.contractNo})`, x, y + 5);
-        }
       },
     });
 
@@ -181,20 +146,13 @@ const InvoiceReport = () => {
     doc.text(
       `Total Collection:  ${totalPaid}`,
       14,
-      doc.lastAutoTable.finalY + 10
+      (doc.lastAutoTable?.finalY || 20) + 10
     );
 
-    // Save file
     doc.save('invoice_report.pdf');
   };
 
-  const currency = useMemo(() => 'KWD', []);
-
-  const fmt = (v?: string | number, currency?: string) => {
-    const n = Number(v ?? 0);
-    return `${n.toLocaleString()} ${currency ?? ''}`.trim();
-  };
-
+  // >>> Drop-in replacement <<<
   const downloadSpecificPDF = async (invoice: any) => {
     if (!invoice) return;
 
@@ -202,38 +160,19 @@ const InvoiceReport = () => {
     const W = doc.internal.pageSize.getWidth();
     const H = doc.internal.pageSize.getHeight();
 
-    // ---- layout constants
+    // ---- palette
+    const COLORS = { navy: '#242460', mint: '#5EBFA1', sheet: '#FFFFFF' };
+
+    // ---- page metrics
     const MARGIN_L = 40;
     const MARGIN_R = 40;
     const CONTENT_W = W - MARGIN_L - MARGIN_R;
 
-    const HEADER_H = 160; // taller header band
-    // const CUT_R = 220; // big rounded-br radius (≈ rounded-br-[20rem])
-    const TITLE_Y = HEADER_H + 40;
-
-    // ---------------- Header (navy) with only bottom-right rounded
-    doc.setFillColor(COLORS.white);
+    // ---- HEADER with banner
+    const HEADER_H = 120;
+    doc.setFillColor(COLORS.sheet);
     doc.rect(0, 0, W, HEADER_H, 'F');
 
-    // 20rem radius in PDF points (1rem≈16px, 1px≈72/96 pt => 0.75pt)
-    const PT_PER_PX = 72 / 96;
-    const CUT_R = 0; // 20rem → 320px → 240pt
-
-    // Clip to the header band so the cut doesn't spill below it
-    doc.saveGraphicsState();
-    doc.rect(-1, HEADER_H - 1, W + 2, 2, 'F');
-    (doc as any).clip(); // use current path as clip; TS may need cast
-
-    // "Cut" the bottom-right corner with a white quarter circle.
-    // Center at (pageRight, headerBottom) so only the bottom-right is rounded.
-    doc.setFillColor(COLORS.sheet);
-    // doc.circle(W, HEADER_H, CUT_R, 'F');
-    doc.circle(W - CUT_R, HEADER_H - CUT_R, CUT_R, 'F');
-
-    doc.restoreGraphicsState();
-
-    // ---------------- High-quality logo (no pixelation)
-    // Draw at or below the image’s natural resolution + disable compression.
     const loadImg = (src: string) =>
       new Promise<HTMLImageElement>((resolve, reject) => {
         const im = new Image();
@@ -244,26 +183,30 @@ const InvoiceReport = () => {
       });
 
     try {
-      const logo = await loadImg(assets.images.bgBanner as any);
-      const iw = 1500;
-      const ih = 400;
-
-      // Never upscale (that causes blur). Cap to a sensible max width for the header.
-      const MAX_W = 596; // adjust if you want it larger/smaller
-      const drawW = Math.min(MAX_W, iw);
-      const drawH = ih * (drawW / iw);
-
-      // Vertically center the logo inside the navy band
-      const logoX = 0;
-      const logoY = HEADER_H / 2 - drawH / 2;
-
-      // Use 'NONE' compression for best sharpness
-      doc.addImage(logo, 'PNG', logoX, logoY, drawW, drawH, undefined, 'NONE');
+      const banner = await loadImg(assets.images.bgBanner as any);
+      const maxW = W;
+      const ratio = banner.height / banner.width;
+      const drawW = maxW;
+      const drawH = Math.min(HEADER_H, drawW * ratio);
+      const yCentered = HEADER_H / 2 - drawH / 2;
+      doc.addImage(
+        banner,
+        'PNG',
+        0,
+        yCentered,
+        drawW,
+        drawH,
+        undefined,
+        'NONE'
+      );
     } catch {
-      // ignore logo errors
+      /* no-op */
     }
 
-    // ---------------- Titles
+    // top title baseline
+    const TITLE_Y = HEADER_H + 36;
+
+    // ---- TITLES
     doc.setTextColor(COLORS.mint);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
@@ -271,103 +214,127 @@ const InvoiceReport = () => {
 
     doc.setTextColor(COLORS.navy);
     doc.setFontSize(28);
-    doc.text('INVOICE', MARGIN_L, TITLE_Y + 25);
+    doc.text('INVOICE', MARGIN_L, TITLE_Y + 26);
 
-    // Right-aligned amount block
+    // right aligned invoice amount
     const rightEdge = W - MARGIN_R;
     doc.setTextColor(COLORS.mint);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.text('INVOICE AMOUNT', rightEdge, TITLE_Y, { align: 'right' });
 
     doc.setTextColor(COLORS.navy);
     doc.setFontSize(14);
-    doc.text(
-      `${fmt(invoice.total_amount, currency)}`,
-      rightEdge,
-      TITLE_Y + 25,
-      { align: 'right' }
-    );
+    const currency = invoice?.currency || 'KWD';
+    const fmt = (v?: string | number, cur?: string) => {
+      const n = Number(v ?? 0);
+      return `${n.toLocaleString()} ${cur ?? ''}`.trim();
+    };
+    doc.text(fmt(invoice?.total_amount, currency), rightEdge, TITLE_Y + 22, {
+      align: 'right',
+    });
 
-    // ---------------- Three-column info blocks
-    const COL_W = CONTENT_W / 3;
+    // ---- THREE COLUMNS (with gutter)
+    const GUTTER = 26; // <- spacing between columns
+    const COL_W = (CONTENT_W - GUTTER * 2) / 3;
     const COL1_X = MARGIN_L;
-    const COL2_X = MARGIN_L + COL_W;
-    const COL3_X = MARGIN_L + COL_W * 2;
-    const BASE_Y = TITLE_Y + 60;
+    const COL2_X = MARGIN_L + COL_W + GUTTER;
+    const COL3_X = MARGIN_L + (COL_W + GUTTER) * 2;
 
-    doc.setTextColor(COLORS.navy);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text('INVOICE DETAILS', COL1_X, BASE_Y);
-    doc.text('OWNER NAME', COL2_X, BASE_Y);
-    doc.text('TENANT NAME', COL3_X, BASE_Y);
+    // headings row
+    let y = TITLE_Y + 66;
 
-    // Left: labels + values aligned
-    const LBL_W = 90;
-    let y = BASE_Y + 20;
-    const leftRows: Array<[string, string]> = [
-      ['INV#', `${invoice.invoice_no ?? '—'}`],
-      ['DATE', `${invoice.invoice_date ?? '—'}`],
-      ['VALID DATE', `${invoice.due_date ?? '—'}`],
-      ['Contract#', `${invoice?.tenant?.contract_number ?? '—'}`],
-      ['AMOUNT', `${fmt(invoice.total_amount, currency)}`],
-    ];
-    doc.setFontSize(10);
-    leftRows.forEach(([k, v]) => {
+    const heading = (label: string, x: number) => {
+      doc.setTextColor(COLORS.navy);
       doc.setFont('helvetica', 'bold');
-      doc.text(k, COL1_X, y);
-      doc.setFont('helvetica', 'normal');
-      doc.text(v, COL1_X + LBL_W + 10, y);
-      y += 16;
-    });
+      doc.setFontSize(11);
+      doc.text(label, x, y);
+    };
 
-    // Middle: owner
-    const ownerName = (() => {
-      const u = invoice?.landlord?.user;
-      return u
-        ? `${u.fname ?? ''} ${u.lname ?? ''}`.trim()
-        : invoice?.tenant?.property_unit?.property?.name || '—';
-    })();
-    const ownerContact = (() => {
-      const u = invoice?.landlord?.user;
-      const bits = [u?.email, u?.phone].filter(Boolean) as string[];
-      return bits.length ? bits.join(' | ') : '—';
-    })();
+    heading('INVOICE DETAILS', COL1_X);
+    heading('PROPERTY DETAILS', COL2_X);
+    heading('TENANT DETAILS', COL3_X);
 
-    doc.setFont('helvetica', 'bold');
-    doc.text(ownerName, COL2_X, BASE_Y + 20);
-    doc.setFont('helvetica', 'normal');
-    doc.text(ownerContact, COL2_X, BASE_Y + 36);
+    // extra gap under each heading for clarity
+    y += 26;
 
-    // Right: tenant (wrap within col width)
-    const tenantUser = invoice?.tenant?.user;
-    const tenantName = tenantUser
-      ? `${tenantUser.fname ?? ''} ${tenantUser.lname ?? ''}`.trim()
+    // helpers
+    const ROW_H = 16;
+    const LBL_W = 96;
+
+    // Column 1: invoice details
+    const invDate = invoice?.invoice_date
+      ? String(invoice.invoice_date).slice(0, 10)
       : '—';
-    const tenantContactRaw =
-      [tenantUser?.email, tenantUser?.phone].filter(Boolean).join(' | ') || '—';
-    const tenantWrapped = doc.splitTextToSize(tenantContactRaw, COL_W - 4);
+    const validDate = invoice?.due_date
+      ? String(invoice.due_date).slice(0, 10)
+      : '—';
+    let y1 = y;
 
-    doc.setFont('helvetica', 'bold');
-    doc.text(tenantName, COL3_X, BASE_Y + 20);
-    doc.setFont('helvetica', 'normal');
-    doc.text(tenantWrapped, COL3_X, BASE_Y + 36);
-    const leftRowTanent: Array<[string, string]> = [
-      ['LEGAL CASE:', `${invoice?.tenant?.legal_case ? 'YES' : 'NO'}`],
-    ];
-    doc.setFontSize(10);
-    leftRowTanent.forEach(([k, v]) => {
+    const rowC1 = (label: string, value: string) => {
+      doc.setFontSize(10);
+      doc.setTextColor(COLORS.navy);
       doc.setFont('helvetica', 'bold');
-      doc.text(k, COL3_X, BASE_Y + 52);
+      doc.text(label, COL1_X, y1);
       doc.setFont('helvetica', 'normal');
-      doc.text(v, COL3_X + 80, BASE_Y + 52);
-      y += 16;
-    });
-    // ---------------- Table header
+      doc.text(value || '—', COL1_X + LBL_W + 8, y1);
+      y1 += ROW_H;
+    };
+
+    rowC1('INV#', invoice?.invoice_no ?? '—');
+    rowC1('DATE', invDate);
+    rowC1('VALID DATE', validDate);
+    rowC1('Contract#', invoice?.property_details?.contract_no ?? '—');
+    rowC1('AMOUNT', fmt(invoice?.total_amount, currency));
+
+    // Column 2: property details
+    let y2 = y;
+    const pd = invoice?.property_details || {};
+
+    const rowC2 = (label: string, value: string) => {
+      doc.setFontSize(10);
+      doc.setTextColor(COLORS.navy);
+      doc.setFont('helvetica', 'bold');
+      doc.text(label, COL2_X, y2);
+      doc.setFont('helvetica', 'normal');
+      doc.text(value || '—', COL2_X + LBL_W + 8, y2);
+      y2 += ROW_H;
+    };
+
+    rowC2('PROPERTY', pd.property_name ?? '—');
+    rowC2('ADDRESS', pd.property_address ?? '—');
+    rowC2('UNIT NAME', pd.unit_name ?? '—');
+    rowC2('UNIT NO.', pd.unit_no ?? '—');
+    rowC2('OWNER', pd.unit_owner ?? '—');
+    rowC2('LEASE ID', pd.lease_id ?? '—');
+    rowC2('CONTRACT#', pd.contract_no ?? '—');
+    rowC2('ASSIGNED USER', pd.assigned_user_name ?? '—');
+
+    // Column 3: tenant details
+    let y3 = y;
+    const tenantName = pd.assigned_user_name || '—';
+    const legalCase = invoice?.tenant?.legal_case === true ? 'YES' : 'NO';
+
+    const rowC3 = (label: string, value: string) => {
+      doc.setFontSize(10);
+      doc.setTextColor(COLORS.navy);
+      doc.setFont('helvetica', 'bold');
+      doc.text(label, COL3_X, y3);
+      doc.setFont('helvetica', 'normal');
+      doc.text(value || '—', COL3_X + LBL_W + 8, y3);
+      y3 += ROW_H;
+    };
+
+    rowC3('TENANT', tenantName);
+    rowC3('LEGAL CASE', legalCase);
+
+    // move baseline past the tallest column
+    const sectionBottom = Math.max(y1, y2, y3) + 10;
+
+    // ---- TABLE HEADER (Unit/Rent/Maintenance/Price)
     const tLeft = MARGIN_L;
     const tRight = W - MARGIN_R;
-    let ty = BASE_Y + 100;
+    let ty = sectionBottom + 12;
 
     doc.setFillColor(COLORS.navy);
     doc.setTextColor('#FFFFFF');
@@ -375,58 +342,95 @@ const InvoiceReport = () => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
 
-    const colXs = [tLeft + 14, tLeft + 180, tLeft + 290, tRight - 90];
-    ['UNIT', 'RENT', 'MAINTAINANCE', 'PRICE'].forEach((h, i) =>
+    const colXs = [tLeft + 14, tLeft + 180, tLeft + 320, tRight - 90];
+    ['UNIT', 'RENT', 'MAINTENANCE', 'PRICE'].forEach((h, i) =>
       doc.text(h, colXs[i], ty + 17)
     );
 
-    // Row + underlines (same as before)
-    ty += 26 + 24;
+    // single data row
+    ty += 26 + 22; // gap under header
     doc.setTextColor(COLORS.navy);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
 
-    const unitNo = invoice?.tenant?.property_unit?.unit_no ?? '—';
-    const unitRent = invoice?.tenant?.property_unit?.rent ?? '—';
+    const unitNo = pd.unit_no ?? '—';
+    const unitRent = invoice?.total_amount ?? 0;
     const maintenance = '—';
-    const price = invoice?.total_amount ?? '—';
+    const price = invoice?.total_amount ?? 0;
 
     doc.text(String(unitNo), colXs[0], ty);
-    doc.text(fmt(unitRent, invoice?.currency || 'KWD'), colXs[1], ty);
+    doc.text(fmt(unitRent, currency), colXs[1], ty);
     doc.text(String(maintenance), colXs[2], ty);
-    doc.text(fmt(price, invoice?.currency || 'KWD'), colXs[3], ty);
+    doc.text(fmt(price, currency), colXs[3], ty);
 
-    const lineYs = [ty + 12, ty + 56, ty + 100];
+    // soft underlines
+    const lineYs = [ty + 10, ty + 46, ty + 82];
     doc.setDrawColor(COLORS.navy);
     doc.setLineWidth(0.6);
     lineYs.forEach((ly) => doc.line(tLeft, ly, tRight, ly));
 
-    // TOTAL chip
-    const totalBoxW = 150;
-    const totalBoxH = 28;
+    // ---- TOTAL chip
+    const totalBoxW = 160;
+    const totalBoxH = 30;
     const totalX = tRight - totalBoxW;
-    const totalY = lineYs[2] + 24;
+    const totalY = lineYs[2] + 20;
+
     doc.setFillColor(COLORS.navy);
     doc.rect(totalX, totalY, totalBoxW, totalBoxH, 'F');
 
     doc.setTextColor('#FFFFFF');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text(`TOTAL ${' '} ${invoice?.total_amount}`, totalX + 18, totalY + 18);
+    doc.text(`TOTAL   ${fmt(price, currency)}`, totalX + 16, totalY + 20);
 
-    // Terms
+    // ---- PAYMENT DETAILS
+    const pay = invoice?.payment_details || {};
+    let py = totalY + totalBoxH + 30; // extra gap above heading
+
+    doc.setTextColor(COLORS.navy);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('PAYMENT DETAILS', MARGIN_L, py);
+
+    py += 24; // gap under heading
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+
+    const payRows: Array<[string, string]> = [
+      [
+        'Payment Date',
+        pay.payment_date ? String(pay.payment_date).slice(0, 10) : '—',
+      ],
+      ['Payment Method', pay.payment_method || '—'],
+      ['Payment ID', pay.payment_id ? String(pay.payment_id) : '—'],
+      ['Reference ID', pay.reference_id || '—'],
+      ['Invoiced Amount', fmt(pay.invoiced_amount, currency)],
+      ['Total Paid Amount', fmt(pay.total_paid_amount, currency)],
+    ];
+
+    payRows.forEach(([k, v]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${k}:`, MARGIN_L, py);
+      doc.setFont('helvetica', 'normal');
+      doc.text(v, MARGIN_L + 130, py);
+      py += 16;
+    });
+
+    // ---- Terms
+    const termsY = Math.min(H - 90, py + 24);
     doc.setTextColor(COLORS.navy);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.text('Terms & Conditions', MARGIN_L, H - 120);
+    doc.text('Terms & Conditions', MARGIN_L, termsY);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.text(
       'Payment should be paid within the valid date.',
       MARGIN_L,
-      H - 100
+      termsY + 18
     );
 
+    // save
     doc.save(`invoice_${invoice.invoice_no || 'detail'}.pdf`);
   };
 
@@ -438,6 +442,7 @@ const InvoiceReport = () => {
             RECEIPTS
           </h2>
           <div className="flex gap-4 flex-wrap items-center">
+            {/* From date */}
             <div className="relative w-[200px]">
               <Input
                 id="fromDate"
@@ -445,14 +450,14 @@ const InvoiceReport = () => {
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
                 className="
-      w-full border-primary-bg pr-10
-      appearance-none
-      focus-visible:ring-0
-      [&::-webkit-calendar-picker-indicator]:opacity-0
-      [&::-webkit-clear-button]:hidden
-      [&::-ms-reveal]:hidden
-      [&::-ms-clear]:hidden
-    "
+                  w-full border-primary-bg pr-10
+                  appearance-none
+                  focus-visible:ring-0
+                  [&::-webkit-calendar-picker-indicator]:opacity-0
+                  [&::-webkit-clear-button]:hidden
+                  [&::-ms-reveal]:hidden
+                  [&::-ms-clear]:hidden
+                "
                 placeholder="From date"
               />
               <button
@@ -463,7 +468,7 @@ const InvoiceReport = () => {
                   const el = document.getElementById(
                     'fromDate'
                   ) as HTMLInputElement | null;
-                  // @ts-ignore - not in all TS libs
+                  // @ts-ignore
                   if (el && typeof el.showPicker === 'function')
                     el.showPicker();
                   else el?.focus();
@@ -485,14 +490,14 @@ const InvoiceReport = () => {
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
                 className="
-      w-full border-primary-bg pr-10
-      appearance-none
-      focus-visible:ring-0
-      [&::-webkit-calendar-picker-indicator]:opacity-0
-      [&::-webkit-clear-button]:hidden
-      [&::-ms-reveal]:hidden
-      [&::-ms-clear]:hidden
-    "
+                  w-full border-primary-bg pr-10
+                  appearance-none
+                  focus-visible:ring-0
+                  [&::-webkit-calendar-picker-indicator]:opacity-0
+                  [&::-webkit-clear-button]:hidden
+                  [&::-ms-reveal]:hidden
+                  [&::-ms-clear]:hidden
+                "
                 placeholder="To date"
               />
               <button
@@ -516,6 +521,7 @@ const InvoiceReport = () => {
                 />
               </button>
             </div>
+
             <Button
               className="border-primary-bg"
               variant="outline"
@@ -524,12 +530,12 @@ const InvoiceReport = () => {
                 const end = dayjs().endOf('month').format('YYYY-MM-DD');
                 setFromDate(start);
                 setToDate(end);
-
                 fetchReport(start, end);
               }}
             >
               Current Month
             </Button>
+
             <Button
               variant="outline"
               className="bg-primary-bg text-white"
@@ -544,18 +550,19 @@ const InvoiceReport = () => {
                   .format('YYYY-MM-DD');
                 setFromDate(start);
                 setToDate(end);
-                // setStatusFilter('paid');
                 fetchReport(start, end);
               }}
             >
               Previous Month
             </Button>
+
             <Button
               onClick={() => fetchReport()}
               className="bg-primary-bg text-white"
             >
               Generate
             </Button>
+
             {reportList?.length > 0 && (
               <Button
                 variant="outline"
@@ -587,71 +594,67 @@ const InvoiceReport = () => {
                     <TableHead>PAYMENT METHOD</TableHead>
                     <TableHead>PAID AMOUNT</TableHead>
                     <TableHead>DOWNLOAD</TableHead>
-                    {/* <TableHead>Status</TableHead> */}
                   </TableRow>
                 </TableHeader>
                 <TableBody className="!bg-bodyBackground [&_tr]:border-b [&_tr]:border-b-primary-bg [&_tr:last-child]:border-b-0 border-2 border-primary-bg">
                   {reportList.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={9}
                         className="text-center py-4 text-primary-bg"
                       >
                         No invoices found for selected filter.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    reportList?.map((inv: any) => (
-                      <TableRow key={inv.id}>
-                        <TableCell>
-                          <span
-                            className="text-scrollbar underline cursor-pointer"
-                            onClick={() =>
-                              navigate(`/admin-panel/invoices/detail/${inv.id}`)
-                            }
-                          >
-                            {inv.invoice_no}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {inv.tenant?.user?.fname &&
-                            inv.tenant?.user?.lname && (
+                    reportList.map((inv: any) => {
+                      const pd = inv.property_details || {};
+                      const pay = inv.payment_details || {};
+                      return (
+                        <TableRow key={inv.invoice_id}>
+                          <TableCell>
+                            <span
+                              className="text-scrollbar underline cursor-pointer"
+                              onClick={() =>
+                                navigate(
+                                  `/admin-panel/invoices/detail/${inv.invoice_id}`
+                                )
+                              }
+                            >
+                              {inv.invoice_no}
+                            </span>
+                          </TableCell>
+
+                          <TableCell>
+                            {pd.assigned_user_name && (
                               <div className="text-sm font-semibold text-gray-800 leading-tight">
-                                {inv.tenant.user.fname} {inv.tenant.user.lname}
+                                {pd.assigned_user_name}
                               </div>
                             )}
-                          {inv.tenant?.contract_number && (
-                            <div className="text-xs text-gray-500 mt-0.5">
-                              ({inv.tenant.contract_number})
-                            </div>
-                          )}
-                        </TableCell>
+                            {pd.contract_no && (
+                              <div className="text-xs text-gray-500 mt-0.5">
+                                ({pd.contract_no})
+                              </div>
+                            )}
+                          </TableCell>
 
-                        <TableCell>
-                          {inv.tenant?.property_unit?.property?.name || 'N/A'}
-                        </TableCell>
-                        <TableCell>
-                          {inv.tenant?.property_unit?.unit_no || 'N/A'}
-                        </TableCell>
-                        <TableCell>{inv.invoice_date || '—'}</TableCell>
-                        <TableCell>{inv.payment_date || '—'}</TableCell>
-                        <TableCell>{inv.payment_method || '—'}</TableCell>
-                        <TableCell>{inv.total_amount || 0}</TableCell>
-                        <TableCell className="flex items-center sm:mt-6 2xl:mt-0 justify-start mx-3">
-                          {' '}
-                          <img
-                            onClick={() => downloadSpecificPDF(inv)}
-                            src={assets.images.download}
-                            className="text-primary-bg cursor-pointer h-6 w-6"
-                          />
-                          {/* <Download
-                            onClick={() => downloadSpecificPDF(inv)}
-                            className="w-6 cursor-pointer h-6 text-center text-primary-bg"
-                          /> */}
-                        </TableCell>
-                        {/* <TableCell>{inv.status || 'N/A'}</TableCell> */}
-                      </TableRow>
-                    ))
+                          <TableCell>{pd.property_name || 'N/A'}</TableCell>
+                          <TableCell>{pd.unit_no || 'N/A'}</TableCell>
+                          <TableCell>{inv.invoice_date || '—'}</TableCell>
+                          <TableCell>{pay.payment_date || '—'}</TableCell>
+                          <TableCell>{pay.payment_method || '—'}</TableCell>
+                          <TableCell>{inv.paid_amount ?? 0}</TableCell>
+
+                          <TableCell className="sm:mt-6 2xl:mt-0 mx-3">
+                            <img
+                              onClick={() => downloadSpecificPDF(inv)}
+                              src={assets.images.download}
+                              className="text-primary-bg cursor-pointer h-6 w-6"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>

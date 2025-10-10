@@ -17,4 +17,5 @@ export interface InvoiceFields {
   payment_method: 'cash' | 'bank' | 'online' | string;
   qty: number;
   invoice_items: any[];
+  submitted_type: string;
 }

@@ -8,6 +8,7 @@ from app.modules.reports.schemas import (
 )
 from sqlalchemy.orm import Session, joinedload
 from typing import Optional, Dict, Any
+from decimal import Decimal, InvalidOperation
 from app.models.invoice_items import InvoiceItem
 from app.models.invoices import Invoice
 from app.models.managers import Manager
@@ -15,12 +16,155 @@ from app.models.tenants import Tenant
 from app.models.users import User
 from app.models.property_units import PropertyUnit
 from app.models.properties import Property
+from app.models.payment_history import PaymentHistory
 from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.dialects.postgresql import NUMERIC
 from sqlalchemy import func, cast
 
 # from app.models import Invoice, InvoiceItem, Manager, User, Tenant
+
+
+# def get_invoice_report_service(
+#     db: Session,
+#     user_id: Optional[str] = None,
+#     role_id: Optional[str] = None,
+#     from_date: Optional[date] = None,
+#     to_date: Optional[date] = None,
+#     status: Optional[str] = None,
+#     # search: Optional[str] = "",
+# ) -> Dict[str, Any]:
+#     query = db.query(Invoice).options(
+#         joinedload(Invoice.items),
+#         joinedload(Invoice.tenant).load_only(Tenant.id, Tenant.contract_number, Tenant.legal_case),
+#         joinedload(Invoice.tenant)
+#         .joinedload(Tenant.property_unit)
+#         .joinedload(PropertyUnit.property)
+#         .load_only(Property.id, Property.name),  # ✅ class attributes
+#         joinedload(Invoice.tenant)
+#         .joinedload(Tenant.property_unit)
+#         .load_only(PropertyUnit.id, PropertyUnit.unit_no),  # ✅ class attributes
+#         joinedload(Invoice.tenant)
+#         .joinedload(Tenant.user)
+#         .load_only(User.id, User.fname, User.lname, User.email),  # ✅ class attributes
+#     )
+
+#     if role_id == "Landlord":
+
+#         user = db.query(User).filter(User.id == user_id).first()
+#         if not user or not user.landlord_id:
+#             return {
+#                 "success": True,
+#                 "message": "Landlord not found.",
+#                 "total": 0,
+#                 "items": [],
+#                 "total_paid": 0,
+#             }
+#         query = query.filter(Invoice.landlord_id == user.landlord_id)
+
+#     elif role_id == "Manager":
+#         managers = (
+#             db.query(Manager)
+#             .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
+#             .all()
+#         )
+#         assigned_property_ids = list(
+#             {m.assign_property for m in managers if m.assign_property}
+#         )
+#         units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+#         assigned_unit_ids = [u.id for u in units]
+
+#         if not assigned_unit_ids:
+#             return {
+#                 "success": True,
+#                 "message": "No assigned units.",
+#                 "total": 0,
+#                 "items": [],
+#                 "total_paid": 0,
+#             }
+
+#         query = query.join(Invoice.tenant).filter(
+#             Tenant.property_unit_id.in_(assigned_unit_ids)
+#         )
+
+#     elif role_id == "User":
+#         print("Searching tenants for user_id:", user_id)
+#         print("from_date:", from_date)
+#         print("to_date:", to_date)
+#         print("status:", status)
+#         tenants = db.query(Tenant).filter(Tenant.user_id == user_id).all()
+#         tenant_ids_with_invoices = (
+#             db.query(Invoice.tenant_id)
+#             .filter(Invoice.tenant_id.in_([t.id for t in tenants]))
+#             .distinct()
+#             .all()
+#         )
+#         tenant_ids = [t[0] for t in tenant_ids_with_invoices]
+#         print("Tenants found:", tenants)
+#         if not tenants:
+#             return {
+#                 "success": True,
+#                 "message": "Tenant not found.",
+#                 "total": 0,
+#                 "items": [],
+#                 "total_paid": 0,
+#             }
+
+#         tenant_ids = [t.id for t in tenants]
+#         print("Tenant IDs:", tenant_ids)
+#         query = query.filter(Invoice.tenant_id.in_(tenant_ids))
+
+#     if from_date:
+#         from_date = datetime.combine(from_date, time.min)
+#         query = query.filter(Invoice.created_at >= from_date)
+
+#     if to_date:
+#         to_date = datetime.combine(to_date, time.max)
+#         query = query.filter(Invoice.created_at <= to_date)
+
+#     if status:
+#         query = query.filter(Invoice.status.ilike(status))
+
+#     # if search:
+#     #     search_term = f"%{search.lower()}%"
+#     #     query = query.filter(Invoice.invoice_no.ilike(search_term))
+
+#     invoices = query.distinct().all()
+#     total_paid = sum(int(float(inv.total_amount or 0)) for inv in invoices)
+
+#     return {
+#         "success": True,
+#         "message": "Invoice report fetched successfully.",
+#         "total": len(invoices),
+#         "items": invoices,
+#         "total_paid": total_paid,
+#     }
+
+
+def _dec(val, default=Decimal("0")) -> Decimal:
+    if val is None or val == "":
+        return default
+    try:
+        return Decimal(str(val))
+    except (InvalidOperation, TypeError, ValueError):
+        return default
+
+
+def _iso_or_none(dt) -> Optional[str]:
+    if not dt:
+        return None
+    if isinstance(dt, str):
+        s = dt.strip()
+        if not s:
+            return None
+        try:
+            return datetime.fromisoformat(s.replace(" ", "T")).isoformat()
+        except Exception:
+            return s
+    try:
+        return dt.isoformat()
+    except Exception:
+        return None
 
 
 def get_invoice_report_service(
@@ -30,25 +174,42 @@ def get_invoice_report_service(
     from_date: Optional[date] = None,
     to_date: Optional[date] = None,
     status: Optional[str] = None,
-    # search: Optional[str] = "",
 ) -> Dict[str, Any]:
     query = db.query(Invoice).options(
         joinedload(Invoice.items),
-        joinedload(Invoice.tenant).load_only(Tenant.id, Tenant.contract_number, Tenant.legal_case),
+        joinedload(Invoice.tenant).load_only(
+            Tenant.id,
+            Tenant.contract_number,  # <-- ensures contract number is loaded
+            Tenant.legal_case,
+            Tenant.property_unit_id,
+            Tenant.user_id,
+        ),
+        joinedload(Invoice.tenant)
+        .joinedload(Tenant.property_unit)
+        .load_only(
+            PropertyUnit.id,
+            PropertyUnit.unit_no,
+            PropertyUnit.name,
+            PropertyUnit.property_id,
+        ),
+        joinedload(Invoice.tenant)
+        .joinedload(Tenant.user)
+        .load_only(User.id, User.fname, User.lname, User.email),
         joinedload(Invoice.tenant)
         .joinedload(Tenant.property_unit)
         .joinedload(PropertyUnit.property)
-        .load_only(Property.id, Property.name),  # ✅ class attributes
-        joinedload(Invoice.tenant)
-        .joinedload(Tenant.property_unit)
-        .load_only(PropertyUnit.id, PropertyUnit.unit_no),  # ✅ class attributes
-        joinedload(Invoice.tenant)
-        .joinedload(Tenant.user)
-        .load_only(User.id, User.fname, User.lname, User.email),  # ✅ class attributes
+        .load_only(
+            Property.id,
+            Property.name,
+            Property.address,
+            Property.address2,
+            Property.civil_no,
+            Property.landlord_id,
+        ),
     )
 
+    # ---- Role filters (unchanged) ----
     if role_id == "Landlord":
-
         user = db.query(User).filter(User.id == user_id).first()
         if not user or not user.landlord_id:
             return {
@@ -69,9 +230,12 @@ def get_invoice_report_service(
         assigned_property_ids = list(
             {m.assign_property for m in managers if m.assign_property}
         )
-        units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+        units = (
+            db.query(PropertyUnit)
+            .filter(PropertyUnit.property_id.in_(assigned_property_ids))
+            .all()
+        )
         assigned_unit_ids = [u.id for u in units]
-
         if not assigned_unit_ids:
             return {
                 "success": True,
@@ -80,25 +244,12 @@ def get_invoice_report_service(
                 "items": [],
                 "total_paid": 0,
             }
-
         query = query.join(Invoice.tenant).filter(
             Tenant.property_unit_id.in_(assigned_unit_ids)
         )
 
     elif role_id == "User":
-        print("Searching tenants for user_id:", user_id)
-        print("from_date:", from_date)
-        print("to_date:", to_date)
-        print("status:", status)
         tenants = db.query(Tenant).filter(Tenant.user_id == user_id).all()
-        tenant_ids_with_invoices = (
-            db.query(Invoice.tenant_id)
-            .filter(Invoice.tenant_id.in_([t.id for t in tenants]))
-            .distinct()
-            .all()
-        )
-        tenant_ids = [t[0] for t in tenant_ids_with_invoices]
-        print("Tenants found:", tenants)
         if not tenants:
             return {
                 "success": True,
@@ -107,35 +258,151 @@ def get_invoice_report_service(
                 "items": [],
                 "total_paid": 0,
             }
-
         tenant_ids = [t.id for t in tenants]
-        print("Tenant IDs:", tenant_ids)
         query = query.filter(Invoice.tenant_id.in_(tenant_ids))
 
+    # ---- Date / status filters ----
     if from_date:
-        from_date = datetime.combine(from_date, time.min)
-        query = query.filter(Invoice.created_at >= from_date)
-
+        query = query.filter(
+            Invoice.created_at >= datetime.combine(from_date, time.min)
+        )
     if to_date:
-        to_date = datetime.combine(to_date, time.max)
-        query = query.filter(Invoice.created_at <= to_date)
-
+        query = query.filter(Invoice.created_at <= datetime.combine(to_date, time.max))
     if status:
         query = query.filter(Invoice.status.ilike(status))
 
-    # if search:
-    #     search_term = f"%{search.lower()}%"
-    #     query = query.filter(Invoice.invoice_no.ilike(search_term))
+    invoices: List[Invoice] = query.distinct().all()
 
-    invoices = query.distinct().all()
-    total_paid = sum(int(float(inv.total_amount or 0)) for inv in invoices)
+    # ---- Prefetch owner names & latest payment history ----
+    prop_landlord_ids = set()
+    invoice_ids = []
+    for inv in invoices:
+        invoice_ids.append(inv.id)
+        try:
+            pu = inv.tenant.property_unit if inv.tenant else None
+            prop = pu.property if pu else None
+            if prop and prop.landlord_id:
+                prop_landlord_ids.add(str(prop.landlord_id))
+        except Exception:
+            pass
+
+    landlord_name_map: Dict[str, str] = {}
+    if prop_landlord_ids:
+        owners_by_id = db.query(User).filter(User.id.in_(list(prop_landlord_ids))).all()
+        for u in owners_by_id:
+            landlord_name_map[str(u.id)] = (
+                f"{(u.fname or '').strip()} {(u.lname or '').strip()}".strip() or None
+            )
+        missing_ids = [lid for lid in prop_landlord_ids if lid not in landlord_name_map]
+        if missing_ids:
+            fallbacks = (
+                db.query(User)
+                .filter(User.landlord_id.in_(missing_ids), User.is_landlord == True)
+                .all()
+            )
+            for u in fallbacks:
+                landlord_name_map[str(u.landlord_id)] = (
+                    f"{(u.fname or '').strip()} {(u.lname or '').strip()}".strip()
+                    or None
+                )
+
+    latest_ph_map: Dict[str, PaymentHistory] = {}
+    if invoice_ids:
+        ph_rows = (
+            db.query(PaymentHistory)
+            .filter(PaymentHistory.invoice_id.in_(invoice_ids))
+            .order_by(PaymentHistory.invoice_id.asc(), PaymentHistory.created_at.desc())
+            .all()
+        )
+        seen = set()
+        for ph in ph_rows:
+            iid = str(ph.invoice_id)
+            if iid in seen:
+                continue
+            seen.add(iid)
+            latest_ph_map[iid] = ph
+
+    # ---- Build response items (now with contract_no) ----
+    items: List[Dict[str, Any]] = []
+    for inv in invoices:
+        tenant = getattr(inv, "tenant", None)
+        pu = getattr(tenant, "property_unit", None) if tenant else None
+        prop = getattr(pu, "property", None) if pu else None
+
+        property_name = getattr(prop, "name", None)
+        property_address = getattr(prop, "address", None) or getattr(
+            prop, "address2", None
+        )
+        unit_no = getattr(pu, "unit_no", None)
+        unit_name = getattr(pu, "name", None)
+        prop_landlord_id = str(getattr(prop, "landlord_id", "")) if prop else None
+        unit_owner = landlord_name_map.get(prop_landlord_id or "", None)
+        lease_id = getattr(prop, "civil_no", None)
+        contract_no = (
+            getattr(tenant, "contract_number", None) if tenant else None
+        )  # <-- NEW
+
+        # assigned user name (only if both ids present)
+        assigned_user_name = None
+        if (
+            tenant
+            and getattr(tenant, "user_id", None)
+            and getattr(tenant, "property_unit_id", None)
+        ):
+            u = getattr(tenant, "user", None)
+            if u:
+                assigned_user_name = (
+                    f"{(u.fname or '').strip()} {(u.lname or '').strip()}".strip()
+                    or None
+                )
+
+        latest_ph = latest_ph_map.get(str(inv.id))
+        payment_details = {
+            "payment_date": _iso_or_none(getattr(inv, "payment_date", None)),
+            "payment_method": getattr(inv, "payment_method", None),
+            "payment_id": getattr(latest_ph, "payment_id", None) if latest_ph else None,
+            "reference_id": str(getattr(inv, "id")) if inv else None,
+            "invoiced_amount": (
+                float(_dec(getattr(latest_ph, "amount", None))) if latest_ph else 0.0
+            ),
+            "total_paid_amount": float(_dec(getattr(inv, "paid_amount", None))),
+        }
+
+        items.append(
+            {
+                "invoice_id": inv.id,
+                "invoice_no": inv.invoice_no,
+                "status": inv.status,
+                "currency": inv.currency,
+                "total_amount": float(_dec(inv.total_amount)),
+                "paid_amount": float(_dec(inv.paid_amount, Decimal("0"))),
+                "due_amount": float(_dec(inv.due_amount, Decimal("0"))),
+                "invoice_date": _iso_or_none(getattr(inv, "invoice_date", None)),
+                "created_at": _iso_or_none(inv.created_at),
+                "updated_at": _iso_or_none(inv.updated_at),
+                "property_details": {
+                    "property_name": property_name,
+                    "property_address": property_address,
+                    "unit_no": unit_no,
+                    "unit_name": unit_name,
+                    "unit_owner": unit_owner,
+                    "lease_id": lease_id,
+                    "contract_no": contract_no,
+                    "invoice_no": inv.invoice_no,
+                    "assigned_user_name": assigned_user_name,
+                },
+                "payment_details": payment_details,
+            }
+        )
+
+    total_paid_legacy = sum(int(float(inv.total_amount or 0)) for inv in invoices)
 
     return {
         "success": True,
         "message": "Invoice report fetched successfully.",
-        "total": len(invoices),
-        "items": invoices,
-        "total_paid": total_paid,
+        "total": len(items),
+        "items": items,
+        "total_paid": total_paid_legacy,
     }
 
 
@@ -183,7 +450,11 @@ def _invoice_scope(db: Session, q, user_id: Optional[UUID], role_id: Optional[st
         assigned_property_ids = list(
             {m.assign_property for m in mans if m.assign_property}
         )
-        units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+        units = (
+            db.query(PropertyUnit)
+            .filter(PropertyUnit.property_id.in_(assigned_property_ids))
+            .all()
+        )
         unit_ids = [u.id for u in units]
         if unit_ids:
             return q.join(Invoice.tenant).filter(Tenant.property_unit_id.in_(unit_ids))
@@ -217,7 +488,11 @@ def _units_scope(db: Session, q, user_id: Optional[UUID], role_id: Optional[str]
         assigned_property_ids = list(
             {m.assign_property for m in mans if m.assign_property}
         )
-        units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+        units = (
+            db.query(PropertyUnit)
+            .filter(PropertyUnit.property_id.in_(assigned_property_ids))
+            .all()
+        )
         unit_ids = [u.id for u in units]
         if unit_ids:
             return q.filter(PropertyUnit.id.in_(unit_ids))

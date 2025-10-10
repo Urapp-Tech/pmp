@@ -55,6 +55,7 @@ def create_payment_endpoint(
 def payment_callback_browser(paymentId: str, db: Session = Depends(get_db)):
     # try:
     invoice_status = process_payment_callback(paymentId, db)
+    print("invoice_status", invoice_status)
     if invoice_status == "Paid":
         url = f"{settings.FRONTEND_BASE_URL}/payments/success?paymentId={paymentId}"
     else:
@@ -203,108 +204,3 @@ def settlement_detail(deposit_reference: str, db: Session = Depends(get_db)):
             for it in items
         ],
     }
-
-
-# Development routes
-# --------------- MOCK ENDPOINTS ----------------
-# from typing import Optional
-# from fastapi import Query, Body
-# from app.modules.paymentHistory.services import (
-#     upsert_deposit_and_attach_invoices_mock,
-#     get_deposited_invoices_mock,
-# )
-
-
-# @router.post("/webhook/settlement/mock")
-# async def myfatoorah_settlement_webhook_mock(
-#     db: Session = Depends(get_db),
-#     depositReference: Optional[str] = Query(
-#         None, description="Override deposit reference"
-#     ),
-#     amount: Optional[float] = Query(None, description="Override total deposit amount"),
-#     currency: Optional[str] = Query("KWD", description="Base/deposit currency"),
-#     txCount: Optional[int] = Query(
-#         2, description="How many mock transactions to create"
-#     ),
-#     body: dict = Body(default=None, description="Optional full override payload"),
-# ):
-#     """
-#     Create a mock 'balance transferred' event and upsert a BankDeposit + items.
-#     Does **not** call MyFatoorah; uses generated data so you can test via Swagger.
-#     """
-#     # Prefer explicit payload if provided
-#     if body and isinstance(body, dict):
-#         dep_ref = (
-#             body.get("depositReference")
-#             or body.get("DepositReference")
-#             or body.get("reference")
-#         )
-#         dep_amt = body.get("amount") or body.get("ValueInBaseCurrency")
-#         dep_cur = body.get("currency") or body.get("BaseCurrency") or currency
-#         dep_cnt = body.get("count") or body.get("NumberOfTransactions") or txCount
-#     else:
-#         dep_ref = depositReference
-#         dep_amt = amount
-#         dep_cur = currency
-#         dep_cnt = txCount
-
-#     # Upsert using mock data (service generates fake items when none given)
-#     await upsert_deposit_and_attach_invoices_mock(
-#         db=db,
-#         deposit_ref=dep_ref,  # can be None; service will generate one
-#         deposit=dict(
-#             date=None,  # service will default to utcnow if None
-#             amount=dep_amt,
-#             currency=dep_cur,
-#             count=dep_cnt,
-#             bank_name="Mock Bank",
-#             bank_iban="KW00MOCK000000000000",
-#             bank_account="000000000000",
-#             raw={"mock": True},
-#         ),
-#         items=None,  # let service fabricate transactions
-#     )
-
-#     return {"ok": True, "reference": dep_ref}
-
-
-# @router.get("/myfatoorah/deposited-invoices/mock")
-# def list_mock_deposited_invoices(
-#     depositReference: Optional[str] = Query(None),
-#     txCount: Optional[int] = Query(2),
-# ):
-#     """
-#     Returns the same mock items the service would use to create BankDepositItem rows.
-#     Helpful to see the shape before running the /webhook/settlement/mock.
-#     """
-#     return {
-#         "reference": depositReference,
-#         "items": get_deposited_invoices_mock(depositReference, tx_count=txCount),
-#     }
-
-
-# @router.get("/settlements/mock/backfill")
-# async def settlements_mock_backfill(
-#     depositReference: str = Query(..., description="Existing or new mock reference"),
-#     db: Session = Depends(get_db),
-# ):
-#     """
-#     Re-runs the mock upsert using the given reference (idempotent).
-#     If the header exists it clears/rewrites its items; if not, it creates it.
-#     """
-#     await upsert_deposit_and_attach_invoices_mock(
-#         db=db,
-#         deposit_ref=depositReference,
-#         deposit=dict(
-#             date=None,
-#             amount=None,
-#             currency="KWD",
-#             count=2,
-#             bank_name="Mock Bank",
-#             bank_iban="KW00MOCK000000000000",
-#             bank_account="000000000000",
-#             raw={"mock": True, "backfill": True},
-#         ),
-#         items=None,
-#     )
-#     return {"ok": True, "reference": depositReference}

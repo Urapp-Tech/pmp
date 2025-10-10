@@ -75,16 +75,23 @@ def _extend_subscription_on_paid(db: Session, payment: PaymentHistory) -> None:
     mark_renewal_paid_and_extend(db, rec.id, extend_days=None)
 
 
+def _bearer_token() -> str:
+    tok = MYFATOORAH_API_KEY.strip()
+    if tok.lower().startswith("bearer "):
+        tok = tok[7:].strip()
+    return f"Bearer {tok}"
+
+
 def _mf_headers():
     return {
-        "Authorization": f"Bearer {MYFATOORAH_API_KEY}",
+        "Authorization": _bearer_token(),
         "Content-Type": "application/json",
     }
 
 
 def _mf(path: str) -> str:
-    """Join base URL and path safely, regardless of whether base already has /v2."""
-    return f"{MYFATOORAH_API_URL.rstrip('/')}/{path.lstrip('/')}"
+    base = MYFATOORAH_API_URL.strip().rstrip("/")
+    return f"{base}/{path.lstrip('/')}"
 
 
 def to_decimal(val) -> Optional[Decimal]:
@@ -105,6 +112,21 @@ def parse_iso_dt(val: Optional[str]) -> Optional[datetime]:
         return datetime.fromisoformat(val.replace("Z", "+00:00"))
     except Exception:
         return None
+
+
+def get_payment_status_from_myfatoorah(payment_id: str):
+    resp = requests.post(
+        _mf("GetPaymentStatus"),
+        headers=_mf_headers(),
+        json={"Key": payment_id, "KeyType": "PaymentId"},
+        timeout=30,
+    )
+    resp.raise_for_status()
+    print(
+        "GetPaymentStatus>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: 2222222222",
+        resp.json(),
+    )
+    return resp.json()
 
 
 def create_payment(
@@ -174,13 +196,14 @@ def create_payment(
         "PaymentMethodId": payment_method_id,
         "CustomerName": user_name,
         "CustomerEmail": user_email or "",
-        "CustomerReference": str(invoice_id),  # we use our invoice UUID as reference
+        "CustomerReference": str(invoice_id),  # our invoice UUID as reference
         "UserDefinedField": str(user_id),
         "NotificationOption": "EML",
         "CallBackUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/callback",
         "ErrorUrl": f"{settings.BACKEND_BASE_URL}/admin/payments/error",
         "Language": "en",
         "InvoiceValue": float(amount),
+        "CurrencyIso": currency_iso,  # <<< Add currency here
     }
 
     try:
@@ -237,12 +260,16 @@ def create_payment(
 
 
 def process_payment_callback(payment_id: str, db: Session) -> str:
+    print(
+        "GetPaymentStatus>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: 111111111111",
+        payment_id,
+    )
     info = get_payment_status_from_myfatoorah(payment_id)
     if not info.get("IsSuccess"):
         raise HTTPException(status_code=400, detail="MyFatoorah response failed")
 
     data = info.get("Data", {}) or {}
-    invoice_status = data.get("InvoiceStatus")
+    invoice_status = (data.get("InvoiceStatus") or "").strip()
     invoice_ref = data.get("CustomerReference")  # our UUID
     if not invoice_ref:
         raise HTTPException(status_code=400, detail="Missing CustomerReference")
@@ -255,8 +282,13 @@ def process_payment_callback(payment_id: str, db: Session) -> str:
     if not payment:
         raise HTTPException(status_code=404, detail="Payment record not found")
 
+    success = invoice_status.lower() in ["paid", "success"]
+    failure = invoice_status.lower() in ["cancelled", "canceled", "failed"]
+
     payment.status = (
-        PaymentStatus.SUCCESS if invoice_status == "Paid" else PaymentStatus.FAILED
+        PaymentStatus.SUCCESS
+        if success
+        else (PaymentStatus.FAILED if failure else PaymentStatus.PENDING)
     )
     payment.payload = info
 
@@ -287,17 +319,13 @@ def process_payment_callback(payment_id: str, db: Session) -> str:
     db.commit()
 
     # >>> NEW: auto-extend ONLY for successful SUBSCRIPTION payments
-    if (
-        invoice_status == "Paid"
-        and (payment.payment_type or "").upper() == "SUBSCRIPTION"
-    ):
+    if success and (payment.payment_type or "").upper() == "SUBSCRIPTION":
         try:
             _extend_subscription_on_paid(db, payment)
         except Exception:
-            # Do not fail the webhook if extension logic hits a corner case
             pass
 
-    return invoice_status
+    return "Paid" if success else invoice_status or "Pending"
 
 
 def generate_payment_error_redirect(
@@ -309,17 +337,6 @@ def generate_payment_error_redirect(
         "reason": reason,
     }
     return f"{settings.FRONTEND_BASE_URL}/payments/failed?{urlencode(query_params)}"
-
-
-def get_payment_status_from_myfatoorah(payment_id: str):
-    resp = requests.post(
-        _mf("GetPaymentStatus"),
-        headers=_mf_headers(),
-        json={"Key": payment_id, "KeyType": "PaymentId"},
-        timeout=30,
-    )
-    resp.raise_for_status()
-    return resp.json()
 
 
 def _get_deposited_invoices(deposit_reference: str) -> list[dict]:

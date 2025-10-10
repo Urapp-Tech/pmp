@@ -64,6 +64,7 @@ const InvoiceCreateDialog = ({
    */
 
   const onSubmit = (data: InvoiceFields) => {
+    data.submitted_type = 'auto';
     callback(data);
     reset();
   };
