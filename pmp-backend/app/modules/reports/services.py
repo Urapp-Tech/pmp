@@ -66,9 +66,11 @@ def get_invoice_report_service(
             .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
             .all()
         )
-        assigned_unit_ids = list(
-            {m.assign_property_unit for m in managers if m.assign_property_unit}
+        assigned_property_ids = list(
+            {m.assign_property for m in managers if m.assign_property}
         )
+        units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+        assigned_unit_ids = [u.id for u in units]
 
         if not assigned_unit_ids:
             return {
@@ -178,9 +180,11 @@ def _invoice_scope(db: Session, q, user_id: Optional[UUID], role_id: Optional[st
             .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
             .all()
         )
-        unit_ids = list(
-            {m.assign_property_unit for m in mans if m.assign_property_unit}
+        assigned_property_ids = list(
+            {m.assign_property for m in mans if m.assign_property}
         )
+        units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+        unit_ids = [u.id for u in units]
         if unit_ids:
             return q.join(Invoice.tenant).filter(Tenant.property_unit_id.in_(unit_ids))
         return q.filter(False)
@@ -210,9 +214,11 @@ def _units_scope(db: Session, q, user_id: Optional[UUID], role_id: Optional[str]
             .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
             .all()
         )
-        unit_ids = list(
-            {m.assign_property_unit for m in mans if m.assign_property_unit}
+        assigned_property_ids = list(
+            {m.assign_property for m in mans if m.assign_property}
         )
+        units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+        unit_ids = [u.id for u in units]
         if unit_ids:
             return q.filter(PropertyUnit.id.in_(unit_ids))
         return q.filter(False)

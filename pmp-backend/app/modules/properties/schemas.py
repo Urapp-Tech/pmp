@@ -1,9 +1,10 @@
-from pydantic import UUID4, BaseModel, Field
-from typing import Optional, List, Union
+from pydantic import UUID4, BaseModel, Field, field_validator
+from typing import Optional, List, Union, Any
 from fastapi import UploadFile
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime,date
 from enum import Enum
+import json
 
 
 # 🔸 Enum for property type
@@ -11,10 +12,67 @@ class PropertyTypeEnum(str, Enum):
     residential = "residential"
     commercial = "commercial"
 
+class PaymentCycle(str, Enum):
+    monthly = "Monthly"
+    quarterly = "Quarterly"
+    yearly = "Yearly"
+class UserDetailOut(BaseModel):
+    id: UUID
+    fname: str
+    lname: str
+    email: str
+    phone: str
+    gender: Optional[str] = None
+    profile_pic: Optional[str] = Field(None, alias="profilePic")
 
+    class Config:
+        from_attributes = True
+        populate_by_name = True
 # ---------------------------
 # 🏢 Property Unit Schemas
 # ---------------------------
+class ContractOut(BaseModel):
+    id: UUID
+    user_id: UUID = Field(..., alias="userId")
+    property_unit_id: Optional[UUID] = Field(None, alias="propertyUnitId")
+    contract_start: date = Field(..., alias="contractStart")
+    contract_end: date = Field(..., alias="contractEnd")
+    contract_number: str = Field(..., alias="contractNumber")
+    rent_price: float = Field(..., alias="rentPrice")
+    rent_pay_day: int = Field(..., alias="rentPayDay")
+    payment_cycle: PaymentCycle = Field(..., alias="paymentCycle")
+    leaving_date: Optional[date] = Field(None, alias="leavingDate")
+    civil_id: Optional[str] = Field(None, alias="civilId")
+    tenant_type: Optional[str] = Field(None, alias="tenantType")
+    nationality: Optional[str]
+    legal_case: Optional[bool] = Field(..., alias="legalCase")
+    language: Optional[str]
+    is_active: bool = Field(..., alias="isActive")
+    is_approved: bool = Field(..., alias="isApproved")
+    agreement_doc: Optional[List[str]] = None
+    user: Optional[UserDetailOut] = Field(None, alias="userDetail")
+    @field_validator("agreement_doc", mode="before")
+    @classmethod
+    def _normalize_agreement_doc(cls, v):
+        if v in (None, "", []):
+            return None
+        if isinstance(v, list):
+            return [str(x) for x in v]
+        if isinstance(v, str):
+            # Try JSON array first: '["a","b"]'
+            try:
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return [str(x) for x in parsed]
+            except Exception:
+                pass
+            # Otherwise treat single string path as one-item list
+            return [v]
+        # Fallback: make it a single string and wrap
+        return [str(v)]
+
+    # make sure ORM conversion/aliases work
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class PropertyUnitBase(BaseModel):
@@ -57,10 +115,8 @@ class PropertyUnitOut(PropertyUnitBase):
     property_id: UUID4
     created_at: datetime
     updated_at: datetime
-
-    assignedUnitUserId: Optional[str] = None
-    assignedUnitUserName: Optional[str] = None
-    assignedManagerName: Optional[str] = None
+    # in PropertyUnitOut:
+    contractDetails: Optional[ContractOut] = None
 
     class Config:
         from_attributes = True
@@ -118,6 +174,7 @@ class PropertyOut(PropertyBase):
         ..., example="e8c31774-b165-43f6-9a51-a6cf3a6e57f9"
     )
     landlord_name: Optional[str] = Field(None, example="John Doe")
+    assignedManagerName: Optional[str] = Field(None, example="Monkey D luffy")
     units: List[PropertyUnitOut] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime

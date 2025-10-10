@@ -60,6 +60,9 @@ class Property(Base):
         cascade="all, delete-orphan"
     )
 
+    manager_links = relationship(
+        "Manager", back_populates="assigned_property", cascade="all, delete-orphan"
+    )
     units = relationship(
         "PropertyUnit",
         overlaps="property_units"

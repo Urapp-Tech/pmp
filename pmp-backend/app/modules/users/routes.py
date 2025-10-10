@@ -32,6 +32,7 @@ from app.modules.users.schemas import (
 from app.modules.users.services import (
     create_user,
     update_user,
+    update_profile,
     delete_user,
     authenticate_user,
     refresh_access_token,
@@ -77,6 +78,7 @@ def parse_user_create(
 
 
 def parse_user_update(
+    id: Optional[UUID] = Form(None),
     fname: Optional[str] = Form(None),
     lname: Optional[str] = Form(None),
     email: Optional[EmailStr] = Form(None),
@@ -90,6 +92,7 @@ def parse_user_update(
 ):
 
     password = password if password != "" else None
+    id = id if id != "" else None
     fname = fname if fname != "" else None
     lname = lname if lname != "" else None
     phone = phone if phone != "" else None
@@ -123,6 +126,7 @@ def parse_user_update(
         update_data = UserUpdate(**filtered_fields)
         return {
             "user_data": update_data,
+            "id": id,
             "profile_pic": profilePic,
         }
     except ValidationError as e:
@@ -170,6 +174,18 @@ def update_user_route(
     db: Session = Depends(get_db),
 ):
     return update_user(db, user_id, parsed["user_data"], parsed["profile_pic"])
+
+@router.post(
+    "/profile/update",
+    # response_model=UserResponseOut,
+    summary="Profile Update (FormData)",
+)
+def profile_update_route(
+    parsed: dict = Depends(parse_user_update),
+    db: Session = Depends(get_db),
+):
+    print(parsed)
+    return update_profile(db, parsed["id"], parsed["user_data"], parsed["profile_pic"])
 
 
 @router.post(

@@ -17,7 +17,13 @@ type User = {
   userLimit: number;
   anonAppUser: string;
 };
-
+type ProfilePatch = {
+  fname?: string;
+  lname?: string;
+  phone?: string;
+  gender?: string;
+  profilePic?: string; // store URL/path here (not File)
+};
 // type ShopTenantDetails = {
 //   tenant: string;
 //   tenantName: string;

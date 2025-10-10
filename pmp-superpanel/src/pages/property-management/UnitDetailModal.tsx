@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { ASSET_BASE_URL } from '@/utils/constants';
 import {
   Accordion,
   AccordionItem,
@@ -27,7 +28,32 @@ const UnitDetailsModal = ({
   property,
 }: PropertyUnitModalProps) => {
   if (!property) return null;
-
+  const fmt = (d?: string | null) =>
+    d ? new Date(d).toLocaleDateString() : '-';
+  const urlize = (p?: string | null) =>
+    !p ? '' : p.startsWith('http') ? p : `${ASSET_BASE_URL}${p}`;
+  const normalizeDocs = (v?: string[] | string | null) => {
+    if (!v) return [];
+    if (Array.isArray(v)) {
+      if (v.length === 1 && typeof v[0] === 'string' && v[0].includes(',')) {
+        return v[0]
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+      return v
+        .flatMap((x) =>
+          typeof x === 'string' && x.includes(',')
+            ? x.split(',').map((s) => s.trim())
+            : [String(x)]
+        )
+        .filter(Boolean);
+    }
+    return String(v)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  };
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
@@ -139,6 +165,12 @@ const UnitDetailsModal = ({
               <strong className="font-semibold">IBAN No.</strong>
               <p className="pt-1">{property.iban_no}</p>
             </div>
+            <div>
+              <strong className="font-semibold">Assigned Manager</strong>
+              <p className="pt-1">
+                {property.assignedManagerName ?? 'Not Assigned'}
+              </p>
+            </div>
             {/* <div>
             <strong>Status:</strong>{' '}
             <span
@@ -207,14 +239,6 @@ const UnitDetailsModal = ({
                           </p>
                         </div>
                         <div>
-                          <strong className="font-semibold">
-                            Assigned Manager
-                          </strong>
-                          <p className="pt-1">
-                            {unit.assignedManagerName ?? 'Not Assigned'}
-                          </p>
-                        </div>
-                        <div>
                           <strong className="font-semibold">Type</strong>{' '}
                           <p className="pt-1">{unit.unit_type}</p>
                         </div>
@@ -249,6 +273,221 @@ const UnitDetailsModal = ({
                           <p className="pt-1">{unit.water_meter}</p>
                         </div>
                       </div>
+                      {/* --- Contract & Tenant (nested accordion) --- */}
+                      {(() => {
+                        const contract = Array.isArray(unit.contractDetails)
+                          ? unit.contractDetails[0]
+                          : unit.contractDetails;
+                        const tenant = contract?.userDetail;
+                        const docs = normalizeDocs(contract?.agreement_doc);
+
+                        return (
+                          <Accordion type="multiple" className="mt-6">
+                            {/* Contract Details */}
+                            <AccordionItem
+                              value={`contract-${unit.id}`}
+                              className="rounded-xl border"
+                            >
+                              <AccordionTrigger className="px-4 py-3 text-[15px] font-medium">
+                                Contract Details
+                              </AccordionTrigger>
+                              <AccordionContent className="px-4 py-4">
+                                {contract ? (
+                                  <div className="grid grid-cols-2 gap-4 text-sm text-primary-bg">
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Contract #
+                                      </strong>
+                                      <p className="pt-1">
+                                        {contract.contractNumber ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Duration
+                                      </strong>
+                                      <p className="pt-1">
+                                        {fmt(contract.contractStart)} →{' '}
+                                        {fmt(contract.contractEnd)}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Payment Cycle
+                                      </strong>
+                                      <p className="pt-1">
+                                        {contract.paymentCycle ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Rent Price
+                                      </strong>
+                                      <p className="pt-1">
+                                        {contract.rentPrice ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Rent Pay Day
+                                      </strong>
+                                      <p className="pt-1">
+                                        {contract.rentPayDay ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Leaving Date
+                                      </strong>
+                                      <p className="pt-1">
+                                        {fmt(contract.leavingDate)}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Civil ID
+                                      </strong>
+                                      <p className="pt-1">
+                                        {contract.civilId ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Nationality
+                                      </strong>
+                                      <p className="pt-1">
+                                        {contract.nationality ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Tenant Type
+                                      </strong>
+                                      <p className="pt-1 capitalize">
+                                        {contract.tenantType ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Status
+                                      </strong>
+                                      <p className="pt-1">
+                                        {contract.isActive
+                                          ? 'Active'
+                                          : 'Inactive'}{' '}
+                                        /{' '}
+                                        {contract.isApproved
+                                          ? 'Approved'
+                                          : 'Pending'}
+                                      </p>
+                                    </div>
+
+                                    <div className="col-span-2">
+                                      <strong className="font-semibold">
+                                        Agreement Docs
+                                      </strong>
+                                      {docs.length ? (
+                                        <ul className="pt-2 list-disc pl-5">
+                                          {docs.map((d, i) => (
+                                            <li key={`${d}-${i}`}>
+                                              <a
+                                                href={urlize(d)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="underline"
+                                                title={d}
+                                              >
+                                                Document {i + 1}
+                                              </a>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      ) : (
+                                        <p className="pt-1">No documents</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-muted-foreground">
+                                    No active contract found.
+                                  </div>
+                                )}
+                              </AccordionContent>
+                            </AccordionItem>
+
+                            {/* Tenant Details */}
+                            <AccordionItem
+                              value={`tenant-${unit.id}`}
+                              className="rounded-xl border mt-3"
+                            >
+                              <AccordionTrigger className="px-4 py-3 text-[15px] font-medium">
+                                Tenant Details
+                              </AccordionTrigger>
+                              <AccordionContent className="px-4 py-4">
+                                {tenant ? (
+                                  <div className="grid grid-cols-2 gap-4 text-sm text-primary-bg">
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Name
+                                      </strong>
+                                      <p className="pt-1">
+                                        {`${tenant.fname ?? ''} ${tenant.lname ?? ''}`.trim() ||
+                                          '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Email
+                                      </strong>
+                                      <p className="pt-1">
+                                        {tenant.email ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Phone
+                                      </strong>
+                                      <p className="pt-1">
+                                        {tenant.phone ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <strong className="font-semibold">
+                                        Gender
+                                      </strong>
+                                      <p className="pt-1 capitalize">
+                                        {tenant.gender ?? '-'}
+                                      </p>
+                                    </div>
+                                    <div className="col-span-2">
+                                      <strong className="font-semibold">
+                                        Avatar
+                                      </strong>
+                                      <div className="pt-2">
+                                        {tenant.profilePic ? (
+                                          <img
+                                            src={urlize(tenant.profilePic)}
+                                            alt="Tenant avatar"
+                                            className="h-16 w-16 rounded-full object-cover border"
+                                          />
+                                        ) : (
+                                          <span className="text-muted-foreground">
+                                            No avatar
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-muted-foreground">
+                                    No tenant linked to this contract.
+                                  </div>
+                                )}
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        );
+                      })()}
                     </AccordionContent>
                   </AccordionItem>
                 ))

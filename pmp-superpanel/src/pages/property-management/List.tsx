@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -12,31 +11,30 @@ import {
 } from '@/components/ui/table';
 import { Loader2, Eye, Pencil, Trash2 } from 'lucide-react';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { TopBar } from '@/components/TopBar';
 import { Paginator } from '@/components/Paginator';
 // import UnitListModal from './UnitListModal';
 import propertyService from '@/services/adminapp/property';
 import DeleteDialog from '@/components/DeletePopup';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-// import { usePermission } from '@/utils/hasPermission';
-// import { PERMISSIONS } from '@/utils/constants';
 import { getItem } from '@/utils/storage';
 import UnitListModal from './UnitListModal';
 import UnitDetailsModal from './UnitDetailModal';
 import { handleErrorMessage } from '@/utils/helper';
+
 import assets from '@/assets/images';
 
 const PropertyList = () => {
   const userDetails: any = getItem('USER');
   const navigate = useNavigate();
-  // const { can } = usePermission();
   const { toast } = useToast();
   const [searchss, setSearchKey] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState([]);
+  const [landlordList, setLandlordList] = useState([]);
+  const [requestLandlordId, setRequestLandlordId] = useState('');
   const [mainIsLoader, setMainIsLoader] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -68,6 +66,7 @@ const PropertyList = () => {
 
     try {
       const res = await propertyService.list(
+        requestLandlordId,
         userDetails?.id,
         userDetails?.roleName,
         search,
@@ -85,11 +84,30 @@ const PropertyList = () => {
       setIsLoader(false);
     }
   };
+  const fetchLandlordList = async () => {
+    setIsLoader(true);
+
+    try {
+      const res = await propertyService.getLandllord();
+      if (res.data && res.data.items) {
+        setLandlordList(res.data.items);
+      setIsLoader(false);
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setMainIsLoader(false);
+      setIsLoader(false);
+    }
+  };
 
   useEffect(() => {
-    fetchList();
+    fetchLandlordList();
+    // fetchList();
   }, [page]);
-
+  useEffect(() => {
+    fetchList();
+  }, [page, requestLandlordId]);
   const openUnitsModal = (property: any, units: any) => {
     setSelectedProperty(property);
     setUnitModalOpen(true);
@@ -223,6 +241,7 @@ const PropertyList = () => {
     const nextPage = newPage + 1;
     try {
       const users = await propertyService.list(
+        requestLandlordId,
         userDetails?.id,
         userDetails?.roleName,
         search,
@@ -281,6 +300,21 @@ const PropertyList = () => {
         <div className="flex justify-between items-center py-4">
           <h2 className="text-3xl font-semibold text-primary-bg">PROPERTIES</h2>
           <div className="flex gap-3 items-center">
+            <select
+              className="mt-2 h-12 w-full rounded-xl border-0 bg-white/50 px-3 shadow-sm text-sm text-primary-bg focus-visible:ring-0"
+              value={requestLandlordId}
+              onChange={(c) => {
+                const val = c.target.value;
+                setRequestLandlordId(val); // triggers useEffect to refetch
+                setPage(1); // reset pagination on filter change
+              }}
+            >
+              {landlordList.map((ll: any) => (
+                <option value={ll.id}>
+                  {ll.title || ll.name || 'Untitled landlord'}
+                </option>
+              ))}
+            </select>
             <Input
               placeholder="Search properties..."
               value={search}
@@ -328,7 +362,9 @@ const PropertyList = () => {
                   list.map((item: any) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
-                      <TableCell className='capitalize'>{item.landlord_name}</TableCell>
+                      <TableCell className="capitalize">
+                        {item.landlord_name}
+                      </TableCell>
                       <TableCell>{item.address}</TableCell>
                       {/* <TableCell>{item.status}</TableCell> */}
                       {/* <TableCell>

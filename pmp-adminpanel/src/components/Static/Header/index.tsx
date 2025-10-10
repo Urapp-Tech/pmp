@@ -75,8 +75,8 @@ export default function Header({ customClass }: Props) {
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="hover:opacity-90">
-                  Contact
+                <Link to="/contact-us" className="hover:opacity-90">
+                  Contact Us
                 </Link>
               </li>
             </ul>
@@ -227,7 +227,7 @@ export default function Header({ customClass }: Props) {
               </li>
               <li>
                 <Link to="/contact" className="hover:opacity-90">
-                  Contact
+                  Contact Us
                 </Link>
               </li>
               {isLogin ? (

@@ -34,6 +34,9 @@ const create = (data: any) => {
 const update = (id: string, data: any) => {
   return network.postMultipart(`${USER_PREFIX}/update/${id}`, data);
 };
+const updateProfile = ( data: any) => {
+  return network.postMultipart(`${USER_PREFIX}/profile/update`, data);
+};
 
 const deleteUser = (id: string) => {
   return network.post(`${USER_PREFIX}/delete/${id}`, {});
@@ -43,8 +46,10 @@ const Lov = (id: string) => {
   return network.get(`${USER_PREFIX}/lov/${id}`, {});
 };
 
-const assignUnits = (data: any) => {
-  return network.post(`managers/assign-units`, data);
+const assignProperties = (data: any) => {
+  console.log(data);
+  
+  return network.post(`managers/assign-property`, data);
 };
 
 export default {
@@ -54,5 +59,6 @@ export default {
   update,
   deleteUser,
   Lov,
-  assignUnits,
+  assignProperties,
+  updateProfile,
 };

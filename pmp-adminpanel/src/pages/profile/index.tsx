@@ -4,23 +4,34 @@ import {
   CheckCircle,
   ExternalLink,
   Clock,
+  Pencil,
   CircleDollarSign,
 } from 'lucide-react';
 import { getItem } from '@/utils/storage';
 import { ASSET_BASE_URL } from '@/utils/constants';
 import service from '@/services/adminapp/admin';
+import serviceUser from '@/services/adminapp/users';
 import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import { Button } from '@/components/ui/button';
+import { login } from '@/redux/features/authSlice';
+import { cn } from '@/lib/utils';
+import { useAppDispatch } from '@/redux/redux-hooks';
 import {
   Accordion,
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
 } from '@/components/ui/accordion';
-
+import { useToast } from '@/hooks/use-toast';
+import ProfileModal from '@/components/Profile/ProfileModal';
 const ProfilePage = () => {
+  const dispatch = useAppDispatch();
   const user: any = getItem('USER');
+  const { toast } = useToast();
+  const [editOpen, setEditOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   const landlordId = user?.landlordId;
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -53,6 +64,53 @@ const ProfilePage = () => {
 
   return user.role.name === 'Landlord' ? (
     <>
+      <ProfileModal
+        isOpen={editOpen}
+        onClose={() => setEditOpen(false)}
+        initial={{
+          // prefer profile values, fallback to user
+          id: profile?.id ?? user?.id,
+          fname: profile?.fname ?? user?.fname,
+          lname: profile?.lname ?? user?.lname,
+          email: profile?.email ?? user?.email,
+          phone: profile?.phone ?? user?.phone,
+          gender: profile?.gender ?? user?.gender,
+          profilePic:
+            profile?.profilePic ??
+            profile?.profile_pic ??
+            user?.profilePic ??
+            '',
+        }}
+        saving={saving}
+        onSave={async (payload) => {
+          try {
+            setSaving(true);
+            // TODO: call your API here, e.g.:
+            const res = await serviceUser.updateProfile(payload);
+            const userData = res.data.items;
+            dispatch(login({...user, fname: userData.fname, lname: userData.lname, profilePic: userData.profilePic, phone: userData.phone, gender: userData.gender}));
+
+            toast({
+              description: 'Profile updated successfully.',
+              className: cn(
+                'top-0 right-0 fixed md:max-w-[420px] md:top-4 md:right-4'
+              ),
+              style: { backgroundColor: '#5CB85C', color: 'white' },
+            });
+            setEditOpen(false);
+          } catch (e) {
+            toast({
+              description: 'Failed to update profile.',
+              className: cn(
+                'top-0 right-0 fixed md:max-w-[420px] md:top-4 md:right-4'
+              ),
+              style: { backgroundColor: '#D9534F', color: 'white' },
+            });
+          } finally {
+            setSaving(false);
+          }
+        }}
+      />
       <div className="m-5 bg-gradient-to-br flex flex-col items-center justify-center mt-3">
         <Card className="w-full rounded-3xl shadow-2xl border border-scrollbar">
           <CardContent className="p-6 flex flex-col items-center text-center">
@@ -75,7 +133,6 @@ const ProfilePage = () => {
                 <CheckCircle className="w-7 h-7 text-green-500 absolute bottom-2 right-2" />
               )}
             </div>
-
             {/* Name & badges */}
             <h1 className="capitalize text-3xl font-semibold text-primary-bg">
               {profile?.name ?? `${user?.fname} ${user?.lname}`}
@@ -94,6 +151,15 @@ const ProfilePage = () => {
                   Verified
                 </Badge>
               )}
+
+              <Button
+                variant="outline"
+                className="rounded-full h-9 px-4"
+                onClick={() => setEditOpen(true)}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
             </div>
 
             {/* Metadata (no subscription boxes here anymore) */}
@@ -315,6 +381,56 @@ const ProfilePage = () => {
     </>
   ) : (
     <div className="bg-gradient-to-br flex flex-col items-center justify-center mt-3">
+      <ProfileModal
+        isOpen={editOpen}
+        onClose={() => setEditOpen(false)}
+        initial={{
+          // prefer profile values, fallback to user
+          id: profile?.id ?? user?.id,
+          fname: profile?.fname ?? user?.fname,
+          lname: profile?.lname ?? user?.lname,
+          email: profile?.email ?? user?.email,
+          phone: profile?.phone ?? user?.phone,
+          gender: profile?.gender ?? user?.gender,
+          profilePic:
+            profile?.profilePic ??
+            profile?.profile_pic ??
+            user?.profilePic ??
+            '',
+        }}
+        saving={saving}
+        onSave={async (payload) => {
+          try {
+            setSaving(true);
+            // TODO: call your API here, e.g.:
+            // const res = await service.updateMyProfile(payload);
+            // setProfile(res.data ?? payload);
+
+            const res = await serviceUser.updateProfile(payload);
+            const userData = res.data.items;
+            dispatch(login({...user, fname: userData.fname, lname: userData.lname, profilePic: userData.profilePic, phone: userData.phone, gender: userData.gender}));
+
+            toast({
+              description: 'Profile updated successfully.',
+              className: cn(
+                'top-0 right-0 fixed md:max-w-[420px] md:top-4 md:right-4'
+              ),
+              style: { backgroundColor: '#5CB85C', color: 'white' },
+            });
+            setEditOpen(false);
+          } catch (e) {
+            toast({
+              description: 'Failed to update profile.',
+              className: cn(
+                'top-0 right-0 fixed md:max-w-[420px] md:top-4 md:right-4'
+              ),
+              style: { backgroundColor: '#D9534F', color: 'white' },
+            });
+          } finally {
+            setSaving(false);
+          }
+        }}
+      />
       <Card className="w-full max-w-3xl rounded-3xl shadow-2xl border border-scrollbar">
         <CardContent className="p-6 flex flex-col items-center text-center">
           {/* Profile Picture */}
@@ -352,6 +468,15 @@ const ProfilePage = () => {
                 Verified
               </Badge>
             )}
+
+            <Button
+              variant="outline"
+              className="rounded-full h-9 px-4"
+              onClick={() => setEditOpen(true)}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit Profile
+            </Button>
           </div>
 
           {/* Metadata */}
@@ -381,6 +506,8 @@ const ProfilePage = () => {
       </Card>
     </div>
   );
+
+  return profile;
 };
 
 export default ProfilePage;

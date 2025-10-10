@@ -1,5 +1,6 @@
 export interface Fields {
   id?: string;
+  propertyId: string| any;
   propertyUnitId: string;
   agreementDoc?: string | any;
   language: string;

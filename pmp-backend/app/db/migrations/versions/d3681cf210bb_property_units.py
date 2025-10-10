@@ -53,7 +53,6 @@ def upgrade() -> None:
         sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
     )
-    # ### end Alembic commands ###
 
 
 def downgrade() -> None:

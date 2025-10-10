@@ -164,10 +164,10 @@ def get_all_invoices(
             .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
             .all()
         )
-        assigned_unit_ids = list(
-            {m.assign_property_unit for m in managers if m.assign_property_unit}
+        assigned_property_ids = list(
+            {m.assign_property for m in managers if m.assign_property}
         )
-        if not assigned_unit_ids:
+        if not assigned_property_ids:
             return {
                 "success": True,
                 "message": "No assigned units.",
@@ -176,6 +176,8 @@ def get_all_invoices(
                 "size": limit,
                 "items": [],
             }
+        units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+        assigned_unit_ids = [u.id for u in units]
         query = query.join(Invoice.tenant).filter(
             Tenant.property_unit_id.in_(assigned_unit_ids)
         )

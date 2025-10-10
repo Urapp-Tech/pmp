@@ -1,6 +1,7 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import  Session, joinedload,load_only
 from sqlalchemy import func
+import json
 from uuid import UUID
 from app.models.landlords import Landlord
 from app.models.users import User
@@ -173,20 +174,20 @@ def get_manager_stats(db: Session, landlord_id: UUID, user_id: UUID) -> dict:
         )
 
     # 3. Get all assigned unit IDs from manager table
-    manager_units = (
-        db.query(Manager.assign_property_unit)
+    manager_properties = (
+        db.query(Manager)
         .filter(Manager.manager_user_id == user_id, Manager.is_active == True)
         .distinct()
         .all()
     )
-    assigned_unit_ids = [
-        row.assign_property_unit for row in manager_units if row.assign_property_unit
+    assigned_property_ids = [
+        row.assign_property for row in manager_properties if row.assign_property
     ]
 
-    if not assigned_unit_ids:
+    if not assigned_property_ids:
         return {
             "success": True,
-            "message": "Manager has no assigned units",
+            "message": "Manager has no assigned Properties",
             "data": {
                 "properties_managed": 0,
                 "units": {
@@ -199,8 +200,10 @@ def get_manager_stats(db: Session, landlord_id: UUID, user_id: UUID) -> dict:
         }
 
     # 4. Get units data
-    units = db.query(PropertyUnit).filter(PropertyUnit.id.in_(assigned_unit_ids)).all()
-
+    units = db.query(PropertyUnit).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+    # 4. Get units data
+    # assigned_unit = db.query(PropertyUnit).options(load_only( PropertyUnit.id)).filter(PropertyUnit.property_id.in_(assigned_property_ids)).all()
+    assigned_unit_ids = [u.id for u in units]
     total_unit_count = len(units)
     available_unit_count = sum(1 for unit in units if unit.status == "available")
     occupied_unit_count = sum(1 for unit in units if unit.status == "occupied")

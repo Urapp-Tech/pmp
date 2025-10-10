@@ -77,7 +77,7 @@ export const routeObjects: RouteObject[] = [
         ),
       },
       {
-        path: 'contact',
+        path: 'contact-us',
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <StaticContact />

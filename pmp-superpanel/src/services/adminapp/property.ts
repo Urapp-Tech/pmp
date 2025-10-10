@@ -2,6 +2,7 @@ import { PROPERTY_PREFIX, PROPERTY_UNIT_PREFIX } from '@/utils/constants';
 import network from '@/utils/network';
 
 const list = (
+  landlordId: string,
   userId: string,
   roleId: string,
   search: string,
@@ -9,6 +10,7 @@ const list = (
   size: number
 ) => {
   return network.get(`${PROPERTY_PREFIX}/super-admin/view`, {
+    requestLandlordId:landlordId,
     user_id: userId,
     role_id: roleId,
     search: '' + search,
@@ -35,6 +37,11 @@ const getUnitsByPropertyId = (
 };
 const getPropertyId = (propertyId: string) => {
   return network.get(`${PROPERTY_PREFIX}/${propertyId}`, {
+    // property_id: propertyId,
+  });
+};
+const getLandllord = () => {
+  return network.get(`landlord-users/lov`, {
     // property_id: propertyId,
   });
 };
@@ -72,4 +79,5 @@ export default {
   deleteProperty,
   Lov,
   availableLov,
+  getLandllord
 };

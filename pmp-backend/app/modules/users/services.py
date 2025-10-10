@@ -338,6 +338,62 @@ def update_user(
         "items": UserOut.model_validate(user_data),
     }
 
+def update_profile(
+    db: Session,
+    id: UUID,
+    update_data: UserUpdate,
+    profile_pic: UploadFile = None,
+):
+    user = db.query(User).filter(User.id == id).first()
+    landlord_id = user.landlord_id
+    email = user.email
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update fields
+    for field, value in update_data.model_dump(exclude_unset=True).items():
+        if field == "password":
+            if value:  # Only update if password is non-empty
+                setattr(user, field, hash_password(value))
+            else:
+                continue  # Skip updating if password is None or empty
+        else:
+            setattr(user, field, value)
+
+    # Handle profile picture upload
+    # try:
+    profile_pic_url = user.profile_pic
+    if is_upload_file(profile_pic):
+        profile_pic_url = save_uploaded_file(
+            profile_pic, upload_dir="uploads/profile_pics"
+        )
+        user.profile_pic = profile_pic_url
+    # except Exception as e:
+    #     db.rollback()
+    #     raise HTTPException(
+    #         status_code=500, detail=f"Failed to save profile picture: {str(e)}"
+    #     )
+    user.landlord_id = landlord_id
+    user.email = email
+    db.commit()
+    db.refresh(user)
+
+    user_data = {
+        "id": str(user.id),
+        "fname": user.fname,
+        "lname": user.lname,
+        "email": user.email,
+        "phone": user.phone,
+        "gender": user.gender,
+        "profilePic": profile_pic_url,
+    }
+
+    return {
+        "success": True,
+        "message": "User updated successfully",
+        "items": user_data,
+    }
+
 
 def delete_user(db: Session, user_id: UUID):
     user = db.query(User).filter(User.id == user_id).first()
@@ -410,8 +466,8 @@ def get_assigned_units_managers(
         # ✅ Assigned units for manager
         if role_name == "Manager":
             assigned_units = (
-                db.query(PropertyUnit.id, PropertyUnit.name, PropertyUnit.unit_no)
-                .join(Manager, Manager.assign_property_unit == PropertyUnit.id)
+                db.query(Property.id, Property.name,Property.unit_counts)
+                .join(Manager, Manager.assign_property == Property.id)
                 .filter(
                     Manager.manager_user_id == u.id,
                     Manager.is_active == True,
@@ -419,13 +475,13 @@ def get_assigned_units_managers(
                 .all()
             )
 
-            user_dict["assignedUnits"] = [
+            user_dict["assignedProperties"] = [
                 {
-                    "id": str(unit.id),
-                    "name": unit.name,
-                    "unit_no": unit.unit_no,
+                    "id": str(property.id),
+                    "name": property.name,
+                    "unit_count": property.unit_counts,
                 }
-                for unit in assigned_units
+                for property in assigned_units
             ]
 
         # Optional: keep this for regular users

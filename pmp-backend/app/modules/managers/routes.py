@@ -6,7 +6,7 @@ from app.modules.managers.schemas import (
     ManagerAssignCreate,
     ManagerAssignResponse,
 )
-from app.modules.managers.services import assign_units_to_manager
+from app.modules.managers.services import assign_properties_to_manager
 from app.db.database import get_db
 
 router = APIRouter()
@@ -23,10 +23,10 @@ router = APIRouter()
 
 
 @router.post(
-    "/assign-units",
+    "/assign-property",
     response_model=ManagerAssignResponse,
     status_code=status.HTTP_200_OK,
 )
-def assign_manager_units(data: ManagerAssignCreate, db: Session = Depends(get_db)):
-    result = assign_units_to_manager(data, db)
+def assign_manager_property(data: ManagerAssignCreate, db: Session = Depends(get_db)):
+    result = assign_properties_to_manager(data, db)
     return result

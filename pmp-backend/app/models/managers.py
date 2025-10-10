@@ -13,11 +13,16 @@ class Manager(Base):
     manager_user_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
     )
-    assign_property_unit = Column(
-        UUID(as_uuid=True), ForeignKey("property_units.id", ondelete="CASCADE")
+    # assign_property_unit = Column(
+    #     UUID(as_uuid=True), ForeignKey("property_units.id", ondelete="CASCADE")
+    # )
+    assign_property = Column(
+        UUID(as_uuid=True), ForeignKey("properties.id", ondelete="CASCADE")
     )
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    assigned_unit = relationship("PropertyUnit", back_populates="manager_links")
+    # assigned_unit = relationship("PropertyUnit", back_populates="manager_links")
+
+    assigned_property = relationship("Property", back_populates="manager_links")

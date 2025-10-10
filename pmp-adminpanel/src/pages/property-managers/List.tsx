@@ -176,13 +176,12 @@ const PropertyManagers = () => {
       ),
     },
     {
-      accessorKey: 'assignedUnits',
-      header: 'ASSIGNED PROPERTY UNITS',
+      accessorKey: 'assignedProperties',
+      header: 'ASSIGNED PROPERTIES',
       cell: ({ row }) => {
-        const users = row.getValue('assignedUnits') as {
+        const users = row.getValue('assignedProperties') as {
           id: string;
           name: string;
-          unit_no: string;
         }[];
 
         if (!users || users.length === 0) {
@@ -221,12 +220,10 @@ const PropertyManagers = () => {
             <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
               {visibleUsers.map((user, index) => {
                 const bgColor = getColorClass(user.id);
-                const initial = user.unit_no?.charAt(0).toUpperCase() || 'U';
-                console.log(user);
-                
+                const initial = user.name?.charAt(0).toUpperCase() || 'U';
                 return (
                   <Avatar key={user.id + index}>
-                    <AvatarImage src={user.unit_no ?? ''} alt={`@user-${index}`} />
+                    <AvatarImage src={user.name ?? ''} alt={`@user-${index}`} />
                     <AvatarFallback className={`text-white ${bgColor}`}>
                       {initial}
                     </AvatarFallback>
@@ -532,20 +529,20 @@ const PropertyManagers = () => {
       });
   };
 
-  const onAssignUnits = (unitIds: string[]) => {
+  const onAssignProperties = (propertyIds: any[]) => {
+    console.log('propertyIds', propertyIds);
+
     let obj = {
       managerUserId: editFormData?.id,
-      assignUnits: unitIds,
+      assignProperties: propertyIds,
     };
-    // console.log('obj', obj);
-
     userService
-      .assignUnits(obj)
+      .assignProperties(obj)
       .then((updateItem) => {
         if (updateItem.data.success) {
           const updatedAssignments = updateItem.data.items.map((item: any) => ({
-            id: item.assign_property_unit.id,
-            name: item.assign_property_unit.name,
+            id: item.assign_property.id,
+            name: item.assign_property.name,
           }));
 
           // Extract newly assigned user IDs
@@ -558,18 +555,18 @@ const PropertyManagers = () => {
               if (manager.id === editFormData?.id) {
                 return {
                   ...manager,
-                  assignedUnits: updatedAssignments,
+                  assignedProperties: updatedAssignments,
                 };
               }
 
               // Remove any users who are now assigned to the new manager
-              const filteredUnits = manager.assignedUnits?.filter(
+              const filteredProperties = manager.assignedProperties?.filter(
                 (u: any) => !newAssignedUserIds.includes(u.id)
               );
 
               return {
                 ...manager,
-                assignedUnits: filteredUnits,
+                assignedProperties: filteredProperties,
               };
             })
           );
@@ -748,10 +745,12 @@ const PropertyManagers = () => {
           isLoader={isLoader}
           isOpen={isAssignOpen}
           setIsOpen={setIsAssignOpen}
-          assignedUnits={
-            editFormData?.assignedUnits?.map((u: any) => u.id) || []
+          assignedProperties={
+            editFormData?.assignedProperties?.map((u: any) => u.id) || []
           }
-          onAssignUnits={(unitIds) => onAssignUnits(unitIds)}
+          onAssignProperties={(propertyIds) => {
+            onAssignProperties(propertyIds);
+          }}
         />
       )}
     </div>

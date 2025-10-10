@@ -39,9 +39,16 @@ type Props = {
   formData?: any;
 };
 
-type GroupedOption = {
-  label: string;
-  options: { id: string; name: string; unit_no: string }[];
+type GroupedUnit = {
+  id: string;
+  name: string;
+  rent?: number;
+};
+
+type GroupedProperty = {
+  id: string;
+  name: string;
+  units: GroupedUnit[];
 };
 
 const CreateContractDialog = ({
@@ -70,7 +77,8 @@ const CreateContractDialog = ({
   const [file, setFile] = useState<any>(null);
   const [selectedImg, setSelectedImg] = useState<any>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [unitList, setUnitList] = useState<GroupedOption[]>([]);
+  const [unitList, setUnitList] = useState<GroupedUnit[]>([]);
+  const [propertyList, setPropertyList] = useState<GroupedProperty[]>([]);
 
   const [agreementDocs, setAgreementDocs] = useState<(File | string)[]>([]);
 
@@ -103,6 +111,7 @@ const CreateContractDialog = ({
 
   const onSubmit = async (data: Fields) => {
     let obj: Fields = {
+      propertyId: data.propertyId,
       propertyUnitId: data.propertyUnitId,
       civilId: data.civilId,
       nationality: data.nationality,
@@ -125,57 +134,50 @@ const CreateContractDialog = ({
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
+  const fetchPropertyLOV = async () => {
+    const res = await service.availablePropertyLov(userDetails?.landlordId);
+    // Format for dropdown
+    const formatted = res.data.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      units:
+        p.units?.map((u: any) => ({
+          id: u.id,
+          name: u.unit_no, // or whatever your unit display field is
+          rent: u.rent,
+        })) || [],
+    }));
+    // console.log('formatted', formatted);
 
-  const fetchUnitsLOV = async () => {
-    try {
-      const res = await service.availableLov(userDetails?.landlordId);
-      // console.log('raw response', res);
-      const groupedUnits = res.data.map(
-        (building: { name: string; items: any[] }) => ({
-          label: building.name,
-          options: building.items.map((unit) => ({
-            id: unit.id,
-            name: unit.unit_no,
-            rent: unit.rent,
-          })),
-        })
-      );
-
-      setUnitList(groupedUnits);
-    } catch (error) {
-      toast({
-        description: 'Failed to load units',
-        className: cn(
-          'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
-        ),
-        style: {
-          backgroundColor: '#FF5733',
-          color: 'white',
-        },
-      });
-    }
+    setPropertyList(formatted);
   };
 
   useEffect(() => {
-    fetchUnitsLOV();
+    fetchPropertyLOV();
   }, []);
 
+  const propertyId = watch('propertyId');
+  const propertyUnitId = watch('propertyUnitId');
+
   useEffect(() => {
-    const selectedUnitId = watch('propertyUnitId');
-
-    if (selectedUnitId) {
-      const selectedUnit: any = unitList
-        .flatMap((group) => group.options)
-        .find((unit) => unit.id === selectedUnitId);
-
-      if (selectedUnit?.rent) {
-        setValue('rentPrice', selectedUnit.rent);
+    if (propertyId) {
+      const selectedProperty = propertyList.find(
+        (item) => item.id === propertyId
+      );
+      if (selectedProperty) {
+        setUnitList(selectedProperty.units || []);
+        setValue('propertyUnitId', '');
+        setValue('rentPrice', 0);
       }
     }
-  }, [watch('propertyUnitId'), unitList, setValue]);
+  }, [propertyId, propertyList]);
 
-  console.log('selected unit', selectedImg, file);
-
+  useEffect(() => {
+    if (propertyUnitId) {
+      const selectedUnit = unitList.find((unit) => unit.id === propertyUnitId);
+      if (selectedUnit?.rent) setValue('rentPrice', selectedUnit.rent);
+    }
+  }, [propertyUnitId, unitList, setValue]);
   // ---- helpers for preview ----
   const isImageSrc = (src?: string) =>
     !!src &&
@@ -246,7 +248,7 @@ const CreateContractDialog = ({
         <DialogHeader className="!h-[110px] p-0 w-full">
           {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
           <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
-            <DialogTitle className="text-primary-bg mt-12 text-4xl font-semibold tracking-wide text-center p-[126px]">
+            <DialogTitle className="text-primary-bg capitalize mt-12 text-4xl font-semibold tracking-wide text-center p-[126px]">
               Add New Contract for {formData?.fname} {formData?.lname}
             </DialogTitle>
             {/* 3) Custom rounded close button */}
@@ -266,6 +268,52 @@ const CreateContractDialog = ({
               <div className="custom-form-section">
                 <div className="form-group w-full flex gap-3">
                   <div className="w-full m-1 mt-[8px]">
+                    <FormLabel>Select Property</FormLabel>
+                    <SingleSelectDropDown
+                      control={control}
+                      name="propertyId"
+                      label="Property"
+                      items={propertyList}
+                      placeholder="Choose Property"
+                      rules={{ required: 'Property is required' }}
+                    />
+                    {/* {errors.propertyId && (
+                      <FormMessage>*{errors.propertyId.message}</FormMessage>
+                    )} */}
+                  </div>
+                  <div className="w-full m-1 mt-[8px]">
+                    <FormLabel>Select Unit</FormLabel>
+                    <SingleSelectDropDown
+                      control={control}
+                      name="propertyUnitId"
+                      label="Unit"
+                      items={unitList}
+                      placeholder="Choose Unit"
+                      rules={{ required: 'Unit is required' }}
+                    />
+                    {/* {errors.propertyUnitId && (
+                      <FormMessage>
+                        *{errors.propertyUnitId.message}
+                      </FormMessage>
+                    )} */}
+                  </div>
+                  {/* <div className="w-full m-1 mt-[8px]">
+                    <FormLabel
+                      htmlFor="firstName"
+                      className="text-sm font-medium"
+                    >
+                      Select Property
+                    </FormLabel>
+                    <SingleSelectGroupDropdown
+                      control={control}
+                      name="propertyId"
+                      label="Select Property"
+                      items={propertyList}
+                      placeholder="Choose Property"
+                      rules={{ required: 'Please select at least one unit' }}
+                    />
+                  </div>
+                  <div className="w-full m-1 mt-[8px]">
                     <FormLabel
                       htmlFor="firstName"
                       className="text-sm font-medium"
@@ -280,7 +328,7 @@ const CreateContractDialog = ({
                       placeholder="Choose units"
                       rules={{ required: 'Please select at least one unit' }}
                     />
-                  </div>
+                  </div> */}
                   <FormControl className="m-1 w-full">
                     <div className="">
                       <FormLabel

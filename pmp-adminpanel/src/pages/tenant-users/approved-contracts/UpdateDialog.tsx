@@ -68,6 +68,22 @@ const UpdateContractDialog = ({
       language: formData?.language || '',
     },
   });
+useEffect(() => {
+  if (!formData) return;
+
+  // Try common backend shapes; fall back to IDs if no names present
+  const pName =
+    formData.unitDetail?.property.name ||
+    '';
+
+  const uName =
+    formData.unitDetail?.unitNo ||
+    '';
+
+  setPropertyLabel(String(pName));
+  setUnitLabel(String(uName));
+}, [formData]);
+
   const userDetails: any = getItem('USER');
   const ToastHandler = (text: string) => {
     return toast({
@@ -89,6 +105,8 @@ const UpdateContractDialog = ({
   const [selectedImg, setSelectedImg] = useState<any>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [unitList, setUnitList] = useState<GroupedOption[]>([]);
+  const [propertyLabel, setPropertyLabel] = useState<string>('');
+  const [unitLabel, setUnitLabel] = useState<string>('');
 
   const [docs, setDocs] = useState<File[]>([]);
 
@@ -106,6 +124,7 @@ const UpdateContractDialog = ({
 
   const onSubmit = async (data: Fields) => {
     let obj: Fields = {
+      propertyId: data.propertyId,
       propertyUnitId: data.propertyUnitId || formData?.unitDetail?.id,
       civilId: data.civilId,
       nationality: data.nationality,
@@ -138,7 +157,7 @@ const UpdateContractDialog = ({
 
   const fetchUnitsLOV = async () => {
     try {
-      const res = await service.availableLov(userDetails?.landlordId);
+      const res = await service.availableUnitLov(userDetails?.landlordId);
       // console.log('raw response', res);
       const groupedUnits = res.data.map(
         (building: { name: string; items: any[] }) => ({
@@ -146,7 +165,7 @@ const UpdateContractDialog = ({
           options: building.items.map((unit) => ({
             id: unit.id,
             name: unit.unit_no,
-            
+
             rent: unit.rent,
           })),
         })
@@ -196,7 +215,7 @@ const UpdateContractDialog = ({
         <DialogHeader className="!h-[110px] p-0 w-full">
           {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
           <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
-            <DialogTitle className="text-primary-bg mt-12 text-4xl font-semibold tracking-wide text-center p-[126px]">
+            <DialogTitle className="text-primary-bg capitalize mt-12 text-4xl font-semibold tracking-wide text-center p-[126px]">
               Update Contract for {formData?.userDetail?.fname}{' '}
               {formData?.userDetail?.lname}{' '}
             </DialogTitle>
@@ -215,23 +234,51 @@ const UpdateContractDialog = ({
           <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="custom-form-section">
+                  <div className="form-group w-full flex gap-3">
+                <div className="w-full m-1 mt-[8px]">
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel className="text-sm font-medium">
+                        Property
+                      </FormLabel>
+                      <Input
+                        className="mt-2 text-[11px]"
+                        value={propertyLabel}
+                        readOnly
+                      />
+                    </div>
+                  </FormControl>
+                </div>
+                <div className="w-full m-1 mt-[8px]">
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel className="text-sm font-medium">
+                        Unit
+                      </FormLabel>
+                      <Input
+                        className="mt-2 text-[11px]"
+                        value={unitLabel}
+                        readOnly
+                      />
+                    </div>
+                  </FormControl>
+                </div>
+                </div>
                 <div className="form-group w-full flex gap-3">
-                  <div className="w-full m-1 mt-[8px]">
-                    <FormLabel
-                      htmlFor="firstName"
-                      className="text-sm font-medium"
-                    >
-                      Select Unit
-                    </FormLabel>
-                    <SingleSelectGroupDropdown
-                      control={control}
-                      name="propertyUnitId"
-                      label="Select Property Units"
-                      items={unitList}
-                      placeholder="Choose units"
-                      rules={{ required: 'Please select at least one unit' }}
-                    />
-                  </div>
+                   <div className="w-full m-1 mt-[8px]">
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel className="text-sm font-medium">
+                        Contract no
+                      </FormLabel>
+                      <Input
+                        className="mt-2 text-[11px]"
+                        value={formData?.contractNumber}
+                        readOnly
+                      />
+                    </div>
+                  </FormControl>
+                </div>
                   <FormControl className="m-1 w-full">
                     <div className="">
                       <FormLabel

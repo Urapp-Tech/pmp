@@ -117,10 +117,10 @@ class UserUpdate(BaseModel):
         return v
 
 
-class AssignedUnit(BaseModel):
+class AssignedProperties(BaseModel):
     id: UUID
     name: Optional[str]
-    unit_no: Optional[str]
+    unit_count: Optional[str|int]
 
     class Config:
         from_attributes = True
@@ -171,8 +171,8 @@ class ManagerUserOut(BaseModel):
     is_verified: bool = Field(..., alias="isVerified")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
-    assigned_units: Optional[List[AssignedUnit]] = Field(
-        default=None, alias="assignedUnits"
+    assigned_properties: Optional[List[AssignedProperties]] = Field(
+        default=None, alias="assignedProperties"
     )
 
     class Config:

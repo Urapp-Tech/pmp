@@ -6,7 +6,7 @@ from fastapi import (
     Form,
     HTTPException,
     UploadFile,
-    status,
+    Path,
     Query,
 )
 from uuid import UUID
@@ -29,7 +29,7 @@ from app.modules.properties.services import (
     get_properties,
     delete_property,
     get_properties_super_admin_view,
-    toggle_property_status,
+    toggle_property_status,get_lov_property_by_landlord
 )
 from typing import Optional, List
 
@@ -275,13 +275,14 @@ def get_all_properties(
 @router.get("/super-admin/view")
 def get_all_properties_super_admin_view(
     db: Session = Depends(get_db),
+    requestLandlordId: Optional[str] = None,
     user_id: Optional[UUID4] = None,
     role_id: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=1000, description="Page size"),
     search: Optional[str] = None,
 ):
-    return get_properties_super_admin_view(db, user_id, role_id, page, size, search)
+    return get_properties_super_admin_view(db,requestLandlordId, user_id, role_id, page, size, search)
 
 
 @router.get("/units/{property_id}")
@@ -304,3 +305,10 @@ def delete_property_by_id(id: UUID, db: Session = Depends(get_db)):
 @router.post("/toggle-status/{property_id}")
 def toggle_status(property_id: UUID, is_active: bool, db: Session = Depends(get_db)):
     return toggle_property_status(db=db, property_id=property_id, is_active=is_active)
+
+@router.get("/available-lov/{landlord_id}")
+def get_lov_property(
+    db: Session = Depends(get_db),
+    landlord_id: UUID = Path(..., description="landlord ID"),
+):
+    return get_lov_property_by_landlord( db,landlord_id)

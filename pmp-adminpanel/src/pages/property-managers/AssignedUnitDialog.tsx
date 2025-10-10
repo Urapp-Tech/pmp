@@ -15,34 +15,68 @@ import service from '@/services/adminapp/property';
 import { getItem } from '@/utils/storage';
 import { Loader2, X } from 'lucide-react';
 import { MultiSelectGroupedDropDown } from '@/components/DropDown/MultiSelectGroupedDropDown';
+import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
 
-type Lov = { id: string; name: string; unit_no:string};
+type Lov = { id: string; name: string; unit_no: string };
 type GroupedOption = {
   label: string; // building name
-  options: { id: string; name: string; unit_no:string }[]; // units
+  options: { id: string; name: string; unit_no: string }[]; // units
 };
 
 type Props = {
   isLoader: boolean;
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
-  assignedUnits: string[]; // Array of selected userIds (UUID)
-  onAssignUnits: (userIds: string[], force?: boolean) => void;
+  assignedProperties: string[]; // Array of selected userIds (UUID)
+  onAssignProperties: (userIds: string[], force?: boolean) => void;
+};
+type GroupedUnit = {
+  id: string;
+  name: string;
+  rent?: number;
 };
 
+type GroupedProperty = {
+  id: string;
+  name: string;
+  units: GroupedUnit[];
+};
 const AssignUserDialog = ({
   isLoader,
   isOpen,
   setIsOpen,
-  assignedUnits,
-  onAssignUnits,
+  assignedProperties,
+  onAssignProperties,
 }: Props) => {
   const userDetails: any = getItem('USER');
   const { control, handleSubmit, reset, setValue } = useForm<{
-    assignedUnits: string[];
+    assignedProperties: string[];
   }>();
   const [unitList, setUnitList] = useState<GroupedOption[]>([]);
+  const [propertyList, setPropertyList] = useState<GroupedProperty[]>([]);
 
+  const fetchPropertyLOV = async () => {
+    const res = await service.availablePropertyLov(userDetails?.landlordId);
+    // Format for dropdown
+    const formatted = res.data.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      units:
+        p.units?.map((u: any) => ({
+          id: u.id,
+          name: u.unit_no, // or whatever your unit display field is
+          rent: u.rent,
+        })) || [],
+    }));
+    // console.log('formatted', formatted);
+
+    setPropertyList(formatted);
+    setValue('assignedProperties', assignedProperties);
+  };
+
+  // useEffect(() => {
+  //   fetchPropertyLOV();
+  // }, []);
   const fetchUnitsLOV = async () => {
     try {
       const res = await service.Lov(userDetails?.landlordId);
@@ -59,7 +93,7 @@ const AssignUserDialog = ({
       );
 
       setUnitList(groupedUnits);
-      setValue('assignedUnits', assignedUnits);
+      setValue('assignedProperties', assignedProperties);
     } catch (error) {
       toast({
         description: 'Failed to load units',
@@ -75,12 +109,14 @@ const AssignUserDialog = ({
   };
 
   useEffect(() => {
-    if (isOpen) fetchUnitsLOV();
+    if (isOpen) fetchPropertyLOV();
     else reset();
   }, [isOpen]);
 
-  const onSubmit = (data: { assignedUnits: string[] }) => {
-    onAssignUnits(data.assignedUnits);
+  const onSubmit = (data: { assignedProperties: string[] }) => {
+    console.log('data', data.assignedProperties);
+
+    onAssignProperties(data.assignedProperties);
     // setIsOpen(false);
   };
 
@@ -106,25 +142,17 @@ const AssignUserDialog = ({
         </DialogHeader>
         <div className="bg-white rounded-b-3xl px-6 pb-6 pt-5">
           <form onSubmit={handleSubmit(onSubmit)}>
-            <MultiSelectGroupedDropDown
-              control={control}
-              name="assignedUnits"
-              label="Select Property Units"
-              items={unitList}
-              placeholder="Choose units"
-              rules={{ required: 'Please select at least one unit' }}
-            />
-            {/* <MultiSelectDropDown
-            control={control}
-            name="assignedUnits"
-            label="Select Units"
-            items={unitList.map((u) => ({
-              id: u.id,
-              name: u.name,
-            }))}
-            placeholder="Choose units"
-            rules={{ required: 'Please select at least one user' }}
-          /> */}
+            <div className="w-full m-1 mt-[8px]">
+              <label className="text-sm font-semibold">Select Property</label>
+              <MultiSelectDropDown
+                control={control}
+                name="assignedProperties"
+                label="Property"
+                items={propertyList}
+                placeholder="Choose Property"
+                rules={{ required: 'Please select at least one unit' }}
+              />
+            </div>
             <DialogFooter className="mt-4">
               <Button
                 disabled={isLoader}

@@ -54,6 +54,13 @@ const Lov = (userId: string) => {
 const availableLov = (landlordId: string) => {
   return network.get(`${PROPERTY_UNIT_PREFIX}/available-lov/${landlordId}`, {});
 };
+const availableUnitLov = (property_id: string) => {
+  return network.get(`${PROPERTY_UNIT_PREFIX}/available-lov/${property_id}`, {});
+};
+const availablePropertyLov = (landlordId: string) => {
+  return network.get(`${PROPERTY_PREFIX}/available-lov/${landlordId}`, {});
+};
+
 
 export default {
   list,
@@ -64,4 +71,6 @@ export default {
   deleteProperty,
   Lov,
   availableLov,
+  availableUnitLov,
+  availablePropertyLov
 };

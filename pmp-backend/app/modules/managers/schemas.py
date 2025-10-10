@@ -12,7 +12,7 @@ class AssignUserOut(BaseModel):
 
     class Config:
         from_attributes = True
-        populate_by_name: True
+        populate_by_name= True
 
     @classmethod
     def model_validate(cls, obj):
@@ -21,7 +21,7 @@ class AssignUserOut(BaseModel):
         return super().model_validate(data)
 
 
-class PropertyUnitOut(BaseModel):
+class PropertyOut(BaseModel):
     id: UUID
     name: str
 
@@ -31,13 +31,13 @@ class PropertyUnitOut(BaseModel):
 
 class ManagerAssignCreate(BaseModel):
     manager_user_id: UUID = Field(..., alias="managerUserId")
-    assign_units: List[UUID] = Field(..., alias="assignUnits")
+    assign_properties: List[UUID] = Field(..., alias="assignProperties")
 
 
-class ManagerUnitOut(BaseModel):
+class ManagerPropertyOut(BaseModel):
     id: UUID
     manager_user_id: UUID = Field(None, alias="managerUserId")
-    assign_property_unit: PropertyUnitOut
+    assign_property: PropertyOut
     is_active: bool = Field(..., alias="isActive")
     created_at: datetime = Field(..., alias="createdAt")
 
@@ -49,7 +49,7 @@ class ManagerUnitOut(BaseModel):
 class ManagerAssignResponse(BaseModel):
     message: str
     success: bool
-    items: List[ManagerUnitOut]
+    items: List[ManagerPropertyOut]
     # available_units: Optional[List[PropertyUnitOut]] = []
 
     class Config:

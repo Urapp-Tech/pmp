@@ -45,9 +45,11 @@ class PropertyUnit(Base):
 
     # Relationships
     # property = relationship("Property", back_populates="property_units")
-    manager_links = relationship(
-        "Manager", back_populates="assigned_unit", cascade="all, delete-orphan"
-    )
+    # manager_links = relationship(
+    #     "Manager", back_populates="assigned_unit", cascade="all, delete-orphan"
+    # )
+    
+
     property = relationship(
             "Property",
             back_populates="property_units",  # or "units", depending on your Property model

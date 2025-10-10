@@ -1,13 +1,14 @@
 import { useRef, useState } from 'react';
-
 import assets from '@/assets/images';
 import { allowedFileTypes } from '@/utils/constants';
 
 type DragDropFileProps = {
-  setFile: any;
-  setImg: any;
+  setFile: (file: File | null) => void;
+  setImg: (url: string | null) => void;
   customWidth?: string;
-  setIsNotify?: any;
+  setIsNotify?: (msg: string) => void;
+  /** ✅ If true, allow ONLY one image file (no PDFs/Docs/Excel; no multi) */
+  singleImage?: boolean;
 };
 
 function DragDropFile({
@@ -15,15 +16,45 @@ function DragDropFile({
   setImg,
   customWidth,
   setIsNotify,
+  singleImage = false,
 }: DragDropFileProps) {
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (files: any) => {
-    setFile(files[0]);
+  const IMAGE_ACCEPT = 'image/*,.jpg,.jpeg,.png,.webp';
+  const ALL_ACCEPT = 'image/*,.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx';
+
+  const acceptAttr = singleImage ? IMAGE_ACCEPT : ALL_ACCEPT;
+
+  const isAllowed = (file: File) => {
+    if (singleImage) return file.type.startsWith('image/');
+    return allowedFileTypes.includes(file.type);
   };
 
-  const handleDrag = (e: any) => {
+  const processFile = (file?: File | null) => {
+    if (!file) return;
+    if (!isAllowed(file)) {
+      setIsNotify?.(
+        singleImage
+          ? 'Only image files (JPG, JPEG, PNG, WEBP) are allowed'
+          : 'Only image, PDF, Word, and Excel files are allowed'
+      );
+      return;
+    }
+
+    setFile(file);
+
+    // Preview only for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => setImg(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setImg(null);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === 'dragenter' || e.type === 'dragover') {
@@ -33,65 +64,35 @@ function DragDropFile({
     }
   };
 
-  const handleDrop = (e: any) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files);
-    }
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      const fileType = droppedFile.type;
-      if (allowedFileTypes.includes(fileType)) {
-        setFile(droppedFile);
-        const reader = new FileReader();
-        reader.onload = () => {
-          setImg(reader.result as string);
-        };
-        reader.readAsDataURL(droppedFile);
-      } else {
-        setIsNotify('Only image, PDF, Word, and Excel files are allowed');
-      }
-    }
+    const dropped = e.dataTransfer.files?.[0]; // ✅ single file
+    processFile(dropped);
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files);
-    }
-    const uploadedFile = e.target.files?.[0];
-    if (uploadedFile) {
-      const fileType = uploadedFile.type;
-      if (allowedFileTypes.includes(fileType)) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          setImg(reader.result as string);
-          // setImageUrl(reader.result as string);
-        };
-        reader.readAsDataURL(uploadedFile);
-      } else {
-        // setIsNotify(true);
-        setIsNotify('Only .png, .jpg, and .jpeg files are allowed');
-      }
-    }
+    const uploaded = e.target.files?.[0]; // ✅ single file
+    processFile(uploaded);
+    // reset input so same file can be selected again if needed
+    e.currentTarget.value = '';
   };
 
   const onButtonClick = () => inputRef.current?.click();
 
   return (
-    <div
-      className={`flex ${customWidth || 'w-[400px]'} items-center justify-start`}
-    >
+    <div className={`flex ${customWidth || 'w-[400px]'} items-center justify-start`}>
       <input
         className="hidden"
-        accept="image/*,.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+        accept={acceptAttr}
         ref={inputRef}
         type="file"
-        multiple
+        multiple={!singleImage}             
         onChange={handleChange}
       />
+
       <div
         className={`border-dashed border-0 flex items-center justify-center cursor-pointer w-[290px] h-[200px] ${
           dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
@@ -103,28 +104,23 @@ function DragDropFile({
         onDrop={handleDrop}
       >
         <div className="flex flex-col items-center justify-center text-center">
-          {/* <FileImage className="" size={60} /> */}
           <div className="w-full h-[35px]">
             <img
               src={assets.images.skelImg}
               alt="icon"
               className="w-full h-full object-contain"
             />
-            <span className="text-scrollbar font-semiBold text-sm">
-              Click to upload
-            </span>
+            <span className="text-scrollbar font-semiBold text-sm">Click to upload</span>
             <span className="font-semiBold"> or drag and drop</span>
             <p className="text-xs mt-[2px]">
-              Images should be in JPG, JPEG, or PNG format 
+              {singleImage
+                ? 'Images should be in JPG, JPEG, PNG, or WEBP'
+                : 'Images/PDF/Word/Excel allowed'}
             </p>
           </div>
-          {/* <Button className="ml-2 hover:underline" variant="link" type="button">
-            Drag & drop files
-            <span className="text-sm text-gray-500">or</span>
-            Browse
-          </Button> */}
         </div>
       </div>
+
       {dragActive && (
         <div
           className="absolute inset-0"
