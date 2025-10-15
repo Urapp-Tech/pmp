@@ -82,7 +82,7 @@ export function FooterNavUser({
         <SidebarMenuButton tooltip="setting">
           <img src={assets.images.settingSidebarIcon} />
           <NavLink
-            to={'/super-admin/setting'}
+            to={'/setting'}
             className={({ isActive }) =>
               `${isActive ? 'text-quinary-bg text-[12px] font-semibold' : ''}`
             }

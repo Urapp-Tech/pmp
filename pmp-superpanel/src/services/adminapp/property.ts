@@ -9,8 +9,8 @@ const list = (
   page: number,
   size: number
 ) => {
-  return network.get(`${PROPERTY_PREFIX}/super-admin/view`, {
-    requestLandlordId:landlordId,
+  return network.get(`${PROPERTY_PREFIX}/view`, {
+    requestLandlordId: landlordId,
     user_id: userId,
     role_id: roleId,
     search: '' + search,
@@ -79,5 +79,5 @@ export default {
   deleteProperty,
   Lov,
   availableLov,
-  getLandllord
+  getLandllord,
 };

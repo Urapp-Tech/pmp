@@ -624,7 +624,7 @@ const InvoiceReport = () => {
                           <span
                             className="text-scrollbar underline cursor-pointer"
                             onClick={() =>
-                              navigate(`/super-admin/invoices/detail/${inv.id}`)
+                              navigate(`/invoices/detail/${inv.id}`)
                             }
                           >
                             {inv.invoice_no}

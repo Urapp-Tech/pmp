@@ -35,7 +35,7 @@ const Blogs = lazy(() => import('@/pages/support-feedback/List'));
 
 export const routeObjects: RouteObject[] = [
   {
-    path: '/super-admin',
+    path: '/',
     element: <LayoutOutlet />,
     children: [
       {
@@ -427,6 +427,6 @@ export const routeObjects: RouteObject[] = [
   },
   {
     path: '/',
-    element: <Navigate to="/super-admin/auth" replace />,
+    element: <Navigate to="/auth" replace />,
   },
 ];

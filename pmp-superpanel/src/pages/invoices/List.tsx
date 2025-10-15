@@ -180,7 +180,7 @@ const Invoices = () => {
     inv: InvoiceFields | any
   ) => {
     if (type === 'view') {
-      navigate(`/super-admin/invoices/detail/${inv.id}`);
+      navigate(`/invoices/detail/${inv.id}`);
     }
 
     if (type === 'download') {
@@ -485,7 +485,7 @@ const Invoices = () => {
                 <>
                   <div className=" inline-block h-2 w-2 rounded-full bg-scrollbar" />
                   <Link
-                    to={`/super-admin/invoices/detail/${row.original.id}`}
+                    to={`/invoices/detail/${row.original.id}`}
                     className="underline text-textinv"
                   >
                     {row.original.invoice_no}
@@ -495,7 +495,7 @@ const Invoices = () => {
                 <>
                   <div className="inline-block h-2 w-2 rounded-full bg-offground" />
                   <Link
-                    to={`/super-admin/invoices/detail/${row.original.id}`}
+                    to={`/invoices/detail/${row.original.id}`}
                     className="underline  text-textinv"
                   >
                     {row.original.invoice_no}

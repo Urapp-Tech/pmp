@@ -9,7 +9,7 @@ function SuperAdminAppLayout() {
   const authState = useAppSelector((state) => state?.authState);
 
   if ((authState.user && !authState.user.isSuperAdmin) || !authState.user) {
-    return <Navigate to="/super-admin" />;
+    return <Navigate to="/" />;
   }
   // if (!authState.user) {
   //     return <Navigate to="/admin" />;
