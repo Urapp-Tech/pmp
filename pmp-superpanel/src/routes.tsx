@@ -35,14 +35,6 @@ const Blogs = lazy(() => import('@/pages/support-feedback/List'));
 
 export const routeObjects: RouteObject[] = [
   {
-    path: 'auth/login',
-    element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <Login />
-      </Suspense>
-    ),
-  },
-  {
     path: '/',
     element: <LayoutOutlet />,
     children: [
