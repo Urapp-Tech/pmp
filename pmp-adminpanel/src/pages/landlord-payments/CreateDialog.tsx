@@ -282,7 +282,7 @@ const ManualPaymentCreateDialog = ({
                         items={[
                           { id: 'bank_transfer', name: 'Bank Transfer' },
                           { id: 'cash', name: 'Cash' },
-                          { id: 'pos', name: 'POS' },
+                          { id: 'cheque', name: 'Cheque' },
                         ]}
                         placeholder="Choose a method"
                       />

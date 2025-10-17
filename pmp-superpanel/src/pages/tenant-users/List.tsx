@@ -379,41 +379,80 @@ const TenantUsers = () => {
   };
 
   const createHandler = (data: any) => {
-    setIsLoader(true);
+    // setIsLoader(true);
+    const dataObj = { ...data };
+    const roleRaw = dataObj.roleName; // e.g. "Manager"
+    const role =
+      typeof roleRaw === 'string' ? roleRaw.trim().toLowerCase() : '';
     let service: any;
     const formData = new FormData();
-    if (
-      data.roleName !== 'Landlord' ||
-      data.roleName !== 'Manager' ||
-      data.roleName !== 'User'
-    ) {
-      const name = data.fname + ' ' + data.lname;
-      data.name = name;
-      delete data.fname;
-      delete data.lname;
-      delete data.roleName;
-      delete data.landlordId;
-      service = SuperUserService.create(data);
-    } else if (data.roleName === 'Landlord') {
-      data.isVerified = true;
-      delete data.roleName;
-      delete data.landlordId;
-      service = LandlordService.createService(data);
-    } else {
-      // console.log('me formdata ho');
-      formData.append('fname', data.fname);
-      formData.append('lname', data.lname);
-      formData.append('email', data.email);
-      formData.append('phone', data.phone);
-      formData.append('gender', data.gender);
-      formData.append('password', data.password);
-      formData.append('roleType', data.roleName);
-      formData.append('landlordId', data.landlordId);
-      if (data.profilePic) formData.append('profilePic', data.profilePic);
-      service = userService.create(formData);
+
+    console.log(
+      'createHandler:dataObj',
+      dataObj,
+      'roleRaw=',
+      roleRaw,
+      'role=',
+      role
+    );
+
+    if (!role) {
+      console.error('roleName is missing');
+      return;
     }
 
-    service
+    const buildFullName = () =>
+      `${dataObj.fname ?? ''} ${dataObj.lname ?? ''}`.trim();
+
+    switch (role) {
+      case 'landlord': {
+        // JSON body flow for landlord creation
+        dataObj.isVerified = true;
+        dataObj.name = buildFullName();
+        delete dataObj.fname;
+        delete dataObj.lname;
+        delete dataObj.roleName;
+        delete dataObj.landlordId;
+
+        service = LandlordService.createService(dataObj);
+        console.log('service: landlord', service, dataObj);
+        break;
+      }
+
+      case 'manager':
+      case 'user': {
+        // FormData flow for manager/user
+        formData.append('fname', dataObj.fname ?? '');
+        formData.append('lname', dataObj.lname ?? '');
+        formData.append('email', dataObj.email ?? '');
+        formData.append('phone', dataObj.phone ?? '');
+        formData.append('gender', dataObj.gender ?? '');
+        formData.append('password', dataObj.password ?? '');
+        formData.append('roleType', roleRaw); // keep original casing the API expects
+        if (dataObj.landlordId != null)
+          formData.append('landlordId', String(dataObj.landlordId));
+        if (dataObj.profilePic)
+          formData.append('profilePic', dataObj.profilePic as Blob);
+
+        service = userService.create(formData);
+        console.log('service: manager/user', service);
+        break;
+      }
+
+      default: {
+        // Everything else -> SuperUserService
+        dataObj.name = buildFullName();
+        delete dataObj.fname;
+        delete dataObj.lname;
+        delete dataObj.roleName;
+        delete dataObj.landlordId;
+
+        service = SuperUserService.create(dataObj);
+        console.log('service: superuser (default)', service, dataObj);
+      }
+    }
+
+    return service
       .then((item: any) => {
         if (item.data.success) {
           setIsOpen(false);

@@ -77,6 +77,8 @@ const OfficeUserCreateDialog = ({
   const onSubmit = async (data: Fields) => {
     // if (file) data.avatar = file;
     // data.userType = 'USER';
+    console.log('data <><><><', data);
+
     let obj = {
       fname: data.firstName,
       lname: data.lastName,
@@ -88,6 +90,8 @@ const OfficeUserCreateDialog = ({
       landlordId: data.landlord,
       roleName: roleLov.filter((item: any) => item.id === data.role)[0]?.name,
     };
+    console.log('obj', obj);
+
     callback(obj);
     // // console.log('s', obj);
   };
