@@ -139,7 +139,9 @@ const Signup = () => {
           'Your Account has been created successfully! please wait for admin approval.',
           'green'
         );
-        navigate('/');
+        setTimeout(() => {
+          navigate('/admin-panel/auth/login');
+        }, 2000);
         // If your API returns tokens/user, you can auto-login; else comment out:
         const { tenantConfig, ...rest } = res.data.data ?? {};
         if (rest) dispatch(login(rest));

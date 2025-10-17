@@ -42,7 +42,9 @@ const Contacts = () => {
   const ToastHandler = (msg: string, type: 'success' | 'error' = 'success') =>
     toast({
       description: msg,
-      className: cn('top-0 right-0 fixed z-[9999]'),
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
+      ),
       style: {
         backgroundColor: type === 'success' ? '#5CB85C' : '#d9534f',
         color: 'white',
@@ -143,7 +145,7 @@ const Contacts = () => {
       <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
         <div className="flex items-center py-4 justify-between">
           <h2 className="text-primary-bg font-semibold text-[28px] leading-normal capitalize">
-            CONTACTS
+            CONTACT SUBMISSIONS
           </h2>
           <div className="flex items-center gap-3">
             <Input
