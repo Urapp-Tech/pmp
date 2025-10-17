@@ -21,18 +21,14 @@ const Terms = () => {
             <h1 className="capitalize text-[100px] max-w-[543px] font-normal leading-tight text-primary max-[1260px]:text-[50px] max-[1024px]:text-[50px] max-[768px]:text-[34px]">
               Terms & Conditions
             </h1>
-            <p className="max-w-[593px] font-light text-[24px] text-primary  max-[1024px]:text-[20px] max-[768px]:text-[18px]">
-              This document contains the Terms & Conditions and Privacy Policy
-              for Rento in both English and Arabic.
-            </p>
           </div>
         </div>
       </div>
       <div className="w-full  bg-[#DFF4EC] px-10 max-[768px]:px-4">
-        <div className="text-primary font-light text-[14px] py-15 pl-20 max-[768px]:pl-0">
-          Effective Date: 19-9-2025
+        <div className="text-primary font-light text-[14px] py-2 pl-7 max-[768px]:pl-0">
+          Effective Date: 01-10-2025
           <br />
-          Last Updated: 19-9-2025
+          Last Updated: 17-10-2025
         </div>
         <div className="p-6 space-y-4 text-primary max-w-[1216px] mx-auto pb-20">
           <h2 className="text-[20px] font-semibold">
@@ -191,6 +187,188 @@ const Terms = () => {
             These Terms may be provided in English and Arabic. In case of
             conflict, the Arabic version shall prevail under Kuwaiti law.
           </p>
+
+          <div
+            dir="rtl"
+            className="text-right text-[24px] font-light space-y-4"
+          >
+            <h2 className="text-[24px] font-semibold mb-2">
+              شروط وأحكام الاستخدام (العربية)
+            </h2>
+            <p className="text-[24px] font-light mb-4">
+              تاريخ التحديث الأخير: [تاريخ]
+            </p>
+
+            <p>
+              مرحباً بكم في رينتو. تحكم هذه الشروط والأحكام ("الشروط") استخدامكم
+              لمنصة رينتو، وتطبيقاتها، والخدمات ذات الصلة (ويُشار إليها مجتمعة
+              بـ "الخدمات"). باستخدامكم للخدمات أو التسجيل في المنصة، فإنكم
+              توافقون على هذه الشروط. وفي حال عدم موافقتكم، يرجى التوقف عن
+              استخدام المنصة.
+            </p>
+
+            <div>
+              <h3 className="font-semibold mb-1">1. الأهلية</h3>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>
+                  يشترط أن يكون المستخدم قد أتم 18 عاماً وأن يكون قادراً
+                  قانونياً على إبرام العقود وفقاً لقوانين الدولة التي يقيم فيها.
+                </li>
+                <li>
+                  يلتزم المستخدم بتقديم معلومات صحيحة ودقيقة عند إنشاء الحساب
+                  والمحافظة عليها محدثة.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">2. طبيعة الخدمات</h3>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>
+                  رينتو توفر منصة برمجية لمساعدة الملاك ومديري العقارات
+                  والمستأجرين على إدارة العقارات، عقود الإيجار، المدفوعات،
+                  والتواصل.
+                </li>
+                <li>
+                  رينتو ليست مكتب عقاري، ولا مؤسسة مالية، ولا مكتب محاماة، ولا
+                  تقدم استشارات قانونية أو مالية.
+                </li>
+                <li>
+                  يتحمل المستخدم المسؤولية الكاملة عن الامتثال لقوانين الإيجار
+                  والبيانات في دولة الكويت أو أي دولة أخرى ضمن مجلس التعاون
+                  الخليجي.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">3. الحسابات والأمان</h3>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>
+                  يتحمل المستخدم المسؤولية الكاملة عن سرية بيانات الدخول إلى
+                  حسابه.
+                </li>
+                <li>يجب إخطار رينتو فوراً بأي استخدام غير مصرح به.</li>
+                <li>
+                  يحق لرينتو تعليق أو إنهاء الحسابات التي تخالف هذه الشروط.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">4. الرسوم والمدفوعات</h3>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>
+                  يتم عرض رسوم الاشتراك أو الخدمات (إن وجدت) بشكل واضح قبل
+                  الدفع.
+                </li>
+                <li>
+                  تتم معالجة المدفوعات عبر مزودي خدمة خارجيين (مثل بوابات
+                  الدفع).
+                </li>
+                <li>
+                  جميع الرسوم غير قابلة للاسترداد إلا إذا نص القانون خلاف ذلك.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">
+                5. المحتوى الذي يقدمه المستخدم
+              </h3>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>
+                  يحتفظ المستخدم بملكية البيانات التي يقوم برفعها (مثل عقود
+                  الإيجار أو بيانات المستأجرين).
+                </li>
+                <li>
+                  يمنح المستخدم رينتو ترخيصاً بمعالجة هذه البيانات فقط لغرض
+                  تقديم الخدمات.
+                </li>
+                <li>
+                  يحظر رفع أي محتوى غير قانوني أو مسيء أو ينتهك حقوق الغير.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">
+                6. استضافة البيانات والامتثال
+              </h3>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>
+                  قد يتم تخزين البيانات أو معالجتها في خوادم خارج الكويت أو دول
+                  مجلس التعاون.
+                </li>
+                <li>
+                  باستخدام رينتو، يوافق المستخدم على هذا النقل شريطة اتخاذ
+                  التدابير الأمنية اللازمة.
+                </li>
+                <li>
+                  يتحمل المستخدم مسؤولية التأكد من توافق استخدامه للخدمات مع
+                  القوانين المحلية.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">7. الاستخدامات المحظورة</h3>
+              <p>يحظر على المستخدم:</p>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>استخدام رينتو لأي نشاط غير قانوني أو احتيالي.</li>
+                <li>محاولة اختراق أو تعطيل المنصة أو خوادمها.</li>
+                <li>إعادة بيع أو استغلال الخدمات دون إذن كتابي مسبق.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">8. الملكية الفكرية</h3>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>
+                  جميع الحقوق والبرمجيات والتصاميم والعلامات التجارية مملوكة
+                  لرينتو.
+                </li>
+                <li>لا يجوز نسخها أو استخدامها دون موافقة خطية مسبقة.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">9. حدود المسؤولية</h3>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>يتم تقديم الخدمات "كما هي" دون أي ضمانات.</li>
+                <li>
+                  إلى الحد المسموح به بموجب القانون الكويتي والخليجي، لا تتحمل
+                  رينتو أي مسؤولية عن الأضرار غير المباشرة أو التبعية.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">10. الإنهاء</h3>
+              <ul className="list-disc list-inside space-y-1 pr-2">
+                <li>يحق للمستخدم إغلاق حسابه في أي وقت.</li>
+                <li>يحق لرينتو تعليق أو إنهاء الحساب عند مخالفة الشروط.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">
+                11. القانون الواجب التطبيق والاختصاص القضائي
+              </h3>
+              <p>
+                تخضع هذه الشروط لقوانين دولة الكويت، وتكون محاكم الكويت صاحبة
+                الاختصاص الحصري للفصل في أي نزاع ينشأ عنها.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-1">12. اللغة</h3>
+              <p>
+                قد تتاح هذه الشروط باللغتين العربية والإنجليزية، وفي حال وجود
+                تعارض يُعتد بالنص العربي.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

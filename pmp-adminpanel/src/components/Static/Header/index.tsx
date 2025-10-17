@@ -87,9 +87,9 @@ export default function Header({ customClass }: Props) {
             <div className="hidden md:flex items-center justify-end">
               <Link
                 to="/admin-panel/auth/login"
-                className="text-[20px] font-light no-underline text-primary hover:underline"
+                className="text-[20px] font-light no-underline text-primary border-2 border-primary px-6 py-2 rounded-lg"
               >
-                Login
+                Sign In
               </Link>
             </div>
           ) : (

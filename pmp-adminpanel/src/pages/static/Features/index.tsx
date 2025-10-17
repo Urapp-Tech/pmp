@@ -17,8 +17,7 @@ const Features = () => {
               Features{' '}
             </h1>
             <p className="max-w-[593px] font-light text-[24px] text-primary  max-[1024px]:text-[20px]">
-              Lorem ipsum dolor sit amet consectetur. Placerat maecenas est et
-              nulla a eu netus libero
+              Smart tools to simplify property management and boost efficiency.
             </p>
           </div>
         </div>

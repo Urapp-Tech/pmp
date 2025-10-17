@@ -42,8 +42,7 @@ const defaultPlans: Plan[] = [
     id: 'building',
     code: 'building',
     name: 'Building',
-    description:
-      '',
+    description: '',
     currency: 'KD',
     monthlyPrice: 40,
     annualPrice: 40,
@@ -57,8 +56,7 @@ const defaultPlans: Plan[] = [
     id: 'villa_house',
     code: 'villa_house',
     name: 'Villa/House',
-    description:
-      '',
+    description: '',
     currency: 'KD',
     monthlyPrice: 20,
     annualPrice: 20,
@@ -72,8 +70,7 @@ const defaultPlans: Plan[] = [
     id: 'apartment',
     code: 'apartment',
     name: 'Apartment',
-    description:
-      '',
+    description: '',
     currency: 'KD',
     monthlyPrice: 10,
     annualPrice: 10,
@@ -605,10 +602,16 @@ const Home: React.FC = () => {
         </h3>
 
         <div className="flex gap-4 mt-6 justify-end md:justify-start max-[576px]:flex-col">
-          <button className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-[576px]:text-[14px]">
+          <button
+            onClick={() => navigate('/admin-panel/auth/register')}
+            className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-[576px]:text-[14px]"
+          >
             Start Free Trial
           </button>
-          <button className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[576px]:text-[14px]">
+          <button
+            onClick={() => navigate('/contact-us')}
+            className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[576px]:text-[14px]"
+          >
             Book a Demo
           </button>
         </div>
@@ -1283,7 +1286,10 @@ const Home: React.FC = () => {
             designed to save you time, reduce paperwork, and improve
             communication.
           </p>
-          <button className="cursor-pointer mt-3 text-[#5EBFA1] hover:text-white flex gap-3 items-center">
+          <button
+            onClick={() => navigate('/about-us')}
+            className="cursor-pointer mt-3 text-[#5EBFA1] hover:text-white flex gap-3 items-center"
+          >
             Read more
             <span>
               <img
@@ -1505,7 +1511,10 @@ const Home: React.FC = () => {
                     Simple pricing. No hidden fees. Pay only for the properties
                     you manage.
                   </p>
-                  <button className="inline-flex items-center rounded-xl p-[2px] bg-gradient-to-r from-green-400 to-blue-500">
+                  <button
+                    onClick={() => navigate('/admin-panel/auth/register')}
+                    className="inline-flex items-center rounded-xl p-[2px] bg-gradient-to-r from-green-400 to-blue-500"
+                  >
                     <span className="rounded-[10px] bg-[#141c4e] px-5 py-2">
                       <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent font-semibold">
                         Get Started

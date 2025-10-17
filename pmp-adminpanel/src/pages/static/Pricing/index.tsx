@@ -162,7 +162,7 @@ const Pricing = () => {
         />
         <div className="relative h-full flex-1 flex w-full">
           <div className="w-full flex-1 flex absolute bottom-40 gap-10 items-center justify-between px-4 max-[1260px]:flex-col max-[1260px]:items-start">
-            <div className="max-w-[1024px] flex gap-x-10 items-center justify-between max-[1440px]:flex-col max-[1440px]:gap-13 max-[1440px]:items-start max-[1440px]:w-full">
+            <div className="flex-1 flex  absolute bottom-40  max-w-[1200px] gap-10 items-center justify-between px-4 max-[1260px]:flex-col max-[1260px]:items-start">
               <h1 className="capitalize text-[100px] font-normal leading-1 text-primary max-[1260px]:text-[70px] max-[1024px]:text-[50px]">
                 Pricing
               </h1>
@@ -202,7 +202,7 @@ const Pricing = () => {
         </div>
       </div>
 
-      <div className="w-full pb-10 bg-[#DFF4EC]">
+      <div className="w-full pb-5 bg-[#DFF4EC]">
         <div className="flex justify-center gap-3 items-center p-4 max-[992px]:flex-col translate-y-[-100px]">
           {loadingPlans ? (
             <div className="text-primary text-lg py-10">Loading plans…</div>
@@ -264,10 +264,7 @@ const Pricing = () => {
           <h3 className="mt-5 text-primary text-[100px] font-normal leading-norma max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
             All plans include
           </h3>
-          {/* keep your “include” grid as-is */}
-          {/* ... (unchanged content below) ... */}
-          {/* ICON 1 */}
-          <div className="mt-18 mb-5 flex justify-between gap-x-5 gap-y-10 flex-wrap">
+          <div className="mt-18 mb-5 flex justify-between gap-x-5 gap-y-10  flex-wrap">
             <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
               <div className="w-[50px] mb-4">
                 <img
@@ -285,7 +282,109 @@ const Pricing = () => {
                 dashboard designed to save you time.
               </p>
             </div>
-            {/* ... keep the rest of your “All plans include” items ... */}
+            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+              <div className="w-[50px] mb-4">
+                <img
+                  src={assets.images.icon2}
+                  className="w-full h-full"
+                  alt="icon"
+                />
+              </div>
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                Secure Listings
+              </h4>
+              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                Your property details are fully protected. You decide who has
+                access whether it’s just you or selected managers with
+                customized permissions.
+              </p>
+            </div>
+            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+              <div className="w-[50px] mb-4">
+                <img
+                  src={assets.images.icon3}
+                  className="w-full h-full"
+                  alt="icon"
+                />
+              </div>
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                Multi-device Access
+              </h4>
+              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                Work the way you want. Whether you’re at your desk or on the go,
+                you can access your account on mobile, tablet, or desktop.
+              </p>
+            </div>
+            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+              <div className="w-[50px] mb-4">
+                <img
+                  src={assets.images.icon4}
+                  className="w-full h-full"
+                  alt="icon"
+                />
+              </div>
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                Photo & Video Uploads
+              </h4>
+              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                Upload photos of your buildings and units so you always have a
+                clear record of your properties right inside the platform.
+              </p>
+            </div>
+            {/* <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+                            <div className="w-[50px] mb-4">
+                                <img src={assets.images.icon5} className="w-full h-full" alt="icon" />
+                            </div>
+                            <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                                Location Maps
+                            </h4>
+                            <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                                Lorem ipsum dolor sit amet consectetur. Placerat maecenas est et nulla a eu netus libero neque. Tortor integer eu sed facilisis. Risus diam at eget enim eros condimentum. Nisi vestibulum diam in mattis morbi elit sed cursus ornare.
+                            </p>
+                        </div> */}
+            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+              <div className="w-[50px] mb-4">
+                <img
+                  src={assets.images.icon6}
+                  className="w-full h-full"
+                  alt="icon"
+                />
+              </div>
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                Direct Inquiries
+              </h4>
+              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                Stay connected with your tenants. They can reach you directly
+                through the platform, making communication simple and secure.
+              </p>
+            </div>
+            {/* <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+                            <div className="w-[50px] mb-4">
+                                <img src={assets.images.icon7} className="w-full h-full" alt="icon" />
+                            </div>
+                            <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                                Social Sharing
+                            </h4>
+                            <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                                Lorem ipsum dolor sit amet consectetur. Placerat maecenas est et nulla a eu netus libero neque. Tortor integer eu sed facilisis. Risus diam at eget enim eros condimentum. Nisi vestibulum diam in mattis morbi elit sed cursus ornare.
+                            </p>
+                        </div> */}
+            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+              <div className="w-[50px] mb-4">
+                <img
+                  src={assets.images.icon8}
+                  className="w-full h-full"
+                  alt="icon"
+                />
+              </div>
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                Property Insights
+              </h4>
+              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                Track rent income, expenses, and overall property performance to
+                stay in control of your finances.
+              </p>
+            </div>
           </div>
         </div>
       </div>

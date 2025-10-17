@@ -24,8 +24,8 @@ const About = () => {
               About
             </h1>
             <p className="max-w-[593px] font-light text-[24px] text-primary  max-[1024px]:text-[20px]">
-              Simple About. No hidden fees. Pay only for the properties you
-              manage.
+              Delivering intelligent solutions for seamless and transparent
+              property management.
             </p>
             {/* <div className="flex items-center space-x-2">
                         <div
@@ -148,9 +148,7 @@ const About = () => {
                   </div>
 
                   <p className="text-[20px] font-light text-center mb-4 text-[#DFF4EC]">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
+                    Organize leases, track occupancy, and manage renewals.
                   </p>
                 </div>
               </div>
@@ -200,8 +198,7 @@ const About = () => {
                   </div>
 
                   <p className="text-[20px] font-light text-center mb-4 text-[#DFF4EC]">
-                    Say goodbye to delays—collect rent securely and on schedule,
-                    every time.
+                    Collect rent securely and on time.
                   </p>
                 </div>
               </div>
@@ -251,9 +248,7 @@ const About = () => {
                   </div>
 
                   <p className="text-[20px] font-light text-center mb-4 text-[#DFF4EC]">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
+                    Keep tenants informed with messaging and notifications.
                   </p>
                 </div>
               </div>
@@ -303,9 +298,7 @@ const About = () => {
                   </div>
 
                   <p className="text-[20px] font-light text-center mb-4 text-[#DFF4EC]">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
+                    Manage your properties anytime, anywhere.
                   </p>
                 </div>
               </div>

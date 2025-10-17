@@ -113,8 +113,7 @@ const Card: React.FC = () => {
             </div>
 
             <p className="text-[24px] font-light  text-center mt-2 text-[#DFF4EC]">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              Organize leases, track occupancy, and manage renewals.
             </p>
           </div>
         </div>

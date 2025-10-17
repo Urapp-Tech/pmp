@@ -138,8 +138,7 @@ const Contact = () => {
               Contact Us
             </h1>
             <p className="max-w-[593px] font-light text-[24px] text-primary max-[1024px]:text-[20px] max-[768px]:text-[18px]">
-              Lorem ipsum dolor sit amet consectetur. Placerat maecenas est et
-              nulla a eu netus libero
+              Let’s connect to make your property management smarter.
             </p>
           </div>
         </div>
