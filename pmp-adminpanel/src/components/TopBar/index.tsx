@@ -113,6 +113,31 @@ export const TopBar = ({ title }: Props) => {
                 asChild
                 className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460]"
               >
+                <Link to="/" className="flex items-center gap-3 text-[#242460]">
+                  <img src={assets.images.homeRento} className="h-5 w-5" />
+                  {/* <User2 className="h-5 w-5" /> */}
+                  <span className="font-semibold">Home</span>
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                asChild
+                className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460]"
+              >
+                <Link
+                  to="/pricing"
+                  className="flex items-center gap-3 text-[#242460]"
+                >
+                  <img src={assets.images.tenantAssign} className="h-5 w-5" />
+                  {/* <User2 className="h-5 w-5" /> */}
+                  <span className="font-semibold">Subscriptions</span>
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                asChild
+                className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460]"
+              >
                 <Link
                   to="/admin-panel/profile"
                   className="flex items-center gap-3 text-[#242460]"

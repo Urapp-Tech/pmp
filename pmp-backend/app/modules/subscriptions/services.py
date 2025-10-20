@@ -87,6 +87,7 @@ def _ensure_subscription_invoice(
         due_amount=due_amount,  # <-- due
         currency=currency,
         status="unpaid",
+        submitted_type="auto",
         payment_date=None,
         invoice_date=now,
         due_date=rec.expiration_date or (now + timedelta(days=7)),

@@ -84,6 +84,7 @@ import locationIcon from './typcn_location.svg';
 import instaIcon from './typcn_social-instagram.svg';
 import darklogo from './rento-dark.svg';
 import logo from './rento-logo.svg';
+import homeRento from './homerento.svg';
 
 import back3 from './seamless.png';
 
@@ -258,6 +259,7 @@ const assets = {
     aboutFixtwo,
     phoneBanner,
     priceIcon,
+    homeRento,
   },
 } as const;
 

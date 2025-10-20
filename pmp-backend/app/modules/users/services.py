@@ -58,6 +58,13 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
         .first()
     )
 
+    landlord_role_id = db.query(Role.id).filter(Role.name == "Landlord").scalar()
+    if landlord_role_id and user.role_id == landlord_role_id and not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your landlord account is not verified yet. Please contact support.",
+        )
+
     if not user or not verify_password(login_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -339,6 +346,7 @@ def update_user(
         "items": UserOut.model_validate(user_data),
     }
 
+
 def update_profile(
     db: Session,
     id: UUID,
@@ -467,7 +475,7 @@ def get_assigned_units_managers(
         # ✅ Assigned units for manager
         if role_name == "Manager":
             assigned_units = (
-                db.query(Property.id, Property.name,Property.unit_counts)
+                db.query(Property.id, Property.name, Property.unit_counts)
                 .join(Manager, Manager.assign_property == Property.id)
                 .filter(
                     Manager.manager_user_id == u.id,

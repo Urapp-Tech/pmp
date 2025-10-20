@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from typing import Optional
 from uuid import UUID
 from app.models.landlords import Landlord
@@ -21,7 +21,14 @@ from app.utils.otpservice import send_otp_email, verify_otp_email
 
 def create_landlord(db: Session, landlord_data: LandlordCreate):
 
+    email_norm = (landlord_data.email or "").strip().lower()
+
     try:
+
+        existing = db.query(User).filter(func.lower(User.email) == email_norm).first()
+        if existing:
+            raise ValueError("This Email already exists.")
+
         role = db.query(Role).filter(Role.name == "Landlord").first()
         if not role:
             raise ValueError("Role 'Landlord' not found in roles table.")
@@ -93,14 +100,15 @@ def email_verification(db: Session, email: str):
     return {"success": True, "message": "OTP sent successfully."}
 
 
-def otp_verification(db: Session, email: str , otp: str):
+def otp_verification(db: Session, email: str, otp: str):
     verify_otp = verify_otp_email(db, email, otp)
-    if(verify_otp["success"]):
-            user = db.query(User).filter(User.email == email).first()
-            user.is_verified = True
-            db.commit()
-            db.refresh(user)
+    if verify_otp["success"]:
+        user = db.query(User).filter(User.email == email).first()
+        user.is_verified = True
+        db.commit()
+        db.refresh(user)
     return verify_otp
+
 
 def update_password(db: Session, email: str, password: str):
     # Check user exist
@@ -110,7 +118,7 @@ def update_password(db: Session, email: str, password: str):
     user.password = hash_password(password)
     db.commit()
     db.refresh(user)
-    
+
     return {"success": True, "message": "Password updated successfully."}
 
 
