@@ -2,14 +2,15 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from app.core.config import get_settings
 
+
 def create_database_if_not_exists():
     settings = get_settings()
 
-    dbname = settings.database
-    user = settings.db_user
-    password = settings.db_password
-    host = settings.db_host
-    port = settings.db_port
+    dbname = settings.DB_NAME
+    user = settings.DB_USER
+    password = settings.DB_PASSWORD
+    host = settings.DB_HOST
+    port = settings.DB_PORT
 
     try:
         # Connect to the default "postgres" DB

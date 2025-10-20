@@ -9,27 +9,27 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    db_host: str
-    db_port: str
-    db_user: str
-    db_password: str
-    database: str
-    server_base_path: str = "/api/v1"
-    jwt_secret_key: str
-    jwt_refresh_secret_key: str
-    jwt_access_token_expire_minutes: int = 60
-    jwt_refresh_token_expire_minutes: int = 60 * 24 * 7  # 7 days, for example
+    DB_HOST: str
+    DB_PORT: str
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_NAME: str
+    SERVER_BASE_PATH: str = "/api/v1"
+    JWT_SECRET_KEY: str
+    JWT_REFRESH_SECRET_KEY: str
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    JWT_REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days, for example
     MYFATOORAH_API_URL: str
     MYFATOORAH_API_KEY: str
     FRONTEND_BASE_URL: str
     BACKEND_BASE_URL: str
-    
+
     # S3 credentials
-    s3_access_id: str
-    s3_access_key: str
-    s3_region: str
-    s3_bucket: str
-    s3_bucket_storage: bool
+    S3_ACCESS_ID: str
+    S3_ACCESS_KEY: str
+    S3_REGION: str
+    S3_BUCKET: str
+    S3_BUCKET_STORAGE: bool
 
     # SendGrid credentials
     SENDGRID_API_KEY: str
@@ -48,8 +48,8 @@ class Settings(BaseSettings):
     @property
     def sqlalchemy_url(self):
         return (
-            f"postgresql://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.database}"
+            f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
 
     class Config:
