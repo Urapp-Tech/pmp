@@ -8,6 +8,7 @@ from typing import Optional, Dict, Any, List
 from uuid import UUID, uuid4
 from math import ceil
 import requests
+import json
 
 from app.models.subscriptions import Subscription
 from app.models.subscribed_landlord import SubscribedLandlord
@@ -27,6 +28,7 @@ def _mf_headers():
     return {
         "Authorization": f"Bearer {MYFATOORAH_API_KEY}",
         "Content-Type": "application/json",
+        "Accept": "application/json",
     }
 
 
@@ -379,16 +381,87 @@ def list_subscribed_landlords(
     }
 
 
+# def _pick_payment_method(amount: float, currency_iso: str) -> int:
+#     """Call MyFatoorah InitiatePayment and choose a suitable method (prefer card)."""
+#     print("Picking payment method for", amount, "currency", currency_iso)
+#     ip_resp = requests.post(
+#         _mf("InitiatePayment"),
+#         json={"InvoiceAmount": float(amount), "CurrencyIso": currency_iso},
+#         headers=_mf_headers(),
+#         timeout=30,
+#     )
+#     ip_json = ip_resp.json()
+#     ip_resp.raise_for_status()
+#     if not ip_json.get("IsSuccess"):
+#         raise Exception(ip_json.get("Message") or "InitiatePayment failed")
+
+#     methods = (ip_json.get("Data") or {}).get("PaymentMethods") or []
+#     if not methods:
+#         raise Exception("No payment methods enabled for this account/currency.")
+
+#     def _norm(x: str) -> str:
+#         return (x or "").strip().lower()
+
+#     chosen = None
+#     for m in methods:
+#         name_en = _norm(m.get("PaymentMethodEn", ""))
+#         code = _norm(m.get("PaymentMethodCode", ""))
+#         if (
+#             "visa" in name_en
+#             or "master" in name_en
+#             or "card" in name_en
+#             or code in {"cc", "v-m"}
+#         ):
+#             chosen = m
+#             break
+#     chosen = chosen or methods[0]
+#     return chosen["PaymentMethodId"]
+
+
+def _redact(tok: str) -> str:
+    return (tok or "")[:6] + "..."
+
+
 def _pick_payment_method(amount: float, currency_iso: str) -> int:
     """Call MyFatoorah InitiatePayment and choose a suitable method (prefer card)."""
-    ip_resp = requests.post(
-        _mf("InitiatePayment"),
-        json={"InvoiceAmount": float(amount), "CurrencyIso": currency_iso},
-        headers=_mf_headers(),
-        timeout=30,
+
+    url = _mf("InitiatePayment")
+    payload = {"InvoiceAmount": float(amount), "CurrencyIso": currency_iso}
+    headers = _mf_headers()
+
+    # --- Print the EXACT request being sent ---
+    sess = requests.Session()
+    req = requests.Request("POST", url, headers=headers, json=payload)
+    prepped = sess.prepare_request(req)
+
+    # print("\n[MF] BASE_URL:", MYFATOORAH_API_URL)
+    # print("[MF] REQUEST URL:", prepped.url)
+    safe_headers = dict(prepped.headers)
+    if "Authorization" in safe_headers:
+        safe_headers["Authorization"] = "Bearer " + _redact(MYFATOORAH_API_KEY)
+    # print("[MF] REQUEST HEADERS:", json.dumps(safe_headers, indent=2))
+    body_str = (
+        prepped.body.decode()
+        if isinstance(prepped.body, (bytes, bytearray))
+        else prepped.body
     )
-    ip_json = ip_resp.json()
-    ip_resp.raise_for_status()
+    # print("[MF] REQUEST BODY:", body_str)
+
+    # --- Send & log response BEFORE parsing JSON ---
+    resp = sess.send(prepped, timeout=30)
+    # print("[MF] RESPONSE STATUS:", resp.status_code)
+    # Log a short preview if very long
+    text_preview = (
+        resp.text if len(resp.text) < 2000 else resp.text[:2000] + "...(truncated)"
+    )
+    # print("[MF] RESPONSE TEXT:", text_preview)
+
+    # Raise for non-2xx (avoids json() on HTML 500 pages)
+    resp.raise_for_status()
+
+    ip_json = resp.json()
+    # print("[MF] RESPONSE JSON:", json.dumps(ip_json, indent=2))
+
     if not ip_json.get("IsSuccess"):
         raise Exception(ip_json.get("Message") or "InitiatePayment failed")
 
@@ -404,13 +477,14 @@ def _pick_payment_method(amount: float, currency_iso: str) -> int:
         name_en = _norm(m.get("PaymentMethodEn", ""))
         code = _norm(m.get("PaymentMethodCode", ""))
         if (
-            "visa" in name_en
-            or "master" in name_en
-            or "card" in name_en
-            or code in {"cc", "v-m"}
+            ("visa" in name_en)
+            or ("master" in name_en)
+            or ("card" in name_en)
+            or (code in {"cc", "v-m"})
         ):
             chosen = m
             break
+
     chosen = chosen or methods[0]
     return chosen["PaymentMethodId"]
 
