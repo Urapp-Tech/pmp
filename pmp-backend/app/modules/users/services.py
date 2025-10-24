@@ -1152,56 +1152,47 @@ def get_landlord_profile_service(
         x.id for x in db.query(User.id).filter(User.landlord_id == landlord_id).all()
     ]
 
-    base_q = db.query(PaymentHistory).filter(
-        PaymentHistory.payment_type == "SUBSCRIPTION"
-    )
-    if all_sids and landlord_user_ids:
-        base_q = base_q.filter(
-            or_(
-                PaymentHistory.subscription_id.in_(list(all_sids)),
-                PaymentHistory.user_id.in_(landlord_user_ids),
-            )
+    # If no users under this landlord, no history
+    if not landlord_user_ids:
+        rows = []
+        total = 0
+    else:
+        base_q = db.query(PaymentHistory).filter(
+            PaymentHistory.payment_type == "SUBSCRIPTION",
+            PaymentHistory.user_id.in_(landlord_user_ids),
         )
-    elif all_sids:
-        base_q = base_q.filter(PaymentHistory.subscription_id.in_(list(all_sids)))
-    elif landlord_user_ids:
-        base_q = base_q.filter(PaymentHistory.user_id.in_(landlord_user_ids))
-    # else: keep it as-is (unlikely, but safe)
 
-    # Accurate count + pagination
-    count_sq = base_q.order_by(None).with_entities(PaymentHistory.id).subquery()
-    total = db.query(func.count()).select_from(count_sq).scalar() or 0
+        # Accurate count + pagination
+        count_sq = base_q.order_by(None).with_entities(PaymentHistory.id).subquery()
+        total = db.query(func.count()).select_from(count_sq).scalar() or 0
 
-    history_page = max(1, int(history_page))
-    history_size = max(1, min(int(history_size), 200))
-    offset = (history_page - 1) * history_size
+        history_page = max(1, int(history_page))
+        history_size = max(1, min(int(history_size), 200))
+        offset = (history_page - 1) * history_size
 
-    rows = (
-        base_q.order_by(PaymentHistory.created_at.desc())
-        .offset(offset)
-        .limit(history_size)
-        .all()
-    )
+        rows = (
+            base_q.order_by(PaymentHistory.created_at.desc())
+            .offset(offset)
+            .limit(history_size)
+            .all()
+        )
 
     def _resolve_row_meta(r: PaymentHistory) -> Tuple[Optional[str], Optional[int]]:
         """
         Returns (subsName, holdingProperties) for a payment row.
-        - If r.subscription_id matches a subscribed_landlords.id -> use that record
-        - Else if it matches a plan id -> use the newest approved record for that plan id
-        - Else -> (None, None)
+        Tries landlord's subscribed_landlords.id first, then landlord's latest record
+        for the same plan id. We only use the landlord's own recs_approved maps, so
+        this won't leak other users' data anymore.
         """
         sid = getattr(r, "subscription_id", None)
         if not sid:
             return (None, None)
-
         rec = subs_by_id.get(sid)
         if rec:
             return (rec.plan_name, rec.holding_properties)
-
         rec2 = latest_rec_by_plan_id.get(sid)
         if rec2:
             return (rec2.plan_name, rec2.holding_properties)
-
         return (None, None)
 
     history_items = []
@@ -1216,8 +1207,8 @@ def get_landlord_profile_service(
                 "paymentUrl": r.payment_url,
                 "invoiceId": r.invoice_id,
                 "subscriptionId": str(r.subscription_id) if r.subscription_id else None,
-                "subsName": subs_name,  # <-- added
-                "holdingProperties": holding_props,  # <-- added
+                "subsName": subs_name,
+                "holdingProperties": holding_props,
                 "createdAt": r.created_at,
             }
         )
