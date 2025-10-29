@@ -336,11 +336,21 @@ def list_subscribed_landlords(
         .scalar_subquery()
     )
 
+    payment_status_subq = (
+        db.query(PaymentHistory.status)
+        .filter(PaymentHistory.subscription_id == SubscribedLandlord.subscription_id)
+        .order_by(PaymentHistory.created_at.desc(), PaymentHistory.id.desc())
+        .limit(1)
+        .correlate(SubscribedLandlord)
+        .scalar_subquery()
+    )
+
     # Fetch page rows with the landlord_name subquery
     rows = (
         base_q.with_entities(
             SubscribedLandlord,
             landlord_name_subq.label("landlord_name"),
+            payment_status_subq.label("payment_status"),
         )
         .order_by(SubscribedLandlord.created_at.desc())
         .offset((page - 1) * page_size)
@@ -349,7 +359,7 @@ def list_subscribed_landlords(
     )
 
     items = []
-    for rec, landlord_name in rows:
+    for rec, landlord_name, payment_status in rows:
         name = (landlord_name or "").strip() or None
         items.append(
             {
@@ -363,6 +373,7 @@ def list_subscribed_landlords(
                 "discounted_amount": str(rec.discounted_amount),
                 "due_amount": str(rec.due_amount),
                 "status": rec.status,
+                "payment_status": payment_status,
                 "approved_by": rec.approved_by,
                 "expiration_date": rec.expiration_date,
                 "payment_link": rec.payment_link,

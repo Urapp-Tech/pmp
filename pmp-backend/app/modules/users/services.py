@@ -1086,6 +1086,17 @@ def get_landlord_profile_service(
             if sid not in latest_status_by_sid:
                 latest_status_by_sid[sid] = (str(st or "")).upper()
 
+    def _normalize_pay_status(s: Optional[str]) -> str:
+        s = (s or "").upper()
+        # Map any legacy/success variants to PAID; keep FAILED/PENDING as-is
+        if s in ("PAID", "SUCCESS", "SUCCESSFUL"):
+            return "PAID"
+        if s in ("FAILED", "FAIL", "ERROR"):
+            return "FAILED"
+        if s in ("PENDING", "INITIATED", "CREATED", "PROCESSING"):
+            return "PENDING"
+        return s  # unknown stays as-is (might be "")
+
     # Compose output array
     subscriptions_out: List[Dict[str, Any]] = []
     for rec in recs_approved:
@@ -1099,8 +1110,9 @@ def get_landlord_profile_service(
             if rec.subscription_id
             else None
         )
-        latest_status = st1 or st2 or ""
-        is_paid = latest_status in ("PAID", "SUCCESS")
+        latest_status_raw = st1 or st2 or ""
+        latest_status = _normalize_pay_status(latest_status_raw)
+        is_paid = latest_status in ("PAID",)
 
         # days to expiry
         days_to_expiry: Optional[int] = None
@@ -1128,6 +1140,7 @@ def get_landlord_profile_service(
                 "daysToExpiry": days_to_expiry,
                 "paymentLink": rec.payment_link,
                 "status": rec.status,
+                "payment_status": latest_status,
                 "isSubscribed": bool(
                     not_expired and is_paid
                 ),  # must be not expired and last payment paid

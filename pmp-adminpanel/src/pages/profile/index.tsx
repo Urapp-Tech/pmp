@@ -170,7 +170,16 @@ const ProfilePage = () => {
             // TODO: call your API here, e.g.:
             const res = await serviceUser.updateProfile(payload);
             const userData = res.data.items;
-            dispatch(login({...user, fname: userData.fname, lname: userData.lname, profilePic: userData.profilePic, phone: userData.phone, gender: userData.gender}));
+            dispatch(
+              login({
+                ...user,
+                fname: userData.fname,
+                lname: userData.lname,
+                profilePic: userData.profilePic,
+                phone: userData.phone,
+                gender: userData.gender,
+              })
+            );
 
             toast({
               description: 'Profile updated successfully.',
@@ -286,7 +295,9 @@ const ProfilePage = () => {
                         new Date(a.createdAt).valueOf()
                     )
                     .map((s: any) => {
-                      const sStatus = String(s.status || '').toLowerCase();
+                      const sStatus = String(
+                        s.paymentStatus || ''
+                      ).toLowerCase();
                       const expires = s.expirationDate
                         ? dayjs(s.expirationDate).format('DD MMM YYYY')
                         : '-';
@@ -294,19 +305,18 @@ const ProfilePage = () => {
                       const due = Number.parseFloat(
                         String(dueRaw || '0')
                       ).toFixed(3);
+
                       const showPay =
-                        sStatus === 'approved' &&
-                        !!s.paymentLink &&
-                        !!s.showPayNow; // backend decides timing
-                      const canCancel =
-                        sStatus !== 'rejected' && sStatus !== 'cancelled';
+                        sStatus === 'paid' && !!s.paymentLink && !!s.showPayNow; // backend decides timing
+
+                      const canCancel = s.paymentStatus !== 'failed';
 
                       const statusTone =
-                        sStatus === 'approved'
+                        sStatus === 'paid'
                           ? 'bg-emerald-50 text-emerald-700'
                           : sStatus === 'pending'
                             ? 'bg-amber-50 text-amber-700'
-                            : sStatus === 'cancelled'
+                            : sStatus === 'failed'
                               ? 'bg-gray-100 text-gray-600'
                               : 'bg-rose-50 text-rose-700';
 
@@ -346,7 +356,7 @@ const ProfilePage = () => {
                                 <span
                                   className={`px-3 py-1 rounded-full text-xs font-medium ${statusTone}`}
                                 >
-                                  {s.status}
+                                  {s.paymentStatus}
                                 </span>
                                 {!!s.daysToExpiry &&
                                   sStatus !== 'cancelled' && (
@@ -544,7 +554,16 @@ const ProfilePage = () => {
 
             const res = await serviceUser.updateProfile(payload);
             const userData = res.data.items;
-            dispatch(login({...user, fname: userData.fname, lname: userData.lname, profilePic: userData.profilePic, phone: userData.phone, gender: userData.gender}));
+            dispatch(
+              login({
+                ...user,
+                fname: userData.fname,
+                lname: userData.lname,
+                profilePic: userData.profilePic,
+                phone: userData.phone,
+                gender: userData.gender,
+              })
+            );
 
             toast({
               description: 'Profile updated successfully.',

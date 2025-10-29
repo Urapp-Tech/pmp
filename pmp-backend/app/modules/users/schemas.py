@@ -120,7 +120,7 @@ class UserUpdate(BaseModel):
 class AssignedProperties(BaseModel):
     id: UUID
     name: Optional[str]
-    unit_count: Optional[str|int]
+    unit_count: Optional[str | int]
 
     class Config:
         from_attributes = True
@@ -315,6 +315,7 @@ class SubscriptionSummaryOut(BaseModel):
     days_to_expiry: Optional[int] = Field(None, alias="daysToExpiry")
     payment_link: Optional[str] = Field(None, alias="paymentLink")
     status: Optional[str] = None
+    payment_status: Optional[str] = Field(None, alias="paymentStatus")
 
     total_amount: Optional[str] = Field(None, alias="totalAmount")
     discounted_amount: Optional[str] = Field(None, alias="discountedAmount")

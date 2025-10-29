@@ -59,6 +59,7 @@ export type Users = {
   total_amount?: string; // "40.000"
   discounted_amount?: string; // "0.000"
   due_amount?: string; // "40.000"
+  payment_status?: string;
 };
 
 const SubLandlords = () => {
@@ -179,10 +180,12 @@ const SubLandlords = () => {
       },
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'payment_status',
       header: 'STATUS',
       cell: ({ row }) => {
-        return <div className="capitalize">{row.getValue('status')}</div>;
+        return (
+          <div className="capitalize">{row.getValue('payment_status')}</div>
+        );
       },
     },
     {
@@ -209,49 +212,56 @@ const SubLandlords = () => {
       id: 'actions',
       header: 'ACTIONS',
       cell: ({ row }) => {
-        const { id, status } = row.original ?? {};
-        // handle both camelCase and snake_case just in case
-        const rawDue = row.original?.due_amount ?? 0;
+        const { id, status, payment_status } = row.original ?? {};
 
+        // keep your existing "rejected" guard
         const s = String(status || '').toLowerCase();
         const isRejected = s === 'rejected';
-        const isPending = s === 'pending';
+        if (isRejected) return null;
 
-        // normalize "0", "0.00", number, null/undefined
-        const due = Number.parseFloat(String(rawDue || '0'));
-        const canEdit =
-          !isPending && !isRejected && Number.isFinite(due) && due > 0;
+        // normalize payment_status
+        const pay = String(payment_status || '').toUpperCase(); // PAID | FAILED | PENDING | ''
 
-        if (isRejected) return null; // no actions if rejected
+        const Label = ({
+          text,
+          className = '',
+        }: {
+          text: string;
+          className?: string;
+        }) => (
+          <span
+            className={
+              'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ' +
+              className
+            }
+          >
+            {text}
+          </span>
+        );
 
         return (
           <div className="flex justify-start items-center">
             <div className="flex gap-4">
-              {Number.isFinite(due) && due <= 0 ? (
-                'PAID'
-              ) : isPending ? (
-                <>
-                  <CircleCheck
-                    className="text-primary-bg cursor-pointer"
-                    size={25}
-                    onClick={() => handleActionMenu('accept', id)}
-                  />
-                  <CircleX
-                    className="text-primary-bg cursor-pointer"
-                    size={25}
-                    onClick={() => handleActionMenu('reject', id)}
-                  />
-                </>
-              ) : (
-                canEdit && (
-                  <img
-                    onClick={() => handleActionMenu('edit', id)}
-                    src={assets.images.editPencil}
-                    className="text-primary-bg cursor-pointer h-8 w-8"
-                    alt="Edit"
-                  />
-                )
-              )}
+              {pay === 'PAID' ? (
+                <Label
+                  text="PAID"
+                  className="bg-primary-bg text-secondary-bg"
+                />
+              ) : pay === 'FAILED' ? (
+                <Label
+                  text="FAILED"
+                  className="bg-primary-bg text-secondary-bg"
+                />
+              ) : pay === 'PENDING' ? (
+                <img
+                  onClick={() => handleActionMenu('edit', id)}
+                  src={assets.images.editPencil}
+                  className="cursor-pointer h-8 w-8"
+                  alt="Edit"
+                  title="Edit"
+                />
+              ) : // Fallback (if payment_status missing/unknown) — show nothing or keep edit
+              null}
             </div>
           </div>
         );
