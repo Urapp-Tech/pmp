@@ -307,8 +307,10 @@ const Home: React.FC = () => {
       // ---------- Footer locked mode ----------
       if (showFooter) {
         if (delta < 0) {
-          // scroll up blocked
+          // allow exiting footer: reveal Contact section again
+          setShowFooter(false);
         }
+        // keep footer at bottom on further down-scrolls
         unlock();
         return;
       }
