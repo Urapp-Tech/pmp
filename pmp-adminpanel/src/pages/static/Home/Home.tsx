@@ -1,15 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 // import { Link } from "react-router-dom";
-import { Link, useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import contact from '@/services/adminapp/static';
-import { useForm } from 'react-hook-form';
 import assets from '@/assets/images';
 import Header from '@/components/Static/Header';
-import HomeResponsive from './Home-responsive';
-import { Loader } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import contact from '@/services/adminapp/static';
+import { Loader } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
+import HomeResponsive from './Home-responsive';
 
 interface ContactFields {
   email: string;
@@ -24,6 +24,7 @@ interface ContactFields {
 import SelectedPlanModal from '@/components/Static/Model';
 import plan from '@/services/adminapp/static';
 import { useSelector } from 'react-redux';
+import useSlowPageScroll from './SlowPagScroll';
 type BillingCycle = 'annual' | 'monthly';
 
 type Plan = {
@@ -85,19 +86,17 @@ const defaultPlans: Plan[] = [
 const Home: React.FC = () => {
   const authState: any = useSelector((state: any) => state.authState);
 
-  const [index, setIndex] = useState(0); // 0 = Hero, 1 = Stacked, 2 = Partner, 3 = WhyChoose
   const [currentBox, setCurrentBox] = useState(1); // active box (1–4)
   const [howStep, setHowStep] = useState(0); // 0 = heading center, 1 = heading top + text center
   const [replicaBox, setReplicaBox] = useState(1); // Replica stacked boxes ke liye
-  const [newPartnerBox, setNewPartnerBox] = useState(1);
-  const [newAboutBox, setNewAboutBox] = useState(1);
-  const [pricingStep, setPricingStep] = useState(0);
-  const [isToggled, setIsToggled] = useState(true);
-  const [showFooter, setShowFooter] = useState(false);
+  const [pricingStep, setPricingStep] = useState(1);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 991);
   const [hideBottomImg, setHideBottomImg] = useState(false);
   const [hideHLBottomImg, setHideHLBottomImg] = useState(false);
   const [hideHowBottomImg, setHideHowBottomImg] = useState(false);
+
+  // Local step for Highlights (decoupled from howStep)
+  const [hlStep, setHlStep] = useState(0);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -108,6 +107,46 @@ const Home: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>(defaultPlans);
   const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+
+  // --- Sticky hide/show header on scroll ---
+  const [showHeader, setShowHeader] = useState(true);
+  const lastYRef = useRef<number>(
+    typeof window !== 'undefined' ? window.scrollY : 0
+  );
+  const tickingRef = useRef(false);
+
+  useEffect(() => {
+    const handle = () => {
+      const y = window.scrollY;
+      const dy = y - lastYRef.current;
+
+      // ignore tiny moves to reduce jitter
+      if (Math.abs(dy) < 6) return;
+
+      // always show near top
+      if (y < 64) {
+        setShowHeader(true);
+        lastYRef.current = y;
+        return;
+      }
+
+      // down → hide, up → show
+      setShowHeader(dy <= 0);
+      lastYRef.current = y;
+    };
+
+    const onScroll = () => {
+      if (tickingRef.current) return;
+      tickingRef.current = true;
+      requestAnimationFrame(() => {
+        handle();
+        tickingRef.current = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const ToastHandler = (text: string, color = 'red') =>
     toast({
@@ -215,16 +254,272 @@ const Home: React.FC = () => {
 
   const TOTAL_HIGHLIGHT = useMemo(() => boxes?.length ?? 4, [boxes]);
   const TOTAL_REPLICA = useMemo(() => repboxes?.length ?? 4, [repboxes]);
-  const wheelLockRef = useRef(false); // stable lock across re-renders
-  const SCROLL_COOLDOWN = 700; // ms (tweak if needed)
-  // const isMobile=1;
-  // const [lastScrollY, setLastScrollY] = useState(0);
-  //   const handleToggle = () => {
-  //     setIsToggled(!isToggled);
-  //   };
+
+  // ---- SLOWER scroll tuning (slides + page) ----
+  // Pehle se existing constants ko bas slow kiya gaya hai:
+  const SCROLL_COOLDOWN = 1400; // ms (zyada wait = slower step)
+  const WHEEL_THRESHOLD = 160; // trigger ke liye zyada delta chahiye
+  const STEP_SCROLL_SCALE = 0.55; // delta soften (kam = slow)
+
+  // Local slide wheel locks + accumulators
+  const wheelLockHlRef = useRef(false);
+  const wheelLockHowRef = useRef(false);
+  const wheelAccumHlRef = useRef(0);
+  const wheelAccumHowRef = useRef(0);
+
   const handleToggle = () => {
     setBillingCycle((prev) => (prev === 'annual' ? 'monthly' : 'annual'));
   };
+  // new scroll 11-1025
+
+  // ===== Global Slow Scroll — pauses inside #highlights and #how =====
+  const slowScrollState = useRef({
+    targetY: typeof window !== 'undefined' ? window.scrollY : 0,
+    rafId: 0 as number | 0,
+    animating: false,
+    paused: false, // pause when we are in managed sections
+  });
+
+  useEffect(() => {
+    // small helpers
+    const isHTMLElement = (el: any): el is HTMLElement =>
+      el && typeof el === 'object' && 'closest' in el;
+
+    const isManagedZone = (t: EventTarget | null) => {
+      if (!isHTMLElement(t)) return false;
+      return !!(t.closest(' ') || t.closest(''));
+    };
+
+    const stopAnimationIfRunning = () => {
+      const st = slowScrollState.current;
+      if (st.animating && st.rafId) {
+        cancelAnimationFrame(st.rafId);
+        st.rafId = 0;
+        st.animating = false;
+      }
+    };
+
+    // easing step (slower: 0.12)
+    const step = () => {
+      const st = slowScrollState.current;
+      if (st.paused) {
+        stopAnimationIfRunning();
+        return; // don't animate while paused
+      }
+      const { targetY } = st;
+      const currentY = window.scrollY;
+      const nextY = currentY + (targetY - currentY) * 0.12; // smaller = slower
+      window.scrollTo(0, nextY);
+
+      if (Math.abs(targetY - nextY) > 0.5) {
+        st.rafId = requestAnimationFrame(step);
+        st.animating = true;
+      } else {
+        window.scrollTo(0, targetY);
+        st.animating = false;
+        if (st.rafId) cancelAnimationFrame(st.rafId);
+        st.rafId = 0;
+      }
+
+      const onEnterManaged = () => {
+        slowScrollState.current.paused = true;
+        // cancel any ongoing animation
+        if (
+          slowScrollState.current.animating &&
+          slowScrollState.current.rafId
+        ) {
+          cancelAnimationFrame(slowScrollState.current.rafId);
+          slowScrollState.current.rafId = 0;
+          slowScrollState.current.animating = false;
+        }
+      };
+      const onLeaveManaged = () => {
+        slowScrollState.current.paused = false;
+        slowScrollState.current.targetY = window.scrollY; // resync target
+      };
+
+      window.addEventListener(
+        'rento:enterManaged',
+        onEnterManaged as EventListener
+      );
+      window.addEventListener(
+        'rento:leaveManaged',
+        onLeaveManaged as EventListener
+      );
+
+      return () => {
+        window.removeEventListener(
+          'rento:enterManaged',
+          onEnterManaged as EventListener
+        );
+        window.removeEventListener(
+          'rento:leaveManaged',
+          onLeaveManaged as EventListener
+        );
+      };
+    };
+
+    // main wheel handler
+    const onWheel = (e: WheelEvent) => {
+      // already prevented by your highlight/how handlers
+      if (e.defaultPrevented) return;
+
+      // if pointer is inside highlights/how, completely skip our slow scroll
+      if (isManagedZone(e.target)) {
+        stopAnimationIfRunning(); // cancel any ongoing animation so it doesn't "pull"
+        return;
+      }
+
+      // if globally paused (pointer enter), skip
+      if (slowScrollState.current.paused) return;
+
+      // we'll handle the wheel
+      e.preventDefault();
+
+      // global page slow factor (was 0.3, now slower 0.18)
+      const scale = 0.18;
+
+      // clamp trackpad deltas (slightly tighter for smoothness)
+      const dy = e.deltaY;
+      const moderated = Math.sign(dy) * Math.min(Math.abs(dy), 140);
+
+      const docHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      const viewport = window.innerHeight;
+
+      const nextTarget = Math.max(
+        0,
+        Math.min(
+          docHeight - viewport,
+          slowScrollState.current.targetY + moderated * scale
+        )
+      );
+
+      slowScrollState.current.targetY = nextTarget;
+
+      if (!slowScrollState.current.animating) {
+        slowScrollState.current.animating = true;
+        slowScrollState.current.rafId = requestAnimationFrame(step);
+      }
+    };
+
+    // passive:false so we can preventDefault
+    window.addEventListener('wheel', onWheel, { passive: false });
+
+    // pointer/touch enter-leave to hard-pause while inside managed sections
+    const setPaused = (v: boolean) => {
+      slowScrollState.current.paused = v;
+      if (v) stopAnimationIfRunning();
+    };
+
+    const hl = document.getElementById('highlights');
+    const how = document.getElementById('how');
+
+    const enter = () => setPaused(true);
+    const leave = () => setPaused(false);
+    const touchStart = () => setPaused(true);
+    const touchEnd = () => setPaused(false);
+
+    hl?.addEventListener('pointerenter', enter);
+    hl?.addEventListener('pointerleave', leave);
+    hl?.addEventListener('touchstart', touchStart, { passive: true });
+    hl?.addEventListener('touchend', touchEnd);
+
+    how?.addEventListener('pointerenter', enter);
+    how?.addEventListener('pointerleave', leave);
+    how?.addEventListener('touchstart', touchStart, { passive: true });
+    how?.addEventListener('touchend', touchEnd);
+
+    // init target
+    slowScrollState.current.targetY = window.scrollY;
+
+    return () => {
+      window.removeEventListener('wheel', onWheel as any);
+      hl?.removeEventListener('pointerenter', enter);
+      hl?.removeEventListener('pointerleave', leave);
+      hl?.removeEventListener('touchstart', touchStart);
+      hl?.removeEventListener('touchend', touchEnd);
+
+      how?.removeEventListener('pointerenter', enter);
+      how?.removeEventListener('pointerleave', leave);
+      how?.removeEventListener('touchstart', touchStart);
+      how?.removeEventListener('touchend', touchEnd);
+
+      stopAnimationIfRunning();
+    };
+  }, []);
+  // ===== End Slow Scroll hook =====
+
+  // new-scrollend
+  // new side nav active state 11-10-25
+  // --- Side Nav: show between #highlights (start) and #footer (end) ---
+  const [showSideNav, setShowSideNav] = useState(false);
+  const navRafRef = useRef<number | 0>(0);
+  const navBoundsRef = useRef<{ start: number; end: number }>({
+    start: 0,
+    end: Number.POSITIVE_INFINITY,
+  });
+
+  useEffect(() => {
+    const calcBounds = () => {
+      const startEl = document.getElementById('highlights'); // nav starts here
+      const endEl = document.getElementById('footer'); // nav hides before footer
+      // small safety offsets so it feels natural
+      const start = (startEl?.offsetTop ?? 0) - 40;
+      const end = (endEl?.offsetTop ?? Number.POSITIVE_INFINITY) - 40;
+      navBoundsRef.current = { start, end };
+    };
+
+    const onScroll = () => {
+      if (navRafRef.current) return;
+      navRafRef.current = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const vh = window.innerHeight;
+        // use viewport "focus line" ~40% from top to decide which zone we're in
+        const focus = y + vh * 0.4;
+        const { start, end } = navBoundsRef.current;
+        const shouldShow = focus >= start && focus < end;
+        setShowSideNav(shouldShow);
+        navRafRef.current && cancelAnimationFrame(navRafRef.current);
+        navRafRef.current = 0;
+      });
+    };
+
+    const onResize = () => {
+      calcBounds();
+      // run a scroll pass after resize to refresh visibility
+      onScroll();
+    };
+
+    // initial
+    calcBounds();
+    onScroll();
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+
+    // sometimes images/fonts shift layout — recalc shortly after mount
+    const t1 = setTimeout(() => {
+      calcBounds();
+      onScroll();
+    }, 300);
+    const t2 = setTimeout(() => {
+      calcBounds();
+      onScroll();
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      if (navRafRef.current) cancelAnimationFrame(navRafRef.current);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
+  // end
 
   const cycleNote = useMemo(
     () =>
@@ -275,8 +570,9 @@ const Home: React.FC = () => {
     };
   }, []);
 
+  // Allow normal page scrolling on landing layout
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = 'auto';
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -286,212 +582,158 @@ const Home: React.FC = () => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 991);
     };
-    console.log(window.innerWidth);
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
+
+  // Local wheel handlers for slide sections only (landing layout)
+  const onWheelHighlight = (e: React.WheelEvent) => {
+    // jab slider engaged ho, page scroll hamesha block
+    if (hlStep === 1) {
       e.preventDefault();
+      e.stopPropagation();
+    }
+    if (wheelLockHlRef.current) return;
 
-      if (wheelLockRef.current) return;
-      wheelLockRef.current = true;
+    // soften delta (smooth feeling) — slower
+    wheelAccumHlRef.current += e.deltaY * STEP_SCROLL_SCALE;
+    if (wheelLockHlRef.current) return;
+    wheelAccumHlRef.current += e.deltaY;
 
-      const delta = e.deltaY > 0 ? 1 : -1;
-      const unlock = () =>
-        setTimeout(() => {
-          wheelLockRef.current = false;
-        }, SCROLL_COOLDOWN);
+    const abs = Math.abs(wheelAccumHlRef.current);
+    const dir = wheelAccumHlRef.current > 0 ? 1 : -1;
 
-      // ---------- Footer locked mode ----------
-      if (showFooter) {
-        if (delta < 0) {
-          // allow exiting footer: reveal Contact section again
-          setShowFooter(false);
-        }
-        // keep footer at bottom on further down-scrolls
-        unlock();
+    // While inside slides (hlStep===1), block tiny wheel to avoid pixel scrolling
+    if (hlStep === 1 && abs < WHEEL_THRESHOLD) {
+      e.preventDefault();
+      return;
+    }
+
+    if (abs < WHEEL_THRESHOLD) return; // ignore tiny wheel elsewhere
+
+    // threshold reached; reset accumulator
+    wheelAccumHlRef.current = 0;
+
+    if (dir > 0) {
+      if (hlStep === 0) {
+        setHlStep(1);
+        setHideHLBottomImg(true);
+        e.preventDefault();
+      } else if (currentBox < TOTAL_HIGHLIGHT) {
+        setCurrentBox((p) => Math.min(TOTAL_HIGHLIGHT, p + 1));
+        e.preventDefault();
+      } else {
+        // last slide → allow page to scroll to next section
         return;
       }
-
-      // ---------- First-scroll hide rules for bottom banners ----------
-      // Highlight step-0
-      if (index === 1 && howStep === 0) {
-        setHideHLBottomImg(true);
-      }
-      // How It Works step-1
-      if (index === 5 && howStep === 1) {
-        setHideHowBottomImg(true);
-      }
-      // Pricing step-0
-      if (index === 9 && pricingStep === 0) {
-        setHideBottomImg(true);
-      }
-
-      // ---------- Normal scroll logic ----------
-      if (delta > 0) {
-        // scroll down
-        switch (index) {
-          case 0:
-            setIndex(1); // Hero → Highlight (Step 0)
-            setHideHLBottomImg(false); // show Highlight bottom when entering step-0
-            break;
-
-          case 1: {
-            // Highlight PPT-style
-            if (howStep === 0) {
-              setHowStep(1); // start slides
-            } else {
-              if (currentBox < TOTAL_HIGHLIGHT)
-                setCurrentBox((p) => Math.min(TOTAL_HIGHLIGHT, p + 1));
-              else setIndex(3); // to Partner
-            }
-            break;
-          }
-
-          case 3:
-            setIndex(4); // Partner → WhyChoose
-            break;
-
-          case 4:
-            // WhyChoose → How (reset how sequence)
-            setHowStep(0);
-            setReplicaBox(1);
-            setIndex(5);
-            break;
-
-          case 5:
-            if (howStep === 0) {
-              setHowStep(1); // enter How step-1 (pinned + center subheading)
-              setHideHowBottomImg(false); // show How bottom when arriving to step-1
-            } else if (howStep === 1) {
-              setHowStep(2); // go into slides
-            } else {
-              if (replicaBox < TOTAL_REPLICA)
-                setReplicaBox((p) => Math.min(TOTAL_REPLICA, p + 1));
-              else setIndex(7);
-            }
-            break;
-
-          case 7:
-            setIndex(8);
-            break;
-
-          case 8:
-            setIndex(9); // enter Pricing
-            setHideBottomImg(false); // show Pricing bottom on step-0
-            break;
-
-          case 9:
-            if (pricingStep === 0) setPricingStep(1);
-            else setIndex(10);
-            break;
-
-          case 10:
-            setShowFooter(true);
-            break;
-
-          default:
-            break;
+    } else {
+      if (hlStep === 1) {
+        if (currentBox > 1) {
+          setCurrentBox((p) => Math.max(1, p - 1));
+          e.preventDefault();
+        } else {
+          setHlStep(0);
+          setHideHLBottomImg(false);
+          e.preventDefault();
         }
       } else {
-        // scroll up
-        switch (index) {
-          case 1: {
-            // Highlight reverse
-            if (howStep === 1) {
-              if (currentBox > 1) setCurrentBox((p) => Math.max(1, p - 1));
-              else {
-                setHowStep(0); // back to step-0
-                setHideHLBottomImg(false); // show Highlight bottom again
-              }
-            } else {
-              setIndex(0);
-            }
-            break;
-          }
-
-          case 3:
-            // back into Highlight with slides completed (to walk back)
-            setIndex(1);
-            setHowStep(1);
-            setCurrentBox(TOTAL_HIGHLIGHT);
-            break;
-
-          case 4:
-            setIndex(3);
-            break;
-
-          case 5:
-            if (howStep === 2) {
-              if (replicaBox > 1) {
-                setReplicaBox((p) => Math.max(1, p - 1));
-              } else {
-                setHowStep(1); // arrive to How step-1 from slides
-                setHideHowBottomImg(false); // show How bottom again
-              }
-            } else if (howStep === 1) {
-              setHowStep(0);
-            } else {
-              setIndex(4);
-            }
-            break;
-
-          case 7:
-            if (newPartnerBox > 1) {
-              setNewPartnerBox((p) => p - 1);
-            } else {
-              setIndex(5);
-              setHowStep(1);
-              setReplicaBox(TOTAL_REPLICA);
-              setHideHowBottomImg(false); // ensure shown when landing on step-1
-            }
-            break;
-
-          case 8:
-            if (newAboutBox > 1) setNewAboutBox((p) => p - 1);
-            else {
-              setIndex(7);
-              setNewPartnerBox(4);
-            }
-            break;
-
-          case 9:
-            if (pricingStep === 1) {
-              setPricingStep(0); // back to Pricing step-0
-              setHideBottomImg(false); // show Pricing bottom again
-            } else {
-              setIndex(8);
-            }
-            break;
-
-          case 10:
-            setIndex(9);
-            break;
-
-          default:
-            break;
-        }
+        // at intro, allow page to scroll to previous section
+        return;
       }
+    }
 
-      unlock();
-    };
+    // lock after consuming to avoid rapid double-steps (slower)
+    wheelLockHlRef.current = true;
+    setTimeout(() => (wheelLockHlRef.current = false), SCROLL_COOLDOWN);
+  };
 
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [
-    index,
-    currentBox,
-    replicaBox,
-    howStep,
-    newPartnerBox,
-    newAboutBox,
-    pricingStep,
-    showFooter,
-    TOTAL_HIGHLIGHT,
-    TOTAL_REPLICA,
-  ]);
+  const onWheelHow = (e: React.WheelEvent) => {
+    if (howStep === 1 || howStep === 2) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (wheelLockHowRef.current) return;
+
+    // soften delta — slower
+    wheelAccumHowRef.current += e.deltaY * STEP_SCROLL_SCALE;
+    if (wheelLockHowRef.current) return;
+    wheelAccumHowRef.current += e.deltaY;
+
+    const abs = Math.abs(wheelAccumHowRef.current);
+    const dir = wheelAccumHowRef.current > 0 ? 1 : -1;
+
+    // While in HOW (step 1 or 2), block tiny wheel to avoid pixel scrolling
+    if ((howStep === 1 || howStep === 2) && abs < WHEEL_THRESHOLD) {
+      e.preventDefault();
+      return;
+    }
+
+    if (abs < WHEEL_THRESHOLD) return; // ignore tiny wheel elsewhere
+
+    // threshold reached; reset accumulator
+    wheelAccumHowRef.current = 0;
+
+    if (dir > 0) {
+      if (howStep === 0) {
+        setHowStep(1);
+        setHideHowBottomImg(false); // show bottom at step-1
+        e.preventDefault();
+      } else if (howStep === 1) {
+        setHowStep(2);
+        setHideHowBottomImg(true); // entering slides
+        e.preventDefault();
+      } else if (replicaBox < TOTAL_REPLICA) {
+        setReplicaBox((p) => Math.min(TOTAL_REPLICA, p + 1));
+        e.preventDefault();
+      } else {
+        // last slide → allow page to scroll further
+        return;
+      }
+    } else {
+      if (howStep === 2) {
+        if (replicaBox > 1) {
+          setReplicaBox((p) => Math.max(1, p - 1));
+          e.preventDefault();
+        } else {
+          setHowStep(1);
+          setHideHowBottomImg(false);
+          e.preventDefault();
+        }
+      } else if (howStep === 1) {
+        setHowStep(0);
+        e.preventDefault();
+      } else {
+        // at step 0, allow page to scroll upward out of section
+        return;
+      }
+    }
+
+    // lock after consuming (slower)
+    wheelLockHowRef.current = true;
+    setTimeout(() => (wheelLockHowRef.current = false), SCROLL_COOLDOWN);
+  };
+
+  // Active-section tracking for Fixed Section Nav
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  useEffect(() => {
+    const ids = ['highlights', 'why', 'how', 'about', 'pricing', 'contact'];
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection((entry.target as HTMLElement).id);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
+  }, []);
+  // Removed legacy page-level wheel hijack (landing layout uses local handlers)
 
   const {
     register,
@@ -552,6 +794,12 @@ const Home: React.FC = () => {
 
     return { ok: true as const, data };
   };
+  //   useSlowPageScroll({
+  //   speed: 0.12,            // smaller = slower
+  //   maxStep: 120,           // clamp per wheel tick
+  //   scale: 0.22,            // how far each tick moves the target
+  //   // exclude: ["#highlights", "#how"], // let these sections handle their own wheel
+  // });
 
   const onSubmit = async (data: any) => {
     setIsLoader(true);
@@ -583,14 +831,26 @@ const Home: React.FC = () => {
 
   const HeroSection = (
     <motion.section
+      id="hero"
       key="hero"
-      className="absolute inset-0 w-full h-screen home-bg"
+      className="relative w-full min-h-screen home-bg"
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '-100%' }}
       transition={{ duration: 0.8, ease: 'easeInOut' }}
     >
-      <Header customClass="relative" />
+      {/* <Header customClass="relative" /> */}
+      <motion.div
+        initial={{ y: 0, opacity: 1 }}
+        animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="fixed top-0 left-0 right-0 z-[1000] will-change-transform stiky py-0"
+      >
+        {/* feel free to tweak bg/blur/shadow here */}
+        <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
+      </motion.div>
+      <div className="h-[72px]" />
+
       <div className="flex justify-end px-20 max-[1260px]:justify-center max-[576px]:px-2 translate-y-[12%]">
         <p className="text-[36px] font-light text-primary mt-10 max-w-[445px] leading-[45px] max-[1260px]:max-w-full max-[1260px]:text-[30px] max-[1260px]:text-center max-[992px]:text-[24px] max-[992px]:leading-tight max-[768px]:text-[19px] max-[576px]:max-w-full">
           From rent collection to maintenance requests — manage everything in
@@ -623,54 +883,38 @@ const Home: React.FC = () => {
 
   const HighlightSection = (
     <motion.section
+      id="highlights"
       key="highlight"
-      className="absolute inset-0 w-full h-screen bg-[#DFF4EC] overflow-hidden"
+      className="relative w-full min-h-[99vh] bg-[#DFF4EC] overflow-hidden"
+      onWheel={(e) => onWheelHighlight(e)}
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '-100%' }}
       transition={{ duration: 0.8, ease: 'easeInOut' }}
     >
-      <div className="relative w-full h-full max-w-[1537px] mx-auto">
+      <div className="relative w-full h-full max-w-[1537px] mx-auto  ">
         <AnimatePresence mode="wait">
-          {howStep === 0 ? (
+          {hlStep === 0 ? (
             // -------- STEP 0: centered heading only --------
             <motion.div
               key="hl-center"
-              className="absolute inset-0 flex items-center justify-center"
+              className=" inset-0 flex items-center justify-center"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.6, ease: 'easeInOut' }}
             >
-              <div className="text-center">
+              <div className="text-center pt-5">
                 <div className="flex gap-6 justify-center items-center">
                   <img
                     src={assets.images.hiliteIcon}
                     alt="icon"
-                    className="w-[138px] h-[134px]"
+                    className="w-[80px] h-[80px]"
                   />
-                  <span className="font-normal text-[6vw] text-primary">
+                  <span className="font-normal text-[64px] text-primary">
                     Highlights
                   </span>
                 </div>
-                <AnimatePresence>
-                  {!hideHLBottomImg && (
-                    <motion.div
-                      key="hl-bottom-img"
-                      className="fixed left-0 right-0 bottom-0 z-[5] pointer-events-none select-none px-6"
-                      initial={{ y: 40, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 40, opacity: 0 }}
-                      transition={{ duration: 0.35, ease: 'easeOut' }}
-                    >
-                      <img
-                        src={assets.images.bottomHighlight}
-                        alt="highlight bottom"
-                        className="w-full h-auto max-w-[1220px] mx-auto"
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </div>
             </motion.div>
           ) : (
@@ -687,11 +931,11 @@ const Home: React.FC = () => {
               return (
                 <motion.div
                   key="hl-live"
-                  className="absolute inset-0"
+                  className=""
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  transition={{ duration: 0.6, ease: 'easeInOut' }} // light slow
                 >
                   {/* Header */}
                   <div className="px-8 pt-8 relative flex justify-start items-center max-[576px]:flex-col">
@@ -790,27 +1034,20 @@ const Home: React.FC = () => {
                           zIndex = box.id;
                         }
 
-                        // pehle se jo deep slides hide ho rahe thay — same
                         const hideInner =
                           order >= 2 || order <= -2 || (order === 1 && !pinned);
 
-                        // ---- NEW: content visibility rules ----
                         const isCurrent = order === 0;
                         const isPrev = order === -1;
                         const isNext = order === 1;
 
-                        // NEXT description rule:
-                        // slide 2 ke baad (pinned === true), next slide ki description hide
                         const showDescription =
                           !hideInner &&
-                          (isCurrent ||
-                            isPrev || // prev pe description allow (agar tumhe prev pe bhi sirf title chahiye ho to isPrev hata do)
-                            (isNext && !pinned)); // next pe sirf tab jab pinned false ho (i.e., slide 1)
+                          (isCurrent || isPrev || (isNext && !pinned));
 
                         const showTitle =
                           !hideInner && (isCurrent || isPrev || isNext);
 
-                        // ---- NEW: 4th slide height 100% jab woh current ho ----
                         const cardHeightClass =
                           isCurrent && box.id === 4 ? 'h-[70vh]' : 'h-[68vh]';
 
@@ -826,7 +1063,7 @@ const Home: React.FC = () => {
                             }}
                             animate={animate}
                             initial={false}
-                            transition={{ duration: 0.8, ease: 'easeInOut' }}
+                            transition={{ duration: 1, ease: 'easeInOut' }} // already slow
                           >
                             <div
                               className={[
@@ -871,8 +1108,9 @@ const Home: React.FC = () => {
   // ---------------- Partner Section ----------------
   const PartnerSection = (
     <motion.section
+      id="partner"
       key="partner"
-      className="absolute inset-0 w-full h-screen bg-primary flex items-center justify-center"
+      className="relative w-full min-h-screen bg-primary flex items-center justify-center"
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '-100%' }}
@@ -880,9 +1118,9 @@ const Home: React.FC = () => {
     >
       <div className="text-center px-6">
         {/* <h2 className="text-white text-5xl font-bold mb-6">Our Partners</h2> */}
-        <p className="text-white  mx-auto text-[110px] leading-tight max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
+        <p className="text-white max-w-[800px] mx-auto leading-tight text-[64px] max-[1260px]:text-[50px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
           Rento is more than just property management software,
-          <span className="text-[96px]  font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
+          <span className="text-[64px]  font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
             {' '}
             it’s your growth partner.
           </span>
@@ -894,15 +1132,16 @@ const Home: React.FC = () => {
   // ---------------- Why Choose Section ----------------
   const WhyChooseSection = (
     <motion.section
+      id="why"
       key="whychoose"
-      className="absolute inset-0 w-full h-screen bg-primary flex items-center justify-center"
-      initial={{ scale: 0, opacity: 0, borderRadius: '50%' }} // start as small circle center
-      animate={{ scale: 1, opacity: 1, borderRadius: '0%' }} // expand full screen like flower open
-      exit={{ scale: 0, opacity: 0, borderRadius: '50%' }} // reverse when leaving
-      transition={{ duration: 2, ease: [0.68, -0.55, 0.27, 1.55] }} // smooth elastic animation
+      className="relative w-full min-h-screen  flex items-center justify-center "
+      initial={{ clipPath: 'inset(0 100% 0 0)' }}
+      animate={{ clipPath: 'inset(0 0% 0 0)' }}
+      exit={{ clipPath: 'inset(0 0 0 100%)' }}
+      transition={{ duration: 1.4, ease: 'easeInOut' }}
     >
-      <div className="text-center px-2 w-[96%] h-[90%] bg-[#DFF4EC] relative  rounded-[10px]">
-        <div className="absolute top-10 left-10 z-[111]">
+      <div className="text-center px-2 w-[96%] h-screen bg-[#DFF4EC] relative  rounded-[10px]">
+        <div className="pt-10  top-10 left-10 z-[111]">
           <h2 className="text-left text-[40px] font-medium text-[#242460] mb-6 max-[1500px]:text-[30px]">
             Why Choose Us?
           </h2>
@@ -928,14 +1167,16 @@ const Home: React.FC = () => {
 
   const HowSection = (
     <motion.section
+      id="how"
       key="how"
-      className="absolute inset-0 w-full h-screen bg-[#DFF4EC] overflow-hidden"
+      className="relative w-full h-screen bg-[#DFF4EC] overflow-hidden"
+      onWheel={(e) => onWheelHow(e)}
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '-100%' }}
       transition={{ duration: 0.8, ease: 'easeInOut' }}
     >
-      <div className="relative w-full h-full max-w-[1537px] mx-auto">
+      <div className="relative w-full h-screen max-w-[1537px] mx-auto">
         <AnimatePresence mode="wait">
           {howStep === 0 ? (
             // -------- STEP 0: centered heading only --------
@@ -946,16 +1187,17 @@ const Home: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.6, ease: 'easeInOut' }}
+              style={{ top: '10%', left: 0, right: 0 }}
             >
-              <div className="text-center">
-                <div className="flex gap-2 justify-center items-center">
+              <div className="absolute top-0 text-center pt-5">
+                <div className="flex gap-6 justify-center items-center">
                   <img
-                    src={assets.images.howorkIcon}
+                    src={assets.images.hiliteIcon}
                     alt="icon"
-                    className="w-[138px] h-[134px]"
+                    className="w-[80px] h-[80px]"
                   />
-                  <span className="font-normal text-[6vw] text-primary">
-                    How It Works
+                  <span className="font-normal text-[64px] text-primary">
+                    How it Works
                   </span>
                 </div>
               </div>
@@ -964,7 +1206,7 @@ const Home: React.FC = () => {
             // -------- STEP 1: heading TOP (smaller) + gradient subheading in CENTER --------
             <motion.div
               key="how-top-with-sub"
-              className="absolute inset-0"
+              className="static inset-0"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -972,7 +1214,7 @@ const Home: React.FC = () => {
             >
               {/* Heading pinned to TOP-LEFT with smaller font */}
               <motion.div
-                className="absolute flex items-center gap-2 justify-center"
+                className="absolute top-0 left-0 right-0  flex items-center gap-2 justify-center"
                 initial={{ y: -24, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -16, opacity: 0 }}
@@ -991,38 +1233,20 @@ const Home: React.FC = () => {
 
               {/* Center gradient subheading */}
               <motion.p
-                className="absolute text-center text-[22px] md:text-[26px] font-normal leading-snug px-6"
+                className="absolute text-center text-[22px] md:text-[26px] font-normal leading-snug px-6  flex items-center gap-2 justify-center"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.45, ease: 'easeOut' }}
-                style={{ top: '30%', left: '0', right: '0' }}
+                style={{ top: '20%', left: '0', right: '0' }}
               >
-                <span className="text-[4vw] max-w-[1200px] mx-auto block text-primary">
+                <span className="text-[44px] max-w-[1200px] mx-auto block text-primary leading-tight">
                   Built for landlords, managers, and tenants—four smart portals,
                   <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
                     tailored for every role.
                   </span>
                 </span>
               </motion.p>
-              <AnimatePresence>
-                {!hideHowBottomImg && (
-                  <motion.div
-                    key="hl-bottom-img"
-                    className="fixed left-0 right-0 bottom-0 z-[5] pointer-events-none select-none px-6"
-                    initial={{ y: 40, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 40, opacity: 0 }}
-                    transition={{ duration: 0.35, ease: 'easeOut' }}
-                  >
-                    <img
-                      src={assets.images.bottomWorks}
-                      alt="how it bottom"
-                      className="w-full h-auto max-w-[1220px] mx-auto"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </motion.div>
           ) : (
             // HOW IT WORKS — now mirrors STEP 1 (Highlights) logic
@@ -1042,7 +1266,7 @@ const Home: React.FC = () => {
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  transition={{ duration: 0.9, ease: 'easeInOut' }} // a bit slower
                 >
                   {/* Header — pin like step 1, styling same as your How It Works */}
                   <div className="px-8 pt-8 relative flex items-center gap-6 max-[576px]:flex-col">
@@ -1050,7 +1274,7 @@ const Home: React.FC = () => {
                       layout
                       className={`flex items-center gap-2 shrink-0 ${
                         pinned
-                          ? 'absolute left-[-50px] top-20 max-[1550px]:left-4 max-[1550px]:top-20'
+                          ? ' left-[-50px] top-20 max-[1550px]:left-4 max-[1550px]:top-20'
                           : ''
                       }`}
                       initial={false}
@@ -1148,7 +1372,6 @@ const Home: React.FC = () => {
                           zIndex = box.id;
                         }
 
-                        // deep slides hidden; next hidden before pin (exactly like step 1)
                         const hideInner =
                           order >= 2 || order <= -2 || (order === 1 && !pinned);
 
@@ -1156,15 +1379,13 @@ const Home: React.FC = () => {
                         const isPrev = order === -1;
                         const isNext = order === 1;
 
-                        // next desc/bullets hide after slide 2 (pinned === true)
                         const showTitle =
                           !hideInner && (isCurrent || isPrev || isNext);
                         const showDescription =
                           !hideInner &&
                           (isCurrent || isPrev || (isNext && !pinned));
-                        const showBullets = showDescription; // bullets follow description rule
+                        const showBullets = showDescription;
 
-                        // 4th slide height tweak (same as your step 1)
                         const cardHeightClass =
                           isCurrent && box.id === 4 ? 'h-[70vh]' : 'h-[68vh]';
 
@@ -1180,7 +1401,7 @@ const Home: React.FC = () => {
                             }}
                             animate={animate}
                             initial={false}
-                            transition={{ duration: 0.8, ease: 'easeInOut' }}
+                            transition={{ duration: 1.4, ease: 'easeInOut' }} // slower slides
                           >
                             <div
                               className={[
@@ -1238,8 +1459,9 @@ const Home: React.FC = () => {
 
   const NewPartnerSection = (
     <motion.section
-      key="partner"
-      className="absolute inset-0 w-full h-screen bg-[#DFF4EC] flex items-center justify-center"
+      id="about-intro"
+      key="about-intro"
+      className="relative w-full min-h-screen bg-primary flex items-center justify-center"
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '-100%' }}
@@ -1247,7 +1469,7 @@ const Home: React.FC = () => {
     >
       <div className="text-center px-6 ">
         {/* <h2 className="text-white text-5xl font-bold mb-6">Our Partners</h2> */}
-        <p className="text-left text-primary mx-auto text-[100px] leading-tight max-w-[1400px] max-[1440px]:text-[80px] max-[1024px]:text-[60px] max-[768px]:text-[40px] max-[425px]:text-[32px]">
+        <p className="text-left text-white mx-auto text-[100px] leading-tight max-w-[1400px] max-[1440px]:text-[80px] max-[1024px]:text-[60px] max-[768px]:text-[40px] max-[425px]:text-[32px]">
           At Rento, we believe property management should be simple,
           <span className=" font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent     ">
             {' '}
@@ -1261,15 +1483,16 @@ const Home: React.FC = () => {
   // ---------------- New About Section ----------------
   const NewAboutSection = (
     <motion.section
+      id="about"
       key="about"
-      className="absolute inset-0 w-full h-screen bg-[#DFF4EC] flex items-center justify-center"
+      className="relative inset-0 w-full min-h-screen bg-primary flex items-center justify-center "
       initial={{ y: '100%', opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: '-100%', opacity: 0 }}
       transition={{ duration: 0.8, ease: 'easeInOut' }}
     >
-      <div className="text-center px-2 w-[96%] h-[90%] bg-primary relative rounded-[10px]">
-        <div className="absolute top-10 left-10 z-[111] max-w-[890px] pr-3">
+      <div className="text-center px-0  w-[96%] h-screen bg-primary relative rounded-[10px] border-0 border-solid border-[#ccc]">
+        <div className="absolute top-10 left-4 z-[111] max-w-[890px] pr-3">
           <h2 className="text-left text-[40px] font-medium text-[#DFF4EC] mb-6 max-[1550px]:text-[30px]">
             At Rento, we believe property management should be simple, smart,
             and stress-free.
@@ -1319,14 +1542,15 @@ const Home: React.FC = () => {
 
   const PricingSection = (
     <motion.section
+      id="pricing"
       key="pricing"
-      className="absolute inset-0 w-full h-screen bg-primary flex items-center justify-center"
+      className="relative inset-0 w-full min-h-screen bg-primary flex items-center justify-center"
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '-100%' }}
       transition={{ duration: 0.8, ease: 'easeInOut' }}
     >
-      <div className="w-full h-full relative flex items-center justify-center price-step">
+      <div className="w-full h-screen  relative flex items-center justify-center price-step">
         <AnimatePresence mode="wait">
           {pricingStep === 0 && (
             <>
@@ -1360,7 +1584,7 @@ const Home: React.FC = () => {
                 {!hideBottomImg && (
                   <motion.div
                     key="pricing-bottom-img"
-                    className="fixed left-0 right-0 bottom-0 z-[5] pointer-events-none select-none px-6"
+                    className="absolute  left-0 right-0 bottom-0 pointer-events-none select-none px-6"
                     initial={{ y: 40, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 40, opacity: 0 }}
@@ -1444,7 +1668,7 @@ const Home: React.FC = () => {
               {/* Cards container */}
               <motion.div
                 key="pricing-cards"
-                className="absolute bottom-0 w-full  overflow-auto "
+                className="absolute  bottom-[40px] w-full  overflow-auto "
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: '100%', opacity: 0 }}
@@ -1535,8 +1759,9 @@ const Home: React.FC = () => {
   // ---------------- New Slide-in Section ----------------
   const ContactSection = (
     <motion.section
+      id="contact"
       key="new-slide-section"
-      className="absolute inset-0 w-full h-screen bg-[#DFF4EC] flex flex-col items-center justify-center overflow-hidden"
+      className="relative w-full min-h-screen bg-[#DFF4EC] flex flex-col items-center justify-center overflow-hidden"
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '-100%' }}
@@ -1783,18 +2008,19 @@ const Home: React.FC = () => {
     </motion.section>
   );
 
-  //    footer section
+  //  footer section
 
   const FooterSection = (
     <motion.section
+      id="footer"
       key="footer-section"
-      className="absolute inset-0 w-full h-screen flex items-end justify-center z-1111"
+      className="relative w-full min-h-screen flex items-end justify-center z-[1]"
       initial={{ y: '100%', opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: '100%', opacity: 0 }}
       transition={{ duration: 0.5, ease: 'easeInOut' }}
     >
-      <div className="footer-bg w-full h-[100vh] flex flex-col relative z-1111">
+      <div className="footer-bg w-full h-[100vh] flex flex-col relative z-[1]">
         <div className="pt-4 flex-1 flex flex-col items-center justify-start">
           <h2
             className="max-w-[1128px] px-3 mx-auto text-center text-white text-[55px] font-normal leading-snug max-[1600px]:max-w-[900px] max-[1600px]:text-[38px]
@@ -1836,7 +2062,7 @@ const Home: React.FC = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contact" className="hover:opacity-90">
+                  <Link to="/contact-us" className="hover:opacity-90">
                     Contact
                   </Link>
                 </li>
@@ -1905,41 +2131,87 @@ const Home: React.FC = () => {
               </p>
             </div>
           </div>
-          {/* Scroll to Top Button */}
-          <button
-            onClick={() => {
-              setIndex(0);
-              setShowFooter(false);
-            }}
-            className="cursor-pointer absolute bottom-5 right-5 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold w-[45px] h-[40px] flex justify-center items-center   rounded-lg shadow-lg transition-all duration-300"
-          >
-            <img
-              src={assets.images.upIcon}
-              alt="icon"
-              className="w-[20px] h-[20px]"
-            />
-          </button>
         </div>
       </div>
     </motion.section>
   );
   return (
     <div className="w-full relative bg-[#DFF4EC]">
+      {/* <style>{`html { scroll-behavior: smooth; }`}</style> */}
       {!isMobile ? (
         // ✅ Desktop Mode
-        <div className="w-full h-screen overflow-hidden relative">
+        <div className="w-full h-auto relative overflow-visible">
           <AnimatePresence mode="wait">
-            {index === 0 && HeroSection}
-            {index === 1 && HighlightSection}
-            {index === 3 && PartnerSection}
-            {index === 4 && WhyChooseSection}
-            {index === 5 && HowSection}
-            {index === 7 && NewPartnerSection}
-            {index === 8 && NewAboutSection}
-            {index === 9 && PricingSection}
-            {index === 10 && ContactSection}
-            {showFooter && FooterSection}
+            {HeroSection}
+            {HighlightSection}
+            {PartnerSection}
+            {WhyChooseSection}
+            {HowSection}
+            {NewPartnerSection}
+            {NewAboutSection}
+            {PricingSection}
+            {ContactSection}
+            {FooterSection}
           </AnimatePresence>
+
+          {!isMobile && (
+            <AnimatePresence>
+              {showSideNav && (
+                <motion.div
+                  key="section-nav"
+                  initial={{ opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 24 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  className="fixed right-2 bottom-6 z-[1000] flex flex-col gap-2 items-end"
+                >
+                  {[
+                    { key: 'highlights', label: 'Highlights' },
+                    { key: 'why', label: 'Why Choose Us' },
+                    { key: 'how', label: 'How It Works' },
+                    { key: 'about', label: 'About' },
+                    { key: 'pricing', label: 'Pricing' },
+                    { key: 'contact', label: 'Contact' },
+                  ].map((item) => {
+                    const isActive = activeSection === item.key;
+                    const base =
+                      'px-3 py-3 rounded-md text-[12px] font-medium shadow transition-colors duration-200 w-[150px]';
+                    const activeCls = 'bg-acive text-white';
+                    const normalCls =
+                      'bg-[#DFF4EC] text-[#242460] border-2 border-solid border-[#242460]/20';
+
+                    return (
+                      <button
+                        key={item.key}
+                        onClick={() => {
+                          if (item.key === 'highlights') {
+                            setHlStep(0);
+                            setCurrentBox(1);
+                            setHideHLBottomImg(false);
+                          }
+                          if (item.key === 'how') {
+                            setHowStep(0);
+                            setReplicaBox(1);
+                            setHideHowBottomImg(false);
+                          }
+                          const el = document.getElementById(item.key);
+                          if (el)
+                            el.scrollIntoView({
+                              behavior: 'smooth',
+                              block: 'start',
+                            });
+                        }}
+                        className={`${base} ${isActive ? activeCls : normalCls}`}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+
           <SelectedPlanModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
