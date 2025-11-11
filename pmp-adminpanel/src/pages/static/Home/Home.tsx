@@ -1,4 +1,9 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AnimatePresence,
+  motion,
+  useScroll,
+  useTransform,
+} from 'framer-motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 // import { Link } from "react-router-dom";
 import assets from '@/assets/images';
@@ -24,7 +29,6 @@ interface ContactFields {
 import SelectedPlanModal from '@/components/Static/Model';
 import plan from '@/services/adminapp/static';
 import { useSelector } from 'react-redux';
-import useSlowPageScroll from './SlowPagScroll';
 type BillingCycle = 'annual' | 'monthly';
 
 type Plan = {
@@ -159,6 +163,22 @@ const Home: React.FC = () => {
   const boxes = [
     {
       id: 1,
+      title: '',
+      description: '',
+      bg: ``,
+      titleColor: '',
+      descColor: '',
+    },
+    {
+      id: 2,
+      title: '',
+      description: '',
+      bg: ``,
+      titleColor: '',
+      descColor: '',
+    },
+    {
+      id: 3,
       title: 'Collect rent online securely',
       description:
         'Say goodbye to cash and late payments. With Rento, tenants can pay rent online in just a few clicks, handled with bank-level security — keeping payments safe for landlords and simple for tenants.',
@@ -167,7 +187,7 @@ const Home: React.FC = () => {
       descColor: '#242460',
     },
     {
-      id: 2,
+      id: 4,
       title: 'Automated financial reports',
       description:
         'No more manual spreadsheets. Rento instantly generates detailed reports on rent collection, expenses, and property performance. Track your income and get a clear financial overview anytime, anywhere.',
@@ -176,7 +196,7 @@ const Home: React.FC = () => {
       descColor: '#fff',
     },
     {
-      id: 3,
+      id: 5,
       title: 'Easy tenant & property management',
       description:
         'Keep everything organized in one place. Add new tenants, manage multiple properties, and access contracts or payment history in seconds. Rento simplifies daily operations so you can focus on growing your portfolio.',
@@ -185,7 +205,7 @@ const Home: React.FC = () => {
       descColor: '#242460',
     },
     {
-      id: 4,
+      id: 6,
       title: 'Track and resolve maintenance requests',
       description:
         'Stay on top of maintenance without the hassle of endless calls. Tenants submit requests online , managers assign tasks and track progress until it’s resolved — ensuring every issue is handled quickly and transparently.”',
@@ -211,6 +231,34 @@ const Home: React.FC = () => {
     },
     {
       id: 2,
+      title: 'Landlord Portal',
+      description: 'Control your property portfolio',
+      bg: `${assets.images.landBanner}`,
+      titleColor: '#DFF4EC',
+      descColor: '#DFF4EC',
+      bullets: [
+        'Dashboard showing total properties, tenants, invoices & tickets',
+        'Add and manage multiple properties',
+        'Automate rent collection & reminders',
+        'View financial reports instantly',
+      ],
+    },
+    {
+      id: 3,
+      title: 'Landlord Portal',
+      description: 'Control your property portfolio',
+      bg: `${assets.images.landBanner}`,
+      titleColor: '#DFF4EC',
+      descColor: '#DFF4EC',
+      bullets: [
+        'Dashboard showing total properties, tenants, invoices & tickets',
+        'Add and manage multiple properties',
+        'Automate rent collection & reminders',
+        'View financial reports instantly',
+      ],
+    },
+    {
+      id: 4,
       title: 'Manager Portal',
       description: 'Simplify daily operations',
       bg: `${assets.images.mangerBanner}`,
@@ -224,7 +272,7 @@ const Home: React.FC = () => {
       ],
     },
     {
-      id: 3,
+      id: 5,
       title: 'Tenant Portal',
       description: 'Designed for convenience',
       bg: `${assets.images.tenantBanner}`,
@@ -238,7 +286,7 @@ const Home: React.FC = () => {
       ],
     },
     {
-      id: 4,
+      id: 6,
       title: 'Super Admin Portal',
       description: 'Full platform control.',
       bg: `${assets.images.adminBanner}`,
@@ -586,6 +634,34 @@ const Home: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const lastYScroll = useRef(0);
+  const lockPageScroll = () => {
+    // Apply styles to freeze scroll
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${lastYScroll.current}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    // optional: keep width full
+    document.body.style.width = '100%';
+    // Cancel any running smooth animation and sync target to saved position
+  };
+
+  const unlockPageScroll = () => {
+    // remove the locking styles
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    const rect = highlightsRef.current?.getBoundingClientRect();
+    window.scrollTo({
+      top: (highlightsRef.current?.clientTop ?? 0) + (rect?.height ?? 0) + 512,
+      behavior: 'smooth',
+    });
+    // restore scroll to the same place
+    // sync target so page smooth-scroll resumes naturally from this point
+  };
+
   // Local wheel handlers for slide sections only (landing layout)
   const onWheelHighlight = (e: React.WheelEvent) => {
     // jab slider engaged ho, page scroll hamesha block
@@ -602,6 +678,10 @@ const Home: React.FC = () => {
 
     const abs = Math.abs(wheelAccumHlRef.current);
     const dir = wheelAccumHlRef.current > 0 ? 1 : -1;
+    const rect = highlightsRef.current?.getBoundingClientRect();
+    lastYScroll.current =
+      (highlightsRef.current?.clientTop ?? 0) + (rect?.height ?? 0) - 64;
+    lockPageScroll();
 
     // While inside slides (hlStep===1), block tiny wheel to avoid pixel scrolling
     if (hlStep === 1 && abs < WHEEL_THRESHOLD) {
@@ -624,6 +704,7 @@ const Home: React.FC = () => {
         e.preventDefault();
       } else {
         // last slide → allow page to scroll to next section
+        unlockPageScroll();
         return;
       }
     } else {
@@ -637,6 +718,7 @@ const Home: React.FC = () => {
           e.preventDefault();
         }
       } else {
+        unlockPageScroll();
         // at intro, allow page to scroll to previous section
         return;
       }
@@ -794,11 +876,12 @@ const Home: React.FC = () => {
 
     return { ok: true as const, data };
   };
-  //   useSlowPageScroll({
-  //   speed: 0.12,            // smaller = slower
-  //   maxStep: 120,           // clamp per wheel tick
-  //   scale: 0.22,            // how far each tick moves the target
-  //   // exclude: ["#highlights", "#how"], // let these sections handle their own wheel
+  // useSlowPageScroll({
+  //   speed: 0.12, // smaller = slower
+  //   maxStep: 120, // clamp per wheel tick
+  //   scale: 0.22, // how far each tick moves the target
+  //   exclude: ['#highlights', '#how'], // let these sections handle their own wheel
+  //   visibleThreshold: 0.9,
   // });
 
   const onSubmit = async (data: any) => {
@@ -828,6 +911,8 @@ const Home: React.FC = () => {
       setIsLoader(false);
     }
   };
+
+  const highlightsRef = useRef<HTMLElement | null>(null);
 
   const HeroSection = (
     <motion.section
@@ -881,31 +966,68 @@ const Home: React.FC = () => {
     </motion.section>
   );
 
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end end'],
+  });
+
+  const numSlides = boxes.length;
+  const step = 1 / numSlides;
+  const cardOffset = 40;
+
   const HighlightSection = (
-    <motion.section
-      id="highlights"
-      key="highlight"
-      className="relative w-full min-h-[99vh] bg-[#DFF4EC] overflow-hidden"
-      onWheel={(e) => onWheelHighlight(e)}
-      initial={{ y: '100%' }}
-      animate={{ y: 0 }}
-      exit={{ y: '-100%' }}
-      transition={{ duration: 0.8, ease: 'easeInOut' }}
+    <section
+      ref={sectionRef}
+      className="relative bg-transparent text-white"
+      style={{ height: `${numSlides * 120}vh` }}
     >
-      <div className="relative w-full h-full max-w-[1537px] mx-auto  ">
-        <AnimatePresence mode="wait">
-          {hlStep === 0 ? (
-            // -------- STEP 0: centered heading only --------
-            <motion.div
-              key="hl-center"
-              className=" inset-0 flex items-center justify-center"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
-            >
-              <div className="text-center pt-5">
-                <div className="flex gap-6 justify-center items-center">
+      <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden justify-center">
+        {boxes.map((box, i) => {
+          const start = i * step;
+          const end = (i + 1) * step;
+
+          const baseY = cardOffset * i;
+          const y = useTransform(
+            scrollYProgress,
+            [start, end],
+            [baseY + cardOffset, baseY]
+          );
+
+          let opacity;
+
+          if (box.id === 1 || box.id === 2) {
+            // 👇 fade in, then fade out before next slide
+            opacity = useTransform(
+              scrollYProgress,
+              [start, start + step * 0.25, end - step * 0.15, end],
+              [0, 1, 1, 0]
+            );
+          } else {
+            // 👇 keep visible (stacked)
+            opacity = useTransform(
+              scrollYProgress,
+              [start, start + step * 0.25],
+              [0, 1]
+            );
+          }
+
+          const scale = useTransform(scrollYProgress, [start, end], [0.97, 1]);
+
+          if (box.id === 1) {
+            return (
+              <motion.div
+                id="highlights"
+                key={box.id}
+                className={`mx-auto absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
+                style={{
+                  y,
+                  opacity,
+                  scale,
+                  zIndex: i + 1,
+                }}
+              >
+                <div className="flex gap-6  ">
                   <img
                     src={assets.images.hiliteIcon}
                     alt="icon"
@@ -915,194 +1037,81 @@ const Home: React.FC = () => {
                     Highlights
                   </span>
                 </div>
+              </motion.div>
+            );
+          }
+
+          if (box.id === 2) {
+            return (
+              <motion.div
+                key={box.id}
+                className={`mx-auto flex-col absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
+                style={{
+                  y,
+                  opacity,
+                  scale,
+                  zIndex: i + 1,
+                }}
+              >
+                {/* <div className="flex gap-6">
+                  <img
+                    src={assets.images.hiliteIcon}
+                    alt="icon"
+                    className="w-[80px] h-[80px]"
+                  />
+                  <span className="font-normal text-[64px] text-primary">
+                    Highlights
+                  </span>
+                </div> */}
+                <div className="text-[44px] mx-auto block text-primary text-center leading-tight">
+                  Rento isn’t just easier to use — it’s simpler to set up,
+                  <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+                    quicker with support and built with the right features to
+                    grow with you.
+                  </span>
+                </div>
+              </motion.div>
+            );
+          }
+
+          return (
+            <motion.div
+              key={box.id}
+              className={`bg-center bg-cover mx-auto absolute bg-white rounded-2xl w-10/12 h-screen flex items-center justify-center boxes-bg-set`}
+              style={{
+                backgroundImage: `url(${box.bg})`,
+                y,
+                opacity,
+                scale,
+                zIndex: i + 1,
+              }}
+              initial={false}
+              transition={{ duration: 2, ease: 'easeInOut' }}
+            >
+              <div
+                className={[
+                  'p-6 rounded-lg absolute inset-0 transition-opacity duration-300',
+                ].join(' ')}
+              >
+                <h3
+                  className="text-[40px] font-normal mt-[-7px] mb-4 max-[1550px]:text-[34px]  max-[1400px]:text-[26px]"
+                  style={{ color: box.titleColor }}
+                >
+                  {box.title}
+                </h3>
+
+                <p
+                  className="text-[21px] font-light max-w-5xl max-[1600px]:text-[18px]"
+                  style={{ color: box.descColor }}
+                >
+                  {box.description}
+                </p>
               </div>
             </motion.div>
-          ) : (
-            // -------- STEP 1 --------
-            (() => {
-              const pinned = currentBox >= 2; // slide 2 aate hi neighbors visible/pinned
-              const showParagraph = currentBox === 1; // paragraph only on first slide
-              const REVEAL_NEXT = 135;
-              const TOP_PREV = '0%';
-              const CURRENT_Z = 100;
-              const NEXT_Z = 110;
-              const PREV_Z = 90;
-
-              return (
-                <motion.div
-                  key="hl-live"
-                  className=""
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.6, ease: 'easeInOut' }} // light slow
-                >
-                  {/* Header */}
-                  <div className="px-8 pt-8 relative flex justify-start items-center max-[576px]:flex-col">
-                    <motion.div
-                      layout
-                      className={`flex items-center gap-2 shrink-0 ${pinned ? 'absolute left-0 top-20 max-[1550px]:left-4 max-[1550px]:top-20' : ''}`}
-                      initial={false}
-                      animate={{ opacity: 1 }}
-                      transition={{
-                        layout: { duration: 0.4, ease: 'easeInOut' },
-                      }}
-                    >
-                      <img
-                        src={assets.images.hiliteIcon}
-                        alt="icon"
-                        className="w-[36px] h-[36px]"
-                      />
-                      <h2
-                        className={`text-primary font-normal leading-none   ${pinned ? 'text-[24px] max-[1380px]:hidden max-[1550px]:text-[18px]' : 'text-[26px]'}`}
-                      >
-                        Highlights
-                      </h2>
-                    </motion.div>
-
-                    {/* Paragraph — sirf first slide pe */}
-                    <AnimatePresence initial={false} mode="wait">
-                      {showParagraph && (
-                        <motion.p
-                          key="hl-paragraph"
-                          className="text-primary text-[16px] font-light leading-snug pl-[56px]"
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -6 }}
-                          transition={{ duration: 0.25, ease: 'easeOut' }}
-                        >
-                          Rento isn’t just easier to use — it’s simpler to set
-                          up, quicker with support and built with the right
-                          features to grow with you.
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Slides */}
-                  <div className="px-6 pt-4">
-                    <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden max-w-[1220px] mx-auto max-[1600px]:h-[calc(100vh-60px)] max-[1550px]:max-w-[1100px]">
-                      {boxes.map((box) => {
-                        let animate: Record<string, string | number> = {};
-                        let zIndex = 0;
-                        const order = box.id - currentBox; // 0=current, 1=next, -1=prev
-
-                        if (order === 0) {
-                          animate = {
-                            top: '50%',
-                            left: '50%',
-                            x: '-50%',
-                            y: '-50%',
-                            scale: 0.96,
-                          };
-                          zIndex = CURRENT_Z;
-                        } else if (order === -1) {
-                          animate = {
-                            top: TOP_PREV,
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 0.92,
-                          };
-                          zIndex = PREV_Z;
-                        } else if (order < -1) {
-                          animate = {
-                            top: '-140px',
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 0.9,
-                          };
-                          zIndex = box.id;
-                        } else if (order === 1) {
-                          animate = {
-                            top: `calc(100% - ${REVEAL_NEXT}px)`,
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 1,
-                          };
-                          zIndex = NEXT_Z;
-                        } else {
-                          animate = {
-                            top: 'calc(100% + 140px)',
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 1,
-                          };
-                          zIndex = box.id;
-                        }
-
-                        const hideInner =
-                          order >= 2 || order <= -2 || (order === 1 && !pinned);
-
-                        const isCurrent = order === 0;
-                        const isPrev = order === -1;
-                        const isNext = order === 1;
-
-                        const showDescription =
-                          !hideInner &&
-                          (isCurrent || isPrev || (isNext && !pinned));
-
-                        const showTitle =
-                          !hideInner && (isCurrent || isPrev || isNext);
-
-                        const cardHeightClass =
-                          isCurrent && box.id === 4 ? 'h-[70vh]' : 'h-[68vh]';
-
-                        return (
-                          <motion.div
-                            key={box.id}
-                            className={`mx-auto absolute bg-white rounded-2xl flex items-center justify-center w-full boxes-bg-set ${cardHeightClass}`}
-                            style={{
-                              zIndex,
-                              backgroundImage: `url(${box.bg})`,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                            }}
-                            animate={animate}
-                            initial={false}
-                            transition={{ duration: 1, ease: 'easeInOut' }} // already slow
-                          >
-                            <div
-                              className={[
-                                'p-6 rounded-lg absolute inset-0 transition-opacity duration-300',
-                                hideInner
-                                  ? 'opacity-0 pointer-events-none'
-                                  : 'opacity-100',
-                              ].join(' ')}
-                            >
-                              {showTitle && (
-                                <h3
-                                  className="text-[40px] font-normal mt-[-7px] mb-4 max-[1550px]:text-[34px]  max-[1400px]:text-[26px]"
-                                  style={{ color: box.titleColor }}
-                                >
-                                  {box.title}
-                                </h3>
-                              )}
-
-                              {showDescription && (
-                                <p
-                                  className="text-[21px] font-light max-w-5xl max-[1600px]:text-[18px]"
-                                  style={{ color: box.descColor }}
-                                >
-                                  {box.description}
-                                </p>
-                              )}
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })()
-          )}
-        </AnimatePresence>
+          );
+        })}
       </div>
-    </motion.section>
+    </section>
   );
 
   // ---------------- Partner Section ----------------
@@ -1165,296 +1174,167 @@ const Home: React.FC = () => {
     </motion.section>
   );
 
+  const numSlides2 = repboxes.length;
+  const step2 = 1 / numSlides;
+  const cardOffset2 = 40;
+
+  const howSectionRef = useRef(null);
+  const { scrollYProgress: howScrollYProgress } = useScroll({
+    target: howSectionRef,
+    offset: ['start start', 'end end'],
+  });
+
   const HowSection = (
-    <motion.section
-      id="how"
-      key="how"
-      className="relative w-full h-screen bg-[#DFF4EC] overflow-hidden"
-      onWheel={(e) => onWheelHow(e)}
-      initial={{ y: '100%' }}
-      animate={{ y: 0 }}
-      exit={{ y: '-100%' }}
-      transition={{ duration: 0.8, ease: 'easeInOut' }}
+    <section
+      ref={howSectionRef}
+      className="relative bg-transparent text-white"
+      style={{ height: `${numSlides2 * 120}vh` }}
     >
-      <div className="relative w-full h-screen max-w-[1537px] mx-auto">
-        <AnimatePresence mode="wait">
-          {howStep === 0 ? (
-            // -------- STEP 0: centered heading only --------
-            <motion.div
-              key="how-center"
-              className="absolute inset-0 flex items-center justify-center"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
-              style={{ top: '10%', left: 0, right: 0 }}
-            >
-              <div className="absolute top-0 text-center pt-5">
-                <div className="flex gap-6 justify-center items-center">
+      <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden justify-center">
+        {repboxes.map((box, i) => {
+          const start = i * step2;
+          const end = (i + 1) * step2;
+
+          const baseY = cardOffset2 * i;
+          const y = useTransform(
+            howScrollYProgress,
+            [start, end],
+            [baseY + cardOffset2, baseY]
+          );
+
+          let opacity;
+
+          if (box.id === 1 || box.id === 2) {
+            // 👇 fade in, then fade out before next slide
+            opacity = useTransform(
+              howScrollYProgress,
+              [start, start + step2 * 0.25, end - step2 * 0.15, end],
+              [0, 1, 1, 0]
+            );
+          } else {
+            // 👇 keep visible (stacked)
+            opacity = useTransform(
+              howScrollYProgress,
+              [start, start + step2 * 0.25],
+              [0, 1]
+            );
+          }
+
+          const scale = useTransform(
+            howScrollYProgress,
+            [start, end],
+            [0.97, 1]
+          );
+
+          if (box.id === 1) {
+            return (
+              <motion.div
+                key={box.id}
+                className={`mx-auto absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
+                style={{
+                  y,
+                  opacity,
+                  scale,
+                  zIndex: i + 1,
+                }}
+              >
+                <div className="flex gap-6  ">
                   <img
                     src={assets.images.hiliteIcon}
                     alt="icon"
                     className="w-[80px] h-[80px]"
                   />
                   <span className="font-normal text-[64px] text-primary">
-                    How it Works
+                    How it works
                   </span>
                 </div>
-              </div>
-            </motion.div>
-          ) : howStep === 1 ? (
-            // -------- STEP 1: heading TOP (smaller) + gradient subheading in CENTER --------
-            <motion.div
-              key="how-top-with-sub"
-              className="static inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: 'easeInOut' }}
-            >
-              {/* Heading pinned to TOP-LEFT with smaller font */}
-              <motion.div
-                className="absolute top-0 left-0 right-0  flex items-center gap-2 justify-center"
-                initial={{ y: -24, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -16, opacity: 0 }}
-                transition={{ duration: 0.45, ease: 'easeOut' }}
-                style={{ top: '10%', left: 0, right: 0 }}
-              >
-                <img
-                  src={assets.images.howorkIcon}
-                  alt="icon"
-                  className="w-[36px] h-[36px]"
-                />
-                <h2 className="text-primary font-semibold text-[26px] leading-none">
-                  How It Works
-                </h2>
               </motion.div>
+            );
+          }
 
-              {/* Center gradient subheading */}
-              <motion.p
-                className="absolute text-center text-[22px] md:text-[26px] font-normal leading-snug px-6  flex items-center gap-2 justify-center"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.45, ease: 'easeOut' }}
-                style={{ top: '20%', left: '0', right: '0' }}
+          if (box.id === 2) {
+            return (
+              <motion.div
+                key={box.id}
+                className={`mx-auto flex-col absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
+                style={{
+                  y,
+                  opacity,
+                  scale,
+                  zIndex: i + 1,
+                }}
               >
-                <span className="text-[44px] max-w-[1200px] mx-auto block text-primary leading-tight">
+                {/* <div className="flex gap-6">
+                  <img
+                    src={assets.images.hiliteIcon}
+                    alt="icon"
+                    className="w-[80px] h-[80px]"
+                  />
+                  <span className="font-normal text-[64px] text-primary">
+                    How it works
+                  </span>
+                </div> */}
+                <div className="text-[44px] mx-auto block text-primary text-center leading-tight">
                   Built for landlords, managers, and tenants—four smart portals,
                   <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
                     tailored for every role.
                   </span>
-                </span>
-              </motion.p>
-            </motion.div>
-          ) : (
-            // HOW IT WORKS — now mirrors STEP 1 (Highlights) logic
-            (() => {
-              const pinned = replicaBox >= 2; // slide 2 aate hi neighbors visible/pinned
-              const showParagraph = replicaBox === 1; // paragraph only on first slide
-              const REVEAL_NEXT = 135;
-              const TOP_PREV = '0%';
-              const CURRENT_Z = 100;
-              const NEXT_Z = 110;
-              const PREV_Z = 90;
+                </div>
+              </motion.div>
+            );
+          }
 
-              return (
-                <motion.div
-                  key="how-live"
-                  className="absolute inset-0"
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.9, ease: 'easeInOut' }} // a bit slower
+          return (
+            <motion.div
+              id="how"
+              key={box.id}
+              className={`bg-center bg-cover mx-auto absolute bg-white rounded-2xl w-10/12 h-screen flex items-center justify-center boxes-bg-set`}
+              style={{
+                backgroundImage: `url(${box.bg})`,
+                y,
+                opacity,
+                scale,
+                zIndex: i + 1,
+              }}
+              initial={false}
+              transition={{ duration: 2, ease: 'easeInOut' }}
+            >
+              <div
+                className={[
+                  'p-6 rounded-lg absolute inset-0 transition-opacity duration-300',
+                ].join(' ')}
+              >
+                <h3
+                  className="text-[40px] font-normal mt-[-7px] mb-4 max-[1550px]:text-[34px]  max-[1400px]:text-[26px]"
+                  style={{ color: box.titleColor }}
                 >
-                  {/* Header — pin like step 1, styling same as your How It Works */}
-                  <div className="px-8 pt-8 relative flex items-center gap-6 max-[576px]:flex-col">
-                    <motion.div
-                      layout
-                      className={`flex items-center gap-2 shrink-0 ${
-                        pinned
-                          ? ' left-[-50px] top-20 max-[1550px]:left-4 max-[1550px]:top-20'
-                          : ''
-                      }`}
-                      initial={false}
-                      animate={{ opacity: 1 }}
-                      transition={{
-                        layout: { duration: 0.4, ease: 'easeInOut' },
-                      }}
+                  {box.title}
+                </h3>
+
+                <p
+                  className="text-[21px] font-light max-w-5xl max-[1600px]:text-[18px]"
+                  style={{ color: box.descColor }}
+                >
+                  {box.description}
+                </p>
+
+                <ul className="list-disc pl-4 space-y-2 mt-5">
+                  {box.bullets.map((bullet, idx) => (
+                    <li
+                      key={idx}
+                      className="text-[18px] font-light"
+                      style={{ color: box.descColor }}
                     >
-                      <img
-                        src={assets.images.howorkIcon}
-                        alt="icon"
-                        className="w-[36px] h-[36px]"
-                      />
-                      <h2
-                        className={`text-primary font-semibold leading-none ${pinned ? 'text-[24px]  max-[1380px]:hidden max-[1550px]:text-[18px]' : 'text-[26px]'}`}
-                      >
-                        How It Works
-                      </h2>
-                    </motion.div>
-
-                    <AnimatePresence initial={false} mode="wait">
-                      {showParagraph && (
-                        <motion.p
-                          key="how-paragraph"
-                          className="text-primary text-[16px] font-light leading-snug pl-[56px]"
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -6 }}
-                          transition={{ duration: 0.25, ease: 'easeOut' }}
-                        >
-                          Our platform is built for landlords, managers, and
-                          tenants four smart portals, tailored for every role.
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Slides — same behavior as step 1 */}
-                  <div className="px-6 pt-4">
-                    <div className="relative w-full h-[calc(100vh-90px)] overflow-hidden max-w-[1220px] mx-auto max-[1600px]:h-[calc(100vh-60px)] max-[1550px]:max-w-[1100px]">
-                      {repboxes.map((box) => {
-                        let animate: Record<string, string | number> = {};
-                        let zIndex = 0;
-                        const order = box.id - replicaBox; // 0=current, 1=next, -1=prev
-
-                        if (order === 0) {
-                          // current centered
-                          animate = {
-                            top: '50%',
-                            left: '50%',
-                            x: '-50%',
-                            y: '-50%',
-                            scale: 0.96,
-                          };
-                          zIndex = CURRENT_Z;
-                        } else if (order === -1) {
-                          // prev at top, visible
-                          animate = {
-                            top: TOP_PREV,
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 0.92,
-                          };
-                          zIndex = PREV_Z;
-                        } else if (order < -1) {
-                          // older prev (hide further up)
-                          animate = {
-                            top: '-140px',
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 0.9,
-                          };
-                          zIndex = box.id;
-                        } else if (order === 1) {
-                          // next tail reveal
-                          animate = {
-                            top: `calc(100% - ${REVEAL_NEXT}px)`,
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 1,
-                          };
-                          zIndex = NEXT_Z;
-                        } else {
-                          // future > next (keep below)
-                          animate = {
-                            top: 'calc(100% + 140px)',
-                            left: '50%',
-                            x: '-50%',
-                            y: 0,
-                            scale: 1,
-                          };
-                          zIndex = box.id;
-                        }
-
-                        const hideInner =
-                          order >= 2 || order <= -2 || (order === 1 && !pinned);
-
-                        const isCurrent = order === 0;
-                        const isPrev = order === -1;
-                        const isNext = order === 1;
-
-                        const showTitle =
-                          !hideInner && (isCurrent || isPrev || isNext);
-                        const showDescription =
-                          !hideInner &&
-                          (isCurrent || isPrev || (isNext && !pinned));
-                        const showBullets = showDescription;
-
-                        const cardHeightClass =
-                          isCurrent && box.id === 4 ? 'h-[70vh]' : 'h-[68vh]';
-
-                        return (
-                          <motion.div
-                            key={box.id}
-                            className={`mx-auto absolute bg-white rounded-2xl  flex items-center justify-center repboxes-bg-set w-full ${cardHeightClass}`}
-                            style={{
-                              zIndex,
-                              backgroundImage: `url(${box.bg})`,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                            }}
-                            animate={animate}
-                            initial={false}
-                            transition={{ duration: 1.4, ease: 'easeInOut' }} // slower slides
-                          >
-                            <div
-                              className={[
-                                'p-6 rounded-lg absolute inset-0 transition-opacity duration-300',
-                                hideInner
-                                  ? 'opacity-0 pointer-events-none'
-                                  : 'opacity-100',
-                              ].join(' ')}
-                            >
-                              {showTitle && (
-                                <h3
-                                  className="text-[40px] font-normal mb-1 max-[1550px]:text-[34px]  max-[1400px]:text-[26px]"
-                                  style={{ color: box.titleColor }}
-                                >
-                                  {box.title}
-                                </h3>
-                              )}
-
-                              {showDescription && box.description && (
-                                <p
-                                  className="text-[21px] font-light max-w-5xl max-[1600px]:text-[18px]"
-                                  style={{ color: box.descColor }}
-                                >
-                                  {box.description}
-                                </p>
-                              )}
-
-                              {showBullets && !!box.bullets?.length && (
-                                <ul className="list-disc pl-4 space-y-2 mt-5">
-                                  {box.bullets.map((bullet, idx) => (
-                                    <li
-                                      key={idx}
-                                      className="text-[18px] font-light"
-                                      style={{ color: box.descColor }}
-                                    >
-                                      {bullet}
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })()
-          )}
-        </AnimatePresence>
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
-    </motion.section>
+    </section>
   );
 
   const NewPartnerSection = (
@@ -2062,7 +1942,7 @@ const Home: React.FC = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contact-us" className="hover:opacity-90">
+                  <Link to="/contact" className="hover:opacity-90">
                     Contact
                   </Link>
                 </li>
@@ -2146,8 +2026,8 @@ const Home: React.FC = () => {
             {HighlightSection}
             {PartnerSection}
             {WhyChooseSection}
-            {HowSection}
             {NewPartnerSection}
+            {HowSection}
             {NewAboutSection}
             {PricingSection}
             {ContactSection}
