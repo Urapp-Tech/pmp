@@ -1,0 +1,681 @@
+import { TopBar } from '@/components/TopBar';
+import { SidebarInset } from '@/components/ui/sidebar';
+
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import {
+  // ChevronDown,
+  Airplay,
+  Eye,
+  FileText,
+  Loader2,
+  Trash2,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+// import { Checkbox } from '@/components/ui/checkbox';
+import DeleteDialog from '@/components/DeletePopup';
+import { Paginator } from '@/components/Paginator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import service from '@/services/adminapp/support-maintenance';
+import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
+import { usePermission } from '@/utils/hasPermission';
+import { handleErrorMessage } from '@/utils/helper';
+import { getItem } from '@/utils/storage';
+import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
+import OfficeUsersCreationDialog from './CreateDialog';
+import StatusChangeDialog from './StatusDialog';
+import ViewDialog from './ViewDialog';
+import assets from '@/assets/images';
+
+export type Users = {
+  id: string; // UUID
+  tenant: string; // UUID representing the tenant ID
+  first_name: string;
+  last_name: string;
+  username: string; // Email is being used as a username
+  email: string; // Email address of the user
+  password: string; // Encrypted password (bcrypt hash)
+  phone: string; // Phone number of the user
+  country: string | null; // Country information, nullable
+  state: string | null; // State information, nullable
+  city: string | null; // City information, nullable
+  zipCode: string | null; // Zip code, nullable
+  role: string | null; // User role, nullable
+  avatar: string | null; // Avatar URL or path, nullable
+  address: string; // Address of the user
+  userType: 'USER' | 'ADMIN'; // Enum type to restrict values
+  isActive: boolean; // Active status of the user
+  isDeleted: boolean; // Soft delete status
+  createdAt: string; // ISO date string for creation timestamp
+  updatedAt: string; // ISO date string for update timestamp
+  status: 'open' | 'in_progress' | 'rsolved' | 'closed';
+};
+
+const ReportedTicketsList = () => {
+  const userDetails: any = getItem('USER');
+  console.log('userDetails', userDetails);
+
+  const { toast } = useToast();
+  const { can } = usePermission();
+
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('');
+  const [page, setPage] = useState(0);
+  const [pageSize] = React.useState(10);
+  const [total, setTotal] = useState(0);
+  const [list, setList] = useState<any>([]);
+  const [editFormData, setEditFormData] = useState();
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+
+  const [isLoader, setIsLoader] = useState(false);
+  const [mainIsLoader, setMainIsLoader] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
+
+  const ToastHandler = (text: string) => {
+    return toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
+      ),
+      style: {
+        backgroundColor: '#5CB85C',
+        color: 'white',
+        zIndex: 9999,
+      },
+    });
+  };
+
+  const columns: ColumnDef<Users>[] = [
+    {
+      accessorKey: 'subject',
+      header: 'SUBJECT',
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue('subject')}</div>
+      ),
+    },
+    {
+      accessorKey: 'message',
+      header: 'DESCRIPTION',
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue('message')}</div>
+      ),
+    },
+    {
+      accessorKey: 'first_name',
+      header: 'REPORTED BY',
+      cell: ({ row }) => {
+        const { first_name, last_name } = row.original;
+        return <div className="capitalize">{first_name + ' ' + last_name}</div>;
+      },
+    },
+    {
+      accessorKey: 'role_name',
+      header: 'ROLE',
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue('role_name') =="User" ? "Tenant" : row.getValue('role_name')}</div>
+      ),
+    },
+    {
+      accessorKey: 'images',
+      header: 'ATTACHMENTS',
+      cell: ({ row }) => {
+        const images = row.getValue('images') as string[] | null;
+
+        if (!images || images.length === 0) {
+          return <span className="text-gray-400 text-xs">No files</span>;
+        }
+
+        const maxVisible = 2;
+        const visibleFiles = images.slice(0, maxVisible);
+        const extraCount = images.length - maxVisible;
+
+        return (
+          <div className="flex gap-2 flex-wrap items-center">
+            {visibleFiles.map((url, idx) => {
+              const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+              const isPDF = /\.pdf$/i.test(url);
+              const isDoc = /\.(docx?|txt)$/i.test(url);
+
+              return (
+                <a
+                  key={idx}
+                  href={ASSET_BASE_URL + url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-16 h-12 border border-gray-200 rounded overflow-hidden items-center justify-center"
+                  title={url.split('/').pop()}
+                >
+                  {isImage ? (
+                    <img
+                      src={ASSET_BASE_URL + url}
+                      alt={`attachment-${idx}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : isPDF || isDoc ? (
+                    <img
+                      src={assets.images.tenantAssign}
+                      alt={`attachments`}
+                      className="w-8 h-8 object-contain"
+                    />
+                  ) : (
+                    // <FileText className="text-lunar-bg" size={20} />
+                    <span className="text-xs text-gray-500">File</span>
+                  )}
+                </a>
+              );
+            })}
+
+            {extraCount > 0 && (
+              <div className="w-12 h-12 border border-gray-200 rounded flex items-center justify-center bg-gray-100 text-sm font-medium text-gray-700">
+                +{extraCount}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: 'STATUS',
+      cell: ({ row }) => (
+        <div
+          className={`capitalize ${row.getValue('status') === 'open' ? 'bg-scrollbar text-primary-bg' : row.getValue('status') === 'in_progress' ? 'bg-primary-bg text-white' : 'bg-primary-bg text-white'} text-center w-[75px] h-[30px]  flex items-center justify-center rounded-[3px]  text-[10px] leading-normal font-semibold py-[1px] border-secondary-bg border-2`}
+        >
+          {row.getValue('status')}
+        </div>
+      ),
+    },
+    {
+      id: 'actions',
+      enableHiding: false,
+      cell: ({ row }) => {
+        // const payment = row.original;
+        const { id, status } = row.original;
+        return status === 'closed' ? null : (
+          <div className="flex justify-start items-center">
+            {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
+              <div className="pr-6">
+                <img
+                  onClick={() => handleActionMenu('status', id)}
+                  src={assets.images.propManagers}
+                  className="text-primary-bg cursor-pointer h-6 w-6"
+                />
+                {/* <Airplay
+                  className="text-lunar-bg cursor-pointer"
+                  size={20}
+                  onClick={() => handleActionMenu('status', id)}
+                /> */}
+              </div>
+            )}
+            {can(PERMISSIONS.MAINTENANCE_REQUEST.UPDATE) && (
+              <div>
+                <img
+                  onClick={() => handleActionMenu('view', id)}
+                  src={assets.images.coloredEye}
+                  className="text-primary-bg cursor-pointer h-6 w-6"
+                />
+                {/* <Eye
+                  className="text-lunar-bg cursor-pointer"
+                  onClick={() => handleActionMenu('view', id)}
+                  size={20}
+                /> */}
+              </div>
+            )}
+            {can(PERMISSIONS.MAINTENANCE_REQUEST.DELETE) && (
+              <div className="pl-3">
+                <img
+                  onClick={() => handleActionMenu('delete', id)}
+                  src={assets.images.deleted}
+                  className="text-primary-bg cursor-pointer h-6 w-6"
+                />
+                {/* <Trash2
+                  className="text-lunar-bg cursor-pointer"
+                  size={20}
+                  onClick={() => handleActionMenu('delete', id)}
+                /> */}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+
+  const handleActionMenu = (type: string, actionId: string) => {
+    // console.log('actionId', actionId, type);
+    if (type === 'status') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setStatusOpen(true);
+    }
+    if (type === 'view') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setEditOpen(true);
+    }
+    if (type === 'delete') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setDeleteOpen(true);
+    }
+  };
+
+  const fetchTickets = async () => {
+    try {
+      const resp = await service.landlordReportedList(
+        userDetails?.role.name === 'Landlord'
+          ? userDetails?.landlordId
+          : userDetails?.id,
+        userDetails?.role.name,
+        search,
+        status,
+        page,
+        pageSize
+      );
+      if (resp.data.success) {
+        setMainIsLoader(false);
+        setList(resp.data.items);
+        setTotal(resp.data.total);
+      } else {
+        setMainIsLoader(false);
+        console.log('error: ', resp.data.message);
+      }
+    } catch (error: Error | unknown) {
+      setMainIsLoader(false);
+      console.log('error: ', error);
+    }
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      fetchTickets();
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const deleteHandler = (data: any) => {
+    const userId = data.id;
+    setIsLoader(true);
+    service
+      .deleteTicket(userId)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setDeleteOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.filter((item: any) => item.id !== userId);
+          });
+          let newtotal = total;
+          setTotal((newtotal -= 1));
+          toast({
+            description: updateItem.data.message,
+            className: cn(
+              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+            ),
+            style: {
+              backgroundColor: '#FF5733',
+              color: 'white',
+            },
+          });
+        } else {
+          setIsLoader(false);
+        }
+      })
+      .catch((err: Error) => {
+        console.log('error: ', err);
+        setIsLoader(false);
+      });
+  };
+
+  const handlePageChange = async (newPage: any) => {
+    table.setPageIndex(newPage);
+    try {
+      const users = await service.list(
+        userDetails?.role.name === 'Landlord'
+          ? userDetails?.landlordId
+          : userDetails?.id,
+        userDetails?.role.name,
+        search,
+        status,
+        newPage,
+        pageSize
+      );
+      if (users.data.success) {
+        setPage(newPage);
+        setList(users.data.data.list);
+        setTotal(users.data.data.total);
+      } else {
+        ToastHandler(users.data.message);
+        console.log('error: ', users.data.message);
+      }
+    } catch (error: Error | unknown) {
+      console.log('error: ', error);
+    }
+  };
+
+  const table = useReactTable({
+    data: list ? list : [],
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  });
+
+  const createHandler = (data: any) => {
+    setIsLoader(true);
+    const formData = new FormData();
+    formData.append('subject', data.subject);
+    formData.append('message', data.message);
+    formData.append('senderId', data.senderId);
+    formData.append('senderRoleId', data.senderRoleId);
+    if (data?.images && data?.images?.length) {
+      data.images.forEach((image: any) => {
+        formData.append('images', image);
+      });
+    }
+    service
+      .create(formData)
+      .then((item) => {
+        if (item.data.success) {
+          setIsOpen(false);
+          setIsLoader(false);
+          setList([item.data.items, ...list]);
+          let newtotal = total;
+          setTotal((newtotal += 1));
+        } else {
+          setIsLoader(false);
+          ToastHandler(item.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setIsLoader(false);
+      });
+  };
+
+  const updateHandler = (data: any) => {
+    setIsLoader(true);
+    const supportId = data.id;
+    const formData = new FormData();
+    formData.append('subject', data.subject);
+    formData.append('message', data.message);
+    formData.append('senderId', data.senderId);
+    formData.append('senderRoleId', data.senderRoleId);
+    if (data?.images && data?.images?.length) {
+      data.images.forEach((image: any) => {
+        formData.append('new_images', image);
+      });
+    }
+    service
+      .update(supportId, formData)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setEditOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.map((item: any) => {
+              if (item.id === updateItem.data.items.id) {
+                item.subject = updateItem.data.items.subject;
+                item.message = updateItem.data.items.message;
+                item.images = updateItem.data.items.images;
+              }
+              return { ...item };
+            });
+          });
+          ToastHandler(updateItem.data.message);
+        } else {
+          setIsLoader(false);
+          ToastHandler(updateItem.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setIsLoader(false);
+      });
+  };
+
+  const statusChangeHandler = (data: any) => {
+    setIsLoader(true);
+    service
+      .statusChange(data)
+      .then((updateItem: any) => {
+        if (updateItem.data.success) {
+          setStatusOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.map((item: any) => {
+              if (item.id === updateItem.data.ticket_id) {
+                item.status = updateItem.data.new_status;
+              }
+              return { ...item };
+            });
+          });
+          ToastHandler(updateItem.data.message);
+        } else {
+          setIsLoader(false);
+          ToastHandler(updateItem.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setIsLoader(false);
+      });
+  };
+
+  return (
+    <div className="p-2 mt-5">
+      <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        {/* admin content page height */}
+        <div className="w-full">
+          <div className="flex items-center py-4 justify-between">
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
+              MAINTENANCE REPORTED REQUEST
+            </h2>
+            <div className="flex gap-3 items-center">
+              <Input
+                placeholder="Search Request..."
+                value={search}
+                onChange={handleChange}
+                onKeyPress={handleKeyPress}
+                className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
+              />
+              <DropdownMenu>
+                {/* {can(PERMISSIONS.MAINTENANCE_REQUEST.CREATE) && (
+                  <Button
+                    onClick={() => setIsOpen(true)}
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
+                    variant={'outline'}
+                  >
+                    + Add New
+                  </Button>
+                )} */}
+                <DropdownMenuContent align="end">
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={column.id}
+                          className="capitalize"
+                          checked={column.getIsVisible()}
+                          onCheckedChange={(value) =>
+                            column.toggleVisibility(!!value)
+                          }
+                        >
+                          {column.id}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+          <div className="rounded-md border">
+            {mainIsLoader ? (
+              <div className="flex justify-center items-center h-[50px]">
+                <Loader2 className="animate-spin" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+          {list?.length ? (
+            <div className="flex items-center justify-center space-x-2 pt-4">
+              <div className="flex-1 text-sm text-muted-foreground">
+                {/* {total} total - Page {page + 1} of {Math.ceil(total / pageSize)} */}
+              </div>
+              <div className="my-5 flex justify-center w-full">
+                <Paginator
+                  pageSize={pageSize}
+                  currentPage={page}
+                  totalPages={total}
+                  onPageChange={(pageNumber) => handlePageChange(pageNumber)}
+                  showPreviousNext
+                />
+              </div>
+            </div>
+          ) : (
+            ''
+          )}
+        </div>
+      </SidebarInset>
+      {isOpen && (
+        <OfficeUsersCreationDialog
+          isLoader={isLoader}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          callback={createHandler}
+        />
+      )}
+      {editOpen && (
+        <ViewDialog
+          // isLoader={isLoader}
+          isOpen={editOpen}
+          setIsOpen={setEditOpen}
+          formData={editFormData}
+          // callback={updateHandler}
+        />
+      )}
+      {statusOpen && (
+        <StatusChangeDialog
+          isLoader={isLoader}
+          isOpen={statusOpen}
+          setIsOpen={setStatusOpen}
+          formData={editFormData}
+          callback={statusChangeHandler}
+        />
+      )}
+      {deleteOpen && (
+        <DeleteDialog
+          isLoader={isLoader}
+          isOpen={deleteOpen}
+          setIsOpen={setDeleteOpen}
+          title={'Ticket'}
+          formData={editFormData}
+          callback={deleteHandler}
+        />
+      )}
+    </div>
+  );
+};
+
+export default ReportedTicketsList;

@@ -1,0 +1,389 @@
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from app.modules.roles.schemas import RoleOutForUserLoggedIn
+from typing import Optional, List, Union
+from uuid import UUID
+from datetime import datetime
+import re
+from fastapi import UploadFile
+
+
+class UserLogin(BaseModel):
+    email: str = Field(..., description="Email address or phone number")
+    password: str
+
+
+class UserCreate(BaseModel):
+    fname: str = Field(..., min_length=1, description="First name (only alphabets)")
+    lname: str = Field(..., min_length=1, description="Last name (only alphabets)")
+    email: EmailStr
+    password: str
+    phone: str
+    gender: str = None
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+    role_type: str = Field(None, alias="roleType")
+
+    class Config:
+        populate_by_name = True
+
+    @field_validator("fname", "lname")
+    def name_must_be_alphabets(cls, v, field):
+        if v is not None:
+
+            v_clean = v.strip()
+
+            if not all(part.isalpha() for part in v_clean.split()) or "  " in v_clean:
+                raise ValueError(
+                    f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets and single spaces."
+                )
+
+        return v
+
+    @field_validator("phone")
+    def phone_must_be_valid(cls, v):
+        if not re.fullmatch(r"^[9654]\d{7}$", v):
+            raise ValueError(
+                "Phone number must start with 9, 6, 5, or 4 and be exactly 8 digits long."
+            )
+        return v
+
+    @field_validator("password")
+    def password_strength(cls, v):
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must include at least one uppercase letter.")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must include at least one lowercase letter.")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password must include at least one number.")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+            raise ValueError("Password must include at least one special character.")
+        return v
+
+
+class UserUpdate(BaseModel):
+    fname: Optional[str] = Field(
+        None, min_length=1, description="First name (only alphabets)"
+    )
+    lname: Optional[str] = Field(
+        None, min_length=1, description="Last name (only alphabets)"
+    )
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    phone: Optional[str] = None
+    gender: Optional[str] = None
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+    role_type: Optional[str] = Field(None, alias="roleType")
+    is_active: Optional[bool] = None
+
+    class Config:
+        populate_by_name = True
+
+    @field_validator("fname", "lname")
+    def name_must_be_alphabets(cls, v, field):
+        if v is not None:
+
+            v_clean = v.strip()
+
+            if not all(part.isalpha() for part in v_clean.split()) or "  " in v_clean:
+                raise ValueError(
+                    f"{field.name.replace('_', ' ').capitalize()} must contain only alphabets and single spaces."
+                )
+
+        return v
+
+    @field_validator("phone")
+    def phone_must_be_valid(cls, v):
+        if v is not None and not re.fullmatch(r"^[9654]\d{7}$", v):
+            raise ValueError(
+                "Phone number must start with 9, 6, 5, or 4 and be exactly 8 digits long."
+            )
+        return v
+
+    @field_validator("password")
+    def password_strength(cls, v):
+        if not v:
+            return v
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must include at least one uppercase letter.")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must include at least one lowercase letter.")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password must include at least one number.")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+            raise ValueError("Password must include at least one special character.")
+        return v
+
+
+class AssignedProperties(BaseModel):
+    id: UUID
+    name: Optional[str]
+    unit_count: Optional[str | int]
+
+    class Config:
+        from_attributes = True
+
+
+class UserOut(BaseModel):
+    id: UUID
+    fname: str
+    lname: str
+    email: EmailStr
+    phone: str
+    is_landlord: bool = Field(..., alias="isLandlord")
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+    role_id: Optional[UUID] = Field(None, alias="roleId")
+    role_name: Optional[str] = Field(None, alias="roleName")
+    profile_pic: Optional[str] = Field(None, alias="profilePic")
+    gender: Optional[str]
+    is_active: bool = Field(..., alias="isActive")
+    is_verified: bool = Field(..., alias="isVerified")
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+        alias_generator = None
+
+
+class AssignedUser(BaseModel):
+    id: UUID
+    name: str
+    profilePic: Optional[str] = None
+
+
+class ManagerUserOut(BaseModel):
+    id: UUID
+    fname: str
+    lname: str
+    email: EmailStr
+    phone: str
+    is_landlord: bool = Field(..., alias="isLandlord")
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+    role_id: Optional[UUID] = Field(None, alias="roleId")
+    role_name: Optional[str] = Field(None, alias="roleName")
+    profile_pic: Optional[str] = Field(None, alias="profilePic")
+    gender: Optional[str]
+    is_active: bool = Field(..., alias="isActive")
+    is_verified: bool = Field(..., alias="isVerified")
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+    assigned_properties: Optional[List[AssignedProperties]] = Field(
+        default=None, alias="assignedProperties"
+    )
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+        alias_generator = None
+
+
+class TenantUserOut(BaseModel):
+    id: UUID
+    fname: str
+    lname: str
+    email: EmailStr
+    phone: str
+    is_landlord: bool = Field(..., alias="isLandlord")
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+    role_id: Optional[UUID] = Field(None, alias="roleId")
+    role_name: Optional[str] = Field(None, alias="roleName")
+    profile_pic: Optional[str] = Field(None, alias="profilePic")
+    gender: Optional[str]
+    is_active: bool = Field(..., alias="isActive")
+    is_verified: bool = Field(..., alias="isVerified")
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+    assignedProperty: Optional[List[str]] = []
+    assignedPropertyUnit: Optional[List[str]] = []
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+        alias_generator = None
+
+
+class UserResponseOut(BaseModel):
+    items: UserOut
+    message: str
+    success: bool
+
+    class Config:
+        from_attributes = True
+
+
+class SubscriptionMiniOut(BaseModel):
+    plan_name: Optional[str] = Field(None, alias="planName")
+    holding_properties: Optional[int] = Field(None, alias="holdingProperties")
+    is_subscribed: bool = Field(False, alias="isSubscribed")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class UserLoggedInOut(BaseModel):
+    id: UUID
+    fname: str
+    lname: str
+    email: EmailStr
+    phone: str
+    gender: Optional[str]
+
+    is_landlord: bool = Field(..., alias="isLandlord")
+    landlord_id: Optional[UUID] = Field(None, alias="landlordId")
+
+    role: Optional["RoleOutForUserLoggedIn"] = None
+
+    profile_pic: Optional[str] = Field(None, alias="profilePic")
+    is_active: bool = Field(..., alias="isActive")
+    is_verified: bool = Field(..., alias="isVerified")
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+
+    # NEW: sum of holding_properties across PAID/SUCCESS subscriptions
+    allowed_holding_properties: int = Field(0, alias="allowedHoldingProperties")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+        alias_generator = None
+
+
+class PaginatedManagerUserResponse(BaseModel):
+    success: bool
+    total: int
+    page: int
+    size: int
+    items: List[ManagerUserOut]
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class PaginatedTenantUserResponse(BaseModel):
+    success: bool
+    total: int
+    page: int
+    size: int
+    items: list[TenantUserOut]
+
+    class Config:
+        from_attributes = True
+        alias_generator = None
+        populate_by_name = True
+
+
+class UserLOV(BaseModel):
+    id: UUID
+    name: str
+
+
+class LoginResponse(BaseModel):
+    data: UserLoggedInOut
+    success: bool
+    message: str
+
+
+class TokenSchema(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class TokenRefreshRequest(BaseModel):
+    refresh_token: str
+
+
+# landlord user profile
+class SubscriptionSummaryOut(BaseModel):
+    id: UUID
+    subscription_id: Optional[UUID] = Field(
+        None, alias="subscriptionId"
+    )  # plans table id
+    plan_name: Optional[str] = Field(None, alias="planName")
+    holding_properties: Optional[int] = Field(None, alias="holdingProperties")
+    is_subscribed: bool = Field(False, alias="isSubscribed")
+    expiration_date: Optional[datetime] = Field(None, alias="expirationDate")
+    days_to_expiry: Optional[int] = Field(None, alias="daysToExpiry")
+    payment_link: Optional[str] = Field(None, alias="paymentLink")
+    status: Optional[str] = None
+    payment_status: Optional[str] = Field(None, alias="paymentStatus")
+
+    total_amount: Optional[str] = Field(None, alias="totalAmount")
+    discounted_amount: Optional[str] = Field(None, alias="discountedAmount")
+    due_amount: Optional[str] = Field(None, alias="dueAmount")
+
+    created_at: Optional[datetime] = Field(None, alias="createdAt")
+    updated_at: Optional[datetime] = Field(None, alias="updatedAt")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+# ---------- Payment History ----------
+
+
+class SubscriptionPaymentHistoryItem(BaseModel):
+    id: UUID
+    amount: float
+    currency: Optional[str] = None
+    status: str
+    payment_url: Optional[str] = Field(None, alias="paymentUrl")
+    invoice_id: Optional[UUID] = Field(None, alias="invoiceId")
+    subscription_id: Optional[UUID] = Field(None, alias="subscriptionId")
+
+    # extra meta you asked for:
+    subs_name: Optional[str] = Field(None, alias="subsName")
+    holding_properties: Optional[int] = Field(None, alias="holdingProperties")
+
+    created_at: datetime = Field(..., alias="createdAt")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class SubscriptionPaymentHistoryPage(BaseModel):
+    items: List[SubscriptionPaymentHistoryItem]
+    page: int
+    pageSize: int
+    total: int
+    totalPages: int
+    success: bool = True
+
+
+# ---------- Profile (now includes subscriptions: []) ----------
+
+
+class LandlordProfileOut(BaseModel):
+    landlordId: UUID
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    gender: Optional[str] = None
+    isVerified: Optional[bool] = None
+    createdAt: Optional[datetime] = None
+
+    # Use an ARRAY of subscriptions (remove the single 'subscription' object)
+    subscriptions: List[SubscriptionSummaryOut] = []
+
+    history: SubscriptionPaymentHistoryPage
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class LandlordProfileResponse(BaseModel):
+    data: LandlordProfileOut
+    success: bool
+    message: str

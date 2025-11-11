@@ -1,0 +1,760 @@
+import { TopBar } from '@/components/TopBar';
+import { Button } from '@/components/ui/button';
+import { SidebarInset } from '@/components/ui/sidebar';
+
+import usersService from '@/services/adminapp/users';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import {
+  ArrowUpDown,
+  Loader2,
+  // ChevronDown,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  UserRoundCheck,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+// import { Checkbox } from '@/components/ui/checkbox';
+import DeleteDialog from '@/components/DeletePopup';
+import { Paginator } from '@/components/Paginator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  //   DropdownMenuLabel,
+  //   DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import userService from '@/services/adminapp/users';
+import { getItem } from '@/utils/storage';
+import { DropdownMenuCheckboxItem } from '@radix-ui/react-dropdown-menu';
+import OfficeUsersCreationDialog from './CreateDialog';
+import OfficeUserUpdateDialog from './UpdateDialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getInitials, handleErrorMessage } from '@/utils/helper';
+import AssignUserDialog from './AssignedUnitDialog';
+import { usePermission } from '@/utils/hasPermission';
+import { ASSET_BASE_URL, PERMISSIONS } from '@/utils/constants';
+import assets from '@/assets/images';
+
+export type Users = {
+  id: string; // UUID
+  tenant: string; // UUID representing the tenant ID
+  fname: string;
+  lname: string;
+  username: string; // Email is being used as a username
+  email: string; // Email address of the user
+  password: string; // Encrypted password (bcrypt hash)
+  phone: string; // Phone number of the user
+  country: string | null; // Country information, nullable
+  state: string | null; // State information, nullable
+  city: string | null; // City information, nullable
+  zipCode: string | null; // Zip code, nullable
+  role: string | null; // User role, nullable
+  profilePic: string | null; // Avatar URL or path, nullable
+  address: string; // Address of the user
+  userType: 'USER' | 'ADMIN'; // Enum type to restrict values
+  isActive: boolean; // Active status of the user
+  isDeleted: boolean; // Soft delete status
+  createdAt: string; // ISO date string for creation timestamp
+  updatedAt: string; // ISO date string for update timestamp
+  status: 'Active' | 'InActive';
+};
+
+const PropertyManagers = () => {
+  const userDetails: any = getItem('USER');
+  const { toast } = useToast();
+  const { can } = usePermission();
+
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize] = React.useState(10);
+  const [total, setTotal] = useState(0);
+  const [list, setList] = useState<any>([]);
+  const [editFormData, setEditFormData] = useState<any>();
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+
+  const [isLoader, setIsLoader] = useState(false);
+  const [mainIsLoader, setMainIsLoader] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
+
+  const ToastHandler = (text: string) => {
+    return toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
+      ),
+      style: {
+        backgroundColor: '#5CB85C',
+        color: 'white',
+        zIndex: 9999,
+      },
+    });
+  };
+
+  const columns: ColumnDef<Users>[] = [
+    {
+      accessorKey: 'fname',
+      header: 'NAME',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <Avatar>
+            <AvatarImage
+              src={`${ASSET_BASE_URL}${row.original.profilePic}` || ''}
+              alt={row.getValue('fname') || '@fallback'}
+            />
+            <AvatarFallback>
+              {getInitials(row.getValue('fname'))}
+            </AvatarFallback>
+          </Avatar>
+          <div className="capitalize">
+            {row.getValue('fname')} {row.original?.lname}
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'email',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            EMAIL
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="lowercase">{row.getValue('email')}</div>
+      ),
+    },
+    {
+      accessorKey: 'phone',
+      header: 'PHONE',
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue('phone')}</div>
+      ),
+    },
+    {
+      accessorKey: 'isActive',
+      header: 'STATUS',
+      cell: ({ row }) => (
+        <div
+          className={`capitalize ${row.getValue('isActive') ? 'bg-scrollbar' : 'bg-primary-bg !text-[#BBF9E4]'} flex items-center justify-center rounded-[3px] text-center w-[75px] h-[30px] text-[12px] leading-normal font-semibold text-primary-bg py-[1px]`}
+        >
+          {row.getValue('isActive') ? 'Active' : 'In-Active'}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'assignedProperties',
+      header: 'ASSIGNED PROPERTIES',
+      cell: ({ row }) => {
+        const users = row.getValue('assignedProperties') as {
+          id: string;
+          name: string;
+        }[];
+
+        if (!users || users.length === 0) {
+          return (
+            <span className="text-sm text-muted-foreground">
+              Not assigned yet
+            </span>
+          );
+        }
+
+        const visibleUsers = users.slice(0, 3);
+        const remainingCount = users.length > 3 ? users.length - 3 : 0;
+
+        const colors = [
+          'bg-primary-bg',
+          'bg-scrollbar',
+          'bg-yellow-500',
+          'bg-purple-500',
+          'bg-pink-500',
+          'bg-orange-500',
+          'bg-teal-500',
+          'bg-rose-500',
+          'bg-indigo-500',
+        ];
+
+        const getColorClass = (id: string) => {
+          let hash = 0;
+          for (let i = 0; i < id.length; i++) {
+            hash = id.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          return colors[Math.abs(hash) % colors.length];
+        };
+
+        return (
+          <div className="flex items-center space-x-1">
+            <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+              {visibleUsers.map((user, index) => {
+                const bgColor = getColorClass(user.id);
+                const initial = user.name?.charAt(0).toUpperCase() || 'U';
+                return (
+                  <Avatar key={user.id + index}>
+                    <AvatarImage src={user.name ?? ''} alt={`@user-${index}`} />
+                    <AvatarFallback className={`text-white ${bgColor}`}>
+                      {initial}
+                    </AvatarFallback>
+                  </Avatar>
+                );
+              })}
+              {remainingCount > 0 && (
+                <div className="w-8 h-8 rounded-full bg-muted text-sm flex items-center justify-center font-medium border border-border">
+                  +{remainingCount}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: 'ACTIONS',
+      enableHiding: false,
+      cell: ({ row }) => {
+        // const payment = row.original;
+        const { id } = row.original;
+        return (
+          <div className="flex justify-start items-center">
+            {can(PERMISSIONS.MANAGER.UPDATE) && (
+              <>
+                <div>
+                  <img
+                    onClick={() => handleActionMenu('assign', id)}
+                    src={assets.images.propManagers}
+                    className="text-primary-bg cursor-pointer h-8 w-8"
+                  />
+                  {/* <UserRoundCheck
+                    className="text-primary-bg cursor-pointer"
+                    onClick={() => handleActionMenu('assign', id)}
+                    size={20}
+                  /> */}
+                </div>
+                <div className="pl-3">
+                  <img
+                    onClick={() => handleActionMenu('edit', id)}
+                    src={assets.images.editPencil}
+                    className="text-primary-bg cursor-pointer h-8 w-8"
+                  />
+                  {/* <Pencil
+                    className="text-primary-bg cursor-pointer"
+                    onClick={() => handleActionMenu('edit', id)}
+                    size={20}
+                  /> */}
+                </div>
+              </>
+            )}
+            {can(PERMISSIONS.MANAGER.DELETE) && (
+              <div className="pl-3">
+                <img
+                  onClick={() => handleActionMenu('delete', id)}
+                  src={assets.images.deleted}
+                  className="text-primary-bg cursor-pointer h-8 w-8"
+                />
+                {/* <Trash2
+                  className="text-primary-bg cursor-pointer"
+                  size={20}
+                  onClick={() => handleActionMenu('delete', id)}
+                /> */}
+              </div>
+            )}
+          </div>
+          // <DropdownMenu>
+          //   <DropdownMenuTrigger asChild>
+          //     <Button variant="ghost" className="h-8 w-8 p-0">
+          //       <span className="sr-only">Open menu</span>
+          //       <MoreHorizontal />
+          //     </Button>
+          //   </DropdownMenuTrigger>
+          //   <DropdownMenuContent align="end">
+          //     <DropdownMenuItem
+          //       className="cursor-pointer"
+          //       onClick={() => handleActionMenu('edit', id)}
+          //     >
+          //       Edit
+          //     </DropdownMenuItem>
+          //     <DropdownMenuItem
+          //       className="cursor-pointer"
+          //       onClick={() => handleActionMenu('delete', id)}
+          //     >
+          //       Delete
+          //     </DropdownMenuItem>
+          //   </DropdownMenuContent>
+          // </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  const handleActionMenu = (type: string, actionId: string) => {
+    if (type === 'edit') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setEditOpen(true);
+    }
+    if (type === 'delete') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setDeleteOpen(true);
+    }
+    if (type === 'assign') {
+      const editData = list.find((item: any) => item.id === actionId);
+      setEditFormData(editData);
+      setIsAssignOpen(true);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const users = await usersService.managerslist(
+        userDetails?.landlordId,
+        search,
+        page,
+        pageSize
+      );
+      if (users.data.success) {
+        setMainIsLoader(false);
+        setList(users.data.items);
+        setTotal(users.data.total);
+      } else {
+        setMainIsLoader(false);
+        // console.log('error: ', users.data.message);
+      }
+    } catch (error: Error | unknown) {
+      setMainIsLoader(false);
+      // console.log('error: ', error);
+    }
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      fetchUsers();
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const deleteUserHandler = (data: any) => {
+    const userId = data.id;
+    setIsLoader(true);
+    userService
+      .deleteUser(userId)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setDeleteOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.filter((item: any) => item.id !== userId);
+          });
+          let newtotal = total;
+          setTotal((newtotal -= 1));
+          toast({
+            description: updateItem.data.message,
+            className: cn(
+              'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+            ),
+            style: {
+              backgroundColor: '#FF5733',
+              color: 'white',
+            },
+          });
+        } else {
+          setIsLoader(false);
+        }
+      })
+      .catch((err: Error) => {
+        // console.log('error: ', err);
+        setIsLoader(false);
+      });
+  };
+
+  const handlePageChange = async (newPage: any) => {
+    table.setPageIndex(newPage);
+    const nextPage = newPage + 1;
+    try {
+      const users = await userService.managerslist(
+        userDetails?.landlordId,
+        search,
+        nextPage,
+        pageSize
+      );
+      if (users.data.success) {
+        setPage(nextPage);
+        setList(users.data.data.list);
+        setTotal(users.data.data.total);
+      } else {
+        ToastHandler(users.data.message);
+        // console.log('error: ', users.data.message);
+      }
+    } catch (error: Error | unknown) {
+      // console.log('error: ', error);
+    }
+  };
+
+  const table = useReactTable({
+    data: list ? list : [],
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  });
+
+  const createEmployeeHandler = (data: any) => {
+    // console.log('dadad', data, userDetails?.landlordId);
+
+    setIsLoader(true);
+    const formData = new FormData();
+    formData.append('fname', data.fname);
+    formData.append('lname', data.lname);
+    formData.append('email', data.email);
+    formData.append('phone', data.phone);
+    formData.append('gender', data.gender);
+    formData.append('password', data.password);
+    formData.append('roleType', data.roleType);
+    formData.append('landlordId', userDetails?.landlordId);
+    if (data.profilePic) formData.append('profilePic', data.profilePic);
+    userService
+      .create(formData)
+      .then((item) => {
+        if (item.data.success) {
+          setIsOpen(false);
+          setIsLoader(false);
+          setList([item.data.items, ...list]);
+          let newtotal = total;
+          setTotal((newtotal += 1));
+        } else {
+          setIsLoader(false);
+          ToastHandler(item.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        // console.log('error: ', err);
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setIsLoader(false);
+      });
+  };
+
+  const updateEmployeeHandler = (data: any) => {
+    const formData = new FormData();
+    formData.append('fname', data.fname);
+    formData.append('lname', data.lname);
+    formData.append('email', data.email);
+    formData.append('phone', data.phone);
+    formData.append('gender', data.gender);
+    formData.append('password', data.password);
+    formData.append('roleType', data.roleType);
+    formData.append('landlordId', userDetails?.landlordId);
+    if (data.profilePic) formData.append('profilePic', data.profilePic);
+    setIsLoader(true);
+    userService
+      .update(data.id, formData)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setEditOpen(false);
+          setIsLoader(false);
+          setList((newArr: any) => {
+            return newArr.map((item: any) => {
+              if (item.id === updateItem.data.items.id) {
+                item.fname = updateItem.data.items.fname;
+                item.lname = updateItem.data.items.lname;
+                item.email = updateItem.data.items.email;
+                item.phone = updateItem.data.items.phone;
+                item.gender = updateItem.data.items.gender;
+                item.profilePic = updateItem.data.items.profilePic;
+              }
+              return { ...item };
+            });
+          });
+          ToastHandler(updateItem.data.message);
+        } else {
+          setIsLoader(false);
+          ToastHandler(updateItem.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setIsLoader(false);
+      });
+  };
+
+  const onAssignProperties = (propertyIds: any[]) => {
+    console.log('propertyIds', propertyIds);
+
+    let obj = {
+      managerUserId: editFormData?.id,
+      assignProperties: propertyIds,
+    };
+    userService
+      .assignProperties(obj)
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          const updatedAssignments = updateItem.data.items.map((item: any) => ({
+            id: item.assign_property.id,
+            name: item.assign_property.name,
+          }));
+
+          // Extract newly assigned user IDs
+          const newAssignedUserIds = updatedAssignments.map((u: any) => u.id);
+
+          // Update ALL managers
+          setList((prev: any[]) =>
+            prev.map((manager) => {
+              // If current manager, replace with updated assignments
+              if (manager.id === editFormData?.id) {
+                return {
+                  ...manager,
+                  assignedProperties: updatedAssignments,
+                };
+              }
+
+              // Remove any users who are now assigned to the new manager
+              const filteredProperties = manager.assignedProperties?.filter(
+                (u: any) => !newAssignedUserIds.includes(u.id)
+              );
+
+              return {
+                ...manager,
+                assignedProperties: filteredProperties,
+              };
+            })
+          );
+
+          setIsAssignOpen(false);
+          setIsLoader(false);
+          ToastHandler(updateItem.data.message);
+        } else {
+          setIsLoader(false);
+          ToastHandler(updateItem.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        console.log('error: ', err);
+        ToastHandler(err?.response?.data?.message || 'Something went wrong');
+        setIsLoader(false);
+      });
+  };
+
+  return (
+    <div className=" p-2 mt-5">
+      <SidebarInset className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        {/* admin content page height */}
+        <div className="w-full">
+          <div className="flex items-center py-4 justify-between">
+            <h2 className="text-primary-bg font-semibold text-3xl leading-normal capitalize">
+              PROPERTY MANAGERS
+            </h2>
+            <div className="flex gap-3 items-center">
+              <Input
+                placeholder="Search managers..."
+                type="text"
+                name="search"
+                value={search}
+                onChange={handleChange}
+                onKeyPress={handleKeyPress}
+                className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
+              />
+              <DropdownMenu>
+                {can(PERMISSIONS.MANAGER.CREATE) && (
+                  <Button
+                    onClick={() => setIsOpen(true)}
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
+                    variant={'outline'}
+                  >
+                    + Add New
+                  </Button>
+                )}
+                <DropdownMenuContent align="end">
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={column.id}
+                          className="capitalize"
+                          checked={column.getIsVisible()}
+                          onCheckedChange={(value) =>
+                            column.toggleVisibility(!!value)
+                          }
+                        >
+                          {column.id}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+          <div className="rounded-md border">
+            {mainIsLoader ? (
+              <div className="flex justify-center items-center h-[50px]">
+                <Loader2 className="animate-spin" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+          {list?.length ? (
+            <div className="flex items-center justify-center space-x-2 pt-4">
+              <div className="flex-1 text-sm text-muted-foreground">
+                {/* {total} total - Page {page + 1} of {Math.ceil(total / pageSize)} */}
+              </div>
+              <div className="my-5 flex justify-center w-full">
+                <Paginator
+                  pageSize={pageSize}
+                  currentPage={page - 1}
+                  totalPages={total}
+                  onPageChange={(pageNumber) => handlePageChange(pageNumber)}
+                  showPreviousNext
+                />
+              </div>
+            </div>
+          ) : (
+            ''
+          )}
+        </div>
+      </SidebarInset>
+      {isOpen && (
+        <OfficeUsersCreationDialog
+          isLoader={isLoader}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          callback={createEmployeeHandler}
+        />
+      )}
+      {editOpen && (
+        <OfficeUserUpdateDialog
+          isLoader={isLoader}
+          isOpen={editOpen}
+          setIsOpen={setEditOpen}
+          formData={editFormData}
+          callback={updateEmployeeHandler}
+        />
+      )}
+      {deleteOpen && (
+        <DeleteDialog
+          isLoader={isLoader}
+          isOpen={deleteOpen}
+          setIsOpen={setDeleteOpen}
+          title={'User'}
+          formData={editFormData}
+          callback={deleteUserHandler}
+        />
+      )}
+      {isAssignOpen && (
+        <AssignUserDialog
+          isLoader={isLoader}
+          isOpen={isAssignOpen}
+          setIsOpen={setIsAssignOpen}
+          assignedProperties={
+            editFormData?.assignedProperties?.map((u: any) => u.id) || []
+          }
+          onAssignProperties={(propertyIds) => {
+            onAssignProperties(propertyIds);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+export default PropertyManagers;

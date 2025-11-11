@@ -1,0 +1,90 @@
+import { BACKOFFICE_PREFIX } from '@/utils/constants';
+import network from '@/utils/network';
+
+const USERS = 'users';
+const LANDLORD_USERS = 'landlord-users';
+const SUBSCRIBED_LANDLORDS = 'subscribed-landlords';
+const SUBSCRIPTIONS = 'subscriptions';
+
+const loginService = (userData: { email: string; password: string }) => {
+  return network.post(`${USERS}/login`, userData);
+};
+const signupService = (userData: {
+  fname: string;
+  lname: string;
+  gender: string;
+  phone: string;
+  email: string;
+  password: string;
+}) => {
+  return network.post(`landlord-users/create`, userData);
+};
+
+const systemConfig = (domain: string) => {
+  return network.get(`get/${domain}`, {}, 'system');
+};
+
+const activity = (landlordId: string) => {
+  return network.get(`dashboard/landlord-activity/${landlordId}`, {}, 'super');
+};
+
+const managerActivity = (landlordId: string, managerUserId: string) => {
+  return network.get(
+    `dashboard/manager/stats`,
+    {
+      landlord_id: landlordId,
+      user_id: managerUserId,
+    },
+    'super'
+  );
+};
+
+const tenantActivity = (userId: string) => {
+  return network.get(
+    `dashboard/tenant/stats`,
+    {
+      user_id: userId,
+    },
+    'super'
+  );
+};
+
+const getLandlordProfile = (
+  landlordId: string,
+  params?: { historyPage?: number; historySize?: number }
+) => {
+  return network.get(`users/landlords/${landlordId}/profile`, params || {});
+};
+
+const forgetPassword = (userData: { email: string }) => {
+  return network.post(`${LANDLORD_USERS}/email/verification`, userData);
+};
+
+const verifyOTP = (userData: { email: any; otp: any }) => {
+  return network.post(`${LANDLORD_USERS}/email/otp/verified`, userData);
+};
+
+const newPassword = (userData: { email: any; password: any }) => {
+  return network.post(`${LANDLORD_USERS}/new/password`, userData);
+};
+
+const cancelSubscribedLandlord = (id: any, data: { reason: any }) => {
+  return network.post(
+    `${SUBSCRIPTIONS}/${SUBSCRIBED_LANDLORDS}/cancel/${id}`,
+    data
+  );
+};
+
+export default {
+  loginService,
+  systemConfig,
+  activity,
+  signupService,
+  managerActivity,
+  tenantActivity,
+  getLandlordProfile,
+  forgetPassword,
+  verifyOTP,
+  newPassword,
+  cancelSubscribedLandlord,
+};

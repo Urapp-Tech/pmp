@@ -1,0 +1,33 @@
+export const getInitials = (name: string) => {
+  if (!name) return '';
+
+  const nameParts = name.trim().split(' ');
+  const firstInitial = nameParts[0]?.[0]?.toUpperCase() || '';
+  const secondInitial =
+    nameParts.length > 1 ? nameParts[1]?.[0]?.toUpperCase() : '';
+
+  return `${firstInitial}${secondInitial}`;
+};
+
+export function breakCamelCase(text: string): string {
+  const result = text
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/^./, (str) => str.toUpperCase());
+  return result;
+}
+
+export function handleErrorMessage(error: any): string {
+  const detail = error?.response?.data?.detail;
+
+  if (!detail) return 'Something went wrong.';
+
+  if (typeof detail === 'string') {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item?.msg || JSON.stringify(item)).join('; ');
+  }
+
+  return JSON.stringify(detail);
+}

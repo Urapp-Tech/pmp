@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .checkout-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .payment-methods {
+            margin: 20px 0;
+        }
+
+        .card-container {
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        button {
+            background-color: #006FCF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: #d9534f;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: #5cb85c;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Secure Checkout</h1>
+
+    <div class="checkout-container">
+        <h2>Payment Information</h2>
+        <div class="payment-methods">
+            <p>We accept the following payment methods:</p>
+            <div id="card-brands-logos"></div>
+        </div>
+
+        <div id="payment-ui-container">
+            <!-- Mastercard Checkout will render here -->
+        </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+        <div id="success-message" class="success" style="display: none;"></div>
+
+        <button id="pay-button" disabled>Complete Payment</button>
+    </div>
+<script src="https://src.mastercard.com/srci/integration/2/lib.js?srcDpaId=bb895fe5-0a5f-4078-9c70-8d98323587f9&locale=en_US"></script>
+
+<script src="https://src.mastercard.com/srci/integration/2/lib.js"></script>
+    <script>
+        // Configuration
+        const params = {
+            dpaId: "bb895fe5-0a5f-4078-9c70-8d98323587f9",
+            dpaData: {
+                dpaName: "My Online Store",
+                dpaPresentation: {
+                    displayName: "My Online Store Checkout"
+                }
+            },
+            dpaTransactionOptions: {
+                dpaLocale: "en_US",
+                transactionAmount: "49.99", // Example amount
+                currencyCode: "USD"
+            },
+            cardBrands: ["mastercard", "visa", "amex"], // Supported card brands
+            container: document.getElementById("payment-ui-container")
+        };
+
+        const mcCheckoutService = new MastercardCheckoutServices();
+        const payButton = document.getElementById("pay-button");
+        const errorElement = document.getElementById("error-message");
+        const successElement = document.getElementById("success-message");
+
+        // Initialize Mastercard Checkout
+        async function initializeMastercardCheckoutServices() {
+            try {
+                payButton.disabled = true;
+                errorElement.style.display = "none";
+
+                const result = await mcCheckoutService.init(params);
+                console.log("Checkout initialized:", result);
+
+                // Enable pay button once initialized
+                payButton.disabled = false;
+
+                // Display supported card brands
+                displayCardBrands(result.cardNetworks);
+
+            } catch (error) {
+                console.error("Initialization error:", error);
+                showError("Failed to initialize payment service. Please refresh the page.");
+                payButton.disabled = true;
+            }
+        }
+
+        // Display card brand logos
+        function displayCardBrands(cardNetworks) {
+            const container = document.getElementById("card-brands-logos");
+            cardNetworks.forEach(brand => {
+                const img = document.createElement("img");
+                img.src = `https://www.mastercard.us/content/dam/mccom/en-us/brandcenter/images/brand-standards/${brand.toLowerCase()}-logo.png`;
+                img.alt = brand;
+                img.style.height = "30px";
+                img.style.marginRight = "10px";
+                container.appendChild(img);
+            });
+        }
+
+        // Handle payment submission
+        payButton.addEventListener("click", async () => {
+            try {
+                payButton.disabled = true;
+                errorElement.style.display = "none";
+
+                // Show loading state
+                payButton.textContent = "Processing...";
+
+                // Process payment
+                const paymentResult = await mcCheckoutService.processPayment();
+                console.log("Payment result:", paymentResult);
+
+                // Handle successful payment
+                showSuccess("Payment successful! Thank you for your order.");
+                payButton.style.display = "none";
+
+                // Here you would typically redirect to a confirmation page
+                // or send the payment data to your backend for verification
+
+            } catch (error) {
+                console.error("Payment error:", error);
+                showError("Payment failed. " + (error.message || "Please try again."));
+                payButton.disabled = false;
+                payButton.textContent = "Complete Payment";
+            }
+        });
+
+        // Helper functions
+        function showError(message) {
+            errorElement.textContent = message;
+            errorElement.style.display = "block";
+        }
+
+        function showSuccess(message) {
+            successElement.textContent = message;
+            successElement.style.display = "block";
+        }
+
+        // Initialize on page load
+        document.addEventListener("DOMContentLoaded", initializeMastercardCheckoutServices);
+    </script>
+</body>
+
+</html>

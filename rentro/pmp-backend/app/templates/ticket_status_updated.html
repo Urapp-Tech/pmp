@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Ticket Status Updated</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: #2c3e50;
+        }
+
+        p {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .status {
+            background: #eef6ff;
+            padding: 10px;
+            border-left: 4px solid #3498db;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #888888;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Hello {{ sender_name }},</h2>
+        <p>Your <strong>{{ ticket_type }}</strong> titled <strong>{{ subject }}</strong> has been updated.</p>
+        <p class="status">New Status: {{ status.split('.')[-1].replace('_', ' ') }}</p>
+        <p>We will keep you informed of any further updates.</p>
+        <div class="footer">
+            &copy; {{ date[-4:] }} Your Company Name. All rights reserved.
+        </div>
+    </div>
+</body>
+
+</html>

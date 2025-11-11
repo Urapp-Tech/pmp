@@ -1,0 +1,199 @@
+from typing import List, Optional, Union
+from fastapi import (
+    APIRouter,
+    Depends,
+    Query,
+    Path,
+    Form,
+    HTTPException,
+    File,
+    UploadFile,
+)
+from sqlalchemy.orm import Session
+from uuid import UUID
+from datetime import date
+from pydantic import ValidationError
+from app.modules.tenants.schemas import (
+    ContractCreate,
+    ContractUpdate,
+    ContractStandardResponse,
+    ContractStandardUpdateResponse,
+    ContractApprovalIn,
+    PaginatedContractList,
+)
+from app.modules.tenants.services import (
+    create_contract_for_user,
+    update_contract_for_user,
+    approve_contract_unit,
+    select_list_contracts_by_landlord,
+    list_contracts_by_landlord,
+)
+from app.db.database import get_db
+
+router = APIRouter()
+
+
+def parse_contract_create(
+    userId: UUID = Form(...),
+    propertyUnitId: UUID = Form(...),
+    contractStart: date = Form(...),
+    contractEnd: date = Form(...),
+    rentPrice: float = Form(...),
+    rentPayDay: int = Form(...),
+    paymentCycle: str = Form(...),
+    leavingDate: Optional[date] = Form(None),
+    civilId: Optional[str] = Form(None),
+    tenantType: Optional[str] = Form(None),
+    nationality: Optional[str] = Form(None),
+    legalCase: Optional[bool] = Form(False),
+    isApproved: Optional[bool] = Form(False),
+    language: Optional[str] = Form(None),
+    # Accept BOTH keys:
+    agreementDocs: Optional[List[UploadFile]] = File(None),
+    agreementDoc_compat: Optional[List[UploadFile]] = File(None, alias="agreementDoc"),
+):
+    contract_data = ContractCreate(
+        user_id=userId,
+        property_unit_id=propertyUnitId,
+        contract_start=contractStart,
+        contract_end=contractEnd,
+        rent_price=rentPrice,
+        rent_pay_day=rentPayDay,
+        payment_cycle=paymentCycle,
+        leaving_date=leavingDate,
+        civil_id=civilId,
+        tenant_type=tenantType,
+        nationality=nationality,
+        legal_case=legalCase,
+        is_approved=isApproved,
+        language=language,
+    )
+
+    files = (agreementDocs or []) + (agreementDoc_compat or [])
+    return {"contract_data": contract_data, "agreement_docs_files": files}
+
+
+@router.post("/contract-create", response_model=ContractStandardResponse)
+def create_contract(
+    parsed: dict = Depends(parse_contract_create), db: Session = Depends(get_db)
+):
+    contract = create_contract_for_user(
+        db, parsed["contract_data"], parsed["agreement_docs_files"]
+    )
+    return {
+        "success": True,
+        "message": "Contract successfully created, need landlord approval",
+        "data": contract,
+    }
+
+
+def parse_contract_update(
+    contractId: UUID = Form(...),
+    propertyUnitId: Optional[UUID] = Form(None),
+    contractStart: Optional[date] = Form(None),
+    contractEnd: Optional[date] = Form(None),
+    rentPrice: Optional[float] = Form(None),
+    rentPayDay: Optional[int] = Form(None),
+    paymentCycle: Optional[str] = Form(None),
+    leavingDate: Optional[date] = Form(None),
+    civilId: Optional[str] = Form(None),
+    tenantType: Optional[str] = Form(None),
+    nationality: Optional[str] = Form(None),
+    legalCase: Optional[bool] = Form(None),
+    language: Optional[str] = Form(None),
+    # ⬇️ multiple files, same key
+    agreementDoc: Optional[List[UploadFile]] = File(None),
+):
+    contract_data = ContractUpdate(
+        contract_id=contractId,
+        property_unit_id=propertyUnitId,
+        contract_start=contractStart,
+        contract_end=contractEnd,
+        rent_price=rentPrice,
+        rent_pay_day=rentPayDay,
+        payment_cycle=paymentCycle,
+        leaving_date=leavingDate,
+        civil_id=civilId,
+        tenant_type=tenantType,
+        nationality=nationality,
+        legal_case=legalCase,
+        language=language,
+    )
+    return {
+        "contract_data": contract_data,
+        "agreement_docs_files": agreementDoc or [],  # always a list
+    }
+
+
+@router.post(
+    "/contract-update/{contract_id}",
+    response_model=ContractStandardUpdateResponse,
+    response_model_by_alias=True,
+)
+def update_contract(
+    contract_id: UUID,
+    parsed: dict = Depends(parse_contract_update),
+    db: Session = Depends(get_db),
+):
+    return update_contract_for_user(
+        db, contract_id, parsed["contract_data"], parsed["agreement_docs_files"]
+    )
+
+
+@router.post("/approve", summary="Approve a contract and occupy a unit")
+def approve_contract(data: ContractApprovalIn, db: Session = Depends(get_db)):
+    return approve_contract_unit(
+        db=db,
+        user_id=data.user_id,
+        property_unit_id=data.property_unit_id,
+        is_approved=data.is_approved,
+    )
+
+
+@router.get("/approved-list/{landlord_id}", response_model=PaginatedContractList)
+def get_approved_contracts(
+    landlord_id: UUID = Path(...),
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, le=100),
+    search: Optional[str] = None,
+):
+    return list_contracts_by_landlord(
+        db,
+        landlord_id=landlord_id,
+        is_approved=True,
+        page=page,
+        size=size,
+        search=search,
+    )
+
+
+@router.get("/pending-list/{landlord_id}", response_model=PaginatedContractList)
+def get_pending_contracts(
+    landlord_id: UUID = Path(...),
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, le=100),
+    search: Optional[str] = None,
+):
+    return list_contracts_by_landlord(
+        db,
+        landlord_id=landlord_id,
+        is_approved=False,
+        page=page,
+        size=size,
+        search=search,
+    )
+
+
+@router.get("/by-landlord/{landlord_id}")
+def get_contracts_by_landlord(
+    landlord_id: UUID = Path(..., description="UUID of the landlord"),
+    db: Session = Depends(get_db),
+):
+    contracts = select_list_contracts_by_landlord(db, landlord_id=landlord_id)
+    if not contracts:
+        raise HTTPException(
+            status_code=404, detail="No contracts found for this landlord"
+        )
+    return contracts

@@ -1,0 +1,254 @@
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { InvoiceFields } from '@/interfaces/invoice.interface';
+// import { InvoiceItemFields } from '@/interfaces/invoice-items.interface';
+import { Loader2, X } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { SingleSelectDropDown } from '@/components/DropDown/SingleSelectDropDown';
+import service from '@/services/adminapp/invoice';
+import { useEffect, useState } from 'react';
+import { getItem } from '@/utils/storage';
+
+interface InvoiceCreateDialogProps {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  callback: (data: InvoiceFields) => void;
+  isLoader: boolean;
+}
+
+const InvoiceCreateDialog = ({
+  isOpen,
+  setIsOpen,
+  callback,
+  isLoader,
+}: InvoiceCreateDialogProps) => {
+  const form = useForm<InvoiceFields>();
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    // setValue ,
+    formState: { errors },
+  } = form;
+  const [tenants, setTenants] = useState<{ id: string; name: string }[]>([]);
+
+  const [contracts, setContracts] = useState<[]>([]);
+
+  const cycleMap: Record<string, number> = {
+    monthly: 1,
+    quarterly: 3,
+    yearly: 12,
+  };
+
+  /**
+   * Handles the form submission for creating an invoice.
+   *
+   * @param {InvoiceFields} data - The data collected from the form,
+   * containing details required to create a new invoice.
+   *
+   * This function triggers a callback with the submitted invoice data.
+   */
+
+  const onSubmit = (data: InvoiceFields) => {
+    data.submitted_type = 'auto';
+    callback(data);
+    reset();
+  };
+
+  const userDetails: any = getItem('USER');
+  useEffect(() => {
+    const fetchTenants = async () => {
+      const res: any = await service.get_all_tanents(userDetails?.landlordId);
+      if (res?.data?.success) {
+        setContracts(res.data.items);
+        const mapped = res.data.items.map((t: any) => ({
+          id: t.id,
+          name: t.contract_number,
+        }));
+        setTenants(mapped);
+      }
+    };
+
+    fetchTenants();
+  }, []);
+
+  useEffect(() => {
+    const selectedTenant: any = contracts.find(
+      (t: any) => t.id === form.watch('tenant_id')
+    );
+    form.setValue('total_amount', selectedTenant?.rent_price, {
+      shouldValidate: true,
+    });
+    form.setValue('invoice_date', new Date().toISOString().slice(0, 10), {
+      shouldValidate: true,
+    });
+    const cycleRaw = selectedTenant?.payment_cycle || 'monthly';
+    const cycle = cycleRaw.toLowerCase();
+    const cycleMonths = cycleMap[cycle] || 1;
+    form.setValue('qty', cycleMonths, { shouldValidate: true });
+    const rentPayDay = selectedTenant?.rent_payDay || 1; // fallback to 1st of month
+    const nextDate = new Date();
+    nextDate.setMonth(nextDate.getMonth() + cycleMonths);
+    nextDate.setDate(rentPayDay);
+    const formattedDate = nextDate.toISOString().slice(0, 10); // "2025-09-05"
+    form.setValue('due_date', formattedDate, { shouldValidate: true });
+  }, [form.watch('tenant_id')]);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl !bg-transparent [&>button]:hidden"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="p-0 w-full">
+          {/* stretch across padding: -mx-6, -mt-6 matches DialogContent p-6 */}
+          <div className="h-16 rounded-tl-3xl relative flex items-center justify-center">
+            <DialogTitle className="text-primary-bg mt-2 text-4xl font-semibold tracking-wide">
+              Add New Invoice
+            </DialogTitle>
+            {/* 3) Custom rounded close button */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-2 top-6 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-primary-bg text-white shadow-md hover:opacity-90"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </DialogHeader>
+        <div className="bg-white rounded-bl-3xl px-6 pb-6 pt-5">
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="custom-form-section mt-5">
+                <div className="form-group w-full flex gap-3">
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Contract Number</FormLabel>
+                      <SingleSelectDropDown
+                        name="tenant_id"
+                        items={tenants}
+                        control={control}
+                        // value={form.watch('tenant_id') || ''}
+                        placeholder="Select Contract Number"
+                        label={'Contract Number'}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Total Amount</FormLabel>
+                      <Input
+                        readOnly
+                        {...register('total_amount', { required: 'Required' })}
+                      />
+                    </div>
+                  </FormControl>
+                </div>
+
+                <div className="form-group w-full flex gap-3"></div>
+
+                <div className="form-group w-full flex gap-3">
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Status</FormLabel>
+                      <SingleSelectDropDown
+                        control={control}
+                        name="status"
+                        // value={form.watch('status') || 'paid'}
+                        items={[
+                          { name: 'Paid', id: 'paid' },
+                          { name: 'Unpaid', id: 'unpaid' },
+                          // { name: 'Partial', id: 'partial' },
+                          { name: 'Overdue', id: 'overdue' },
+                        ]}
+                        // selectedValue={ 'paid'}
+                        label="Status"
+                        placeholder="Select Status"
+                        rules={{ required: 'Required' }}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Payment Method</FormLabel>
+                      <SingleSelectDropDown
+                        control={control}
+                        name="payment_method"
+                        items={[
+                          { name: 'Cash', id: 'cash' },
+                          { name: 'Bank', id: 'bank' },
+                          { name: 'Online', id: 'online' },
+                        ]}
+                        placeholder="Select Method"
+                        rules={{ required: 'Required' }}
+                        label={'Payment Method'}
+                      />
+                    </div>
+                  </FormControl>
+                </div>
+
+                <div className="form-group w-full flex gap-3">
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Month Qty</FormLabel>
+                      <Input type="number" readOnly {...register('qty')} />
+                    </div>
+                  </FormControl>
+
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Due Date</FormLabel>
+                      <Input type="date" readOnly {...register('due_date')} />
+                    </div>
+                  </FormControl>
+
+                  <FormControl className="m-1 w-full">
+                    <div>
+                      <FormLabel>Invoice Date</FormLabel>
+                      <Input type="date" {...register('invoice_date')} />
+                    </div>
+                  </FormControl>
+                </div>
+
+                <FormControl className="m-1 w-full">
+                  <div>
+                    <FormLabel>Description</FormLabel>
+                    <Input {...register('description')} />
+                  </div>
+                </FormControl>
+
+                <DialogFooter className="mt-6">
+                  <Button
+                    className="ml-auto w-[148px] h-[35px] bg-primary-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-white"
+                    disabled={isLoader}
+                    type="submit"
+                  >
+                    {isLoader && <Loader2 className="animate-spin mr-2" />} Add
+                    Invoice
+                  </Button>
+                </DialogFooter>
+              </div>
+            </form>
+          </Form>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default InvoiceCreateDialog;

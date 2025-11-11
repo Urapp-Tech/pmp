@@ -1,0 +1,501 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Loader2, Eye, Pencil, Trash2 } from 'lucide-react';
+import { SidebarInset } from '@/components/ui/sidebar';
+import { Paginator } from '@/components/Paginator';
+// import UnitListModal from './UnitListModal';
+import propertyService from '@/services/adminapp/property';
+import DeleteDialog from '@/components/DeletePopup';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { getItem } from '@/utils/storage';
+import UnitListModal from './UnitListModal';
+import UnitDetailsModal from './UnitDetailModal';
+import { handleErrorMessage } from '@/utils/helper';
+
+import assets from '@/assets/images';
+
+const PropertyList = () => {
+  const userDetails: any = getItem('USER');
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [searchss, setSearchKey] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [list, setList] = useState([]);
+  const [landlordList, setLandlordList] = useState([]);
+  const [requestLandlordId, setRequestLandlordId] = useState('');
+  const [mainIsLoader, setMainIsLoader] = useState(true);
+  const [search, setSearch] = useState('');
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [unitModalOpen, setUnitModalOpen] = useState(false);
+  const [isLoader, setIsLoader] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState();
+
+  const [units, setUnits] = useState([]);
+
+  // console.log('userDetails', userDetails);
+
+  const ToastHandler = (text: string) => {
+    return toast({
+      description: text,
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 z-[9999]'
+      ),
+      style: {
+        backgroundColor: '#5CB85C',
+        color: 'white',
+        zIndex: 9999,
+      },
+    });
+  };
+
+  const fetchList = async () => {
+    setIsLoader(true);
+
+    try {
+      const res = await propertyService.list(
+        requestLandlordId,
+        userDetails?.id,
+        userDetails?.roleName,
+        search,
+        page,
+        pageSize
+      );
+      if (res.data && res.data.items) {
+        setList(res.data.items);
+        setTotal(res.data.total);
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setMainIsLoader(false);
+      setIsLoader(false);
+    }
+  };
+  const fetchLandlordList = async () => {
+    setIsLoader(true);
+
+    try {
+      const res = await propertyService.getLandllord();
+      if (res.data && res.data.items) {
+        setLandlordList(res.data.items);
+      setIsLoader(false);
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setMainIsLoader(false);
+      setIsLoader(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLandlordList();
+    // fetchList();
+  }, [page]);
+  useEffect(() => {
+    fetchList();
+  }, [page, requestLandlordId]);
+  const openUnitsModal = (property: any, units: any) => {
+    setSelectedProperty(property);
+    setUnitModalOpen(true);
+    setUnits(units);
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      fetchList();
+    }
+  };
+
+  // const handleSearchKey = (e: any) => {
+  //   setSearchKey(e.target.value);
+  //   fetchList();
+  // };
+  // const handlePageChange = (p: any) => {
+  //   setPage(p);
+  //   fetchList();
+  // };
+
+  // const openUnitsModal = (property, units) => {
+  //   setSelectedProperty(property);
+  //   setUnitModalOpen(true);
+  //   setUnits(units);
+  // };
+
+  // const deleteHandler = async (id) => {
+  //   setDeleteOpen(false);
+  //   setIsLoader(true); // Start loader before request
+  //   try {
+  //     const response = await propertyService.deleteProperty(id.id);
+
+  //     if (response.data.success) {
+  //       fetchList();
+  //       toast({
+  //         description: response.data.message,
+  //         className: cn(
+  //           'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+  //         ),
+  //         style: {
+  //           backgroundColor: '#5CB85C',
+  //           color: 'white',
+  //         },
+  //       });
+  //     } else {
+  //       setIsLoader(false);
+  //     }
+  //   } catch (error) {
+  //     toast({
+  //       description: 'Failed to delete property.',
+  //       className: cn(
+  //         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+  //       ),
+  //       style: {
+  //         backgroundColor: '#D9534F',
+  //         color: 'white',
+  //       },
+  //     });
+  //   } finally {
+  //     setIsLoader(false); // Always stop loader
+  //     setDeleteOpen(false); // Ensure modal closes even on error
+  //   }
+  // };
+  // const handleActionMenu = (action, item) => {
+  //   const id = item.id;
+  //   setEditFormData(item);
+  //   if (action === 'edit') {
+  //     navigate(`/admin/property/edit/${id}`);
+  //   } else if (action === 'delete') {
+  //     setSelectedProperty(id);
+  //     setDeleteOpen(true);
+  //   }
+  // };
+
+  const handleActionMenu = (action: any, item: any) => {
+    const id = item.id;
+    setEditFormData(item);
+    if (action === 'delete') {
+      setSelectedProperty(id);
+      setDeleteOpen(true);
+    }
+  };
+
+  const deleteHandler = async (id: any) => {
+    setIsLoader(true);
+    try {
+      const response = await propertyService.deleteProperty(id.id);
+
+      if (response.data.success) {
+        setList((newArr: any) => {
+          return newArr.filter((item: any) => item.id !== id.id);
+        });
+        let newtotal = total;
+        setTotal((newtotal -= 1));
+        setIsLoader(false);
+        toast({
+          description: response.data.message,
+          className: cn(
+            'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+          ),
+          style: {
+            backgroundColor: '#5CB85C',
+            color: 'white',
+          },
+        });
+      }
+    } catch (error) {
+      toast({
+        description: 'Failed to delete property.',
+        className: cn(
+          'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'
+        ),
+        style: {
+          backgroundColor: '#D9534F',
+          color: 'white',
+        },
+      });
+    } finally {
+      setIsLoader(false);
+      setDeleteOpen(false);
+    }
+  };
+
+  const handlePageChange = async (newPage: any) => {
+    setMainIsLoader(true);
+    const nextPage = newPage + 1;
+    try {
+      const users = await propertyService.list(
+        requestLandlordId,
+        userDetails?.id,
+        userDetails?.roleName,
+        search,
+        page,
+        pageSize
+      );
+      if (users.data.success) {
+        setPage(nextPage);
+        setList(users.data.items);
+        setTotal(users.data.total);
+        setMainIsLoader(false);
+      }
+    } catch (error: Error | unknown) {
+      setMainIsLoader(false);
+      // console.log('error: ', error);
+    }
+  };
+
+  const handleStatusToggle = (userId: any, newStatus: any) => {
+    setMainIsLoader(true);
+    propertyService
+      .updateToggleStatus(userId, { is_active: newStatus })
+      .then((updateItem) => {
+        if (updateItem.data.success) {
+          setMainIsLoader(false);
+          setList((prevList: any) =>
+            prevList.map((item: any) => {
+              if (item.id === updateItem.data.property_id) {
+                const updatedProperty = {
+                  ...item,
+                  is_active: updateItem.data.is_active,
+
+                  units: item.units.map((unit: any) => ({
+                    ...unit,
+                    is_active: updateItem.data.is_active,
+                  })),
+                };
+                return updatedProperty;
+              }
+              return item;
+            })
+          );
+          ToastHandler(updateItem.data.message);
+        }
+      })
+      .catch((err: Error | any) => {
+        const error = handleErrorMessage(err);
+        ToastHandler(error);
+        setMainIsLoader(false);
+      });
+  };
+
+  return (
+    <div className="p-2 mt-5">
+      <SidebarInset className="flex flex-col gap-4 p-4 pt-0">
+        <div className="flex justify-between items-center py-4">
+          <h2 className="text-3xl font-semibold text-primary-bg">PROPERTIES</h2>
+          <div className="flex gap-3 items-center">
+            <select
+              className="mt-2 h-12 w-full rounded-xl border-0 bg-white/50 px-3 shadow-sm text-sm text-primary-bg focus-visible:ring-0"
+              value={requestLandlordId}
+              onChange={(c) => {
+                const val = c.target.value;
+                setRequestLandlordId(val); // triggers useEffect to refetch
+                setPage(1); // reset pagination on filter change
+              }}
+            >
+              {landlordList.map((ll: any) => (
+                <option value={ll.id}>
+                  {ll.title || ll.name || 'Untitled landlord'}
+                </option>
+              ))}
+            </select>
+            <Input
+              placeholder="Search properties..."
+              value={search}
+              onChange={handleChange}
+              onKeyPress={handleKeyPress}
+              className="w-[461px] h-[35px] rounded-[23px] bg-mars-bg/50"
+            />
+            {/* <Input
+              placeholder="Search properties..."
+              value={search}
+              onKeyUp={handleSearchKey}
+              className="w-[300px] rounded-full bg-mars-bg/50"
+            /> */}
+            {/* {can(PERMISSIONS.PROPERTY.CREATE) && (
+              <Button
+                onClick={() => navigate('/admin/property/add')}
+                className="ml-auto w-[148px] h-[35px] bg-venus-bg rounded-[20px] text-[12px] leading-[16px] font-semibold text-quinary-bg"
+                variant={'outline'}
+              >
+                + Add New
+              </Button>
+            )} */}
+          </div>
+        </div>
+
+        <div className="rounded-md border">
+          {mainIsLoader ? (
+            <div className="flex justify-center items-center h-[50px]">
+              <Loader2 className="animate-spin" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Landlord Name</TableHead>
+                  <TableHead>Address</TableHead>
+                  {/* <TableHead>Status</TableHead> */}
+                  {/* <TableHead>Units</TableHead> */}
+                  <TableHead className="text-center">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {list.length > 0 ? (
+                  list.map((item: any) => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell className="capitalize">
+                        {item.landlord_name}
+                      </TableCell>
+                      <TableCell>{item.address}</TableCell>
+                      {/* <TableCell>{item.status}</TableCell> */}
+                      {/* <TableCell>
+                        <div className=" flex">
+                          <span className="bg-blue-500 mt-3 text-center text-white w-[18px] h-[18px] rounded-[30px] text-[10px] leading-normal font-semibold  py-[1px]">
+                            {item.units.length}
+                          </span>
+                        </div>{' '}
+                      </TableCell> */}
+                      <TableCell>
+                        <div className="flex justify-center items-center">
+                          <div className="pl-3">
+                            {/* <Trash2
+                              className="text-lunar-bg cursor-pointer"
+                              size={20}
+                              onClick={() => handleActionMenu('delete', item)}
+                            /> */}
+                            <label className="inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={item.is_active}
+                                onChange={() =>
+                                  handleStatusToggle(item.id, !item.is_active)
+                                }
+                              />
+                              <div
+                                className="
+      relative w-16 h-8 rounded-[5px] bg-[#424256]
+      transition-colors duration-300
+      peer-checked:bg-primary-bg
+      after:content-[''] after:absolute after:top-1 after:left-1
+      after:h-6 after:w-6 after:bg-white after:rounded-full
+      after:transition-transform after:duration-300 after:ease-in-out
+      after:shadow-sm
+      peer-checked:after:translate-x-8
+    "
+                              />
+                            </label>
+                            {/* <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={item.is_active}
+                                onChange={() =>
+                                  handleStatusToggle(item.id, !item.is_active)
+                                }
+                              />
+                              <div
+                                className="w-11 h-6 bg-bodyBackground rounded-full
+                                    peer peer-checked:bg-primary-bg
+                                    transition-colors duration-300"
+                              />
+                              <div
+                                className="absolute left-1 top-1 w-4 h-4 bg-primary-bg peer-checked:bg-white rounded-full
+                                      transition-transform duration-300 ease-in-out
+                                      transform peer-checked:translate-x-5"
+                              />
+                            </label> */}
+                          </div>
+                          <div>
+                            <img
+                              onClick={() => {
+                                setSelectedProperty(item); // not item.id
+                                setUnitModalOpen(true);
+                              }}
+                              src={assets.images.coloredEye}
+                              className="ml-16 text-primary-bg cursor-pointer h-8 w-8"
+                            />
+                            {/* <Eye
+                              className="pl-3 cursor-pointer text-primary-bg w-[40px] h-[40px]"
+                              onClick={() => {
+                                setSelectedProperty(item); // not item.id
+                                setUnitModalOpen(true);
+                              }}
+                            /> */}
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-6">
+                      No properties found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+
+        <div className="my-5 flex justify-center">
+          <Paginator
+            pageSize={pageSize}
+            currentPage={page - 1}
+            totalPages={total}
+            onPageChange={handlePageChange}
+            showPreviousNext
+          />
+        </div>
+      </SidebarInset>
+
+      {unitModalOpen && (
+        <UnitListModal
+          open={unitModalOpen}
+          setOpen={setUnitModalOpen}
+          property={selectedProperty}
+          units={units}
+        />
+      )}
+      {deleteOpen && (
+        <DeleteDialog
+          isOpen={deleteOpen}
+          setIsOpen={setDeleteOpen}
+          title={'Property'}
+          isLoader={isLoader}
+          formData={editFormData}
+          callback={deleteHandler}
+        />
+      )}
+      {unitModalOpen && (
+        <UnitDetailsModal
+          open={unitModalOpen}
+          onClose={() => setUnitModalOpen(false)}
+          property={selectedProperty}
+        />
+      )}
+    </div>
+  );
+};
+
+export default PropertyList;

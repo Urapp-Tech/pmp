@@ -1,0 +1,432 @@
+/* eslint-disable react-refresh/only-export-components */
+import AppLayout from '@/layout/AppLayout';
+import AuthLayout from '@/layout/AuthLayout';
+import LayoutOutlet from '@/layout/LayoutOutlet';
+import Login from '@/pages/auth/Login';
+import PanelSetting from '@/pages/setting/panelSetting';
+import SystemConfiguration from '@/pages/setting/systemConfiguration';
+import { lazy, Suspense } from 'react';
+import { Navigate, RouteObject } from 'react-router';
+import Otp from './pages/auth/Otp';
+import AddRolePermissionsPage from '@/pages/role-permissions/AddRolePermissionsPage';
+import UpdateRolePermissionPage from '@/pages/role-permissions/UpdateRolePermissionPage';
+import PropertyManagers from '@/pages/property-management/List';
+// import Users from './pages/landlord-users/List';
+import Invoices from './pages/invoices/List';
+import Receipts from './pages/security-logs/List';
+import UnverifiedUsers from './pages/tenant-users/UnverifiedList';
+import InvoiceDetail from './pages/reports/InvoiceDetail';
+import TenantUsers from './pages/tenant-users/List';
+import InvoiceReport from './pages/reports/InvoiceReport';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import NewPassword from './pages/auth/NewPassword';
+import ReportGraphPage from './pages/reports/ReportGraphPage';
+import Contacts from '@/pages/contact-us/Contact';
+import ProfilePage from './pages/profile';
+import BankTransaction from './pages/bank-transaction/List';
+import SubLandlords from './pages/subscribed-landlords/List';
+import LandlordPayments from './pages/landlord-payments/List';
+
+const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
+const RolePermissions = lazy(
+  () => import('@/pages/role-permissions/RolePermissions')
+);
+const Blogs = lazy(() => import('@/pages/support-feedback/List'));
+
+export const routeObjects: RouteObject[] = [
+  {
+    path: '/',
+    element: <LayoutOutlet />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="auth" replace />,
+      },
+      {
+        path: 'auth',
+        element: <AuthLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="login" replace />,
+          },
+          {
+            path: 'login',
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <Login />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'forgot-password',
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <ForgotPassword />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'new-password',
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <NewPassword />
+              </Suspense>
+            ),
+          },
+
+          {
+            path: 'otp',
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <Otp />
+              </Suspense>
+            ),
+          },
+        ],
+      },
+      {
+        // path: '',
+        element: <AppLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="dashboard" replace />,
+          },
+          {
+            path: 'dashboard',
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <Dashboard />
+              </Suspense>
+            ),
+          },
+          // {
+          //   path: 'l-users',
+          //   children: [
+          //     {
+          //       index: true,
+          //       element: <Navigate to="list" replace />,
+          //     },
+          //     {
+          //       path: 'list',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <Users />
+          //         </Suspense>
+          //       ),
+          //     },
+          //     {
+          //       path: 'request-list',
+          //       element: (
+          //         <Suspense fallback={<div>Loading...</div>}>
+          //           <UnverifiedUsers />
+          //         </Suspense>
+          //       ),
+          //     },
+          //   ],
+          // },
+          {
+            path: 'users',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <TenantUsers />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'landlord-request',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <UnverifiedUsers />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'subscribed-landlords',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <SubLandlords />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'landlord-payments',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <LandlordPayments />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'bank-transaction',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <BankTransaction />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'profile',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ProfilePage />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'property-management',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <PropertyManagers />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'invoices',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Invoices />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'detail/:invoiceId',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <InvoiceDetail />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'reports',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="invoices" replace />,
+              },
+              {
+                path: 'invoices',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <InvoiceReport />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'analytics',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ReportGraphPage />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'subscription-management',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Invoices />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'contact-us',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Contacts />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'security-and-logs',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Receipts />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'role-permissions',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <RolePermissions />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'add',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <AddRolePermissionsPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'edit/:roleId',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <UpdateRolePermissionPage />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'support-and-feedback',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="list" replace />,
+              },
+              {
+                path: 'list',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Blogs />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: 'setting',
+            children: [
+              {
+                index: true,
+                element: <Navigate to="panel-settings" replace />,
+              },
+              {
+                path: 'panel-settings',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <PanelSetting />
+                  </Suspense>
+                ),
+              },
+              {
+                path: 'system-configuration',
+                element: (
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <SystemConfiguration />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/',
+    element: <Navigate to="/auth" replace />,
+  },
+];
