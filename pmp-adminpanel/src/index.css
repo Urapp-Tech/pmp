@@ -1531,6 +1531,14 @@
   width: 18px;
 }
 
+.bg-acive {
+  background: linear-gradient(
+    90.54deg,
+    rgba(0, 205, 141, 1) 16.579997539520264%,
+    rgba(22, 101, 216, 1) 90.82000255584717%
+  );
+}
+
 /* .price-step{
     background-image: url('./assets/images/bg/price-bottom.png');
     background-repeat: no-repeat;
