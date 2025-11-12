@@ -15,7 +15,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { getItem } from '@/utils/storage';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { PERMISSIONS } from '@/utils/constants';
 import { hasPermission } from '@/utils/hasPermission';
@@ -33,10 +33,8 @@ export function MainSidebar({
   const appState: any = useSelector((state: any) => state.appState);
   const shop: any = getItem('SHOP_TENANT');
   const userRoles: any = getItem('USER');
-  // console.log('authState', userRoles?.role);
 
   const rolePermissions = userRoles?.role?.permissions || [];
-
   const userRole = userRoles?.role?.name;
 
   const navItems = [
@@ -96,13 +94,6 @@ export function MainSidebar({
         },
       ],
     },
-    // {
-    //   title: 'Landlord User Roles',
-    //   url: '/admin-panel/role-permissions',
-    //   icon: assets.images.rolePermissionsSidebarIcon,
-    //   permission: PERMISSIONS.ROLE.VIEW,
-    //   items: [],
-    // },
     {
       title: 'PLAN FLEXIBILITY',
       url: '/admin-panel/feedback',
@@ -172,13 +163,6 @@ export function MainSidebar({
       permission: PERMISSIONS.FINANCIAL_REPORT.VIEW,
       items: [],
     },
-    // {
-    //   title: 'Rental Collection',
-    //   url: '/admin/rental-collection',
-    //   icon: assets.images.rolePermissionsSidebarIcon,
-    //   permission: PERMISSIONS.RENTAL_COLLECTION.VIEW,
-    //   items: [],
-    // },
     {
       title: 'MY RENTAL INVOICES',
       url: '/admin-panel/invoices',
@@ -188,75 +172,6 @@ export function MainSidebar({
       role: ['User'],
     },
   ];
-
-  // parent oriented
-  // const filteredNavItems = navItems.filter(
-  //   (item) =>
-  //     !item.permission || hasPermission(rolePermissions, item.permission)
-  // );
-
-  // parent and their items oriented
-  // const filteredNavItems = navItems
-  //   .map((item) => {
-  //     // Filter sub-items if they exist and have permission field
-  //     const hasSubItems = Array.isArray(item.items) && item.items.length > 0;
-
-  //     const filteredItems = hasSubItems
-  //       ? item.items.filter(
-  //           (subItem: any) =>
-  //             !subItem.permission ||
-  //             hasPermission(rolePermissions, subItem.permission)
-  //         )
-  //       : item.items; // keep empty [] or undefined as-is
-
-  //     return {
-  //       ...item,
-  //       items: filteredItems,
-  //     };
-  //   })
-  //   .filter((item) => {
-  //     const hasPermissionForItem =
-  //       !item.permission || hasPermission(rolePermissions, item.permission);
-
-  //     // ⚠️ Keep items with no sub-items OR with valid sub-items
-  //     const subItemsValid =
-  //       !Array.isArray(item.items) || item.items.length >= 0;
-
-  //     return hasPermissionForItem && subItemsValid;
-  //   });
-
-  // parent and their items oriented with role and permissions
-  // const filteredNavItems = navItems
-  //   .map((item) => {
-  //     const hasSubItems = Array.isArray(item.items) && item.items.length > 0;
-
-  //     const filteredItems = hasSubItems
-  //       ? item.items.filter((subItem: any) => {
-  //           // 🎯 Check permission OR role
-  //           const hasPermissionAccess =
-  //             !subItem.permission ||
-  //             hasPermission(rolePermissions, subItem.permission);
-  //           const hasRoleAccess = !subItem.role || subItem.role === userRole;
-
-  //           return hasPermissionAccess && hasRoleAccess;
-  //         })
-  //       : item.items;
-
-  //     return {
-  //       ...item,
-  //       items: filteredItems,
-  //     };
-  //   })
-  //   .filter((item: any) => {
-  //     const hasPermissionAccess =
-  //       !item.permission || hasPermission(rolePermissions, item.permission);
-  //     const hasRoleAccess = !item.role || item.role === userRole;
-
-  //     const hasVisibleSubItems =
-  //       !Array.isArray(item.items) || item.items.length >= 0;
-
-  //     return hasPermissionAccess && hasRoleAccess && hasVisibleSubItems;
-  //   });
 
   const filteredNavItems = navItems
     .map((item) => {
@@ -334,10 +249,7 @@ export function MainSidebar({
         <NavMain items={data.navMain} />
       </SidebarContent>
       {/* <SidebarFooter className="my-3">
-        <FooterNavUser
-          // media={shop ? shop?.media : media ? media : {}}
-          user={data.user}
-        />
+        <FooterNavUser user={data.user} />
       </SidebarFooter> */}
       {/* <SidebarRail /> */}
     </Sidebar>
