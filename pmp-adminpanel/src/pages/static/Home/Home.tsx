@@ -90,17 +90,9 @@ const defaultPlans: Plan[] = [
 const Home: React.FC = () => {
   const authState: any = useSelector((state: any) => state.authState);
 
-  const [currentBox, setCurrentBox] = useState(1); // active box (1–4)
-  const [howStep, setHowStep] = useState(0); // 0 = heading center, 1 = heading top + text center
-  const [replicaBox, setReplicaBox] = useState(1); // Replica stacked boxes ke liye
   const [pricingStep, setPricingStep] = useState(1);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 991);
   const [hideBottomImg, setHideBottomImg] = useState(false);
-  const [hideHLBottomImg, setHideHLBottomImg] = useState(false);
-  const [hideHowBottomImg, setHideHowBottomImg] = useState(false);
-
-  // Local step for Highlights (decoupled from howStep)
-  const [hlStep, setHlStep] = useState(0);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -300,26 +292,9 @@ const Home: React.FC = () => {
     },
   ];
 
-  const TOTAL_HIGHLIGHT = useMemo(() => boxes?.length ?? 4, [boxes]);
-  const TOTAL_REPLICA = useMemo(() => repboxes?.length ?? 4, [repboxes]);
-
-  // ---- SLOWER scroll tuning (slides + page) ----
-  // Pehle se existing constants ko bas slow kiya gaya hai:
-  const SCROLL_COOLDOWN = 1400; // ms (zyada wait = slower step)
-  const WHEEL_THRESHOLD = 160; // trigger ke liye zyada delta chahiye
-  const STEP_SCROLL_SCALE = 0.55; // delta soften (kam = slow)
-
-  // Local slide wheel locks + accumulators
-  const wheelLockHlRef = useRef(false);
-  const wheelLockHowRef = useRef(false);
-  const wheelAccumHlRef = useRef(0);
-  const wheelAccumHowRef = useRef(0);
-
   const handleToggle = () => {
     setBillingCycle((prev) => (prev === 'annual' ? 'monthly' : 'annual'));
   };
-  // new scroll 11-1025
-
   // ===== Global Slow Scroll — pauses inside #highlights and #how =====
   const slowScrollState = useRef({
     targetY: typeof window !== 'undefined' ? window.scrollY : 0,
@@ -513,10 +488,20 @@ const Home: React.FC = () => {
   useEffect(() => {
     const calcBounds = () => {
       const startEl = document.getElementById('highlights'); // nav starts here
+      let start = -40;
+      if (startEl) {
+        const startElRect = startEl.getBoundingClientRect();
+        start = startElRect.top - 40;
+      }
       const endEl = document.getElementById('footer'); // nav hides before footer
+      let end = -40;
+      if (endEl) {
+        const endElRect = endEl.getBoundingClientRect();
+        end = endElRect.top - 40;
+      }
       // small safety offsets so it feels natural
-      const start = (startEl?.offsetTop ?? 0) - 40;
-      const end = (endEl?.offsetTop ?? Number.POSITIVE_INFINITY) - 40;
+      // console.log('start :>> ', start);
+      // console.log('end :>> ', end);
       navBoundsRef.current = { start, end };
     };
 
@@ -528,7 +513,7 @@ const Home: React.FC = () => {
         // use viewport "focus line" ~40% from top to decide which zone we're in
         const focus = y + vh * 0.4;
         const { start, end } = navBoundsRef.current;
-        const shouldShow = focus >= start && focus < end;
+        const shouldShow = focus > start && focus < end;
         setShowSideNav(shouldShow);
         navRafRef.current && cancelAnimationFrame(navRafRef.current);
         navRafRef.current = 0;
@@ -634,176 +619,26 @@ const Home: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const lastYScroll = useRef(0);
-  const lockPageScroll = () => {
-    // Apply styles to freeze scroll
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${lastYScroll.current}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    // optional: keep width full
-    document.body.style.width = '100%';
-    // Cancel any running smooth animation and sync target to saved position
-  };
-
-  const unlockPageScroll = () => {
-    // remove the locking styles
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.left = '';
-    document.body.style.right = '';
-    document.body.style.width = '';
-    const rect = highlightsRef.current?.getBoundingClientRect();
-    window.scrollTo({
-      top: (highlightsRef.current?.clientTop ?? 0) + (rect?.height ?? 0) + 512,
-      behavior: 'smooth',
-    });
-    // restore scroll to the same place
-    // sync target so page smooth-scroll resumes naturally from this point
-  };
-
-  // Local wheel handlers for slide sections only (landing layout)
-  const onWheelHighlight = (e: React.WheelEvent) => {
-    // jab slider engaged ho, page scroll hamesha block
-    if (hlStep === 1) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    if (wheelLockHlRef.current) return;
-
-    // soften delta (smooth feeling) — slower
-    wheelAccumHlRef.current += e.deltaY * STEP_SCROLL_SCALE;
-    if (wheelLockHlRef.current) return;
-    wheelAccumHlRef.current += e.deltaY;
-
-    const abs = Math.abs(wheelAccumHlRef.current);
-    const dir = wheelAccumHlRef.current > 0 ? 1 : -1;
-    const rect = highlightsRef.current?.getBoundingClientRect();
-    lastYScroll.current =
-      (highlightsRef.current?.clientTop ?? 0) + (rect?.height ?? 0) - 64;
-    lockPageScroll();
-
-    // While inside slides (hlStep===1), block tiny wheel to avoid pixel scrolling
-    if (hlStep === 1 && abs < WHEEL_THRESHOLD) {
-      e.preventDefault();
-      return;
-    }
-
-    if (abs < WHEEL_THRESHOLD) return; // ignore tiny wheel elsewhere
-
-    // threshold reached; reset accumulator
-    wheelAccumHlRef.current = 0;
-
-    if (dir > 0) {
-      if (hlStep === 0) {
-        setHlStep(1);
-        setHideHLBottomImg(true);
-        e.preventDefault();
-      } else if (currentBox < TOTAL_HIGHLIGHT) {
-        setCurrentBox((p) => Math.min(TOTAL_HIGHLIGHT, p + 1));
-        e.preventDefault();
-      } else {
-        // last slide → allow page to scroll to next section
-        unlockPageScroll();
-        return;
-      }
-    } else {
-      if (hlStep === 1) {
-        if (currentBox > 1) {
-          setCurrentBox((p) => Math.max(1, p - 1));
-          e.preventDefault();
-        } else {
-          setHlStep(0);
-          setHideHLBottomImg(false);
-          e.preventDefault();
-        }
-      } else {
-        unlockPageScroll();
-        // at intro, allow page to scroll to previous section
-        return;
-      }
-    }
-
-    // lock after consuming to avoid rapid double-steps (slower)
-    wheelLockHlRef.current = true;
-    setTimeout(() => (wheelLockHlRef.current = false), SCROLL_COOLDOWN);
-  };
-
-  const onWheelHow = (e: React.WheelEvent) => {
-    if (howStep === 1 || howStep === 2) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    if (wheelLockHowRef.current) return;
-
-    // soften delta — slower
-    wheelAccumHowRef.current += e.deltaY * STEP_SCROLL_SCALE;
-    if (wheelLockHowRef.current) return;
-    wheelAccumHowRef.current += e.deltaY;
-
-    const abs = Math.abs(wheelAccumHowRef.current);
-    const dir = wheelAccumHowRef.current > 0 ? 1 : -1;
-
-    // While in HOW (step 1 or 2), block tiny wheel to avoid pixel scrolling
-    if ((howStep === 1 || howStep === 2) && abs < WHEEL_THRESHOLD) {
-      e.preventDefault();
-      return;
-    }
-
-    if (abs < WHEEL_THRESHOLD) return; // ignore tiny wheel elsewhere
-
-    // threshold reached; reset accumulator
-    wheelAccumHowRef.current = 0;
-
-    if (dir > 0) {
-      if (howStep === 0) {
-        setHowStep(1);
-        setHideHowBottomImg(false); // show bottom at step-1
-        e.preventDefault();
-      } else if (howStep === 1) {
-        setHowStep(2);
-        setHideHowBottomImg(true); // entering slides
-        e.preventDefault();
-      } else if (replicaBox < TOTAL_REPLICA) {
-        setReplicaBox((p) => Math.min(TOTAL_REPLICA, p + 1));
-        e.preventDefault();
-      } else {
-        // last slide → allow page to scroll further
-        return;
-      }
-    } else {
-      if (howStep === 2) {
-        if (replicaBox > 1) {
-          setReplicaBox((p) => Math.max(1, p - 1));
-          e.preventDefault();
-        } else {
-          setHowStep(1);
-          setHideHowBottomImg(false);
-          e.preventDefault();
-        }
-      } else if (howStep === 1) {
-        setHowStep(0);
-        e.preventDefault();
-      } else {
-        // at step 0, allow page to scroll upward out of section
-        return;
-      }
-    }
-
-    // lock after consuming (slower)
-    wheelLockHowRef.current = true;
-    setTimeout(() => (wheelLockHowRef.current = false), SCROLL_COOLDOWN);
-  };
-
   // Active-section tracking for Fixed Section Nav
   const [activeSection, setActiveSection] = useState<string | null>(null);
   useEffect(() => {
-    const ids = ['highlights', 'why', 'how', 'about', 'pricing', 'contact'];
+    const ids = [
+      'hero',
+      'highlights',
+      'why',
+      'how',
+      'about',
+      'pricing',
+      'contact',
+    ];
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setActiveSection((entry.target as HTMLElement).id);
+          }
+          if ((entry.target as HTMLElement).id === 'hero') {
+            setActiveSection(null);
           }
         });
       },
@@ -822,7 +657,6 @@ const Home: React.FC = () => {
     handleSubmit,
     formState: { errors },
     reset,
-    getValues,
   } = useForm<ContactFields>({
     defaultValues: {
       email: '',
@@ -834,55 +668,6 @@ const Home: React.FC = () => {
     },
     mode: 'onBlur',
   });
-
-  // Final normalization + cross-field rules
-  const validateContact = (raw: ContactFields) => {
-    const data = {
-      email: (raw.email || '').trim().replace(/\s+/g, ''),
-      phone: (raw.phone || '').trim().replace(/\s+/g, ''),
-      fname: (raw.fname || '').trim(),
-      lname: (raw.lname || '').trim(),
-      message: (raw.message || '').trim(),
-      agree: !!raw.agree,
-    };
-
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-    const phoneDigits = data.phone.replace(/[^\d+]/g, '');
-    const phoneRe = /^(?:\+?\d{1,3})?\d{7,14}$/;
-
-    if (!data.fname || data.fname.length < 2)
-      return { ok: false as const, msg: 'Please enter a valid first name.' };
-    if (!data.lname || data.lname.length < 2)
-      return { ok: false as const, msg: 'Please enter a valid last name.' };
-    if (!data.email || !emailRe.test(data.email))
-      return { ok: false as const, msg: 'Please enter a valid email address.' };
-    if (!data.phone || !phoneRe.test(phoneDigits))
-      return { ok: false as const, msg: 'Please enter a valid phone number.' };
-    if (!data.message || data.message.length < 10)
-      return {
-        ok: false as const,
-        msg: 'Message must be at least 10 characters.',
-      };
-    if (data.message.length > 2000)
-      return {
-        ok: false as const,
-        msg: 'Message is too long (max 2000 characters).',
-      };
-    if (!data.agree)
-      return {
-        ok: false as const,
-        msg: 'Please agree to receive communications.',
-      };
-
-    return { ok: true as const, data };
-  };
-  // useSlowPageScroll({
-  //   speed: 0.12, // smaller = slower
-  //   maxStep: 120, // clamp per wheel tick
-  //   scale: 0.22, // how far each tick moves the target
-  //   exclude: ['#highlights', '#how'], // let these sections handle their own wheel
-  //   visibleThreshold: 0.9,
-  // });
 
   const onSubmit = async (data: any) => {
     setIsLoader(true);
@@ -911,8 +696,6 @@ const Home: React.FC = () => {
       setIsLoader(false);
     }
   };
-
-  const highlightsRef = useRef<HTMLElement | null>(null);
 
   const HeroSection = (
     <motion.section
@@ -982,7 +765,10 @@ const Home: React.FC = () => {
       className="relative bg-transparent text-white"
       style={{ height: `${numSlides * 120}vh` }}
     >
-      <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden justify-center">
+      <div
+        id="highlights"
+        className="sticky top-0 h-screen w-full flex items-center overflow-hidden justify-center"
+      >
         {boxes.map((box, i) => {
           const start = i * step;
           const end = (i + 1) * step;
@@ -1017,13 +803,16 @@ const Home: React.FC = () => {
           if (box.id === 1) {
             return (
               <motion.div
-                id="highlights"
                 key={box.id}
                 className={`mx-auto absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
                 style={{
                   y,
-                  opacity,
-                  scale,
+                  opacity: useTransform(
+                    scrollYProgress,
+                    [start, start + step * 0.25, end - step * 0.15, end],
+                    [1, 1, 1, 0]
+                  ),
+                  scale: 1,
                   zIndex: i + 1,
                 }}
               >
@@ -1190,7 +979,10 @@ const Home: React.FC = () => {
       className="relative bg-transparent text-white"
       style={{ height: `${numSlides2 * 120}vh` }}
     >
-      <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden justify-center">
+      <div
+        id="how"
+        className="sticky top-0 h-screen w-full flex items-center overflow-hidden justify-center"
+      >
         {repboxes.map((box, i) => {
           const start = i * step2;
           const end = (i + 1) * step2;
@@ -1233,8 +1025,12 @@ const Home: React.FC = () => {
                 className={`mx-auto absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
                 style={{
                   y,
-                  opacity,
-                  scale,
+                  opacity: useTransform(
+                    howScrollYProgress,
+                    [start, start + step * 0.25, end - step * 0.15, end],
+                    [1, 1, 1, 0]
+                  ),
+                  scale: 1,
                   zIndex: i + 1,
                 }}
               >
@@ -1286,7 +1082,6 @@ const Home: React.FC = () => {
 
           return (
             <motion.div
-              id="how"
               key={box.id}
               className={`bg-center bg-cover mx-auto absolute bg-white rounded-2xl w-10/12 h-screen flex items-center justify-center boxes-bg-set`}
               style={{
@@ -2064,16 +1859,6 @@ const Home: React.FC = () => {
                       <button
                         key={item.key}
                         onClick={() => {
-                          if (item.key === 'highlights') {
-                            setHlStep(0);
-                            setCurrentBox(1);
-                            setHideHLBottomImg(false);
-                          }
-                          if (item.key === 'how') {
-                            setHowStep(0);
-                            setReplicaBox(1);
-                            setHideHowBottomImg(false);
-                          }
                           const el = document.getElementById(item.key);
                           if (el)
                             el.scrollIntoView({

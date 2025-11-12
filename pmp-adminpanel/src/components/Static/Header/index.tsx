@@ -37,7 +37,7 @@ export default function Header({ customClass }: Props) {
   });
   return (
     <header
-      className={`absolute top-0 z-[111] w-full py-4 bg-neutral-400/20 backdrop-blur-[5px] ${
+      className={`absolute top-0 z-[111] w-full py-0 bg-neutral-400/20 backdrop-blur-[5px] ${
         customClass || ''
       }`}
     >

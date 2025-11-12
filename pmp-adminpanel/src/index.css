@@ -1539,6 +1539,36 @@
   );
 }
 
+.async-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* backdrop-filter: blur(6px); */
+  background-color: #dff4ec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999999999999;
+}
+.async-loader.hidden {
+  display: none;
+}
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #01cd8e;
+  border-top: 6px solid #242460;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* .price-step{
     background-image: url('./assets/images/bg/price-bottom.png');
     background-repeat: no-repeat;

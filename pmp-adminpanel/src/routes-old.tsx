@@ -7,16 +7,13 @@ import PanelSetting from '@/pages/setting/panelSetting';
 import SystemConfiguration from '@/pages/setting/systemConfiguration';
 import { lazy, Suspense } from 'react';
 import { Navigate, RouteObject } from 'react-router';
-import StaticLayoutOutlet from './layout/StaticLayoutOutlet';
+import Otp from './pages/auth/Otp';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import NewPassword from './pages/auth/NewPassword';
-import Otp from './pages/auth/Otp';
+import StaticLayoutOutlet from './layout/StaticLayoutOutlet';
 import Signup from './pages/auth/Signup';
-import CollectionReports from './pages/collection-reports/List';
 import LandlordPayments from './pages/landlord-payments/List';
-// import Loader from "@co"
-import Loader from '@/components/Loader/loading';
-
+import CollectionReports from './pages/collection-reports/List';
 
 const AddRolePermissionsPage = lazy(
   () => import('@/pages/role-permissions/AddRolePermissionsPage')
@@ -76,7 +73,7 @@ export const routeObjects: RouteObject[] = [
       {
         index: true,
         element: (
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={<div>Loading...</div>}>
             <StaticHome />
           </Suspense>
         ),
@@ -84,7 +81,7 @@ export const routeObjects: RouteObject[] = [
       {
         path: 'contact-us',
         element: (
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={<div>Loading...</div>}>
             <StaticContact />
           </Suspense>
         ),
@@ -92,7 +89,7 @@ export const routeObjects: RouteObject[] = [
       {
         path: 'features',
         element: (
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={<div>Loading...</div>}>
             <StaticFeatures />
           </Suspense>
         ),
@@ -100,7 +97,7 @@ export const routeObjects: RouteObject[] = [
       {
         path: 'about-us',
         element: (
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={<div>Loading...</div>}>
             <StaticAbout />
           </Suspense>
         ),
@@ -108,7 +105,7 @@ export const routeObjects: RouteObject[] = [
       {
         path: 'pricing',
         element: (
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={<div>Loading...</div>}>
             <StaticPricing />
           </Suspense>
         ),
@@ -116,7 +113,7 @@ export const routeObjects: RouteObject[] = [
       {
         path: 'terms',
         element: (
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={<div>Loading...</div>}>
             <StaticTerms />
           </Suspense>
         ),
@@ -124,7 +121,7 @@ export const routeObjects: RouteObject[] = [
       {
         path: 'privacy',
         element: (
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={<div>Loading...</div>}>
             <StaticPrivacy />
           </Suspense>
         ),
@@ -142,7 +139,7 @@ export const routeObjects: RouteObject[] = [
       {
         path: 'payments/success',
         element: (
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={<div>Loading...</div>}>
             <SuccessPage />
           </Suspense>
         ),
@@ -150,7 +147,7 @@ export const routeObjects: RouteObject[] = [
       {
         path: 'payments/failed',
         element: (
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={<div>Loading...</div>}>
             <FailurePage />
           </Suspense>
         ),
@@ -166,7 +163,7 @@ export const routeObjects: RouteObject[] = [
           {
             path: 'login',
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<div>Loading...</div>}>
                 <Login />
               </Suspense>
             ),
@@ -174,7 +171,7 @@ export const routeObjects: RouteObject[] = [
           {
             path: 'register',
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<div>Loading...</div>}>
                 <Signup />
               </Suspense>
             ),
@@ -182,7 +179,7 @@ export const routeObjects: RouteObject[] = [
           {
             path: 'forgot-password',
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<div>Loading...</div>}>
                 <ForgotPassword />
               </Suspense>
             ),
@@ -190,7 +187,7 @@ export const routeObjects: RouteObject[] = [
           {
             path: 'new-password',
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<div>Loading...</div>}>
                 <NewPassword />
               </Suspense>
             ),
@@ -199,7 +196,7 @@ export const routeObjects: RouteObject[] = [
           {
             path: 'otp',
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<div>Loading...</div>}>
                 <Otp />
               </Suspense>
             ),
@@ -217,7 +214,7 @@ export const routeObjects: RouteObject[] = [
           {
             path: 'dashboard',
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<div>Loading...</div>}>
                 <RoleBasedDashboard />
               </Suspense>
             ),
@@ -232,7 +229,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <ProfilePage />
                   </Suspense>
                 ),
@@ -249,7 +246,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <PropertyManagers />
                   </Suspense>
                 ),
@@ -266,7 +263,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <Property />
                   </Suspense>
                 ),
@@ -274,7 +271,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'add',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <CreatePropertyPage />
                   </Suspense>
                 ),
@@ -282,7 +279,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'edit/:id',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <UpdatePropertyPage />
                   </Suspense>
                 ),
@@ -299,7 +296,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <TenantUsers />
                   </Suspense>
                 ),
@@ -307,7 +304,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'pending',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <ContractRequest />
                   </Suspense>
                 ),
@@ -315,7 +312,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'approved',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <ApprovedContracts />
                   </Suspense>
                 ),
@@ -332,7 +329,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <Invoices />
                   </Suspense>
                 ),
@@ -340,7 +337,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'detail/:invoiceId',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <InvoiceDetail />
                   </Suspense>
                 ),
@@ -357,7 +354,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <Receipts />
                   </Suspense>
                 ),
@@ -374,7 +371,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'invoices',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <InvoiceReport />
                   </Suspense>
                 ),
@@ -391,7 +388,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <LandlordPayments />
                   </Suspense>
                 ),
@@ -408,7 +405,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <CollectionReports />
                   </Suspense>
                 ),
@@ -425,7 +422,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <SupportMaintenance />
                   </Suspense>
                 ),
@@ -442,7 +439,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <ReportedTicketsList />
                   </Suspense>
                 ),
@@ -459,7 +456,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <RentalCollection />
                   </Suspense>
                 ),
@@ -476,7 +473,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <TenantRental />
                   </Suspense>
                 ),
@@ -493,7 +490,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'list',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <RolePermissions />
                   </Suspense>
                 ),
@@ -501,7 +498,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'add',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <AddRolePermissionsPage />
                   </Suspense>
                 ),
@@ -509,7 +506,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'edit/:roleId',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <UpdateRolePermissionPage />
                   </Suspense>
                 ),
@@ -526,7 +523,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'panel-settings',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <PanelSetting />
                   </Suspense>
                 ),
@@ -534,7 +531,7 @@ export const routeObjects: RouteObject[] = [
               {
                 path: 'system-configuration',
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<div>Loading...</div>}>
                     <SystemConfiguration />
                   </Suspense>
                 ),
@@ -552,7 +549,7 @@ export const routeObjects: RouteObject[] = [
   {
     path: '/admin-panel/invoice/detail/:invoiceId',
     element: (
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<div>Loading...</div>}>
         <InvoiceDetail />
       </Suspense>
     ),
