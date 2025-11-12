@@ -29,22 +29,29 @@ export function NavMain({ items }: { items: NavItem[] }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Treat "/admin-panel" as "/admin-panel/dashboard" for initial active state
-  const effectivePath = useMemo(() => {
-    const p = location.pathname.replace(/\/+$/, '');
-    if (p === '/admin-panel') return '/admin-panel/dashboard';
-    return p || '/admin-panel/dashboard';
-  }, [location.pathname]);
+  // // Treat "/admin-panel" as "/admin-panel/dashboard" for initial active state
+  // const effectivePath = useMemo(() => {
+  //   const p = location.pathname.replace(/\/+$/, '');
+  //   if (p === '/admin-panel') return '/admin-panel/dashboard';
+  //   return p || '/admin-panel/dashboard';
+  // }, [location.pathname]);
+
+  // const isParentActive = (item: NavItem) => {
+  //   const matchSelf =
+  //     item.url === effectivePath || effectivePath.startsWith(item.url + '/');
+  //   if (!item.items || item.items.length === 0) return matchSelf;
+
+  //   const matchChild = item.items.some(
+  //     (s) => s.url === effectivePath || effectivePath.startsWith(s.url + '/')
+  //   );
+  //   return matchSelf || matchChild;
+  // };
 
   const isParentActive = (item: NavItem) => {
-    const matchSelf =
-      item.url === effectivePath || effectivePath.startsWith(item.url + '/');
-    if (!item.items || item.items.length === 0) return matchSelf;
-
-    const matchChild = item.items.some(
-      (s) => s.url === effectivePath || effectivePath.startsWith(s.url + '/')
-    );
-    return matchSelf || matchChild;
+    return location.pathname.includes(item.url);
+  };
+  const isChildActive = (url: string) => {
+    return location.pathname.includes(url);
   };
 
   // Open any collapsible that is active on load
@@ -82,10 +89,10 @@ export function NavMain({ items }: { items: NavItem[] }) {
 
           // ----- No children: simple link -----
           if (!item.items || item.items.length === 0) {
-            const thisActive =
-              parentActive ||
-              item.url === effectivePath ||
-              effectivePath.startsWith(item.url + '/');
+            const thisActive = parentActive;
+            //  ||
+            // item.url === effectivePath ||
+            // effectivePath.startsWith(item.url + '/');
 
             return (
               <SidebarMenuItem className="my-1" key={item.title}>
@@ -161,9 +168,9 @@ export function NavMain({ items }: { items: NavItem[] }) {
                   <CollapsibleContent>
                     <SidebarMenuSub className="mt-1 pl-2">
                       {item.items.map((sub) => {
-                        const subActive =
-                          sub.url === effectivePath ||
-                          effectivePath.startsWith(sub.url + '/');
+                        const subActive = isChildActive(sub.url);
+                        // sub.url === effectivePath ||
+                        // effectivePath.startsWith(sub.url + '/');
 
                         return (
                           <SidebarMenuSubItem key={sub.title}>
