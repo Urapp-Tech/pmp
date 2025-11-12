@@ -177,7 +177,7 @@ const Invoices = () => {
       }
     } catch (err) {
       console.error(err);
-      ToastHandler('Failed to fetch invoices');
+      // ToastHandler('Failed to fetch invoices');
     } finally {
       setMainIsLoader(false);
     }
