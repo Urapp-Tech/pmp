@@ -1722,22 +1722,45 @@ const Home: React.FC = () => {
               />
               <ul className="flex justify-end gap-8 items-center text-[20px] font-light text-white max-[576px]:flex-col max-[576px]:gap-4 max-[576px]:items-start">
                 <li>
-                  <Link to="/features" className="hover:opacity-90">
+                  {/* <Link
+                    onClick={() => window.scrollTo(0, 0)}
+                  to="/features"
+                  className="hover:opacity-90 max-[992px]:text-[16px] max-[576px]:text-left"
+                >
+                  Features
+                </Link> */}
+                  <Link
+                    onClick={() => window.scrollTo(0, 0)}
+                    to="/features"
+                    className="hover:opacity-90"
+                  >
                     Features
                   </Link>
                 </li>
                 <li>
-                  <Link to="/pricing" className="hover:opacity-90">
+                  <Link
+                    onClick={() => window.scrollTo(0, 0)}
+                    to="/pricing"
+                    className="hover:opacity-90"
+                  >
                     Pricing
                   </Link>
                 </li>
                 <li>
-                  <Link to="/about-us" className="hover:opacity-90">
+                  <Link
+                    onClick={() => window.scrollTo(0, 0)}
+                    to="/about-us"
+                    className="hover:opacity-90"
+                  >
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contact" className="hover:opacity-90">
+                  <Link
+                    onClick={() => window.scrollTo(0, 0)}
+                    to="/contact"
+                    className="hover:opacity-90"
+                  >
                     Contact
                   </Link>
                 </li>

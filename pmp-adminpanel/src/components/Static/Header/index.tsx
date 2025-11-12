@@ -60,22 +60,38 @@ export default function Header({ customClass }: Props) {
           <nav className="hidden md:block">
             <ul className="flex gap-8 items-center text-[20px] font-light text-primary">
               <li>
-                <Link to="/features" className="hover:opacity-90">
+                <Link
+                  onClick={() => window.scrollTo(0, 0)}
+                  to="/features"
+                  className="hover:opacity-90"
+                >
                   Features
                 </Link>
               </li>
               <li>
-                <Link to="/pricing" className="hover:opacity-90">
+                <Link
+                  onClick={() => window.scrollTo(0, 0)}
+                  to="/pricing"
+                  className="hover:opacity-90"
+                >
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link to="/about-us" className="hover:opacity-90">
+                <Link
+                  onClick={() => window.scrollTo(0, 0)}
+                  to="/about-us"
+                  className="hover:opacity-90"
+                >
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/contact-us" className="hover:opacity-90">
+                <Link
+                  onClick={() => window.scrollTo(0, 0)}
+                  to="/contact-us"
+                  className="hover:opacity-90"
+                >
                   Contact Us
                 </Link>
               </li>

@@ -1,4 +1,4 @@
-const HOST = 'https://dev.urapptech.com';
+const HOST = 'https://propertymanagement.urapptech.com';
 export const BASE_URL =
   import.meta.env.VITE_BASE_URL || `${HOST}/api/v1/super-users/`;
 export const ADMIN_BASE_URL =

@@ -35,7 +35,8 @@ const Blogs = lazy(() => import('@/pages/support-feedback/List'));
 
 export const routeObjects: RouteObject[] = [
   {
-    path: '/',
+    // path: '/', // for live
+    path: '/super-admin', // for staging
     element: <LayoutOutlet />,
     children: [
       {
