@@ -188,6 +188,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://api.rento.online",
+        "https://propertymanagement.urapptech.com",
         "http://192.168.8.48:8000",
         "https://admin.rento.online",
         "https://rento.online",
