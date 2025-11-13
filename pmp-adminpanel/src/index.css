@@ -5,6 +5,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* @import 'tailwindcss';
+@layer theme, base, components, utilities; */
+/* @import 'swiper/css';
+@import 'swiper/css/pagination'; */
+/* @import 'tailwindcss/theme.css' layer(theme)  ;
+@import 'tailwindcss/preflight.css' layer(base); */
+
 /* * {
   font-family: 'Montserrat';
 } */
@@ -609,14 +616,8 @@
 * {
   font-family: 'ArgentumSans' !important ;
 }
-@import 'tailwindcss';
-@layer theme, base, components, utilities;
-@import 'swiper/css';
-@import 'swiper/css/pagination';
-/* @import 'tailwindcss/theme.css' layer(theme)  ;
-@import 'tailwindcss/preflight.css' layer(base); */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Black.eot');
   src:
@@ -630,9 +631,9 @@
   font-weight: 900;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Black_1.eot');
   src:
@@ -646,9 +647,9 @@
   font-weight: 900;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraLight.eot');
   src:
@@ -662,9 +663,9 @@
   font-weight: 200;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Light.eot');
   src:
@@ -678,9 +679,9 @@
   font-weight: 300;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Bold.eot');
   src:
@@ -694,9 +695,9 @@
   font-weight: bold;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraLight_1.eot');
   src:
@@ -710,9 +711,9 @@
   font-weight: 200;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Bold_1.eot');
   src:
@@ -726,9 +727,9 @@
   font-weight: bold;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraBold.eot');
   src:
@@ -742,9 +743,9 @@
   font-weight: bold;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraBold_1.eot');
   src:
@@ -758,9 +759,9 @@
   font-weight: bold;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Medium.eot');
   src:
@@ -774,9 +775,9 @@
   font-weight: 500;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Regular.eot');
   src:
@@ -790,9 +791,9 @@
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Regular_1.eot');
   src:
@@ -806,9 +807,9 @@
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-SemiBold.eot');
   src:
@@ -822,9 +823,9 @@
   font-weight: 600;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Medium_1.eot');
   src:
@@ -838,9 +839,9 @@
   font-weight: 500;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Light_1.eot');
   src:
@@ -854,9 +855,9 @@
   font-weight: 300;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-SemiBold_1.eot');
   src:
@@ -870,9 +871,9 @@
   font-weight: 600;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Thin.eot');
   src:
@@ -886,9 +887,9 @@
   font-weight: 100;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Thin_1.eot');
   src:
@@ -902,7 +903,7 @@
   font-weight: 100;
   font-style: normal;
   font-display: swap;
-}
+} */
 
 :root {
   --primary: #242460;
@@ -914,14 +915,14 @@
 }
 
 .footer-bg {
-  background-image: url('./assets/images/banners/footer-bg.png');
+  background-image: url('./assets/images/footer-bg.png');
   background-repeat: no-repeat;
   background-size: cover;
   background-position: top center;
 }
 
 .home-bg {
-  background-image: url('./assets/images/banners/home-bg.png');
+  background-image: url('./assets/images/home-bg.png');
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -1051,14 +1052,14 @@
   }
 }
 
-@import 'tailwindcss';
+/* @import 'tailwindcss';
 @layer theme, base, components, utilities;
 @import 'swiper/css';
-@import 'swiper/css/pagination';
+@import 'swiper/css/pagination'; */
 /* @import 'tailwindcss/theme.css' layer(theme)  ;
 @import 'tailwindcss/preflight.css' layer(base); */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Black.eot');
   src:
@@ -1072,9 +1073,9 @@
   font-weight: 900;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Black_1.eot');
   src:
@@ -1088,9 +1089,9 @@
   font-weight: 900;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraLight.eot');
   src:
@@ -1104,9 +1105,9 @@
   font-weight: 200;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Light.eot');
   src:
@@ -1120,9 +1121,9 @@
   font-weight: 300;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Bold.eot');
   src:
@@ -1136,9 +1137,9 @@
   font-weight: bold;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraLight_1.eot');
   src:
@@ -1152,9 +1153,9 @@
   font-weight: 200;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Bold_1.eot');
   src:
@@ -1168,9 +1169,9 @@
   font-weight: bold;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraBold.eot');
   src:
@@ -1184,9 +1185,9 @@
   font-weight: bold;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraBold_1.eot');
   src:
@@ -1200,9 +1201,9 @@
   font-weight: bold;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Medium.eot');
   src:
@@ -1216,9 +1217,9 @@
   font-weight: 500;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Regular.eot');
   src:
@@ -1232,9 +1233,9 @@
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Regular_1.eot');
   src:
@@ -1248,9 +1249,9 @@
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-SemiBold.eot');
   src:
@@ -1264,9 +1265,9 @@
   font-weight: 600;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Medium_1.eot');
   src:
@@ -1280,9 +1281,9 @@
   font-weight: 500;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Light_1.eot');
   src:
@@ -1296,9 +1297,9 @@
   font-weight: 300;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-SemiBold_1.eot');
   src:
@@ -1312,9 +1313,9 @@
   font-weight: 600;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Thin.eot');
   src:
@@ -1328,9 +1329,9 @@
   font-weight: 100;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-@font-face {
+/* @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Thin_1.eot');
   src:
@@ -1344,12 +1345,12 @@
   font-weight: 100;
   font-style: normal;
   font-display: swap;
-}
+} */
 
-:root {
+/* :root {
   --primary: #242460;
   --secondary: #dff4ec;
-}
+} */
 
 .bg-primary {
   background-color: var(--primary);

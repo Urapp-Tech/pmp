@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 
-import { FooterNavUser } from '@/components/SideBar/footer-nav';
+// import { FooterNavUser } from '@/components/SideBar/footer-nav';
 import { NavMain } from '@/components/SideBar/main-nav';
 // import { NavProjects } from "@/components/nav-projects"
 // import { NavUser } from "@/components/nav-user"
@@ -10,9 +10,9 @@ import assets from '@/assets/images';
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
+  // SidebarFooter,
   SidebarHeader,
-  SidebarRail,
+  // SidebarRail,
 } from '@/components/ui/sidebar';
 import { getItem } from '@/utils/storage';
 import { useNavigate } from 'react-router-dom';
@@ -30,8 +30,8 @@ export function MainSidebar({
   );
   const authState: any = useSelector((state: any) => state.authState);
 
-  const appState: any = useSelector((state: any) => state.appState);
-  const shop: any = getItem('SHOP_TENANT');
+  // const appState: any = useSelector((state: any) => state.appState);
+  // const shop: any = getItem('SHOP_TENANT');
   const userRoles: any = getItem('USER');
 
   const rolePermissions = userRoles?.role?.permissions || [];
