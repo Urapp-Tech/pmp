@@ -386,19 +386,19 @@
   }
 }
 
-.bg-wrap {
-  /* background-image: url('assets/images/dashboard-bg.webp'); */
-  /* background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center; */
-}
-
-.sign-bg-wrap {
-  /* background-image: url('assets/images/sign-bg.webp');
+/* .bg-wrap {
+  background-image: url('assets/images/dashboard-bg.webp');
   background-repeat: no-repeat;
   background-size: cover;
-  background-position: center; */
-}
+  background-position: center;
+} */
+
+/* .sign-bg-wrap {
+  background-image: url('assets/images/sign-bg.webp');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+} */
 .bg-primary-bg-dark {
   background-color: #424256;
 }
