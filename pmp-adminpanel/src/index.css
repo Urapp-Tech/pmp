@@ -113,6 +113,11 @@
   }
 }
 
+:root {
+  --primary: #242460;
+  --secondary: #dff4ec;
+}
+
 /* fonts */
 
 @font-face {
@@ -905,10 +910,7 @@
   font-display: swap;
 } */
 
-:root {
-  --primary: #242460;
-  --secondary: #dff4ec;
-}
+
 
 .bg-primary {
   background-color: var(--primary);
