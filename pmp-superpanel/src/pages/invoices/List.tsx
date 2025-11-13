@@ -295,7 +295,7 @@ const Invoices = () => {
       doc.setFontSize(11);
       doc.text('INVOICE DETAILS', COL1_X, BASE_Y);
       doc.text('OWNER NAME', COL2_X, BASE_Y);
-      doc.text('TENANT NAME', COL3_X, BASE_Y);
+      doc.text('TENANT DETAILS', COL3_X, BASE_Y);
 
       // Left: labels + values aligned
       const LBL_W = 90;
@@ -336,28 +336,48 @@ const Invoices = () => {
 
       // Right: tenant (wrap within col width)
       const tenantUser = inv?.tenant?.user;
+      // Full name or fallback
       const tenantName = tenantUser
-        ? `${tenantUser.fname ?? ''} ${tenantUser.lname ?? ''}`.trim()
+        ? `Name: ${tenantUser.fname ?? ''} ${tenantUser.lname ?? ''}`.trim()
         : '—';
+
+      // Split email and phone into two lines (not in one line with " | ")
       const tenantContactRaw =
-        [tenantUser?.email, tenantUser?.phone].filter(Boolean).join(' | ') ||
-        '—';
+        [
+          tenantUser?.email ? `Email: ${tenantUser.email}` : null,
+          tenantUser?.phone ? `Phone: ${tenantUser.phone}` : null,
+        ]
+          .filter(Boolean)
+          .join('\n') || '—';
+
+      // Split text to fit inside column
       const tenantWrapped = doc.splitTextToSize(tenantContactRaw, COL_W - 4);
 
-      doc.setFont('helvetica', 'bold');
+      // Draw name
+      doc.setFont('helvetica', 'normal');
       doc.text(tenantName, COL3_X, BASE_Y + 20);
+
+      // Draw email and phone (multi-line)
       doc.setFont('helvetica', 'normal');
       doc.text(tenantWrapped, COL3_X, BASE_Y + 36);
-      const leftRowTanent: Array<[string, string]> = [
-        ['LEGAL CASE:', `${inv?.tenant?.legal_case ? 'YES' : 'NO'}`],
-      ];
+
+      // Calculate next Y position dynamically based on how many lines were drawn
+      const lineHeight = 10; // Adjust if needed (depends on font size)
+      const tenantBlockHeight = tenantWrapped.length * lineHeight;
+
+      // LEGAL CASE row
       doc.setFontSize(10);
+      const nextY = BASE_Y + 36 + tenantBlockHeight + 10;
+
+      const leftRowTanent = [
+        ['LEGAL CASE:', inv?.tenant?.legal_case ? 'YES' : 'NO'],
+      ];
+
       leftRowTanent.forEach(([k, v]) => {
         doc.setFont('helvetica', 'bold');
-        doc.text(k, COL3_X, BASE_Y + 52);
+        doc.text(k, COL3_X, nextY);
         doc.setFont('helvetica', 'normal');
-        doc.text(v, COL3_X + 80, BASE_Y + 52);
-        y += 16;
+        doc.text(v, COL3_X + 80, nextY);
       });
       // ---------------- Table header
       const tLeft = MARGIN_L;
@@ -382,7 +402,7 @@ const Invoices = () => {
       doc.setFontSize(11);
 
       const unitNo = inv?.tenant?.property_unit?.unit_no ?? '—';
-      const unitRent = inv?.tenant?.property_unit?.rent ?? '—';
+      const unitRent = inv?.total_amount ?? '—';
       const maintenance = '—';
       const price = inv?.total_amount ?? '—';
 

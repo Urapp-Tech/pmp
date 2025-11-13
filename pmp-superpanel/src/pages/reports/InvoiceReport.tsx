@@ -390,7 +390,7 @@ const InvoiceReport = () => {
     doc.setFontSize(11);
 
     const unitNo = invoice?.tenant?.property_unit?.unit_no ?? '—';
-    const unitRent = invoice?.tenant?.property_unit?.rent ?? '—';
+    const unitRent = invoice?.total_amount ?? 0;
     const maintenance = '—';
     const price = invoice?.total_amount ?? '—';
 

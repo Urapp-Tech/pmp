@@ -302,11 +302,11 @@ const InvoiceReport = () => {
     };
 
     rowC2('PROPERTY', pd.property_name ?? '—');
-    rowC2('ADDRESS', pd.property_address ?? '—');
     rowC2('UNIT NAME', pd.unit_name ?? '—');
     rowC2('UNIT NO.', pd.unit_no ?? '—');
-    rowC2('OWNER', pd.unit_owner ?? '—');
+    rowC2('ADDRESS', pd.property_address ?? '—');
     rowC2('LEASE ID', pd.lease_id ?? '—');
+    rowC2('OWNER', pd.unit_owner ?? '—');
     rowC2('CONTRACT#', pd.contract_no ?? '—');
     rowC2('ASSIGNED USER', pd.assigned_user_name ?? '—');
 

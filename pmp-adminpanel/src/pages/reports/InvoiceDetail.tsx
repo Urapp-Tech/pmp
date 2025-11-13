@@ -62,11 +62,11 @@ const InvoiceDetail = () => {
     const u = invoice?.tenant?.user;
     if (!u) return '—';
     const bits = [u.email, u.phone].filter(Boolean);
-    return bits.length ? bits.join('  |  ') : '—';
+    return bits.length ? bits.join('  \n   ') : '—';
   }, [invoice]);
 
   const unitNo = invoice?.tenant?.property_unit?.unit_no ?? '—';
-  const unitRent = invoice?.tenant?.property_unit?.rent ?? '—';
+  const unitRent = invoice?.total_amount ?? 0;
   const maintenance = '—'; // no field in model; adjust if you add one
   const price = invoice?.total_amount ?? '—';
 
@@ -196,7 +196,7 @@ const InvoiceDetail = () => {
     doc.setFontSize(11);
     doc.text('INVOICE DETAILS', COL1_X, BASE_Y);
     doc.text('OWNER NAME', COL2_X, BASE_Y);
-    doc.text('TENANT NAME', COL3_X, BASE_Y);
+    doc.text('TENANT DETAILS', COL3_X, BASE_Y);
 
     // Left: labels + values aligned
     const LBL_W = 90;
@@ -236,28 +236,51 @@ const InvoiceDetail = () => {
     doc.text(ownerContact, COL2_X, BASE_Y + 36);
 
     // Right: tenant (wrap within col width)
+    // Right: tenant (wrap within col width)
     const tenantUser = invoice?.tenant?.user;
+
+    // Full name or fallback
     const tenantName = tenantUser
-      ? `${tenantUser.fname ?? ''} ${tenantUser.lname ?? ''}`.trim()
+      ? `Name: ${tenantUser.fname ?? ''} ${tenantUser.lname ?? ''}`.trim()
       : '—';
+
+    // Split email and phone into two lines (not in one line with " | ")
     const tenantContactRaw =
-      [tenantUser?.email, tenantUser?.phone].filter(Boolean).join(' | ') || '—';
+      [
+        tenantUser?.email ? `Email: ${tenantUser.email}` : null,
+        tenantUser?.phone ? `Phone: ${tenantUser.phone}` : null,
+      ]
+        .filter(Boolean)
+        .join('\n') || '—';
+
+    // Split text to fit inside column
     const tenantWrapped = doc.splitTextToSize(tenantContactRaw, COL_W - 4);
 
-    doc.setFont('helvetica', 'bold');
+    // Draw name
+    doc.setFont('helvetica', 'normal');
     doc.text(tenantName, COL3_X, BASE_Y + 20);
+
+    // Draw email and phone (multi-line)
     doc.setFont('helvetica', 'normal');
     doc.text(tenantWrapped, COL3_X, BASE_Y + 36);
-    const leftRowTanent: Array<[string, string]> = [
-      ['LEGAL CASE:', `${invoice?.tenant?.legal_case ? 'YES' : 'NO'}`],
-    ];
+
+    // Calculate next Y position dynamically based on how many lines were drawn
+    const lineHeight = 10; // Adjust if needed (depends on font size)
+    const tenantBlockHeight = tenantWrapped.length * lineHeight;
+
+    // LEGAL CASE row
     doc.setFontSize(10);
+    const nextY = BASE_Y + 36 + tenantBlockHeight + 10;
+
+    const leftRowTanent = [
+      ['LEGAL CASE:', invoice?.tenant?.legal_case ? 'YES' : 'NO'],
+    ];
+
     leftRowTanent.forEach(([k, v]) => {
       doc.setFont('helvetica', 'bold');
-      doc.text(k, COL3_X, BASE_Y + 52);
+      doc.text(k, COL3_X, nextY);
       doc.setFont('helvetica', 'normal');
-      doc.text(v, COL3_X + 80, BASE_Y + 52);
-      y += 16;
+      doc.text(v, COL3_X + 80, nextY);
     });
 
     // ---------------- Table header
@@ -283,7 +306,7 @@ const InvoiceDetail = () => {
     doc.setFontSize(11);
 
     const unitNo = invoice?.tenant?.property_unit?.unit_no ?? '—';
-    const unitRent = invoice?.tenant?.property_unit?.rent ?? '—';
+    const unitRent = invoice?.total_amount ?? 0;
     const maintenance = '—';
     const price = invoice?.total_amount ?? '—';
 
@@ -475,7 +498,7 @@ const InvoiceDetail = () => {
 
               <div className={gapY}>
                 <div className={label} style={{ color: COLORS.navy }}>
-                  Tenant Name
+                  Tenant DETAILS
                 </div>
                 <div className={val} style={{ color: COLORS.navy }}>
                   {tenantName}
