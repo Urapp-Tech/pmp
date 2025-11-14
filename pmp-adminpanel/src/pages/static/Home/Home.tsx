@@ -2,6 +2,7 @@ import {
   AnimatePresence,
   motion,
   useScroll,
+  useSpring,
   useTransform,
 } from 'framer-motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -754,6 +755,11 @@ const Home: React.FC = () => {
     target: sectionRef,
     offset: ['start start', 'end end'],
   });
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 50,
+    damping: 20,
+    mass: 0.2,
+  });
 
   const numSlides = boxes.length;
   const step = 1 / numSlides;
@@ -763,7 +769,7 @@ const Home: React.FC = () => {
     <section
       ref={sectionRef}
       className="relative bg-transparent text-white"
-      style={{ height: `${numSlides * 120}vh` }}
+      style={{ height: `${numSlides * 110}vh` }}
     >
       <div
         id="highlights"
@@ -775,7 +781,7 @@ const Home: React.FC = () => {
 
           const baseY = cardOffset * i;
           const y = useTransform(
-            scrollYProgress,
+            smoothProgress,
             [start, end],
             [baseY + cardOffset, baseY]
           );
@@ -785,20 +791,20 @@ const Home: React.FC = () => {
           if (box.id === 1 || box.id === 2) {
             // 👇 fade in, then fade out before next slide
             opacity = useTransform(
-              scrollYProgress,
+              smoothProgress,
               [start, start + step * 0.25, end - step * 0.15, end],
               [0, 1, 1, 0]
             );
           } else {
             // 👇 keep visible (stacked)
             opacity = useTransform(
-              scrollYProgress,
+              smoothProgress,
               [start, start + step * 0.25],
               [0, 1]
             );
           }
 
-          const scale = useTransform(scrollYProgress, [start, end], [0.97, 1]);
+          const scale = useTransform(smoothProgress, [start, end], [0.97, 1]);
 
           if (box.id === 1) {
             return (
@@ -808,7 +814,7 @@ const Home: React.FC = () => {
                 style={{
                   y,
                   opacity: useTransform(
-                    scrollYProgress,
+                    smoothProgress,
                     [start, start + step * 0.25, end - step * 0.15, end],
                     [1, 1, 1, 0]
                   ),
@@ -973,11 +979,17 @@ const Home: React.FC = () => {
     offset: ['start start', 'end end'],
   });
 
+  const howSmoothProgress = useSpring(howScrollYProgress, {
+    stiffness: 50,
+    damping: 20,
+    mass: 0.2,
+  });
+
   const HowSection = (
     <section
       ref={howSectionRef}
       className="relative bg-transparent text-white"
-      style={{ height: `${numSlides2 * 120}vh` }}
+      style={{ height: `${numSlides2 * 110}vh` }}
     >
       <div
         id="how"
@@ -989,7 +1001,7 @@ const Home: React.FC = () => {
 
           const baseY = cardOffset2 * i;
           const y = useTransform(
-            howScrollYProgress,
+            howSmoothProgress,
             [start, end],
             [baseY + cardOffset2, baseY]
           );
@@ -999,21 +1011,21 @@ const Home: React.FC = () => {
           if (box.id === 1 || box.id === 2) {
             // 👇 fade in, then fade out before next slide
             opacity = useTransform(
-              howScrollYProgress,
+              howSmoothProgress,
               [start, start + step2 * 0.25, end - step2 * 0.15, end],
               [0, 1, 1, 0]
             );
           } else {
             // 👇 keep visible (stacked)
             opacity = useTransform(
-              howScrollYProgress,
+              howSmoothProgress,
               [start, start + step2 * 0.25],
               [0, 1]
             );
           }
 
           const scale = useTransform(
-            howScrollYProgress,
+            howSmoothProgress,
             [start, end],
             [0.97, 1]
           );
@@ -1026,7 +1038,7 @@ const Home: React.FC = () => {
                 style={{
                   y,
                   opacity: useTransform(
-                    howScrollYProgress,
+                    howSmoothProgress,
                     [start, start + step * 0.25, end - step * 0.15, end],
                     [1, 1, 1, 0]
                   ),
