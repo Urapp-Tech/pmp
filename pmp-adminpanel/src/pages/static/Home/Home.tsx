@@ -297,183 +297,275 @@ const Home: React.FC = () => {
     setBillingCycle((prev) => (prev === 'annual' ? 'monthly' : 'annual'));
   };
   // ===== Global Slow Scroll — pauses inside #highlights and #how =====
-  const slowScrollState = useRef({
-    targetY: typeof window !== 'undefined' ? window.scrollY : 0,
-    rafId: 0 as number | 0,
-    animating: false,
-    paused: false, // pause when we are in managed sections
+  // const slowScrollState = useRef({
+  //   targetY: typeof window !== 'undefined' ? window.scrollY : 0,
+  //   rafId: 0 as number | 0,
+  //   animating: false,
+  //   paused: false, // pause when we are in managed sections
+  // });
+
+  // useEffect(() => {
+  //   // small helpers
+  //   const isHTMLElement = (el: any): el is HTMLElement =>
+  //     el && typeof el === 'object' && 'closest' in el;
+
+  //   const isManagedZone = (t: EventTarget | null) => {
+  //     if (!isHTMLElement(t)) return false;
+  //     return !!(t.closest(' ') || t.closest(''));
+  //   };
+
+  //   const stopAnimationIfRunning = () => {
+  //     const st = slowScrollState.current;
+  //     if (st.animating && st.rafId) {
+  //       cancelAnimationFrame(st.rafId);
+  //       st.rafId = 0;
+  //       st.animating = false;
+  //     }
+  //   };
+
+  //   // easing step (slower: 0.12)
+  //   const step = () => {
+  //     const st = slowScrollState.current;
+  //     if (st.paused) {
+  //       stopAnimationIfRunning();
+  //       return; // don't animate while paused
+  //     }
+  //     const { targetY } = st;
+  //     const currentY = window.scrollY;
+  //     const nextY = currentY + (targetY - currentY) * 0.12; // smaller = slower
+  //     window.scrollTo(0, nextY);
+
+  //     if (Math.abs(targetY - nextY) > 0.5) {
+  //       st.rafId = requestAnimationFrame(step);
+  //       st.animating = true;
+  //     } else {
+  //       window.scrollTo(0, targetY);
+  //       st.animating = false;
+  //       if (st.rafId) cancelAnimationFrame(st.rafId);
+  //       st.rafId = 0;
+  //     }
+
+  //     const onEnterManaged = () => {
+  //       slowScrollState.current.paused = true;
+  //       // cancel any ongoing animation
+  //       if (
+  //         slowScrollState.current.animating &&
+  //         slowScrollState.current.rafId
+  //       ) {
+  //         cancelAnimationFrame(slowScrollState.current.rafId);
+  //         slowScrollState.current.rafId = 0;
+  //         slowScrollState.current.animating = false;
+  //       }
+  //     };
+  //     const onLeaveManaged = () => {
+  //       slowScrollState.current.paused = false;
+  //       slowScrollState.current.targetY = window.scrollY; // resync target
+  //     };
+
+  //     window.addEventListener(
+  //       'rento:enterManaged',
+  //       onEnterManaged as EventListener
+  //     );
+  //     window.addEventListener(
+  //       'rento:leaveManaged',
+  //       onLeaveManaged as EventListener
+  //     );
+
+  //     return () => {
+  //       window.removeEventListener(
+  //         'rento:enterManaged',
+  //         onEnterManaged as EventListener
+  //       );
+  //       window.removeEventListener(
+  //         'rento:leaveManaged',
+  //         onLeaveManaged as EventListener
+  //       );
+  //     };
+  //   };
+
+  //   // main wheel handler
+  //   const onWheel = (e: WheelEvent) => {
+  //     // already prevented by your highlight/how handlers
+  //     if (e.defaultPrevented) return;
+
+  //     // if pointer is inside highlights/how, completely skip our slow scroll
+  //     if (isManagedZone(e.target)) {
+  //       stopAnimationIfRunning(); // cancel any ongoing animation so it doesn't "pull"
+  //       return;
+  //     }
+
+  //     // if globally paused (pointer enter), skip
+  //     if (slowScrollState.current.paused) return;
+
+  //     // we'll handle the wheel
+  //     e.preventDefault();
+
+  //     // global page slow factor (was 0.3, now slower 0.18)
+  //     const scale = 0.18;
+
+  //     // clamp trackpad deltas (slightly tighter for smoothness)
+  //     const dy = e.deltaY;
+  //     const moderated = Math.sign(dy) * Math.min(Math.abs(dy), 140);
+
+  //     const docHeight = Math.max(
+  //       document.body.scrollHeight,
+  //       document.documentElement.scrollHeight
+  //     );
+  //     const viewport = window.innerHeight;
+
+  //     const nextTarget = Math.max(
+  //       0,
+  //       Math.min(
+  //         docHeight - viewport,
+  //         slowScrollState.current.targetY + moderated * scale
+  //       )
+  //     );
+
+  //     slowScrollState.current.targetY = nextTarget;
+
+  //     if (!slowScrollState.current.animating) {
+  //       slowScrollState.current.animating = true;
+  //       slowScrollState.current.rafId = requestAnimationFrame(step);
+  //     }
+  //   };
+
+  //   // passive:false so we can preventDefault
+  //   window.addEventListener('wheel', onWheel, { passive: false });
+
+  //   // pointer/touch enter-leave to hard-pause while inside managed sections
+  //   const setPaused = (v: boolean) => {
+  //     slowScrollState.current.paused = v;
+  //     if (v) stopAnimationIfRunning();
+  //   };
+
+  //   const hl = document.getElementById('highlights');
+  //   const how = document.getElementById('how');
+
+  //   const enter = () => setPaused(true);
+  //   const leave = () => setPaused(false);
+  //   const touchStart = () => setPaused(true);
+  //   const touchEnd = () => setPaused(false);
+
+  //   hl?.addEventListener('pointerenter', enter);
+  //   hl?.addEventListener('pointerleave', leave);
+  //   hl?.addEventListener('touchstart', touchStart, { passive: true });
+  //   hl?.addEventListener('touchend', touchEnd);
+
+  //   how?.addEventListener('pointerenter', enter);
+  //   how?.addEventListener('pointerleave', leave);
+  //   how?.addEventListener('touchstart', touchStart, { passive: true });
+  //   how?.addEventListener('touchend', touchEnd);
+
+  //   // init target
+  //   slowScrollState.current.targetY = window.scrollY;
+
+  //   return () => {
+  //     window.removeEventListener('wheel', onWheel as any);
+  //     hl?.removeEventListener('pointerenter', enter);
+  //     hl?.removeEventListener('pointerleave', leave);
+  //     hl?.removeEventListener('touchstart', touchStart);
+  //     hl?.removeEventListener('touchend', touchEnd);
+
+  //     how?.removeEventListener('pointerenter', enter);
+  //     how?.removeEventListener('pointerleave', leave);
+  //     how?.removeEventListener('touchstart', touchStart);
+  //     how?.removeEventListener('touchend', touchEnd);
+
+  //     stopAnimationIfRunning();
+  //   };
+  // }, []);
+
+  // ===== Global smooth scroll (Krepling-style inertial scroll) =====
+  const smoothScrollState = useRef<{ targetY: number; rafId: number | null }>({
+    targetY: 0,
+    rafId: null,
   });
 
   useEffect(() => {
-    // small helpers
-    const isHTMLElement = (el: any): el is HTMLElement =>
-      el && typeof el === 'object' && 'closest' in el;
+    if (typeof window === 'undefined') return;
 
-    const isManagedZone = (t: EventTarget | null) => {
-      if (!isHTMLElement(t)) return false;
-      return !!(t.closest(' ') || t.closest(''));
-    };
+    // Desktop only – keep mobile native & fast
+    if (window.innerWidth <= 991) return;
 
-    const stopAnimationIfRunning = () => {
-      const st = slowScrollState.current;
-      if (st.animating && st.rafId) {
-        cancelAnimationFrame(st.rafId);
-        st.rafId = 0;
-        st.animating = false;
-      }
-    };
+    const state = smoothScrollState.current;
+    state.targetY = window.scrollY; // sync on mount
 
-    // easing step (slower: 0.12)
     const step = () => {
-      const st = slowScrollState.current;
-      if (st.paused) {
-        stopAnimationIfRunning();
-        return; // don't animate while paused
-      }
-      const { targetY } = st;
       const currentY = window.scrollY;
-      const nextY = currentY + (targetY - currentY) * 0.12; // smaller = slower
+      const nextY = currentY + (state.targetY - currentY) * 0.12; // smaller = smoother/slower
+
       window.scrollTo(0, nextY);
 
-      if (Math.abs(targetY - nextY) > 0.5) {
-        st.rafId = requestAnimationFrame(step);
-        st.animating = true;
+      if (Math.abs(state.targetY - nextY) > 0.5) {
+        state.rafId = requestAnimationFrame(step);
       } else {
-        window.scrollTo(0, targetY);
-        st.animating = false;
-        if (st.rafId) cancelAnimationFrame(st.rafId);
-        st.rafId = 0;
-      }
-
-      const onEnterManaged = () => {
-        slowScrollState.current.paused = true;
-        // cancel any ongoing animation
-        if (
-          slowScrollState.current.animating &&
-          slowScrollState.current.rafId
-        ) {
-          cancelAnimationFrame(slowScrollState.current.rafId);
-          slowScrollState.current.rafId = 0;
-          slowScrollState.current.animating = false;
+        window.scrollTo(0, state.targetY);
+        if (state.rafId) {
+          cancelAnimationFrame(state.rafId);
+          state.rafId = null;
         }
-      };
-      const onLeaveManaged = () => {
-        slowScrollState.current.paused = false;
-        slowScrollState.current.targetY = window.scrollY; // resync target
-      };
-
-      window.addEventListener(
-        'rento:enterManaged',
-        onEnterManaged as EventListener
-      );
-      window.addEventListener(
-        'rento:leaveManaged',
-        onLeaveManaged as EventListener
-      );
-
-      return () => {
-        window.removeEventListener(
-          'rento:enterManaged',
-          onEnterManaged as EventListener
-        );
-        window.removeEventListener(
-          'rento:leaveManaged',
-          onLeaveManaged as EventListener
-        );
-      };
+      }
     };
 
-    // main wheel handler
     const onWheel = (e: WheelEvent) => {
-      // already prevented by your highlight/how handlers
       if (e.defaultPrevented) return;
 
-      // if pointer is inside highlights/how, completely skip our slow scroll
-      if (isManagedZone(e.target)) {
-        stopAnimationIfRunning(); // cancel any ongoing animation so it doesn't "pull"
-        return;
-      }
+      const deltaY = e.deltaY;
+      if (!deltaY) return;
 
-      // if globally paused (pointer enter), skip
-      if (slowScrollState.current.paused) return;
-
-      // we'll handle the wheel
+      // we take over the wheel event
       e.preventDefault();
-
-      // global page slow factor (was 0.3, now slower 0.18)
-      const scale = 0.18;
-
-      // clamp trackpad deltas (slightly tighter for smoothness)
-      const dy = e.deltaY;
-      const moderated = Math.sign(dy) * Math.min(Math.abs(dy), 140);
 
       const docHeight = Math.max(
         document.body.scrollHeight,
         document.documentElement.scrollHeight
       );
       const viewport = window.innerHeight;
+      const maxScroll = docHeight - viewport;
+
+      // similar "feel" to modern landing pages
+      const scale = 0.22;
+      const moderated =
+        Math.sign(deltaY) * Math.min(Math.abs(deltaY), 140); // clamp big trackpad spikes
 
       const nextTarget = Math.max(
         0,
-        Math.min(
-          docHeight - viewport,
-          slowScrollState.current.targetY + moderated * scale
-        )
+        Math.min(maxScroll, state.targetY + moderated * scale)
       );
 
-      slowScrollState.current.targetY = nextTarget;
+      state.targetY = nextTarget;
 
-      if (!slowScrollState.current.animating) {
-        slowScrollState.current.animating = true;
-        slowScrollState.current.rafId = requestAnimationFrame(step);
+      if (!state.rafId) {
+        state.rafId = requestAnimationFrame(step);
       }
     };
 
-    // passive:false so we can preventDefault
-    window.addEventListener('wheel', onWheel, { passive: false });
-
-    // pointer/touch enter-leave to hard-pause while inside managed sections
-    const setPaused = (v: boolean) => {
-      slowScrollState.current.paused = v;
-      if (v) stopAnimationIfRunning();
+    // keep targetY in sync if user scrolls via keyboard / touch / programmatically
+    const onScroll = () => {
+      if (!state.rafId) {
+        state.targetY = window.scrollY;
+      }
     };
 
-    const hl = document.getElementById('highlights');
-    const how = document.getElementById('how');
-
-    const enter = () => setPaused(true);
-    const leave = () => setPaused(false);
-    const touchStart = () => setPaused(true);
-    const touchEnd = () => setPaused(false);
-
-    hl?.addEventListener('pointerenter', enter);
-    hl?.addEventListener('pointerleave', leave);
-    hl?.addEventListener('touchstart', touchStart, { passive: true });
-    hl?.addEventListener('touchend', touchEnd);
-
-    how?.addEventListener('pointerenter', enter);
-    how?.addEventListener('pointerleave', leave);
-    how?.addEventListener('touchstart', touchStart, { passive: true });
-    how?.addEventListener('touchend', touchEnd);
-
-    // init target
-    slowScrollState.current.targetY = window.scrollY;
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
       window.removeEventListener('wheel', onWheel as any);
-      hl?.removeEventListener('pointerenter', enter);
-      hl?.removeEventListener('pointerleave', leave);
-      hl?.removeEventListener('touchstart', touchStart);
-      hl?.removeEventListener('touchend', touchEnd);
-
-      how?.removeEventListener('pointerenter', enter);
-      how?.removeEventListener('pointerleave', leave);
-      how?.removeEventListener('touchstart', touchStart);
-      how?.removeEventListener('touchend', touchEnd);
-
-      stopAnimationIfRunning();
+      window.removeEventListener('scroll', onScroll);
+      if (state.rafId) {
+        cancelAnimationFrame(state.rafId);
+        state.rafId = null;
+      }
     };
   }, []);
+  // ===== End global smooth scroll =====
+
+
+
+
+
+
   // ===== End Slow Scroll hook =====
 
   // new-scrollend
@@ -697,42 +789,159 @@ const Home: React.FC = () => {
       setIsLoader(false);
     }
   };
+// Hero Section with revised animation sequence
+  // HERO SCROLL PARALLAX
+ 
+  // HERO SCROLL PARALLAX
+  // HERO SCROLL PARALLAX (only position, no opacity)
+  const heroRef = useRef<HTMLElement | null>(null);
 
-  const HeroSection = (
+  const { scrollYProgress: heroScrollY } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'], // jab hero ka bottom viewport top ko touch kare
+  });
+
+  // Tags (h3 + p + buttons) scroll out pehle
+  const heroContentY = useTransform(heroScrollY, [0, 1], [0, -400]);
+
+  // Background pehle lock, baad mein move
+  const heroBgY = useTransform(heroScrollY, [0, 0.6, 1], [0, 0, -120]);
+
+
+//  appearance sections 11-18-25
+
+
+//   const HeroSection = (
+//   <motion.section
+//     id="hero"
+//     key="hero"
+//     className="relative w-full min-h-screen home-bg"
+//     initial={{ opacity: 0 }}
+//     animate={{ opacity: 1 }}
+//     exit={{ opacity: 0 }}
+//     transition={{ duration: 0.8, ease: 'easeOut' }} // ⬅️ background fade
+//   >
+//     {/* Sticky header stays as-is, just controlled by scroll */}
+//     <motion.div
+//       initial={{ y: 0, opacity: 1 }}
+//       animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
+//       transition={{ duration: 0.9, ease: 'easeOut' }}
+//       className="fixed top-0 left-0 right-0 z-[1000] will-change-transform stiky py-0"
+//     >
+//       <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
+//     </motion.div>
+
+//     <div className="h-[72px]" />
+
+//     {/* Paragraph: third in sequence (after h3) */}
+//     <motion.div
+//       className="flex justify-end px-20 max-[1260px]:justify-center max-[576px]:px-2 translate-y-[12%]"
+//       initial={{ opacity: 0, y: 50 }}
+//       animate={{ opacity: 1, y: 0 }}
+//       transition={{ duration: 0.6, ease: 'easeOut', delay: 0.8 }} // ⬅️ after h3
+//     >
+//       <p className="text-[36px] font-light text-primary mt-10 max-w-[445px] leading-[45px] max-[1260px]:max-w-full max-[1260px]:text-[30px] max-[1260px]:text-center max-[992px]:text-[24px] max-[992px]:leading-tight max-[768px]:text-[19px] max-[576px]:max-w-full">
+//         From rent collection to maintenance requests — manage everything in
+//         one place.
+//       </p>
+//     </motion.div>
+
+//     <div className="flex justify-between items-end pb-10 pl-10 pr-20 absolute bottom-0 left-0 right-0 max-[1260px]:flex-col max-[1260px]:items-center max-[576px]:px-0">
+//       {/* H3: second in sequence (after bg) */}
+//       <motion.h3
+//         className="text-[4vw] font-normal text-primary leading-tight max-w-[740px] max-[1260px]:text-center max-[768px]:text-[40px] max-[576px]:text-[24px]"
+//         initial={{ opacity: 0, y: 80 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         transition={{ duration: 0.5, ease: 'easeOut', delay: 0.6 }} // ⬅️ after bg
+//       >
+//         Smarter Property <br /> Management in Kuwait
+//       </motion.h3>
+
+//       {/* Buttons: last in sequence */}
+//       <motion.div
+//         className="flex gap-4 mt-6 justify-end md:justify-start max-[576px]:flex-col"
+//         initial={{ opacity: 0, y: 50 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         transition={{ duration: 0.7, ease: 'easeOut', delay: 1.0 }} // ⬅️ after p
+//       >
+//         <button
+//           onClick={() => navigate('/admin-panel/auth/register')}
+//           className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-[576px]:text-[14px]"
+//         >
+//           Start Free Trial
+//         </button>
+//         <button
+//           onClick={() => navigate('/contact-us')}
+//           className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[576px]:text-[14px]"
+//         >
+//           Book a Demo
+//         </button>
+//       </motion.div>
+//     </div>
+//   </motion.section>
+// );
+//end ===== Highlights Section with scroll-driven animations =====
+
+   const HeroSection = (
     <motion.section
       id="hero"
       key="hero"
+      ref={heroRef} // ⬅️ scroll target
       className="relative w-full min-h-screen home-bg"
-      initial={{ y: '100%' }}
-      animate={{ y: 0 }}
-      exit={{ y: '-100%' }}
-      transition={{ duration: 0.8, ease: 'easeInOut' }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.8, ease: 'easeOut' }} // ⬅️ background fade
+      style={{ y: heroBgY }} // ⬅️ background scroll later (pehle lock)
     >
-      {/* <Header customClass="relative" /> */}
+      {/* Sticky header stays as-is, just controlled by scroll */}
       <motion.div
         initial={{ y: 0, opacity: 1 }}
         animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
+        transition={{ duration: 0.9, ease: 'easeOut' }}
         className="fixed top-0 left-0 right-0 z-[1000] will-change-transform stiky py-0"
       >
-        {/* feel free to tweak bg/blur/shadow here */}
         <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
       </motion.div>
+
       <div className="h-[72px]" />
-
-      <div className="flex justify-end px-20 max-[1260px]:justify-center max-[576px]:px-2 translate-y-[12%]">
-        <p className="text-[36px] font-light text-primary mt-10 max-w-[445px] leading-[45px] max-[1260px]:max-w-full max-[1260px]:text-[30px] max-[1260px]:text-center max-[992px]:text-[24px] max-[992px]:leading-tight max-[768px]:text-[19px] max-[576px]:max-w-full">
-          From rent collection to maintenance requests — manage everything in
+      {/* Paragraph: third in sequence (after h3) */}
+      <motion.div
+        className="flex justify-end px-20 max-[1260px]:justify-center max-[576px]:px-2 translate-y-[12%]"
+        style={{ y: heroContentY }}
+      >
+        <motion.p
+          className="text-[36px] font-light text-primary mt-10 max-w-[445px] leading-[45px] max-[1260px]:max-w-full max-[1260px]:text-[30px] max-[1260px]:text-center max-[992px]:text-[24px] max-[992px]:leading-tight max-[768px]:text-[19px] max-[576px]:max-w-full"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut', delay: 0.8 }}
+        >
+          From rent collection to maintenance requests � manage everything in
           one place.
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
 
-      <div className="flex justify-between items-end pb-10 pl-10 pr-20 absolute bottom-0 left-0 right-0 max-[1260px]:flex-col max-[1260px]:items-center max-[576px]:px-0">
-        <h3 className="text-[4vw] font-normal text-primary leading-tight max-w-[740px] max-[1260px]:text-center max-[768px]:text-[40px] max-[576px]:text-[24px]">
+      <motion.div
+        className="flex justify-between items-end pb-10 pl-10 pr-20 absolute bottom-0 left-0 right-0 max-[1260px]:flex-col max-[1260px]:items-center max-[576px]:px-0"
+        style={{ y: heroContentY }} // ⬅️ same scroll as paragraph
+      >
+        {/* H3: second in sequence (after bg) */}
+        <motion.h3
+          className="text-[4vw] font-normal text-primary leading-tight max-w-[740px] max-[1260px]:text-center max-[768px]:text-[40px] max-[576px]:text-[24px]"
+          initial={{ opacity: 0, y: 80 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut', delay: 0.6 }} // ⬅️ after bg
+        >
           Smarter Property <br /> Management in Kuwait
-        </h3>
+        </motion.h3>
 
-        <div className="flex gap-4 mt-6 justify-end md:justify-start max-[576px]:flex-col">
+        {/* Buttons: last in sequence */}
+        <motion.div
+          className="flex gap-4 mt-6 justify-end md:justify-start max-[576px]:flex-col"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: 'easeOut', delay: 1.0 }} // ⬅️ after p
+        >
           <button
             onClick={() => navigate('/admin-panel/auth/register')}
             className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-[576px]:text-[14px]"
@@ -745,10 +954,18 @@ const Home: React.FC = () => {
           >
             Book a Demo
           </button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </motion.section>
   );
+
+
+
+
+
+
+
+
 
   const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -1321,22 +1538,20 @@ const Home: React.FC = () => {
 
                     <div className="flex items-center space-x-2">
                       <div
-                        className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-                          billingCycle === 'annual'
+                        className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${billingCycle === 'annual'
                             ? 'bg-gradient-to-r from-green-500 to-blue-500'
                             : 'bg-gray-300'
-                        }`}
+                          }`}
                         onClick={handleToggle}
                         role="switch"
                         aria-checked={billingCycle === 'annual'}
                         aria-label="Toggle billing cycle"
                       >
                         <div
-                          className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${
-                            billingCycle === 'annual'
+                          className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${billingCycle === 'annual'
                               ? 'translate-x-6'
                               : 'translate-x-0'
-                          }`}
+                            }`}
                         />
                       </div>
                       <span className="text-[#DFF4EC] font-light text-[20px] select-none">
@@ -1387,7 +1602,7 @@ const Home: React.FC = () => {
                             {(p.features?.length
                               ? p.features
                               : defaultPlans.find((d) => d.code === p.code)
-                                  ?.features || []
+                                ?.features || []
                             ).map((f, i) => (
                               <li key={i} className="flex items-start">
                                 <span className="text-xl mr-2 leading-none">
@@ -1485,13 +1700,11 @@ const Home: React.FC = () => {
                   <input
                     type="text"
                     placeholder="Rashid Hamad"
-                    className={`w-full rounded-lg border font-light ${
-                      errors.fname ? 'border-red-400' : 'border-transparent'
-                    } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                      errors.fname
+                    className={`w-full rounded-lg border font-light ${errors.fname ? 'border-red-400' : 'border-transparent'
+                      } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${errors.fname
                         ? 'focus:ring-red-400'
                         : 'focus:ring-blue-400'
-                    }`}
+                      }`}
                     {...register('fname', {
                       required: 'First name is required.',
                       minLength: {
@@ -1516,13 +1729,11 @@ const Home: React.FC = () => {
                   <input
                     type="text"
                     placeholder="Rashid Hamad"
-                    className={`w-full rounded-lg border font-light ${
-                      errors.lname ? 'border-red-400' : 'border-transparent'
-                    } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                      errors.lname
+                    className={`w-full rounded-lg border font-light ${errors.lname ? 'border-red-400' : 'border-transparent'
+                      } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${errors.lname
                         ? 'focus:ring-red-400'
                         : 'focus:ring-blue-400'
-                    }`}
+                      }`}
                     {...register('lname', {
                       required: 'Last name is required.',
                       minLength: {
@@ -1550,13 +1761,11 @@ const Home: React.FC = () => {
                   <input
                     type="email"
                     placeholder="Faisal Khamees"
-                    className={`w-full rounded-lg border font-light ${
-                      errors.email ? 'border-red-400' : 'border-transparent'
-                    } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                      errors.email
+                    className={`w-full rounded-lg border font-light ${errors.email ? 'border-red-400' : 'border-transparent'
+                      } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${errors.email
                         ? 'focus:ring-red-400'
                         : 'focus:ring-blue-400'
-                    }`}
+                      }`}
                     {...register('email', {
                       required: 'Email is required.',
                       pattern: {
@@ -1581,13 +1790,11 @@ const Home: React.FC = () => {
                   <input
                     type="tel"
                     placeholder="+971527992240"
-                    className={`w-full rounded-lg border font-light ${
-                      errors.phone ? 'border-red-400' : 'border-transparent'
-                    } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                      errors.phone
+                    className={`w-full rounded-lg border font-light ${errors.phone ? 'border-red-400' : 'border-transparent'
+                      } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${errors.phone
                         ? 'focus:ring-red-400'
                         : 'focus:ring-blue-400'
-                    }`}
+                      }`}
                     {...register('phone', {
                       required: 'Phone is required.',
                       validate: (v) =>
@@ -1613,13 +1820,11 @@ const Home: React.FC = () => {
                 <textarea
                   rows={4}
                   placeholder="write a message"
-                  className={`w-full rounded-lg border font-light ${
-                    errors.message ? 'border-red-400' : 'border-transparent'
-                  } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                    errors.message
+                  className={`w-full rounded-lg border font-light ${errors.message ? 'border-red-400' : 'border-transparent'
+                    } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${errors.message
                       ? 'focus:ring-red-400'
                       : 'focus:ring-blue-400'
-                  }`}
+                    }`}
                   {...register('message', {
                     required: 'Message is required.',
                     minLength: {
@@ -1934,3 +2139,4 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+
