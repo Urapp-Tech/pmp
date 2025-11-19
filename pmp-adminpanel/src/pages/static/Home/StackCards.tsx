@@ -163,8 +163,10 @@ export const StackedCards: FC<StackedCardsProps> = ({ cards }) => {
         .stacked-cards__card-wrapper {
           perspective: 100vw;
           position: sticky;
-          top: 0;
-          height: 100vh;
+          // top: 0;
+          // height: 100vh;
+            top: 200px; /* <-- changed from 0 to 100px */
+  height: calc(100vh - 200px); /* <-- optional, makes full height visible below top */
           display: flex;
           align-items: center;
           justify-content: center;
