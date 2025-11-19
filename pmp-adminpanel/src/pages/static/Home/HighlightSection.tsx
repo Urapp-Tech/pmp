@@ -1,6 +1,6 @@
 import assets from '@/assets/images';
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import StackedCards from './StackCards';
 
 type StackedCard = {
@@ -73,8 +73,71 @@ const cards: Array<StackedCard> = [
   },
 ];
 
+const DEFAULT_VIEWPORT_WIDTH = 1920;
+const DEFAULT_VIEWPORT_HEIGHT = 1080;
+
+const adjustForViewportHeight = (value: number, height: number) => {
+  if (height >= 900) return value;
+  if (height >= 768) return value * 1.05;
+  if (height >= 700) return value * 1.1;
+  return value * 1.2;
+};
+
+const calculateSectionHeight = (
+  baseHeight: number,
+  width: number,
+  height: number
+) => {
+  let scaled = baseHeight;
+  if (width < 1024) {
+    scaled = baseHeight * 0.85;
+  } else if (width < 1200) {
+    scaled = baseHeight * 0.92;
+  } else if (width < 1366) {
+    scaled = baseHeight * 0.96;
+  }
+  return adjustForViewportHeight(scaled, height);
+};
+
+const calculateStackHeight = (width: number, height: number) => {
+  let scaled = 320;
+  if (width < 1024) {
+    scaled = 210;
+  } else if (width < 1366) {
+    scaled = 260;
+  }
+  return adjustForViewportHeight(scaled, height);
+};
+
 function HighlightSection() {
   const sectionRef = useRef(null);
+  const baseSectionHeight = 20 + (cards.length + 1) * 80;
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : DEFAULT_VIEWPORT_WIDTH
+  );
+  const [viewportHeight, setViewportHeight] = useState(
+    typeof window !== 'undefined' ? window.innerHeight : DEFAULT_VIEWPORT_HEIGHT
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+      setViewportHeight(window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const sectionHeight = calculateSectionHeight(
+    baseSectionHeight,
+    viewportWidth,
+    viewportHeight
+  );
+  const cardsStackHeight = calculateStackHeight(
+    viewportWidth,
+    viewportHeight
+  );
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -101,7 +164,7 @@ function HighlightSection() {
       id="highlights"
       ref={sectionRef}
       className="relative bg-transparent text-white"
-      style={{ height: `${20 + (cards.length + 1) * 80}vh` }}
+      style={{ height: `${sectionHeight}vh` }}
     >
       <motion.div
         className="sticky top-0 w-full h-screen flex items-center justify-center z-30"
@@ -143,8 +206,8 @@ function HighlightSection() {
 
       {/* --- CARDS SECTION --- */}
       <motion.div
-        className="sticky top-0 w-full h-[320vh] z-10 flex items-center justify-center"
-        style={{ opacity: cardsOpacity }}
+        className="sticky top-0 w-full z-10 flex items-center justify-center"
+        style={{ opacity: cardsOpacity, height: `${cardsStackHeight}vh` }}
       >
         <StackedCards cards={cards} />
       </motion.div>
