@@ -1,7 +1,7 @@
 import js from '@eslint/js';
-import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
@@ -19,7 +19,7 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'eslint-disable-next-line @typescript-eslint/no-explicit-any': false,
+      'eslint-disable-next-line @typescript-eslint/no-explicit-any': 'off',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
