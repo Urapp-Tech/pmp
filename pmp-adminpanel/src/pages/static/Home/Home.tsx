@@ -2,6 +2,7 @@ import SelectedPlanModal from '@/components/Static/Model';
 import { useToast } from '@/hooks/use-toast';
 import plan from '@/services/adminapp/static';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ReactLenis } from 'lenis/react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -434,7 +435,7 @@ const Home: React.FC = () => {
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.23 }
     );
     ids.forEach((id) => {
       const el = document.getElementById(id);
@@ -446,95 +447,98 @@ const Home: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="w-full relative bg-[#DFF4EC]">
-      {!isMobile ? (
-        <div className="w-full h-auto relative overflow-visible">
-          <AnimatePresence mode="wait">
-            <HeroSection showHeader={showHeader} />
-            <HighlightSection />
-            <PartnerSection />
-            <WhyChooseSection />
-            <NewPartnerSection />
-            <HowSection />
-            <NewAboutSection />
-            <PricingSection
-              billingCycle={billingCycle}
-              defaultPlans={defaultPlans}
-              loadingPlans={loadingPlans}
-              openSubscribe={openSubscribe}
-              plans={plans}
-              setBillingCycle={setBillingCycle}
-            />
-            <ContactSection />
-            <FooterSection />
-          </AnimatePresence>
-
-          {!isMobile && (
-            <AnimatePresence>
-              {showSideNav && (
-                <motion.div
-                  key="section-nav"
-                  initial={{ opacity: 0, x: 24 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 24 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="fixed right-2 bottom-6 z-[1000] flex flex-col gap-2 items-end"
-                >
-                  {[
-                    { key: 'highlights', label: 'Highlights' },
-                    { key: 'why', label: 'Why Choose Us' },
-                    { key: 'how', label: 'How It Works' },
-                    { key: 'about', label: 'About' },
-                    { key: 'pricing', label: 'Pricing' },
-                    { key: 'contact', label: 'Contact' },
-                  ].map((item) => {
-                    const isActive = activeSection === item.key;
-                    const base =
-                      'px-3 py-3 rounded-md text-[12px] font-medium shadow transition-colors duration-200 w-[150px]';
-                    const activeCls = 'bg-acive text-white';
-                    const normalCls =
-                      'bg-[#DFF4EC] text-[#242460] border-2 border-solid border-[#242460]/20';
-
-                    return (
-                      <button
-                        key={item.key}
-                        onClick={() => {
-                          const el = document.getElementById(item.key);
-                          if (el)
-                            el.scrollIntoView({
-                              behavior: 'smooth',
-                              block: 'start',
-                            });
-                        }}
-                        className={`${base} ${isActive ? activeCls : normalCls}`}
-                      >
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                </motion.div>
-              )}
+    <>
+      <ReactLenis root />
+      <div className="w-full relative bg-[#DFF4EC]">
+        {!isMobile ? (
+          <div className="w-full h-auto relative overflow-visible">
+            <AnimatePresence mode="wait">
+              <HeroSection showHeader={showHeader} />
+              <HighlightSection />
+              <PartnerSection />
+              <WhyChooseSection />
+              <NewPartnerSection />
+              <HowSection />
+              <NewAboutSection />
+              <PricingSection
+                billingCycle={billingCycle}
+                defaultPlans={defaultPlans}
+                loadingPlans={loadingPlans}
+                openSubscribe={openSubscribe}
+                plans={plans}
+                setBillingCycle={setBillingCycle}
+              />
+              <ContactSection />
+              <FooterSection />
             </AnimatePresence>
-          )}
 
-          <SelectedPlanModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            plan={selectedPlan}
-            billingCycle={billingCycle}
-          />
-        </div>
-      ) : (
-        <div className="w-full h-auto relative">
-          <style>{`
+            {!isMobile && (
+              <AnimatePresence>
+                {showSideNav && (
+                  <motion.div
+                    key="section-nav"
+                    initial={{ opacity: 0, x: 24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 24 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="fixed right-2 bottom-6 z-[1000] flex flex-col gap-2 items-end"
+                  >
+                    {[
+                      { key: 'highlights', label: 'Highlights' },
+                      { key: 'why', label: 'Why Choose Us' },
+                      { key: 'how', label: 'How It Works' },
+                      { key: 'about', label: 'About' },
+                      { key: 'pricing', label: 'Pricing' },
+                      { key: 'contact', label: 'Contact' },
+                    ].map((item) => {
+                      const isActive = activeSection === item.key;
+                      const base =
+                        'px-3 py-3 rounded-md text-[12px] font-medium shadow transition-colors duration-200 w-[150px]';
+                      const activeCls = 'bg-active text-white';
+                      const normalCls =
+                        'bg-[#DFF4EC] text-[#242460] border-2 border-solid border-[#242460]/20';
+
+                      return (
+                        <button
+                          key={item.key}
+                          onClick={() => {
+                            const el = document.getElementById(item.key);
+                            if (el)
+                              el.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                              });
+                          }}
+                          className={`${base} ${isActive ? activeCls : normalCls}`}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            )}
+
+            <SelectedPlanModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              plan={selectedPlan}
+              billingCycle={billingCycle}
+            />
+          </div>
+        ) : (
+          <div className="w-full h-auto relative">
+            <style>{`
                     body {
                         overflow: auto !important;
                     }
                 `}</style>
-          <HomeResponsive />
-        </div>
-      )}
-    </div>
+            <HomeResponsive />
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

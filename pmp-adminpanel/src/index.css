@@ -910,8 +910,6 @@
   font-display: swap;
 } */
 
-
-
 .bg-primary {
   background-color: var(--primary);
 }
@@ -1534,7 +1532,7 @@
   width: 18px;
 }
 
-.bg-acive {
+.bg-active {
   background: linear-gradient(
     90.54deg,
     rgba(0, 205, 141, 1) 16.579997539520264%,

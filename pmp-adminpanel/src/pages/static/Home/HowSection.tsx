@@ -1,249 +1,164 @@
 import assets from '@/assets/images';
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
 import { useRef } from 'react';
+import StackedCards from './StackCards';
 
-const repBoxes = [
+type StackedCard = {
+  id: string;
+  title: string;
+  titleColor: string;
+  description: string;
+  descriptionColor: string;
+  imageSrc?: string;
+  imageAlt?: string;
+  progressRange: [number, number];
+  yRange: [string, string];
+  rotateRange: [number, number];
+  scaleRange: [number, number];
+  bullets?: Array<string>;
+};
+
+const cards: Array<StackedCard> = [
   {
-    id: 1,
+    id: 'how-1',
     title: 'Landlord Portal',
     description: 'Control your property portfolio',
-    bg: `${assets.images.landBanner}`,
+    imageSrc: `${assets.images.landBanner}`,
     titleColor: '#DFF4EC',
-    descColor: '#DFF4EC',
+    descriptionColor: '#DFF4EC',
     bullets: [
       'Dashboard showing total properties, tenants, invoices & tickets',
       'Add and manage multiple properties',
       'Automate rent collection & reminders',
       'View financial reports instantly',
     ],
+    progressRange: [0.0, 0.23],
+    yRange: ['60vh', '-5rem'],
+    rotateRange: [-10, 0],
+    scaleRange: [1.1, 1],
   },
   {
-    id: 2,
-    title: 'Landlord Portal',
-    description: 'Control your property portfolio',
-    bg: `${assets.images.landBanner}`,
-    titleColor: '#DFF4EC',
-    descColor: '#DFF4EC',
-    bullets: [
-      'Dashboard showing total properties, tenants, invoices & tickets',
-      'Add and manage multiple properties',
-      'Automate rent collection & reminders',
-      'View financial reports instantly',
-    ],
-  },
-  {
-    id: 3,
-    title: 'Landlord Portal',
-    description: 'Control your property portfolio',
-    bg: `${assets.images.landBanner}`,
-    titleColor: '#DFF4EC',
-    descColor: '#DFF4EC',
-    bullets: [
-      'Dashboard showing total properties, tenants, invoices & tickets',
-      'Add and manage multiple properties',
-      'Automate rent collection & reminders',
-      'View financial reports instantly',
-    ],
-  },
-  {
-    id: 4,
+    id: 'how-2',
     title: 'Manager Portal',
     description: 'Simplify daily operations',
-    bg: `${assets.images.mangerBanner}`,
+    imageSrc: `${assets.images.mangerBanner}`,
     titleColor: '#242460',
-    descColor: '#242460',
+    descriptionColor: '#242460',
     bullets: [
       'Track assigned tenants, managed units, and rent collection',
       'Centralized database of tenants with full details',
       'Monitor occupancy, expenses, and invoices',
       'Handle maintenance requests smoothly',
     ],
+    progressRange: [0.25, 0.48],
+    yRange: ['60vh', '0rem'],
+    rotateRange: [-10, 0],
+    scaleRange: [1.1, 1],
   },
   {
-    id: 5,
+    id: 'how-3',
     title: 'Tenant Portal',
     description: 'Designed for convenience',
-    bg: `${assets.images.tenantBanner}`,
+    imageSrc: `${assets.images.tenantBanner}`,
     titleColor: '#DFF4EC',
-    descColor: '#DFF4EC',
+    descriptionColor: '#DFF4EC',
     bullets: [
       'Pay rent online quickly & securely',
       'Access lease contracts & payment history',
       'Submit and track maintenance requests',
       'Stay updated with reminders and receipts',
     ],
+    progressRange: [0.5, 0.73],
+    yRange: ['60vh', '5rem'],
+    rotateRange: [-10, 0],
+    scaleRange: [1.1, 1],
   },
   {
-    id: 6,
+    id: 'how-4',
     title: 'Super Admin Portal',
     description: 'Full platform control.',
-    bg: `${assets.images.adminBanner}`,
+    imageSrc: `${assets.images.adminBanner}`,
     titleColor: '#242460',
-    descColor: '#242460',
+    descriptionColor: '#242460',
     bullets: [
       'Manage landlords, managers, tenants, and properties',
       'Oversee all permissions and platform usage',
       'Ensure smooth system performance',
     ],
+    progressRange: [0.75, 1],
+    yRange: ['60vh', '9rem'],
+    rotateRange: [-10, 0],
+    scaleRange: [1.1, 1],
   },
 ];
-
 function HowSection() {
-  const numSlides = repBoxes.length;
-  const step = 1 / numSlides;
-  const cardOffset = 40;
-
   const sectionRef = useRef(null);
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end end'],
   });
 
-  const smoothProgress = useSpring(scrollYProgress, {
+  const progress = useSpring(scrollYProgress, {
     stiffness: 50,
     damping: 20,
     mass: 0.2,
   });
+
+  //
+  // HEADING
+  //
+  const headingY = useTransform(progress, [0, 0.25], ['0%', '-50%']);
+  const headingOpacity = useTransform(progress, [0, 0.25], [1, 0]);
+
+  //
+  // CARDS — appear after text fades out
+  //
+  const cardsOpacity = useTransform(progress, [0.5, 1], [1, 1]);
+
   return (
     <section
+      id="how"
       ref={sectionRef}
       className="relative bg-transparent text-white"
-      style={{ height: `${numSlides * 110}vh` }}
+      style={{ height: `${20 + (cards.length + 1) * 80}vh` }}
     >
-      <div
-        id="how"
-        className="sticky top-0 h-screen w-full flex items-center overflow-hidden justify-center"
+      {/* --- HEADING (sticky) --- */}
+      <motion.div
+        className="sticky top-0 w-full h-screen flex items-center justify-center z-30"
+        style={{ y: headingY, opacity: headingOpacity }}
       >
-        {repBoxes.map((box, i) => {
-          const start = i * step;
-          const end = (i + 1) * step;
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{
+            duration: 0.9,
+            ease: [0.25, 0.1, 0.25, 1],
+          }}
+          viewport={{ once: true, amount: 0.6 }}
+        >
+          <div className="flex items-center mb-4 justify-center">
+            <img src={assets.images.hiliteIcon} className="w-[80px] h-[80px]" />
+            <span className="font-normal text-[64px] text-primary">
+              How it works
+            </span>
+          </div>
+          <div className="text-[34px] mx-auto max-w-[1200px] text-primary text-center leading-tight">
+            Built for landlords, managers, and tenants—four smart portals,
+            <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+              tailored for every role.
+            </span>
+          </div>
+        </motion.div>
+      </motion.div>
 
-          const baseY = cardOffset * i;
-          const y = useTransform(
-            smoothProgress,
-            [start, end],
-            [baseY + cardOffset, baseY]
-          );
-
-          let opacity;
-
-          if (box.id === 1 || box.id === 2) {
-            opacity = useTransform(
-              smoothProgress,
-              [start, start + step * 0.25, end - step * 0.15, end],
-              [0, 1, 1, 0]
-            );
-          } else {
-            opacity = useTransform(
-              smoothProgress,
-              [start, start + step * 0.25],
-              [0, 1]
-            );
-          }
-
-          const scale = useTransform(smoothProgress, [start, end], [0.97, 1]);
-
-          if (box.id === 1) {
-            return (
-              <motion.div
-                key={box.id}
-                className={`mx-auto absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
-                style={{
-                  y,
-                  opacity: useTransform(
-                    smoothProgress,
-                    [start, start + step * 0.25, end - step * 0.15, end],
-                    [1, 1, 1, 0]
-                  ),
-                  scale: 1,
-                  zIndex: i + 1,
-                }}
-              >
-                <div className="flex gap-6  ">
-                  <img
-                    src={assets.images.hiliteIcon}
-                    alt="icon"
-                    className="w-[80px] h-[80px]"
-                  />
-                  <span className="font-normal text-[64px] text-primary">
-                    How it works
-                  </span>
-                </div>
-              </motion.div>
-            );
-          }
-
-          if (box.id === 2) {
-            return (
-              <motion.div
-                key={box.id}
-                className={`mx-auto flex-col absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
-                style={{
-                  y,
-                  opacity,
-                  scale,
-                  zIndex: i + 1,
-                }}
-              >
-                <div className="text-[44px] mx-auto block text-primary text-center leading-tight">
-                  Built for landlords, managers, and tenants—four smart portals,
-                  <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
-                    tailored for every role.
-                  </span>
-                </div>
-              </motion.div>
-            );
-          }
-
-          return (
-            <motion.div
-              key={box.id}
-              className={`bg-center bg-cover mx-auto absolute bg-white rounded-2xl w-10/12 h-screen flex items-center justify-center boxes-bg-set`}
-              style={{
-                backgroundImage: `url(${box.bg})`,
-                y,
-                opacity,
-                scale,
-                zIndex: i + 1,
-              }}
-              initial={false}
-              transition={{ duration: 2, ease: 'easeInOut' }}
-            >
-              <div
-                className={[
-                  'p-6 rounded-lg absolute inset-0 transition-opacity duration-300',
-                ].join(' ')}
-              >
-                <h3
-                  className="text-[40px] font-normal mt-[-7px] mb-4 max-[1550px]:text-[34px]  max-[1400px]:text-[26px]"
-                  style={{ color: box.titleColor }}
-                >
-                  {box.title}
-                </h3>
-
-                <p
-                  className="text-[21px] font-light max-w-5xl max-[1600px]:text-[18px]"
-                  style={{ color: box.descColor }}
-                >
-                  {box.description}
-                </p>
-
-                <ul className="list-disc pl-4 space-y-2 mt-5">
-                  {box.bullets.map((bullet, idx) => (
-                    <li
-                      key={idx}
-                      className="text-[18px] font-light"
-                      style={{ color: box.descColor }}
-                    >
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+      {/* --- CARDS SECTION --- */}
+      <motion.div
+        className="sticky top-0 w-full h-[320vh] z-10 flex items-center justify-center"
+        style={{ opacity: cardsOpacity }}
+      >
+        <StackedCards cards={cards} />
+      </motion.div>
     </section>
   );
 }
