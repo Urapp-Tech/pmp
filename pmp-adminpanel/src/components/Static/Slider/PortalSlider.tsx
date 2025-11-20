@@ -26,8 +26,8 @@ export default function PortalSlider() {
         className="mySwiper"
       >
         <SwiperSlide>
-          <div className="flex-1 relative h-[500px]">
-            <div className="py-4 px-4 sm:p-6">
+          <div className="flex-1 relative h-[500px] slv-blue">
+            <div className="py-4 px-4 sm:p-6 sp3">
               <h3 className="text-[20px] font-normal mb-2  text-white   ">
                 Landlord Portal
               </h3>
@@ -67,8 +67,8 @@ export default function PortalSlider() {
           </div>
         </SwiperSlide>
         <SwiperSlide>
-          <div className="flex-1 min-h-[500px]">
-            <div className="py-4 px-4  sm:p-6">
+          <div className="flex-1 min-h-[500px] slv-white">
+            <div className="py-4 px-4  sm:p-6 sp3">
               <h3 className=" text-[20px] font-normal mb-2  text-[#242460]">
                 Manager Portal
               </h3>
@@ -107,8 +107,8 @@ export default function PortalSlider() {
           </div>
         </SwiperSlide>
         <SwiperSlide>
-          <div className="flex-1 min-h-[500px]">
-            <div className=" py-4 px-4 sm:p-6">
+          <div className="flex-1 min-h-[500px] slv-blue">
+            <div className=" py-4 px-4 sm:p-6 sp3">
               <h3 className=" text-white text-[20px] font-normal mb-2   ">
                 Tenant Portal
               </h3>
@@ -146,8 +146,8 @@ export default function PortalSlider() {
           </div>
         </SwiperSlide>
         <SwiperSlide>
-          <div className="flex-1 relative min-h-[500px]">
-            <div className="py-4 px-4 sm:p-6">
+          <div className="flex-1 relative min-h-[500px] slv-white">
+            <div className="py-4 px-4 sm:p-6 sp3">
               <h3 className=" text-primary text-[20px] font-normal mb-2 ">
                 Super Admin Portal
               </h3>

@@ -79,7 +79,7 @@ const defaultPlans: Plan[] = [
 const Home: React.FC = () => {
   const authState: any = useSelector((state: any) => state.authState);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 991);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1000);
 
   const navigate = useNavigate();
   const { toast } = useToast();

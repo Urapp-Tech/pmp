@@ -124,268 +124,249 @@
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Black.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Black.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Black.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Black.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Black.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Black.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Black.svg#/src/assets/fonts/ArgentumSans-Black')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Black.svg#/src/assets/fonts/ArgentumSans-Black') format('svg');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Black_1.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Black_1.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Black_1.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Black_1.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Black_1.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Black_1.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Black_1.svg#/src/assets/fonts/ArgentumSans-Black')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Black_1.svg#/src/assets/fonts/ArgentumSans-Black') format('svg');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraLight.eot');
   src:
-    url('./assets/fonts/ArgentumSans-ExtraLight.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-ExtraLight.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-ExtraLight.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-ExtraLight.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-ExtraLight.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-ExtraLight.svg#/src/assets/fonts/ArgentumSans-ExtraLight')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-ExtraLight.svg#/src/assets/fonts/ArgentumSans-ExtraLight') format('svg');
   font-weight: 200;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Light.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Light.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Light.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Light.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Light.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Light.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Light.svg#/src/assets/fonts/ArgentumSans-Light')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Light.svg#/src/assets/fonts/ArgentumSans-Light') format('svg');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Bold.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Bold.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Bold.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Bold.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Bold.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Bold.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Bold.svg#/src/assets/fonts/ArgentumSans-Bold')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Bold.svg#/src/assets/fonts/ArgentumSans-Bold') format('svg');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraLight_1.eot');
   src:
-    url('./assets/fonts/ArgentumSans-ExtraLight_1.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-ExtraLight_1.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-ExtraLight_1.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-ExtraLight_1.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-ExtraLight_1.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-ExtraLight_1.svg#/src/assets/fonts/ArgentumSans-ExtraLight')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-ExtraLight_1.svg#/src/assets/fonts/ArgentumSans-ExtraLight') format('svg');
   font-weight: 200;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Bold_1.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Bold_1.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Bold_1.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Bold_1.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Bold_1.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Bold_1.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Bold_1.svg#/src/assets/fonts/ArgentumSans-Bold')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Bold_1.svg#/src/assets/fonts/ArgentumSans-Bold') format('svg');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraBold.eot');
   src:
-    url('./assets/fonts/ArgentumSans-ExtraBold.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-ExtraBold.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-ExtraBold.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-ExtraBold.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-ExtraBold.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-ExtraBold.svg#/src/assets/fonts/ArgentumSans-ExtraBold')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-ExtraBold.svg#/src/assets/fonts/ArgentumSans-ExtraBold') format('svg');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-ExtraBold_1.eot');
   src:
-    url('./assets/fonts/ArgentumSans-ExtraBold_1.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-ExtraBold_1.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-ExtraBold_1.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-ExtraBold_1.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-ExtraBold_1.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-ExtraBold_1.svg#/src/assets/fonts/ArgentumSans-ExtraBold')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-ExtraBold_1.svg#/src/assets/fonts/ArgentumSans-ExtraBold') format('svg');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Medium.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Medium.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Medium.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Medium.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Medium.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Medium.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Medium.svg#/src/assets/fonts/ArgentumSans-Medium')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Medium.svg#/src/assets/fonts/ArgentumSans-Medium') format('svg');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Regular.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Regular.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Regular.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Regular.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Regular.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Regular.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Regular.svg#/src/assets/fonts/ArgentumSans-Regular')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Regular.svg#/src/assets/fonts/ArgentumSans-Regular') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Regular_1.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Regular_1.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Regular_1.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Regular_1.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Regular_1.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Regular_1.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Regular_1.svg#/src/assets/fonts/ArgentumSans-Regular')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Regular_1.svg#/src/assets/fonts/ArgentumSans-Regular') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-SemiBold.eot');
   src:
-    url('./assets/fonts/ArgentumSans-SemiBold.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-SemiBold.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-SemiBold.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-SemiBold.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-SemiBold.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-SemiBold.svg#/src/assets/fonts/ArgentumSans-SemiBold')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-SemiBold.svg#/src/assets/fonts/ArgentumSans-SemiBold') format('svg');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Medium_1.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Medium_1.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Medium_1.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Medium_1.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Medium_1.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Medium_1.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Medium_1.svg#/src/assets/fonts/ArgentumSans-Medium')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Medium_1.svg#/src/assets/fonts/ArgentumSans-Medium') format('svg');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Light_1.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Light_1.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Light_1.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Light_1.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Light_1.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Light_1.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Light_1.svg#/src/assets/fonts/ArgentumSans-Light')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Light_1.svg#/src/assets/fonts/ArgentumSans-Light') format('svg');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-SemiBold_1.eot');
   src:
-    url('./assets/fonts/ArgentumSans-SemiBold_1.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-SemiBold_1.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-SemiBold_1.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-SemiBold_1.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-SemiBold_1.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-SemiBold_1.svg#/src/assets/fonts/ArgentumSans-SemiBold')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-SemiBold_1.svg#/src/assets/fonts/ArgentumSans-SemiBold') format('svg');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Thin.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Thin.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Thin.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Thin.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Thin.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Thin.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Thin.svg#/src/assets/fonts/ArgentumSans-Thin')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Thin.svg#/src/assets/fonts/ArgentumSans-Thin') format('svg');
   font-weight: 100;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'ArgentumSans';
   src: url('./assets/fonts/ArgentumSans-Thin_1.eot');
   src:
-    url('./assets/fonts/ArgentumSans-Thin_1.eot?#iefix')
-      format('embedded-opentype'),
+    url('./assets/fonts/ArgentumSans-Thin_1.eot?#iefix') format('embedded-opentype'),
     url('./assets/fonts/ArgentumSans-Thin_1.woff2') format('woff2'),
     url('./assets/fonts/ArgentumSans-Thin_1.woff') format('woff'),
     url('./assets/fonts/ArgentumSans-Thin_1.ttf') format('truetype'),
-    url('./assets/fonts/ArgentumSans-Thin_1.svg#/src/assets/fonts/ArgentumSans-Thin')
-      format('svg');
+    url('./assets/fonts/ArgentumSans-Thin_1.svg#/src/assets/fonts/ArgentumSans-Thin') format('svg');
   font-weight: 100;
   font-style: normal;
   font-display: swap;
@@ -524,16 +505,22 @@
 }
 
 *::-webkit-scrollbar {
-  width: 16px; /* height for horizontal bars */
+  width: 16px;
+  /* height for horizontal bars */
 }
+
 *::-webkit-scrollbar-track {
-  background: white; /* track color */
+  background: white;
+  /* track color */
 }
+
 *::-webkit-scrollbar-thumb {
-  @apply bg-scrollbar; /* thumb color */
+  @apply bg-scrollbar;
+  /* thumb color */
   border-bottom-left-radius: 99px;
   @apply border-scrollbar;
 }
+
 *::-webkit-scrollbar-thumb:hover {
   @apply bg-scrollbar;
 }
@@ -557,6 +544,7 @@
 .bg-primary-bg-dark {
   background-color: #424256;
 }
+
 .cs-dialog-box::-webkit-scrollbar-thumb {
   width: 24px;
   @apply bg-secondary-bg;
@@ -613,13 +601,14 @@
 .cs-dialog-box [data-slot='trigger'] {
   @apply h-10 rounded-md text-sm text-primary-bg/80 border-0 outline-none ring-0;
 }
+
 .cs-dialog-box .select-trigger:focus,
 .cs-dialog-box [data-slot='trigger']:focus {
   @apply ring-0 outline-none;
 }
 
 * {
-  font-family: 'ArgentumSans' !important ;
+  font-family: 'ArgentumSans' !important;
 }
 
 /* @font-face {
@@ -1483,17 +1472,20 @@
     display: none !important;
   }
 }
+
 @media screen and (max-width: 1550px) {
   .boxes-bg-set {
     /* background-position: top !important; */
     background-position: 100% 25% !important;
   }
+
   .repboxes-bg-set {
     /* background-position: top !important; */
     background-position: 100% 16% !important;
     background-size: cover !important;
     background-repeat: no-repeat;
   }
+
   .foter-ban {
     height: 220px !important;
   }
@@ -1526,18 +1518,15 @@
 } */
 
 .icn {
-  filter: brightness(0) saturate(100%) invert(13%) sepia(29%) saturate(2739%)
-    hue-rotate(223deg) brightness(90%) contrast(105%);
+  filter: brightness(0) saturate(100%) invert(13%) sepia(29%) saturate(2739%) hue-rotate(223deg) brightness(90%) contrast(105%);
 
   width: 18px;
 }
 
 .bg-active {
-  background: linear-gradient(
-    90.54deg,
-    rgba(0, 205, 141, 1) 16.579997539520264%,
-    rgba(22, 101, 216, 1) 90.82000255584717%
-  );
+  background: linear-gradient(90.54deg,
+      rgba(0, 205, 141, 1) 16.579997539520264%,
+      rgba(22, 101, 216, 1) 90.82000255584717%);
 }
 
 .async-loader {
@@ -1553,9 +1542,11 @@
   justify-content: center;
   z-index: 99999999999999;
 }
+
 .async-loader.hidden {
   display: none;
 }
+
 .spinner {
   width: 60px;
   height: 60px;
@@ -1564,6 +1555,7 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -1576,11 +1568,65 @@
     background-size: contain;
     background-position: bottom;
 } */
-.priceing-responsive  span.swiper-pagination-bullet.swiper-pagination-bullet-active {
-    background: #dff4ec !important;
+.priceing-responsive span.swiper-pagination-bullet.swiper-pagination-bullet-active {
+  background: #dff4ec !important;
 }
 
-.portal-slider .swiper-pagination{
+.portal-slider .swiper-pagination {
   margin-top: 20px !important;
+
+}
+
+
+
+
+@media screen and (max-width: 767.98px) {
+
+  .slv-blue {
+    position: relative;
+  }
+
+  .slv-blue::before {
+    content: '';
+    width: 100%;
+    background: #242460;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    height: 100%;
+    border-radius: 7px;
+    opacity: 0.6;
+  }
+
+  .sp3 {
+    border-radius: 7px;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  /*  */
+
+  .slv-white {
+    position: relative;
+  }
+
+  .slv-white::before {
+    content: '';
+    width: 100%;
+    background: #dff4ec;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    height: 100%;
+    border-radius: 7px;
+    opacity: 0.85;
+    border: 1px solid #242460;
+  }
+
 
 }

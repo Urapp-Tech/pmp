@@ -103,7 +103,7 @@ export default function Header({ customClass }: Props) {
             <div className="hidden md:flex items-center justify-end">
               <Link
                 to="/admin-panel/auth/login"
-                className="text-[18px] font-light no-underline text-primary border-[1px] border-solid border-primary px-6 py-2 rounded-lg max-lg:px-2 max-lg:py-1 hover:bg-primary-bg hover:text-white transition max-lg:outline-none max-lg:border-0"
+                className="text-[18px] font-light no-underline text-primary border-[1px] border-solid border-primary px-6 py-2 rounded-lg max-lg:px-2 max-lg:py-1 hover:bg-primary-bg hover:text-white transition max-lg:outline-none "
               >
                 Sign In
               </Link>

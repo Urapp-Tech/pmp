@@ -22,12 +22,12 @@ export default function MobileSlider() {
           delay: 3000, // normal smooth speed
           disableOnInteraction: false,
         }}
-        modules={[Autoplay, Pagination]}
+         modules={[  Pagination]}
         className="mySwiper"
       >
         <SwiperSlide>
-          <div className="flex-1 relative min-h-[500px]">
-            <div className="p-3">
+          <div className="flex-1 relative min-h-[500px] slv-white ">
+            <div className="p-3 sp3">
               <h3 className="text-center text-primary text-[20px] font-normal mb-2 max-[676px]:text-[#242460]">
                 Collect rent online securely
               </h3>
@@ -46,8 +46,8 @@ export default function MobileSlider() {
           </div>
         </SwiperSlide>
         <SwiperSlide>
-          <div className="flex-1 min-h-[500px]">
-            <div className="p-3 ">
+          <div className="flex-1 min-h-[500px] slv-blue">
+            <div className="p-3 sp3">
               <h3 className="text-center text-white text-[20px] font-normal mb-2 ">
                 Automated financial reports
               </h3>
@@ -66,8 +66,8 @@ export default function MobileSlider() {
           </div>
         </SwiperSlide>
         <SwiperSlide>
-          <div className="flex-1 min-h-[500px]">
-            <div className=" p-3">
+          <div className="flex-1 min-h-[500px] slv-white">
+            <div className=" p-3 sp3">
               <h3 className="text-center text-primary text-[20px] font-normal mb-2 max-[676px]:text-[#242460]">
                 Easy tenant & property management
               </h3>
@@ -86,8 +86,8 @@ export default function MobileSlider() {
           </div>
         </SwiperSlide>
         <SwiperSlide>
-          <div className="flex-1 relative min-h-[500px]">
-            <div className="p-3 ">
+          <div className="flex-1 relative min-h-[500px] slv-blue">
+            <div className="p-3 sp3">
               <h3 className="text-center text-white text-[20px] font-normal mb-2  ">
                 Track and resolve maintenance requests
               </h3>
