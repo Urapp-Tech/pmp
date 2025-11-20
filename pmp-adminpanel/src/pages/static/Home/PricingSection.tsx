@@ -132,7 +132,7 @@ function PricingSection({
               exit={{ opacity: 0, y: -40 }}
               transition={{ duration: 0.8, ease: 'easeInOut' }}
             >
-              <div className="w-[1200px] mx-auto flex flex-col justify-between gap-6 px-6 max-[1200px]:w-[1000px] max-[992px]:w-[800px] max-[991px]:w-full max-[991px]:items-center max-[991px]:text-center">
+              <div className="w-[1200px] mx-auto flex flex-col justify-between gap-6 px-6 max-[1200px]:w-[1000px] max-[992px]:w-[800px] max-[991px]:w-[100vw] max-[991px]:items-center max-[991px]:text-center max-md:mb-10">
                 <div className="w-full mx-auto flex items-center gap-2 justify-between max-[991px]:justify-center">
                   <motion.div
                     initial={{ opacity: 0, y: 80 }}
@@ -188,7 +188,7 @@ function PricingSection({
             {/* Pricing cards */}
             <motion.div
               style={{ y: cardsY, opacity: cardsOpacity }}
-              className="absolute bottom-[40px] w-full overflow-auto"
+              className="absolute bottom-[40px] w-full overflow-auto max-md:bottom-[20px] "
             >
               <div className="flex justify-center gap-6 items-center flex-nowrap p-4 max-w-[1200px] mx-auto mt-5 max-[991px]:hidden">
                 {loadingPlans ? (
