@@ -1,0 +1,80 @@
+
+      if (Math.abs(state.targetY - nextY) > 0.5) {
+        state.rafId = requestAnimationFrame(step);
+      } else {
+        window.scrollTo(0, state.targetY);
+        if (state.rafId) {
+          cancelAnimationFrame(state.rafId);
+          state.rafId = null;
+        }
+      }
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.defaultPrevented) return;
+
+      const deltaY = e.deltaY;
+      if (!deltaY) return;
+
+      // we take over the wheel event
+      e.preventDefault();
+
+      const docHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      const viewport = window.innerHeight;
+      const maxScroll = docHeight - viewport;
+
+      // similar "feel" to modern landing pages
+      const scale = 0.22;
+      const moderated =
+        Math.sign(deltaY) * Math.min(Math.abs(deltaY), 140); // clamp big trackpad spikes
+
+      const nextTarget = Math.max(
+        0,
+        Math.min(maxScroll, state.targetY + moderated * scale)
+      );
+
+      state.targetY = nextTarget;
+
+      if (!state.rafId) {
+        state.rafId = requestAnimationFrame(step);
+      }
+    };
+
+    // keep targetY in sync if user scrolls via keyboard / touch / programmatically
+    const onScroll = () => {
+      if (!state.rafId) {
+        state.targetY = window.scrollY;
+      }
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('wheel', onWheel as any);
+      window.removeEventListener('scroll', onScroll);
+      if (state.rafId) {
+        cancelAnimationFrame(state.rafId);
+        state.rafId = null;
+      }
+    };
+  }, []);
+  // ===== End global smooth scroll =====
+
+
+
+
+
+
+  // ===== End Slow Scroll hook =====
+
+  // new-scrollend
+  // new side nav active state 11-10-25
+  // --- Side Nav: show between #highlights (start) and #footer (end) ---
+  const [showSideNav, setShowSideNav] = useState(false);
+  const navRafRef = useRef<number | 0>(0);
+  const navBoundsRef = useRef<{ start: number; end: number }>({
+    start: 0,

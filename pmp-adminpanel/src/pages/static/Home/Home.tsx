@@ -1,3 +1,4 @@
+import Lenis from '@studio-freight/lenis';
 import {
   AnimatePresence,
   motion,
@@ -30,6 +31,7 @@ interface ContactFields {
 import SelectedPlanModal from '@/components/Static/Model';
 import plan from '@/services/adminapp/static';
 import { useSelector } from 'react-redux';
+import StackedCards from './StackCards';
 type BillingCycle = 'annual' | 'monthly';
 
 type Plan = {
@@ -88,7 +90,29 @@ const defaultPlans: Plan[] = [
   },
 ];
 
+const useSmoothScroll = () => {
+  useEffect(() => {
+    const lenis = new Lenis({
+      smoothWheel: true,
+      touchInertiaMultiplier: 35,
+      easing: (t: number) =>
+        Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+
+    let frameId = requestAnimationFrame(function raf(time: number) {
+      lenis.raf(time);
+      frameId = requestAnimationFrame(raf);
+    });
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      lenis.destroy();
+    };
+  }, []);
+};
+
 const Home: React.FC = () => {
+  useSmoothScroll();
   const authState: any = useSelector((state: any) => state.authState);
 
   const [pricingStep, setPricingStep] = useState(1);
@@ -476,12 +500,14 @@ const Home: React.FC = () => {
   // }, []);
 
   // ===== Global smooth scroll (Krepling-style inertial scroll) =====
-  const smoothScrollState = useRef<{ targetY: number; rafId: number | null }>({
-    targetY: 0,
-    rafId: null,
-  });
+  // const smoothScrollState = useRef<{ targetY: number; rafId: number | null }>({
+  //   targetY: 0,
+  //   rafId: null,
+  // });
 
+  /*
   useEffect(() => {
+    return;
     if (typeof window === 'undefined') return;
 
     // Desktop only – keep mobile native & fast
@@ -560,6 +586,7 @@ const Home: React.FC = () => {
     };
   }, []);
   // ===== End global smooth scroll =====
+  */
 
 
 
@@ -789,9 +816,9 @@ const Home: React.FC = () => {
       setIsLoader(false);
     }
   };
-// Hero Section with revised animation sequence
+  // Hero Section with revised animation sequence
   // HERO SCROLL PARALLAX
- 
+
   // HERO SCROLL PARALLAX
   // HERO SCROLL PARALLAX (only position, no opacity)
   const heroRef = useRef<HTMLElement | null>(null);
@@ -807,93 +834,132 @@ const Home: React.FC = () => {
   // Background pehle lock, baad mein move
   const heroBgY = useTransform(heroScrollY, [0, 0.6, 1], [0, 0, -120]);
 
+  // highlight title animation on scroll
+  // heading animation state + ref
+  const [highlightTitleVisible, setHighlightTitleVisible] = useState(false);
+  const highlightTitleRef = useRef<HTMLDivElement | null>(null);
 
-//  appearance sections 11-18-25
+  useEffect(() => {
+    const el = highlightTitleRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      // fallback: directly show
+      setHighlightTitleVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHighlightTitleVisible(true); // yahan par class lagegi
+          observer.disconnect(); // sirf ek baar run kare
+        }
+      },
+      { threshold: 0.4 } // jitna visible hone par trigger ho
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  //  appearance sections 11-18-25
 
 
-//   const HeroSection = (
-//   <motion.section
-//     id="hero"
-//     key="hero"
-//     className="relative w-full min-h-screen home-bg"
-//     initial={{ opacity: 0 }}
-//     animate={{ opacity: 1 }}
-//     exit={{ opacity: 0 }}
-//     transition={{ duration: 0.8, ease: 'easeOut' }} // ⬅️ background fade
-//   >
-//     {/* Sticky header stays as-is, just controlled by scroll */}
-//     <motion.div
-//       initial={{ y: 0, opacity: 1 }}
-//       animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
-//       transition={{ duration: 0.9, ease: 'easeOut' }}
-//       className="fixed top-0 left-0 right-0 z-[1000] will-change-transform stiky py-0"
-//     >
-//       <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
-//     </motion.div>
+  //   const HeroSection = (
+  //   <motion.section
+  //     id="hero"
+  //     key="hero"
+  //     className="relative w-full min-h-screen home-bg"
+  //     initial={{ opacity: 0 }}
+  //     animate={{ opacity: 1 }}
+  //     exit={{ opacity: 0 }}
+  //     transition={{ duration: 0.8, ease: 'easeOut' }} // ⬅️ background fade
+  //   >
+  //     {/* Sticky header stays as-is, just controlled by scroll */}
+  //     <motion.div
+  //       initial={{ y: 0, opacity: 1 }}
+  //       animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
+  //       transition={{ duration: 0.9, ease: 'easeOut' }}
+  //       className="fixed top-0 left-0 right-0 z-[1000] will-change-transform stiky py-0"
+  //     >
+  //       <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
+  //     </motion.div>
 
-//     <div className="h-[72px]" />
+  //     <div className="h-[72px]" />
 
-//     {/* Paragraph: third in sequence (after h3) */}
-//     <motion.div
-//       className="flex justify-end px-20 max-[1260px]:justify-center max-[576px]:px-2 translate-y-[12%]"
-//       initial={{ opacity: 0, y: 50 }}
-//       animate={{ opacity: 1, y: 0 }}
-//       transition={{ duration: 0.6, ease: 'easeOut', delay: 0.8 }} // ⬅️ after h3
-//     >
-//       <p className="text-[36px] font-light text-primary mt-10 max-w-[445px] leading-[45px] max-[1260px]:max-w-full max-[1260px]:text-[30px] max-[1260px]:text-center max-[992px]:text-[24px] max-[992px]:leading-tight max-[768px]:text-[19px] max-[576px]:max-w-full">
-//         From rent collection to maintenance requests — manage everything in
-//         one place.
-//       </p>
-//     </motion.div>
+  //     {/* Paragraph: third in sequence (after h3) */}
+  //     <motion.div
+  //       className="flex justify-end px-20 max-[1260px]:justify-center max-[576px]:px-2 translate-y-[12%]"
+  //       initial={{ opacity: 0, y: 50 }}
+  //       animate={{ opacity: 1, y: 0 }}
+  //       transition={{ duration: 0.6, ease: 'easeOut', delay: 0.8 }} // ⬅️ after h3
+  //     >
+  //       <p className="text-[36px] font-light text-primary mt-10 max-w-[445px] leading-[45px] max-[1260px]:max-w-full max-[1260px]:text-[30px] max-[1260px]:text-center max-[992px]:text-[24px] max-[992px]:leading-tight max-[768px]:text-[19px] max-[576px]:max-w-full">
+  //         From rent collection to maintenance requests — manage everything in
+  //         one place.
+  //       </p>
+  //     </motion.div>
 
-//     <div className="flex justify-between items-end pb-10 pl-10 pr-20 absolute bottom-0 left-0 right-0 max-[1260px]:flex-col max-[1260px]:items-center max-[576px]:px-0">
-//       {/* H3: second in sequence (after bg) */}
-//       <motion.h3
-//         className="text-[4vw] font-normal text-primary leading-tight max-w-[740px] max-[1260px]:text-center max-[768px]:text-[40px] max-[576px]:text-[24px]"
-//         initial={{ opacity: 0, y: 80 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ duration: 0.5, ease: 'easeOut', delay: 0.6 }} // ⬅️ after bg
-//       >
-//         Smarter Property <br /> Management in Kuwait
-//       </motion.h3>
+  //     <div className="flex justify-between items-end pb-10 pl-10 pr-20 absolute bottom-0 left-0 right-0 max-[1260px]:flex-col max-[1260px]:items-center max-[576px]:px-0">
+  //       {/* H3: second in sequence (after bg) */}
+  //       <motion.h3
+  //         className="text-[4vw] font-normal text-primary leading-tight max-w-[740px] max-[1260px]:text-center max-[768px]:text-[40px] max-[576px]:text-[24px]"
+  //         initial={{ opacity: 0, y: 80 }}
+  //         animate={{ opacity: 1, y: 0 }}
+  //         transition={{ duration: 0.5, ease: 'easeOut', delay: 0.6 }} // ⬅️ after bg
+  //       >
+  //         Smarter Property <br /> Management in Kuwait
+  //       </motion.h3>
 
-//       {/* Buttons: last in sequence */}
-//       <motion.div
-//         className="flex gap-4 mt-6 justify-end md:justify-start max-[576px]:flex-col"
-//         initial={{ opacity: 0, y: 50 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ duration: 0.7, ease: 'easeOut', delay: 1.0 }} // ⬅️ after p
-//       >
-//         <button
-//           onClick={() => navigate('/admin-panel/auth/register')}
-//           className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-[576px]:text-[14px]"
-//         >
-//           Start Free Trial
-//         </button>
-//         <button
-//           onClick={() => navigate('/contact-us')}
-//           className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[576px]:text-[14px]"
-//         >
-//           Book a Demo
-//         </button>
-//       </motion.div>
-//     </div>
-//   </motion.section>
-// );
-//end ===== Highlights Section with scroll-driven animations =====
+  //       {/* Buttons: last in sequence */}
+  //       <motion.div
+  //         className="flex gap-4 mt-6 justify-end md:justify-start max-[576px]:flex-col"
+  //         initial={{ opacity: 0, y: 50 }}
+  //         animate={{ opacity: 1, y: 0 }}
+  //         transition={{ duration: 0.7, ease: 'easeOut', delay: 1.0 }} // ⬅️ after p
+  //       >
+  //         <button
+  //           onClick={() => navigate('/admin-panel/auth/register')}
+  //           className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-[576px]:text-[14px]"
+  //         >
+  //           Start Free Trial
+  //         </button>
+  //         <button
+  //           onClick={() => navigate('/contact-us')}
+  //           className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[576px]:text-[14px]"
+  //         >
+  //           Book a Demo
+  //         </button>
+  //       </motion.div>
+  //     </div>
+  //   </motion.section>
+  // );
+  //end ===== Highlights Section with scroll-driven animations =====
 
-   const HeroSection = (
+  const HeroSection = (
     <motion.section
       id="hero"
       key="hero"
       ref={heroRef} // ⬅️ scroll target
-      className="relative w-full min-h-screen home-bg"
+      className="relative w-full min-h-screen home-bg video-bg"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.8, ease: 'easeOut' }} // ⬅️ background fade
       style={{ y: heroBgY }} // ⬅️ background scroll later (pehle lock)
     >
+      {/* Background video */}
+      {/* <div className="video-bg__media">
+        <video
+          className="video-bg__video"
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source src={heroVideo} type="video/mp4" />
+        </video>
+      </div> */}
+
       {/* Sticky header stays as-is, just controlled by scroll */}
       <motion.div
         initial={{ y: 0, opacity: 1 }}
@@ -916,7 +982,7 @@ const Home: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut', delay: 0.8 }}
         >
-          From rent collection to maintenance requests � manage everything in
+          From rent collection to maintenance requests � manage everything in
           one place.
         </motion.p>
       </motion.div>
@@ -986,7 +1052,7 @@ const Home: React.FC = () => {
     <section
       ref={sectionRef}
       className="relative bg-transparent text-white"
-      style={{ height: `${numSlides * 110}vh` }}
+      style={{ height: `${numSlides * 40}vh` }}
     >
       <div
         id="highlights"
@@ -1023,11 +1089,57 @@ const Home: React.FC = () => {
 
           const scale = useTransform(smoothProgress, [start, end], [0.97, 1]);
 
+          // if (box.id === 1) {
+          //   return (
+          //     <motion.div
+          //       key={box.id}
+          //       className={`mx-auto absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
+          //       style={{
+          //         y,
+          //         opacity: useTransform(
+          //           smoothProgress,
+          //           [start, start + step * 0.25, end - step * 0.15, end],
+          //           [1, 1, 1, 0]
+          //         ),
+          //         scale: 1,
+          //         zIndex: i + 1,
+          //       }}
+          //     >
+          //       {/* <div className="flex gap-6  text-aperance">
+          //         <img
+          //           src={assets.images.hiliteIcon}
+          //           alt="icon"
+          //           className="w-[80px] h-[80px]"
+          //         />
+          //         <span className="font-normal text-[64px] text-primary">
+          //           Highlights
+          //         </span>
+          //       </div> */}
+          //       <div
+          //         ref={highlightTitleRef}
+          //         className={cn(
+          //           'flex gap-6',
+          //           highlightTitleVisible && 'text-aperance'
+          //         )}
+          //       >
+          //         <img
+          //           src={assets.images.hiliteIcon}
+          //           alt="icon"
+          //           className="w-[80px] h-[80px]"
+          //         />
+          //         <span className="font-normal text-[64px] text-primary">
+          //           Highlights
+          //         </span>
+          //       </div>
+
+          //     </motion.div>
+          //   );
+          // }
           if (box.id === 1) {
             return (
               <motion.div
                 key={box.id}
-                className={`mx-auto absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center`}
+                className="mx-auto absolute bg-transparent rounded-2xl w-10/12 h-screen flex items-center justify-center"
                 style={{
                   y,
                   opacity: useTransform(
@@ -1039,7 +1151,18 @@ const Home: React.FC = () => {
                   zIndex: i + 1,
                 }}
               >
-                <div className="flex gap-6  ">
+                <motion.div
+                  className="flex gap-6"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{
+                    duration: 0.9,
+                    ease: [0.25, 0.1, 0.25, 1]
+                  }}
+                  viewport={{ once: true, amount: 0.6 }}
+                >
+
+
                   <img
                     src={assets.images.hiliteIcon}
                     alt="icon"
@@ -1048,10 +1171,11 @@ const Home: React.FC = () => {
                   <span className="font-normal text-[64px] text-primary">
                     Highlights
                   </span>
-                </div>
+                </motion.div>
               </motion.div>
             );
           }
+
 
           if (box.id === 2) {
             return (
@@ -1131,22 +1255,41 @@ const Home: React.FC = () => {
     <motion.section
       id="partner"
       key="partner"
-      className="relative w-full min-h-screen bg-primary flex items-center justify-center"
+      className="relative w-full min-h-screen bg-primary flex items-center justify-center "
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '-100%' }}
       transition={{ duration: 0.8, ease: 'easeInOut' }}
     >
-      <div className="text-center px-6">
-        {/* <h2 className="text-white text-5xl font-bold mb-6">Our Partners</h2> */}
-        <p className="text-white max-w-[800px] mx-auto leading-tight text-[64px] max-[1260px]:text-[50px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
+      {/* <div className="text-center px-6">
+       
+        <p className=" text-white max-w-[800px] mx-auto leading-tight text-[64px] max-[1260px]:text-[50px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
           Rento is more than just property management software,
           <span className="text-[64px]  font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
             {' '}
             it’s your growth partner.
           </span>
         </p>
-      </div>
+      </div> */}
+      <motion.div
+        initial={{ opacity: 0, y: 80 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.8,
+          ease: [0.4, 0, 0.2, 1]
+        }}
+        viewport={{ once: true, amount: 0.6 }}
+        className="text-center px-6"
+      >
+        <p className=" text-white max-w-[800px] mx-auto leading-tight text-[64px] max-[1260px]:text-[50px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
+          Rento is more than just property management software,
+          <span className="text-[64px]  font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
+            {' '}
+            it’s your growth partner.
+          </span>
+        </p>
+
+      </motion.div>
     </motion.section>
   );
 
@@ -1206,7 +1349,7 @@ const Home: React.FC = () => {
     <section
       ref={howSectionRef}
       className="relative bg-transparent text-white"
-      style={{ height: `${numSlides2 * 110}vh` }}
+      style={{ height: `${numSlides2 * 40}vh` }}
     >
       <div
         id="how"
@@ -1263,7 +1406,18 @@ const Home: React.FC = () => {
                   zIndex: i + 1,
                 }}
               >
-                <div className="flex gap-6  ">
+
+                <motion.div
+                  className="flex gap-6"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{
+                    duration: 0.9,
+                    ease: [0.25, 0.1, 0.25, 1]
+                  }}
+                  viewport={{ once: true, amount: 0.6 }}
+                >
+
                   <img
                     src={assets.images.hiliteIcon}
                     alt="icon"
@@ -1272,7 +1426,9 @@ const Home: React.FC = () => {
                   <span className="font-normal text-[64px] text-primary">
                     How it works
                   </span>
-                </div>
+                </motion.div>
+
+
               </motion.div>
             );
           }
@@ -1371,8 +1527,8 @@ const Home: React.FC = () => {
       exit={{ y: '-100%' }}
       transition={{ duration: 0.8, ease: 'easeInOut' }}
     >
-      <div className="text-center px-6 ">
-        {/* <h2 className="text-white text-5xl font-bold mb-6">Our Partners</h2> */}
+      {/* <div className="text-center px-6 ">
+        
         <p className="text-left text-white mx-auto text-[100px] leading-tight max-w-[1400px] max-[1440px]:text-[80px] max-[1024px]:text-[60px] max-[768px]:text-[40px] max-[425px]:text-[32px]">
           At Rento, we believe property management should be simple,
           <span className=" font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent     ">
@@ -1380,7 +1536,25 @@ const Home: React.FC = () => {
             smart, and stress-free.
           </span>
         </p>
-      </div>
+      </div> */}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 1.1,
+          ease: [0.65, 0, 0.35, 1] // ease-in-out quart (Lenis-like)
+        }}
+        viewport={{ once: true, amount: 0.6 }}
+        className="text-center px-6"
+      >
+        <p className="text-left text-white mx-auto text-[70px] leading-tight max-w-[1000px] max-[1440px]:text-[80px] max-[1024px]:text-[60px] max-[768px]:text-[40px] max-[425px]:text-[32px]">
+          At Rento, we believe property management should be simple,
+          <span className=" font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent     ">
+            {' '}
+            smart, and stress-free.
+          </span>
+        </p>
+      </motion.div>
     </motion.section>
   );
 
@@ -1438,6 +1612,7 @@ const Home: React.FC = () => {
           />
         </div>
       </div>
+     
     </motion.section>
   );
 
@@ -1525,7 +1700,17 @@ const Home: React.FC = () => {
               >
                 <div className="w-[1200px] mx-auto flex flex-col justify-between gap-6 px-6 max-[1200px]:w-[1000px] max-[992px]:w-[800px]">
                   <div className="w-full mx-auto flex items-center gap-2 justify-between">
-                    <div className="flex items-center gap-3">
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 80 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.8,
+                        ease: [0.4, 0, 0.2, 1]
+                      }}
+                      viewport={{ once: true, amount: 0.6 }}
+                      className="flex items-center gap-3"
+                    >
                       <img
                         src={assets.images.priceIcon}
                         alt="icon"
@@ -1534,13 +1719,20 @@ const Home: React.FC = () => {
                       <span className="text-[40px] text-[#DFF4EC] font-normal">
                         Pricing
                       </span>
-                    </div>
+
+
+                    </motion.div>
+
+
+
+
+
 
                     <div className="flex items-center space-x-2">
                       <div
                         className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${billingCycle === 'annual'
-                            ? 'bg-gradient-to-r from-green-500 to-blue-500'
-                            : 'bg-gray-300'
+                          ? 'bg-gradient-to-r from-green-500 to-blue-500'
+                          : 'bg-gray-300'
                           }`}
                         onClick={handleToggle}
                         role="switch"
@@ -1549,8 +1741,8 @@ const Home: React.FC = () => {
                       >
                         <div
                           className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${billingCycle === 'annual'
-                              ? 'translate-x-6'
-                              : 'translate-x-0'
+                            ? 'translate-x-6'
+                            : 'translate-x-0'
                             }`}
                         />
                       </div>
@@ -2139,4 +2331,3 @@ const Home: React.FC = () => {
 };
 
 export default Home;
-
