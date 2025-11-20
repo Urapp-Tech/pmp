@@ -41,17 +41,17 @@ export default function MobileSlider() {
             <img
               src={assets.images.highBan1}
               alt="banner"
-              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   "
             />
           </div>
         </SwiperSlide>
         <SwiperSlide>
           <div className="flex-1 min-h-[500px]">
             <div className="p-3 ">
-              <h3 className="text-center text-white text-[20px] font-normal mb-2 max-[676px]:text-[#242460]">
+              <h3 className="text-center text-white text-[20px] font-normal mb-2 ">
                 Automated financial reports
               </h3>
-              <p className="text-center text-white text-[16px] font-light max-[676px]:text-[#242460]">
+              <p className="text-center text-white text-[16px] font-light  ">
                 No more manual spreadsheets. Rento instantly generates detailed
                 reports on rent collection, expenses, and property performance.
                 Track your income and get a clear financial overview anytime,
@@ -61,7 +61,7 @@ export default function MobileSlider() {
             <img
               src={assets.images.highBan2}
               alt="banner"
-              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   "
             />
           </div>
         </SwiperSlide>
@@ -81,17 +81,17 @@ export default function MobileSlider() {
             <img
               src={assets.images.highBan3}
               alt="banner"
-              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90    "
             />
           </div>
         </SwiperSlide>
         <SwiperSlide>
           <div className="flex-1 relative min-h-[500px]">
             <div className="p-3 ">
-              <h3 className="text-center text-white text-[20px] font-normal mb-2 max-[676px]:text-[#242460]">
+              <h3 className="text-center text-white text-[20px] font-normal mb-2  ">
                 Track and resolve maintenance requests
               </h3>
-              <p className="text-center text-white text-[16px] font-light max-[676px]:text-[#242460]">
+              <p className="text-center text-white text-[16px] font-light ">
                 Stay on top of maintenance without the hassle of endless calls.
                 Tenants submit requests online , managers assign tasks and track
                 progress until it’s resolved — ensuring every issue is handled
@@ -101,7 +101,7 @@ export default function MobileSlider() {
             <img
               src={assets.images.highBan4}
               alt="banner"
-              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90  max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   "
             />
           </div>
         </SwiperSlide>

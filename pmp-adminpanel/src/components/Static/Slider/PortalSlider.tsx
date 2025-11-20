@@ -27,33 +27,33 @@ export default function PortalSlider() {
       >
         <SwiperSlide>
           <div className="flex-1 relative h-[500px]">
-            <div className="py-4 px-2 sm:p-6">
-              <h3 className="text-[20px] font-normal mb-2  text-white max-[676px]:text-[#242460]">
+            <div className="py-4 px-4 sm:p-6">
+              <h3 className="text-[20px] font-normal mb-2  text-white   ">
                 Landlord Portal
               </h3>
-              <p className=" text-white text-[16px] font-light max-[676px]:text-[#242460]">
+              <p className=" text-white text-[16px] font-light   ">
                 Control your property portfolio
               </p>
 
-              <ul className="my-3 list-disc  pl-[16px]  marker:text-white max-[676px]:marker:text-[#242460]">
+              <ul className="my-3 list-disc  pl-[16px]  marker:text-white  ">
                 <li>
-                  <span className="text-white text-[16px] font-light max-[676px]:text-[#242460]">
+                  <span className="text-white text-[16px] font-light   ">
                     Dashboard showing total properties, tenants, invoices &
                     tickets
                   </span>
                 </li>
                 <li>
-                  <span className="text-white text-[16px] font-light max-[676px]:text-[#242460]">
+                  <span className="text-white text-[16px] font-light   ">
                     Add and manage multiple properties
                   </span>
                 </li>
                 <li>
-                  <span className="text-white text-[16px] font-light max-[676px]:text-[#242460]">
+                  <span className="text-white text-[16px] font-light   ">
                     Automate rent collection & reminders
                   </span>
                 </li>
                 <li>
-                  <span className="text-white text-[16px] font-light max-[676px]:text-[#242460]">
+                  <span className="text-white text-[16px] font-light   ">
                     View financial reports instantly
                   </span>
                 </li>
@@ -62,13 +62,13 @@ export default function PortalSlider() {
             <img
               src={assets.images.landBanner}
               alt="banner"
-              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10   max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10     "
             />
           </div>
         </SwiperSlide>
         <SwiperSlide>
           <div className="flex-1 min-h-[500px]">
-            <div className="py-4 px-2  sm:p-6">
+            <div className="py-4 px-4  sm:p-6">
               <h3 className=" text-[20px] font-normal mb-2  text-[#242460]">
                 Manager Portal
               </h3>
@@ -102,37 +102,37 @@ export default function PortalSlider() {
             <img
               src={assets.images.mangerBanner}
               alt="banner"
-              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10    max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10      max-[676px]:opacity-100"
             />
           </div>
         </SwiperSlide>
         <SwiperSlide>
           <div className="flex-1 min-h-[500px]">
-            <div className=" py-4 px-2 sm:p-6">
-              <h3 className=" text-white text-[20px] font-normal mb-2 max-[676px]:text-[#242460]">
+            <div className=" py-4 px-4 sm:p-6">
+              <h3 className=" text-white text-[20px] font-normal mb-2   ">
                 Tenant Portal
               </h3>
-              <p className=" text-white text-[16px] font-light max-[676px]:text-[#242460]">
+              <p className=" text-white text-[16px] font-light   ">
                 Designed for convenience
               </p>
-              <ul className="my-3 list-disc   pl-[16px]  marker:text-white max-[676px]:marker:text-[#242460]">
+              <ul className="my-3 list-disc   pl-[16px]  marker:text-white ">
                 <li>
-                  <span className="text-white text-[16px] font-light max-[676px]:text-[#242460]">
+                  <span className="text-white text-[16px] font-light   ">
                     Pay rent online quickly & securely
                   </span>
                 </li>
                 <li>
-                  <span className="text-white text-[16px] font-light max-[676px]:text-[#242460]">
+                  <span className="text-white text-[16px] font-light   ">
                     Access lease contracts & payment history
                   </span>
                 </li>
                 <li>
-                  <span className="text-white text-[16px] font-light max-[676px]:text-[#242460]">
+                  <span className="text-white text-[16px] font-light   ">
                     Submit and track maintenance requests
                   </span>
                 </li>
                 <li>
-                  <span className="text-white text-[16px] font-light max-[676px]:text-[#242460]">
+                  <span className="text-white text-[16px] font-light   ">
                     Stay updated with reminders and receipts
                   </span>
                 </li>
@@ -141,13 +141,13 @@ export default function PortalSlider() {
             <img
               src={assets.images.tenantBanner}
               alt="banner"
-              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10   max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10     max-[676px]:opacity-100"
             />
           </div>
         </SwiperSlide>
         <SwiperSlide>
           <div className="flex-1 relative min-h-[500px]">
-            <div className="py-4 px-2 sm:p-6">
+            <div className="py-4 px-4 sm:p-6">
               <h3 className=" text-primary text-[20px] font-normal mb-2 ">
                 Super Admin Portal
               </h3>
@@ -176,7 +176,7 @@ export default function PortalSlider() {
             <img
               src={assets.images.adminBanner}
               alt="banner"
-              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10   max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10     max-[676px]:opacity-100"
             />
           </div>
         </SwiperSlide>
