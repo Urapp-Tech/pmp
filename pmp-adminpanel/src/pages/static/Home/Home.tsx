@@ -414,6 +414,8 @@ const Home: React.FC = () => {
   }, []);
 
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const sectionVisibilityRef = useRef<Record<string, number>>({});
+
   useEffect(() => {
     const ids = [
       'hero',
@@ -427,15 +429,36 @@ const Home: React.FC = () => {
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection((entry.target as HTMLElement).id);
-          }
-          if ((entry.target as HTMLElement).id === 'hero') {
-            setActiveSection(null);
+          const id = (entry.target as HTMLElement).id;
+          if (!id) return;
+          sectionVisibilityRef.current[id] = entry.isIntersecting
+            ? entry.intersectionRatio
+            : 0;
+        });
+
+        let bestId: string | null = null;
+        let bestRatio = 0;
+
+        ids.forEach((id) => {
+          const ratio = sectionVisibilityRef.current[id] ?? 0;
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            bestId = id;
           }
         });
+
+        if (!bestId) {
+          setActiveSection(null);
+          return;
+        }
+
+        if (bestId === 'hero' && bestRatio > 0.6) {
+          setActiveSection(null);
+        } else if (bestId !== 'hero') {
+          setActiveSection(bestId);
+        }
       },
-      { threshold: 0.23 }
+      { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] }
     );
     ids.forEach((id) => {
       const el = document.getElementById(id);
