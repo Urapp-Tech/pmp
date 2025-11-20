@@ -523,8 +523,8 @@ const HomeResponsive = () => {
             ></textarea>
           </div>
         </div>
-        <div className="h-[500px] mx-auto mt-4">
-          <img src={assets.images.phoneBanner} alt="banner"  className="max-w-full object-cover h-full w-full"/>
+        <div className="  mx-auto mt-4">
+          <img src={assets.images.phoneBanner} alt="banner"  className="max-w-full object-contain h-full w-full"/>
         </div>
       </div>
   <SelectedPlanModal
