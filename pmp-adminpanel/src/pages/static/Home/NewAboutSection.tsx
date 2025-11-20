@@ -62,7 +62,10 @@ function NewAboutSection() {
 
           {/* Button */}
           <button
-            onClick={() => navigate('/about-us')}
+         onClick={() => {
+  window.scrollTo(0, 0);
+  navigate("/about-us");
+}}
             className="mt-6 cursor-pointer text-[#5EBFA1] hover:text-white flex gap-3 items-center"
           >
             Read more

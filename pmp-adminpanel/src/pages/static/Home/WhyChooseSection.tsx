@@ -36,7 +36,7 @@ function WhyChooseSection() {
       ref={sectionRef}
       className="relative w-full min-h-screen flex items-center justify-center overflow-hidden"
     >
-      <div className="text-center px-2 w-[96%] h-screen bg-[#DFF4EC] relative rounded-[10px]">
+      <div className="text-center px-2 w-full ml-4 h-screen bg-[#DFF4EC] relative rounded-[10px]">
         {/* Heading */}
         <motion.div
           style={{ y: headingY, opacity: headingOpacity }}

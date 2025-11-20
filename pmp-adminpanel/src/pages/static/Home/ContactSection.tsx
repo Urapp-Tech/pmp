@@ -420,7 +420,7 @@ function ContactSection() {
         We’re here to help.
       </motion.h2>
       <motion.div
-        className="w-[95%] max-w-[1840px] bg-white pt-2 pb-4 rounded-3xl px-5  max-[1260px]:bg-[#DFF4EC] max-[1260px]:shadow-2xl"
+        className="w-[95%] max-w-[1840px] bg-white pt-2 pb-4 mb-[90px] rounded-3xl px-5  max-[1260px]:bg-[#DFF4EC] max-[1260px]:shadow-2xl"
         style={{
           y: boxY,
           opacity: boxOpacity,

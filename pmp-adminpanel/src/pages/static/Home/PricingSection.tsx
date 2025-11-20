@@ -2,6 +2,8 @@ import assets from '@/assets/images';
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { Pagination } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/react';
 import { BillingCycle, Plan } from './Home';
 
 type PricingSectionProps = {
@@ -29,7 +31,7 @@ function PricingSection({
   const cycleNote = useMemo(
     () =>
       billingCycle === 'annual'
-        ? '/property per month (billed annually)'
+        ? '/property per month (billed monthly)'
         : '/property per month',
     [billingCycle]
   );
@@ -130,8 +132,8 @@ function PricingSection({
               exit={{ opacity: 0, y: -40 }}
               transition={{ duration: 0.8, ease: 'easeInOut' }}
             >
-              <div className="w-[1200px] mx-auto flex flex-col justify-between gap-6 px-6 max-[1200px]:w-[1000px] max-[992px]:w-[800px]">
-                <div className="w-full mx-auto flex items-center gap-2 justify-between">
+              <div className="w-[1200px] mx-auto flex flex-col justify-between gap-6 px-6 max-[1200px]:w-[1000px] max-[992px]:w-[800px] max-[991px]:w-full max-[991px]:items-center max-[991px]:text-center">
+                <div className="w-full mx-auto flex items-center gap-2 justify-between max-[991px]:justify-center">
                   <motion.div
                     initial={{ opacity: 0, y: 80 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -151,7 +153,7 @@ function PricingSection({
                       Pricing
                     </span>
                   </motion.div>
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <div
                       className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
                         billingCycle === 'annual'
@@ -174,9 +176,9 @@ function PricingSection({
                     <span className="text-[#DFF4EC] font-light text-[20px] select-none">
                       Annually (Save up to 50%)
                     </span>
-                  </div>
+                  </div> */}
                 </div>
-                <p className="text-[18px] font-light text-[#DFF4EC] mt-[-25px] leading-snug">
+                <p className="text-[18px] font-light text-[#DFF4EC] mt-[-25px] leading-snug max-[991px]:text-center">
                   Simple pricing. No hidden fees. Pay only for the properties
                   you manage.
                 </p>
@@ -188,7 +190,7 @@ function PricingSection({
               style={{ y: cardsY, opacity: cardsOpacity }}
               className="absolute bottom-[40px] w-full overflow-auto"
             >
-              <div className="flex justify-center gap-6 items-center flex-wrap p-4 max-w-[1200px] mx-auto mt-5">
+              <div className="flex justify-center gap-6 items-center flex-nowrap p-4 max-w-[1200px] mx-auto mt-5 max-[991px]:hidden">
                 {loadingPlans ? (
                   <div className="text-[#DFF4EC] text-lg py-10">
                     Loading plans…
@@ -214,7 +216,7 @@ function PricingSection({
                           {(p.features?.length
                             ? p.features
                             : defaultPlans.find((d) => d.code === p.code)
-                                ?.features || []
+                              ?.features || []
                           ).map((f, i) => (
                             <li key={i} className="flex items-start">
                               <span className="text-xl mr-2 leading-none">
@@ -245,6 +247,55 @@ function PricingSection({
                   ))
                 )}
               </div>
+
+              {!loadingPlans && (
+                <div className="max-[991px]:block hidden px-4 mt-5">
+                  <Swiper
+                    slidesPerView={1}
+                    spaceBetween={24}
+                    pagination={{ clickable: true }}
+                    modules={[Pagination]}
+                    className="priceing-responsive"
+                  >
+                    {plans.slice(0, 3).map((p) => (
+                      <SwiperSlide key={p.id}>
+                        <div className="flex justify-center items-stretch">
+                          <div className="flex-1 min-w-[280px] h-full">
+                            <div className="rounded-3xl bg-[#DFF4EC] group hover:bg-[#1665D8] text-[#242460] group-hover:text-white transition-all duration-500 p-8 shadow-xl">
+                              <div className="space-y-4 mb-8">
+                                <h2 className="text-[28px] font-medium group-hover:text-white">
+                                  {p.name}
+                                </h2>
+                                <h1 className="text-[36px] font-medium tracking-tight leading-tight group-hover:text-white">
+                                  {priceFor(p)}
+                                  {p.currency}
+                                </h1>
+                                <p className="text-[18px] font-normal group-hover:text-white">
+                                  {cycleNote}
+                                </p>
+                              </div>
+
+                              <p className="text-[18px] font-light mb-8 group-hover:text-white">
+                                {p.description ||
+                                  defaultPlans.find((d) => d.code === p.code)
+                                    ?.description ||
+                                  ''}
+                              </p>
+
+                              <button
+                                className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
+                                onClick={() => openSubscribe(p)}
+                              >
+                                Subscribe Now
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                </div>
+              )}
             </motion.div>
           </>
         )}

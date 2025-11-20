@@ -183,7 +183,7 @@ function HowSection() {
     <section
       id="how"
       ref={sectionRef}
-      className="relative bg-transparent text-white"
+      className="relative bg-transparent text-white overflow-clip"
       style={{ height: `${sectionHeight}vh` }}
     >
       {/* --- HEADING (sticky) --- */}

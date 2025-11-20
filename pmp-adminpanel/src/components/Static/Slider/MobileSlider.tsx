@@ -13,7 +13,7 @@ import assets from '@/assets/images';
 
 export default function MobileSlider() {
   return (
-    <div className=" mt-10 ">
+    <div className=" mt-10 portal-slider ">
       <Swiper
         slidesPerView={1}
         spaceBetween={30}
@@ -41,7 +41,7 @@ export default function MobileSlider() {
             <img
               src={assets.images.highBan1}
               alt="banner"
-              className="absolute top-0 w-full rounded-2xl -z-10 opacity-90   max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   max-[676px]:static max-[676px]:opacity-100"
             />
           </div>
         </SwiperSlide>
@@ -61,7 +61,7 @@ export default function MobileSlider() {
             <img
               src={assets.images.highBan2}
               alt="banner"
-              className="absolute top-0 w-full rounded-2xl -z-10 opacity-90   max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   max-[676px]:static max-[676px]:opacity-100"
             />
           </div>
         </SwiperSlide>
@@ -81,7 +81,7 @@ export default function MobileSlider() {
             <img
               src={assets.images.highBan3}
               alt="banner"
-              className="absolute top-0 w-full rounded-2xl -z-10 opacity-90   max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   max-[676px]:static max-[676px]:opacity-100"
             />
           </div>
         </SwiperSlide>
@@ -101,7 +101,7 @@ export default function MobileSlider() {
             <img
               src={assets.images.highBan4}
               alt="banner"
-              className="absolute top-0 w-full rounded-2xl -z-10 opacity-90  max-[676px]:static max-[676px]:opacity-100"
+              className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90  max-[676px]:static max-[676px]:opacity-100"
             />
           </div>
         </SwiperSlide>

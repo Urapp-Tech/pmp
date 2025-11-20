@@ -1576,3 +1576,11 @@
     background-size: contain;
     background-position: bottom;
 } */
+.priceing-responsive  span.swiper-pagination-bullet.swiper-pagination-bullet-active {
+    background: #dff4ec !important;
+}
+
+.portal-slider .swiper-pagination{
+  margin-top: 20px !important;
+
+}

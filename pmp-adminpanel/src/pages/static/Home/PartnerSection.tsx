@@ -36,9 +36,9 @@ function PartnerSection() {
         viewport={{ once: true, amount: 0.6 }}
         className="text-center px-6"
       >
-        <p className=" text-white max-w-[800px] mx-auto leading-tight text-[64px] max-[1260px]:text-[50px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
+        <p className=" text-white max-w-[992px] mx-auto leading-tight text-[60px] max-[1260px]:text-[40px] max-[1024px]:text-[35px] max-[768px]:text-[26px]">
           Rento is more than just property management software,
-          <span className="text-[64px]  font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
+          <span className="text-[60px]  font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
             {' '}
             it’s your growth partner.
           </span>

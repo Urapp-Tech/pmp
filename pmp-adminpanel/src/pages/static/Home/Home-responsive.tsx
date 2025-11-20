@@ -1,293 +1,127 @@
-// import { AnimatePresence, motion } from "framer-motion";
-// import React, { useEffect, useState } from "react";
-
-// const Home: React.FC = () => {
-//   const [index, setIndex] = useState(0);
-//   const [subStep, setSubStep] = useState(0);
-
-//   useEffect(() => {
-//     document.body.style.overflow = "hidden";
-//     return () => {
-//       document.body.style.overflow = "auto";
-//     };
-//   }, []);
-
-//   useEffect(() => {
-//     let isThrottled = false;
-
-//     const handleWheel = (e: WheelEvent) => {
-//       e.preventDefault();
-//       if (isThrottled) return;
-//       isThrottled = true;
-
-//       if (index === 1) {
-//         // special handling for section 2
-//         if (e.deltaY > 0 && subStep < 1) {
-//           setSubStep(1); // go to box mode
-//         } else if (e.deltaY < 0 && subStep > 0) {
-//           setSubStep(0); // back to heading center mode
-//         } else if (e.deltaY > 0 && subStep === 1) {
-//           setIndex(2); // move to next section if exists
-//         } else if (e.deltaY < 0 && subStep === 0) {
-//           setIndex(0); // back to section 1
-//         }
-//       } else {
-//         if (e.deltaY > 0 && index < 2) setIndex((prev) => prev + 1);
-//         else if (e.deltaY < 0 && index > 0) setIndex((prev) => prev - 1);
-//       }
-
-//       setTimeout(() => {
-//         isThrottled = false;
-//       }, 1000);
-//     };
-
-//     window.addEventListener("wheel", handleWheel, { passive: false });
-//     return () => window.removeEventListener("wheel", handleWheel);
-//   }, [index, subStep]);
-
-//   return (
-//     <div className="w-full h-screen overflow-hidden relative bg-white">
-//       <AnimatePresence>
-//         {index === 0 && (
-//           <motion.section>
-//         {/* //     key="s1"
-//         //     className="absolute inset-0 w-full h-screen flex items-center justify-center bg-[#f0f4ff]"
-//         //     initial={{ y: "100%" }}
-//         //     animate={{ y: 0 }}
-//         //     exit={{ y: "-100%" }}
-//         //     transition={{ duration: 0.8, ease: "easeInOut" }}
-//         //
-//         //     <h1 className="text-5xl font-bold text-blue-600">Section 1</h1> */}
-//           </motion.section>
-//         )}
-
-//         {index === 1 && (
-//           <motion.section
-//             key="s2"
-//             className="absolute inset-0 w-full h-screen flex flex-col items-center justify-center bg-[#dff4ec]"
-//             initial={{ y: "100%" }}
-//             animate={{ y: 0 }}
-//             exit={{ y: "-100%" }}
-//             transition={{ duration: 0.8, ease: "circIn" }}
-//           >
-//             {/* Heading */}
-//             <motion.h2
-//               className="text-4xl font-bold text-primary"
-//               animate={
-//                 subStep === 0
-//                   ? { x: 0, y: 0, fontSize: "2.5rem", top: "50%", left: "50%", translateX: "-50%", translateY: "-50%", position: "absolute" }
-//                   : { x: 0, y: 0, fontSize: "1.5rem", top: "2rem", left: "2rem", translateX: "0", translateY: "0", position: "absolute" }
-//               }
-//               transition={{ duration: 0.8, ease: "easeInOut" }}
-//             >
-//               Highlights Section
-//             </motion.h2>
-
-//             {/* Box appears when subStep = 1 */}
-//             {subStep === 1 && (
-//               <motion.div
-//                 className="absolute bg-white shadow-xl rounded-xl"
-//                 style={{ width: 800, height: 500 }}
-//                 initial={{ opacity: 0, scale: 0.8, top: "100%" }}
-//                 animate={{ opacity: 1, scale: 1, top: "50%", left: "50%", translateX: "-50%", translateY: "-50%" }}
-//                 exit={{ opacity: 0, scale: 0.8 }}
-//                 transition={{ duration: 0.8, ease: "easeInOut" }}
-//               >
-//                 <div className="flex items-center justify-center h-full text-lg font-medium text-gray-700">
-//                   This is the detail box
-//                 </div>
-//               </motion.div>
-//             )}
-//           </motion.section>
-//         )}
-//       </AnimatePresence>
-//     </div>
-//   );
-// };
-
-// export default Home;
-// // yeh stack ka cod hai
-
-// // import { AnimatePresence, motion } from "framer-motion";
-// // import React, { useEffect, useState } from "react";
-// // import Header from "../components/header/Header";
-// // const Home: React.FC = () => {
-// //     const [index, setIndex] = useState(0); // 0 = Hero, 1 = Stacked Section
-// //     const [currentBox, setCurrentBox] = useState(1); // active box (1–5)
-
-// //     useEffect(() => {
-// //         document.body.style.overflow = "hidden";
-// //         return () => {
-// //             document.body.style.overflow = "auto";
-// //         };
-// //     }, []);
-
-// //     useEffect(() => {
-// //         let isThrottled = false;
-
-// //         const handleWheel = (e: WheelEvent) => {
-// //             e.preventDefault();
-// //             if (isThrottled) return;
-// //             isThrottled = true;
-
-// //             if (index === 0) {
-// //                 // Hero → scroll down to stacked section
-// //                 if (e.deltaY > 0) setIndex(1);
-// //             } else if (index === 1) {
-// //                 // Stacked Section
-// //                 if (e.deltaY > 0) {
-// //                     if (currentBox < 5) {
-// //                         setCurrentBox((p) => p + 1);
-// //                     }
-// //                 } else {
-// //                     if (currentBox > 1) {
-// //                         setCurrentBox((p) => p - 1);
-// //                     } else {
-// //                         // back to Hero
-// //                         setIndex(0);
-// //                     }
-// //                 }
-// //             }
-
-// //             setTimeout(() => {
-// //                 isThrottled = false;
-// //             }, 1000);
-// //         };
-
-// //         window.addEventListener("wheel", handleWheel, { passive: false });
-// //         return () => window.removeEventListener("wheel", handleWheel);
-// //     }, [index, currentBox]);
-
-// //     // ---------------- Hero Section ----------------
-// //     const HeroSection = (
-// //         <motion.section
-// //             key="hero"
-// //             className="absolute inset-0 w-full h-screen home-bg"
-// //             initial={{ y: "100%" }}
-// //             animate={{ y: 0 }}
-// //             exit={{ y: "-100%" }}
-// //             transition={{ duration: 0.8, ease: "easeInOut" }}
-// //         >
-// //             <Header customClass="relative" />
-// //             <div className="flex justify-end px-20 max-[1260px]:justify-center max-[576px]:px-2">
-// //                 <p className="text-[36px] font-light text-primary mt-10 max-w-[445px] leading-[45px] max-[1260px]:max-w-full max-[1260px]:text-[30px] max-[1260px]:text-center max-[992px]:text-[24px] max-[992px]:leading-tight max-[768px]:text-[19px] max-[576px]:max-w-full">
-// //                     From rent collection to maintenance requests — manage everything in
-// //                     one place.
-// //                 </p>
-// //             </div>
-
-// //             <div className="flex justify-between items-end pb-10 pl-10 pr-20 absolute bottom-0 left-0 right-0 max-[1260px]:flex-col max-[1260px]:items-center max-[576px]:px-0">
-// //                 <h3 className="text-5xl font-normal text-primary leading-tight max-w-[740px] max-[1260px]:text-center max-[768px]:text-[40px] max-[576px]:text-[24px]">
-// //                     Smarter Property <br /> Management in Kuwait
-// //                 </h3>
-
-// //                 <div className="flex gap-4 mt-6 justify-end md:justify-start max-[576px]:flex-col">
-// //                     <button className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-[576px]:text-[14px]">
-// //                         Start Free Trial
-// //                     </button>
-// //                     <button className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[576px]:text-[14px]">
-// //                         Book a Demo
-// //                     </button>
-// //                 </div>
-// //             </div>
-// //         </motion.section>
-// //     );
-
-// //     // ---------------- Stacked Detail Boxes Section ----------------
-// //     const boxes = [1, 2, 3, 4, 5];
-// //     const StackedSection = (
-// //         <motion.section
-// //             key="stacked"
-// //             className="absolute inset-0 w-full h-screen bg-[#dff4ec]"
-// //             initial={{ y: "100%" }}
-// //             animate={{ y: 0 }}
-// //             exit={{ y: "-100%" }}
-// //             transition={{ duration: 0.8, ease: "easeInOut" }}
-// //         >
-// //             <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-// //                 {boxes.map((box) => {
-// //                     let animate: { [key: string]: string | number } = {};
-// //                     let zIndex = 0;
-
-// //                     if (box < currentBox) {
-// //                         // Past → pinned top small
-// //                         animate = {
-// //                             top: "10px",
-// //                             left: "50%",
-// //                             x: "-50%",
-// //                             y: "0%",
-// //                             scale: 0.9,
-// //                         };
-// //                         zIndex = box;
-// //                     } else if (box === currentBox) {
-// //                         // Active → full center
-// //                         animate = {
-// //                             top: "50%",
-// //                             left: "50%",
-// //                             x: "-50%",
-// //                             y: "-50%",
-// //                             scale: 1,
-// //                         };
-// //                         zIndex = 100;
-// //                     } else {
-// //                         // Upcoming → bottom preview
-// //                         animate = {
-// //                             top: "calc(100% - 50px)",
-// //                             left: "50%",
-// //                             x: "-50%",
-// //                             y: "0%",
-// //                             scale: 1,
-// //                         };
-// //                         zIndex = box;
-// //                     }
-
-// //                     return (
-// //                         <motion.div
-// //                             key={box}
-// //                             className="absolute bg-white rounded-xl shadow-2xl flex items-center justify-center text-2xl font-semibold"
-// //                             style={{ width: 800, height: 500, zIndex }}
-// //                             animate={animate}
-// //                             initial={false}
-// //                             transition={{ duration: 0.8, ease: "easeInOut" }}
-// //                         >
-// //                             Detail Box {box}
-// //                         </motion.div>
-// //                     );
-// //                 })}
-// //             </div>
-// //         </motion.section>
-// //     );
-
-// //     return (
-// //         <div className="w-full h-screen overflow-hidden relative">
-// //             <AnimatePresence>
-// //                 {index === 0 && HeroSection}
-// //                 {index === 1 && StackedSection}
-// //             </AnimatePresence>
-// //         </div>
-// //     );
-// // };
-
-// // export default Home;
 // yhan se responsive staty hai
-import { useState } from 'react';
-import Header from '@/components/Static/Header';
-import Footer from '@/components/Static/Footer';
 import assets from '@/assets/images';
+import Footer from '@/components/Static/Footer';
+import Header from '@/components/Static/Header';
 import MobileSlider from '@/components/Static/Slider/MobileSlider';
 import PortalSlider from '@/components/Static/Slider/PortalSlider';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useSelector } from 'react-redux';
+import PricingSection from './PricingSection';
+import SelectedPlanModal from '@/components/Static/Model';
+
+export type BillingCycle = 'annual' | 'monthly';
+export type Plan = {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  currency: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  features?: string[];
+};
+
+const defaultPlans: Plan[] = [
+  {
+    id: 'building',
+    code: 'building',
+    name: 'Building',
+    description: '',
+    currency: 'KD',
+    monthlyPrice: 40,
+    annualPrice: 40,
+    features: [
+      'Post One Property Each package.',
+      'Option to add high-quality photos/videos',
+      'Easy property management dashboard',
+    ],
+  },
+  {
+    id: 'villa_house',
+    code: 'villa_house',
+    name: 'Villa/House',
+    description: '',
+    currency: 'KD',
+    monthlyPrice: 20,
+    annualPrice: 20,
+    features: [
+      'Post One Property Each package.',
+      'Option to add high-quality photos/videos',
+      'Easy property management dashboard',
+    ],
+  },
+  {
+    id: 'apartment',
+    code: 'apartment',
+    name: 'Apartment',
+    description: '',
+    currency: 'KD',
+    monthlyPrice: 10,
+    annualPrice: 10,
+    features: [
+      'Post One Property Each package.',
+      'Option to add high-quality photos/videos',
+      'Easy property management dashboard',
+    ],
+  },
+];
+
 
 const HomeResponsive = () => {
-  const [isToggled, setIsToggled] = useState(true);
+  const authState: any = useSelector((state: any) => state.authState);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isToggled, setIsToggled] = useState(true);
   const navigate = useNavigate();
-
-  const handleToggle = () => {
-    setIsToggled(!isToggled);
-  };
+  
+    const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual');
+  const [plans, setPlans] = useState<Plan[]>(defaultPlans);
+  const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  
+    const openSubscribe = (p: Plan) => {
+      if (!authState.user) {
+        navigate('/admin-panel/auth/login');
+        return;
+      }
+      setSelectedPlan(p);
+      setIsModalOpen(true);
+    };
+    
+      const nameKey = (s: string) => (s || '').trim().toLowerCase();
+    
+      useEffect(() => {
+        let mounted = true;
+        (async () => {
+          try {
+            const res = await plan.planService();
+            if (!mounted) return;
+            const items = res?.data?.items ?? res?.data?.plans ?? res?.data ?? [];
+            const map: Record<string, string> = {};
+            (Array.isArray(items) ? items : []).forEach((it: any) => {
+              const nm = (it?.plan_name ?? '').toString();
+              const id = it?.id != null ? String(it.id) : '';
+              if (nm && id) map[nameKey(nm)] = id;
+            });
+            setPlans(
+              defaultPlans.map((p) => ({ ...p, id: map[nameKey(p.name)] ?? p.id }))
+            );
+          } catch {
+            setPlans(defaultPlans);
+          } finally {
+            setLoadingPlans(false);
+          }
+        })();
+        return () => {
+          mounted = false;
+        };
+      }, []);
+  // const handleToggle = () => {
+  //   setIsToggled(!isToggled);
+  // };
   return (
-    <div className=" overflow-auto">
-      <div className="w-full home-bg  h-screen relative">
+    <div className="mob-view overflow-auto">
+      <div className="w-full home-bg  h-[70vh] relative">
         <Header customClass="relative" />
         <div className="flex justify-end px-20 max-[1260px]:justify-center max-[576px]:px-2">
           <p className="text-[36px] font-light text-primary mt-10 max-w-[445px] leading-[45px] max-[1260px]:max-w-full max-[1260px]:text-[30px] max-[1260px]:text-center max-[992px]:text-[24px] max-[992px]:leading-tight max-[768px]:text-[19px] max-[576px]:max-w-full">
@@ -297,34 +131,34 @@ const HomeResponsive = () => {
         </div>
 
         <div className="flex justify-between items-end pb-10 pl-10 pr-20 absolute bottom-0 left-0 right-0 max-[1260px]:flex-col max-[1260px]:items-center max-[576px]:px-0">
-          <h3 className="text-5xl font-normal text-primary leading-tight max-w-[740px] max-[1260px]:text-center max-[768px]:text-[40px] max-[576px]:text-[24px]">
+          <h3 className="text-3xl font-normal text-primary leading-tight max-w-[740px] max-[1260px]:text-center max-[768px]:text-[36px] max-[576px]:text-[24px]">
             Smarter Property <br /> Management in Kuwait
           </h3>
 
           <div className="flex gap-4 mt-6 justify-end md:justify-start max-[576px]:flex-col">
             <button
               onClick={() => navigate('/about-us')}
-              className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-[576px]:text-[14px]"
+              className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-md:text-[14px]"
             >
               Start Free Trial
             </button>
             <button
               onClick={() => navigate('/contact-us')}
-              className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[576px]:text-[14px]"
+              className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-md:text-[14px]"
             >
               Book a Demo
             </button>
           </div>
         </div>
       </div>
-      <div className="w-full bg-[#DFF4EC] p-5">
+      <div className="w-full bg-[#DFF4EC] py-7 px-5">
         <div className="flex justify-center items-center gap-2">
           <img
             src={assets.images.highIcon}
             alt="icon"
-            className="w-[58px] h-[58px]"
+            className="w-[45px] h-[45px]"
           />
-          <div className="font-normal text-[40px] text-primary">Highlights</div>
+          <div className="font-normal text-[34px] text-primary ">Highlights</div>
         </div>
         <div className="my-5">
           <p className="text-[18px] text-center font-light mx-auto text-primary max-w-[445px] leading-normal">
@@ -350,28 +184,28 @@ const HomeResponsive = () => {
             </h2>
             <ul className="flex flex-wrap justify-start gap-2   text-primary list-disc">
               <li className="flex flex-col items-center">
-                <p className="text-primary text-center font-light text-[18px] max-[768px]:text-[14px]">
+                <p className="text-primary text-left font-light text-[18px] max-[768px]:text-[14px]">
                   Built for Kuwait’s property market
                 </p>
               </li>
 
               <li className="flex flex-col items-center">
-                <p className="text-primary text-center font-light text-[18px] max-[768px]:text-[14px]">
+                <p className="text-primary text-left font-light text-[18px] max-[768px]:text-[14px]">
                   Supports Arabic & English
                 </p>
               </li>
               <li className="flex flex-col items-center">
-                <p className="text-primary text-center font-light text-[18px] max-[768px]:text-[14px]">
+                <p className="text-primary text-left font-light text-[18px] max-[768px]:text-[14px]">
                   Transparent, easy-to-use dashboards
                 </p>
               </li>
               <li className="flex flex-col items-center">
-                <p className="text-primary text-center font-light text-[18px] max-[768px]:text-[14px]">
+                <p className="text-primary text-left font-light text-[18px] max-[768px]:text-[14px]">
                   Secure payments with bank-grade protection
                 </p>
               </li>
               <li className="flex flex-col items-center">
-                <p className="text-primary text-center font-light text-[18px] max-[768px]:text-[14px]">
+                <p className="text-primary text-left font-light text-[18px] max-[768px]:text-[14px]">
                   Save time, cut costs, and improve relationships
                 </p>
               </li>
@@ -462,7 +296,7 @@ const HomeResponsive = () => {
         </div>
 
         {/* price */}
-        <div className="mt-10 mb-6">
+        {/* <div className="mt-10 mb-6">
           <div className="flex gap-2 items-center">
             <img
               src={assets.images.priceIcon}
@@ -623,8 +457,18 @@ const HomeResponsive = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>*/}
       </div>
+
+      <PricingSection
+        billingCycle={billingCycle}
+        defaultPlans={defaultPlans}
+        loadingPlans={loadingPlans}
+        openSubscribe={openSubscribe}
+        plans={plans}
+        setBillingCycle={setBillingCycle}
+      />
+
 
       {/* contact */}
       <div className="my-10 p-5">
@@ -679,13 +523,19 @@ const HomeResponsive = () => {
             ></textarea>
           </div>
         </div>
-        <div className=" ">
-          <img src={assets.images.phoneBanner} alt="banner" />
+        <div className="h-[500px] mx-auto mt-4">
+          <img src={assets.images.phoneBanner} alt="banner"  className="max-w-full object-cover h-full w-full"/>
         </div>
       </div>
-
+  <SelectedPlanModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              plan={selectedPlan}
+              billingCycle={billingCycle}
+            />
       <Footer />
     </div>
+    
   );
 };
 

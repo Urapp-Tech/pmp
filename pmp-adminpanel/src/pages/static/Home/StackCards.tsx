@@ -103,18 +103,18 @@ const StackedCardItem: FC<StackedCardItemProps> = ({
           {card.title}
         </h3>
         <p
-          className="stacked-card__description"
+          className="stacked-card__description text-[18px] font-light leading-snug"
           style={{ color: card.descriptionColor }}
         >
           {card.description}
         </p>
       </div>
       {card.bullets ? (
-        <ul className="list-disc pl-14 space-y-2 mt-5">
+        <ul className="list-disc pl-14 space-y-1 mt-1">
           {card.bullets.map((bullet, idx) => (
             <li
               key={idx}
-              className="text-lg font-light"
+              className="text-[16px] font-light"
               style={{ color: card.descriptionColor }}
             >
               {bullet}
@@ -145,7 +145,7 @@ export const StackedCards: FC<StackedCardsProps> = ({ cards }) => {
     <>
       <style>{`
         .stacked-cards-wrapper {
-          padding-bottom: max(10rem, 12rem);
+          // padding-bottom: max(10rem, 12rem);
           
           width: 100%;
         }
@@ -190,11 +190,13 @@ export const StackedCards: FC<StackedCardsProps> = ({ cards }) => {
         }
 
         .stacked-card__content {
-          padding: 3rem 2rem 2rem;
+          // padding: 3rem 2rem 2rem;
+          padding: 2rem 2rem 12px;
+
         }
 
         .stacked-card__title {
-          margin: 0 0 1rem;
+          margin: 0 0 27px;
           font-size: 1.5rem;
         }
 

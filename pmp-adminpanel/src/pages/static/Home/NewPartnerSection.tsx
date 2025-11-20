@@ -36,10 +36,10 @@ function NewPartnerSection() {
         viewport={{ once: true, amount: 0.6 }}
         className="text-center px-6"
       >
-        <p className="text-left text-white mx-auto text-[70px] leading-tight max-w-[1000px] max-[1440px]:text-[80px] max-[1024px]:text-[60px] max-[768px]:text-[40px] max-[425px]:text-[32px]">
-          At Rento, we believe property management should be simple,
+         <p className=" text-white max-w-[992px] mx-auto leading-tight text-[60px] max-[1260px]:text-[40px] max-[1024px]:text-[35px] max-[768px]:text-[26px]">
+          At Rento, we believe property management should be simple, 
           <span className=" font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent     ">
-            smart, and stress-free.
+            `` smart, and stress-free.
           </span>
         </p>
       </motion.div>

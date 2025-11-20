@@ -18,6 +18,7 @@ import PartnerSection from './PartnerSection';
 import PricingSection from './PricingSection';
 import WhyChooseSection from './WhyChooseSection';
 export type BillingCycle = 'annual' | 'monthly';
+// import { useState } from 'react';
 
 export type Plan = {
   id: string;
@@ -558,6 +559,8 @@ const Home: React.FC = () => {
                     }
                 `}</style>
             <HomeResponsive />
+
+          
           </div>
         )}
       </div>

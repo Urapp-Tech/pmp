@@ -93,8 +93,9 @@ const SelectedPlanModal = ({
   };
 
   return (
-    <div className="fixed overflow-y-auto inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-      <div className="bg-white w-full max-w-4xl rounded-2xl shadow-lg p-6 md:p-10 flex flex-col md:flex-row gap-6 relative">
+    <div className=" ">
+    <div className="fixed overflow-y-auto  inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-[1111]  ">
+      <div className="bg-white w-full max-w-[94%] rounded-2xl shadow-lg p-6 lg:p-10 flex   lg:flex-row  gap-6 relative max-lg:p-5 max-sm:flex-col max-sm:max-h-[90vh] max-sm:overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -105,17 +106,17 @@ const SelectedPlanModal = ({
         </button>
 
         {/* Left Section */}
-        <div className="flex-1 space-y-6">
-          <h2 className="text-2xl font-semibold text-[#1B1B3A]">
+        <div className="flex-1 space-y-6 max-md:flex-0">
+          <h2 className="text-2xl font-semibold text-[#1B1B3A] max-lg:text-lg">
             Selected Plan
           </h2>
 
-          <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl p-6">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl p-6 max-lg:p-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">
+              <h3 className="text-xl font-semibold max-md:text-[16px]">
                 {selectedPlan?.name ?? '—'}
               </h3>
-              <span className="text-3xl font-bold">
+              <span className="text-3xl font-bold max-lg:text-xl">
                 {pricePerProperty} {selectedPlan?.currency}
               </span>
             </div>
@@ -149,11 +150,11 @@ const SelectedPlanModal = ({
         </div>
 
         {/* Right Section */}
-        <div className="flex-1 bg-gray-50 rounded-xl p-6 flex flex-col gap-4">
-          <h3 className="text-xl font-semibold text-[#1B1B3A]">Your Details</h3>
+        <div className="flex-1 bg-gray-50 rounded-xl p-6 flex flex-col gap-4 max-md:flex-0">
+          <h3 className="text-xl font-semibold text-[#1B1B3A] max-lg:text-lg">Your Details</h3>
 
-          <div className="mt-4">
-            <h4 className="text-lg font-semibold text-[#1B1B3A] mb-3">
+          <div className="mt-4 max-lg:mt-1">
+            <h4 className="text-lg font-semibold text-[#1B1B3A] mb-3 max-lg:text-sm">
               Payment Summary
             </h4>
             <div className="flex justify-between text-gray-600 text-sm mb-2">
@@ -171,7 +172,7 @@ const SelectedPlanModal = ({
                 {totalAmount} {selectedPlan?.currency}
               </span>
             </div>
-            <div className="flex justify-between font-bold text-lg mt-3 border-t pt-3">
+            <div className="flex justify-between font-bold text-lg mt-3 border-t pt-3 max-lg:text-sm">
               <span>Total Amount</span>
               <span>
                 {totalAmount} {selectedPlan?.currency}
@@ -181,7 +182,7 @@ const SelectedPlanModal = ({
 
           <button
             className={cn(
-              'mt-auto w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] hover:from-white hover:to-white text-white hover:text-[#1665D8] font-semibold text-lg transition-all duration-500',
+              'mt-auto w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] hover:from-white hover:to-white text-white hover:text-[#1665D8] font-semibold text-lg max-lg:text-[16px] max-lg:h-9 max-lg:mt-2 transition-all duration-500',
               submitting && 'opacity-70 cursor-not-allowed'
             )}
             onClick={submit}
@@ -191,6 +192,7 @@ const SelectedPlanModal = ({
           </button>
         </div>
       </div>
+    </div>
     </div>
   );
 };

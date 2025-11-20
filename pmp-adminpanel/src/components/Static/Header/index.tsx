@@ -41,7 +41,7 @@ export default function Header({ customClass }: Props) {
         customClass || ''
       }`}
     >
-      <div className="max-w-full mx-auto px-10">
+      <div className="max-w-full mx-auto px-10 max-lg:px-3">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
@@ -49,7 +49,7 @@ export default function Header({ customClass }: Props) {
               <img
                 src={assets.images.darklogo}
                 alt="Logo"
-                className="w-[105px] h-[20px] object-contain"
+                className="w-[105px] h-[20px] object-contain max-lg:w-[90px] max-lg:h-[17px]"
                 width={105}
                 height={20}
               />
@@ -58,12 +58,12 @@ export default function Header({ customClass }: Props) {
 
           {/* Desktop Menu */}
           <nav className="hidden md:block">
-            <ul className="flex gap-8 items-center text-[20px] font-light text-primary">
+            <ul className="flex gap-8 items-center text-[20px] font-light text-primary max-lg:gap-5">
               <li>
                 <Link
                   onClick={() => window.scrollTo(0, 0)}
                   to="/features"
-                  className="hover:opacity-90"
+                  className="hover:opacity-90 text-[18px] font-light max-lg:text-[16px]"
                 >
                   Features
                 </Link>
@@ -72,7 +72,7 @@ export default function Header({ customClass }: Props) {
                 <Link
                   onClick={() => window.scrollTo(0, 0)}
                   to="/pricing"
-                  className="hover:opacity-90"
+                  className="hover:opacity-90 text-[18px] font-light max-lg:text-[16px]"
                 >
                   Pricing
                 </Link>
@@ -81,7 +81,7 @@ export default function Header({ customClass }: Props) {
                 <Link
                   onClick={() => window.scrollTo(0, 0)}
                   to="/about-us"
-                  className="hover:opacity-90"
+                  className="hover:opacity-90 text-[18px] font-light max-lg:text-[16px]"
                 >
                   About Us
                 </Link>
@@ -90,7 +90,7 @@ export default function Header({ customClass }: Props) {
                 <Link
                   onClick={() => window.scrollTo(0, 0)}
                   to="/contact-us"
-                  className="hover:opacity-90"
+                  className="hover:opacity-90 text-[18px] font-light max-lg:text-[16px]"
                 >
                   Contact Us
                 </Link>
@@ -103,7 +103,7 @@ export default function Header({ customClass }: Props) {
             <div className="hidden md:flex items-center justify-end">
               <Link
                 to="/admin-panel/auth/login"
-                className="text-[20px] font-light no-underline text-primary border-2 border-primary px-6 py-2 rounded-lg"
+                className="text-[18px] font-light no-underline text-primary border-[1px] border-solid border-primary px-6 py-2 rounded-lg max-lg:px-2 max-lg:py-1 hover:bg-primary-bg hover:text-white transition max-lg:outline-none max-lg:border-0"
               >
                 Sign In
               </Link>
@@ -121,25 +121,19 @@ export default function Header({ customClass }: Props) {
               {/* Profile dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="group flex items-center gap-3 rounded-full  px-3 py-2 text-left">
-                    <img
-                      src={
-                        user?.profilePic
-                          ? ASSET_BASE_URL + user?.profilePic
-                          : assets.images.avatarBg
-                      }
-                      alt="Avatar"
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
+                  <button className="group flex items-center gap-3 rounded-full  px-3 py-2 text-left max-lg:gap-1 max-md:absolute max-md:right-10 max-md:top-2   z-20">
+                    <div className="grid h-9 w-9 place-items-center uppercase rounded-full bg-[#56C7A3] text-white text-xl font-semibold max-lg:h-8 max-lg:w-8 max-lg:text-[18px] max-lg:font-medium">
+                        {initial}
+                      </div>
                     <div className="hidden sm:block group-hover:opacity-50">
-                      <div className="uppercase text-[#1b1b57] text-sm leading-tight mb-1">
+                      <div className="uppercase text-[#1b1b57] text-sm leading-tight mb-1 max-lg:hidden">
                         {name}
                       </div>
-                      <div className="uppercase text-[#1b1b57]/70 text-xs leading-tight ">
+                      <div className="uppercase text-[#1b1b57]/70 text-xs leading-tight max-lg:hidden">
                         {role}
                       </div>
                     </div>
-                    <ChevronDown className="text-[#1b1b57]  h-8 w-8 group-hover:opacity-70" />
+                    <ChevronDown className="text-[#1b1b57]  h-5 w-5 group-hover:opacity-70" />
                   </button>
                 </DropdownMenuTrigger>
 
@@ -147,6 +141,7 @@ export default function Header({ customClass }: Props) {
                   align="end"
                   sideOffset={12}
                   className="
+                 max-[768px]:absolute max-[768px]:top-0 max-[768px]:right-[-40px] max-[768px]:z-50
               p-0 min-w-[320px] rounded-3xl
               bg-white/60 backdrop-blur-md
               shadow-[0_8px_28px_rgba(0,0,0,0.18),-4px_4px_4px_rgba(0,0,0,0.25)]
@@ -177,7 +172,7 @@ export default function Header({ customClass }: Props) {
                   <div className="px-2 py-2">
                     <DropdownMenuItem
                       asChild
-                      className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460]"
+                      className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460] max-lg:hidden"
                     >
                       <Link
                         to="/admin-panel/dashboard"
@@ -210,7 +205,7 @@ export default function Header({ customClass }: Props) {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
-                      className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460]"
+                      className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460] max-lg:hidden"
                     >
                       <Link
                         to="/admin-panel/profile"
@@ -257,7 +252,7 @@ export default function Header({ customClass }: Props) {
 
         {/* Mobile Menu */}
         {menuOpen && (
-          <div className="md:hidden mt-2 border-t border-gray-200 pt-4">
+          <div className="md:hidden mt-2 border-t border-gray-200 py-5">
             <ul className="flex flex-col gap-4 text-[20px] font-light text-primary">
               <li>
                 <Link to="/features" className="hover:opacity-90">
