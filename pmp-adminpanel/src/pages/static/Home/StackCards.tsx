@@ -165,7 +165,7 @@ export const StackedCards: FC<StackedCardsProps> = ({ cards }) => {
           position: sticky;
           // top: 0;
           // height: 100vh;
-            top: 200px; /* <-- changed from 0 to 100px */
+            top: 250px; /* <-- changed from 0 to 100px */
   height: calc(100vh - 200px); /* <-- optional, makes full height visible below top */
           display: flex;
           align-items: center;
