@@ -22,7 +22,7 @@ export default function MobileSlider() {
           delay: 3000, // normal smooth speed
           disableOnInteraction: false,
         }}
-         modules={[Autoplay, Pagination]}
+         modules={[  Pagination]}
         className="mySwiper"
       >
         <SwiperSlide>

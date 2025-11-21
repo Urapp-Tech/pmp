@@ -172,7 +172,7 @@ export default function Header({ customClass }: Props) {
                   <div className="px-2 py-2">
                     <DropdownMenuItem
                       asChild
-                      className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460] max-lg:hidden"
+                      className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460] "
                     >
                       <Link
                         to="/admin-panel/dashboard"
@@ -205,7 +205,7 @@ export default function Header({ customClass }: Props) {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
-                      className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460] max-lg:hidden"
+                      className="px-4 py-3 rounded-xl cursor-pointer focus:bg-[#242460]/10 focus:text-[#242460]  "
                     >
                       <Link
                         to="/admin-panel/profile"

@@ -67,9 +67,9 @@ function PricingSection({
     <section
       ref={sectionRef}
       id="pricing"
-      className="relative inset-0 w-full min-h-screen bg-primary flex items-center justify-center overflow-hidden"
+      className="relative inset-0 w-full min-h-screen  bg-primary flex items-center justify-center overflow-hidden"
     >
-      <div className="w-full h-screen relative flex items-center justify-center price-step">
+      <div className="w-full h-screen relative min-h-[700px] flex items-center justify-center price-step">
         {pricingStep === 1 && (
           <>
             {/* Heading + toggle */}
