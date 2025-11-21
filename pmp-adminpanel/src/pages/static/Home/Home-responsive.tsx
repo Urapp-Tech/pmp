@@ -2,13 +2,14 @@
 import assets from '@/assets/images';
 import Footer from '@/components/Static/Footer';
 import Header from '@/components/Static/Header';
+import SelectedPlanModal from '@/components/Static/Model';
 import MobileSlider from '@/components/Static/Slider/MobileSlider';
 import PortalSlider from '@/components/Static/Slider/PortalSlider';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import plan from '@/services/adminapp/static';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 import PricingSection from './PricingSection';
-import SelectedPlanModal from '@/components/Static/Model';
 
 export type BillingCycle = 'annual' | 'monthly';
 export type Plan = {
@@ -73,49 +74,49 @@ const HomeResponsive = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   // const [isToggled, setIsToggled] = useState(true);
   const navigate = useNavigate();
-  
-    const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual');
+
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual');
   const [plans, setPlans] = useState<Plan[]>(defaultPlans);
   const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  
-    const openSubscribe = (p: Plan) => {
-      if (!authState.user) {
-        navigate('/admin-panel/auth/login');
-        return;
+
+  const openSubscribe = (p: Plan) => {
+    if (!authState.user) {
+      navigate('/admin-panel/auth/login');
+      return;
+    }
+    setSelectedPlan(p);
+    setIsModalOpen(true);
+  };
+
+  const nameKey = (s: string) => (s || '').trim().toLowerCase();
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await plan.planService();
+        if (!mounted) return;
+        const items = res?.data?.items ?? res?.data?.plans ?? res?.data ?? [];
+        const map: Record<string, string> = {};
+        (Array.isArray(items) ? items : []).forEach((it: any) => {
+          const nm = (it?.plan_name ?? '').toString();
+          const id = it?.id != null ? String(it.id) : '';
+          if (nm && id) map[nameKey(nm)] = id;
+        });
+        setPlans(
+          defaultPlans.map((p) => ({ ...p, id: map[nameKey(p.name)] ?? p.id }))
+        );
+      } catch {
+        setPlans(defaultPlans);
+      } finally {
+        setLoadingPlans(false);
       }
-      setSelectedPlan(p);
-      setIsModalOpen(true);
+    })();
+    return () => {
+      mounted = false;
     };
-    
-      const nameKey = (s: string) => (s || '').trim().toLowerCase();
-    
-      useEffect(() => {
-        let mounted = true;
-        (async () => {
-          try {
-            const res = await plan.planService();
-            if (!mounted) return;
-            const items = res?.data?.items ?? res?.data?.plans ?? res?.data ?? [];
-            const map: Record<string, string> = {};
-            (Array.isArray(items) ? items : []).forEach((it: any) => {
-              const nm = (it?.plan_name ?? '').toString();
-              const id = it?.id != null ? String(it.id) : '';
-              if (nm && id) map[nameKey(nm)] = id;
-            });
-            setPlans(
-              defaultPlans.map((p) => ({ ...p, id: map[nameKey(p.name)] ?? p.id }))
-            );
-          } catch {
-            setPlans(defaultPlans);
-          } finally {
-            setLoadingPlans(false);
-          }
-        })();
-        return () => {
-          mounted = false;
-        };
-      }, []);
+  }, []);
   // const handleToggle = () => {
   //   setIsToggled(!isToggled);
   // };
@@ -524,18 +525,18 @@ const HomeResponsive = () => {
           </div>
         </div>
         <div className="  mx-auto mt-4">
-          <img src={assets.images.phoneBanner} alt="banner"  className="max-w-full object-contain h-full w-full"/>
+          <img src={assets.images.phoneBanner} alt="banner" className="max-w-full object-contain h-full w-full" />
         </div>
       </div>
-  <SelectedPlanModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              plan={selectedPlan}
-              billingCycle={billingCycle}
-            />
+      <SelectedPlanModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        plan={selectedPlan}
+        billingCycle={billingCycle}
+      />
       <Footer />
     </div>
-    
+
   );
 };
 
