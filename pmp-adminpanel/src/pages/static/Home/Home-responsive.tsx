@@ -123,8 +123,8 @@ const HomeResponsive = () => {
   return (
     <div className="mob-view overflow-auto">
       <div className="w-full home-bg  min-h-[500px]   relative ">
-        <Header customClass="relative" />
-        <div className="flex justify-end px-20 max-[1260px]:justify-center max-[576px]:px-2">
+        <Header customClass=" " />
+        <div className="flex justify-end pt-10 px-20 max-[1260px]:justify-center max-[576px]:px-2">
           <p className="text-[36px] font-light text-primary mt-10 max-w-[445px] leading-[45px] max-[1260px]:max-w-full max-[1260px]:text-[30px] max-[1260px]:text-center max-[992px]:text-[24px] max-[992px]:leading-tight max-[768px]:text-[16px] max-[576px]:max-w-full">
             From rent collection to maintenance requests — manage everything in
             one place.
