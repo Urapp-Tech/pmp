@@ -1580,7 +1580,7 @@
 
 
 
-@media screen and (max-width: 767.98px) {
+@media screen and (max-width: 999.98px) {
 
   .slv-blue {
     position: relative;
@@ -1589,7 +1589,7 @@
   .slv-blue::before {
     content: '';
     width: 100%;
-    background: #242460;
+    /* background: #242460; */
     position: absolute;
     top: 0;
     left: 0;
@@ -1597,8 +1597,17 @@
     z-index: 1;
     height: 100%;
     border-radius: 15px;
-    opacity: 0.6;
+    /* opacity: 0.6; */
   }
+
+
+  .slv-blue img {
+    /* background: #23235d; */
+    /* object-fit: contain; */
+    object-position: inherit;
+    opacity: 1;
+  }
+
 
   .sp3 {
     border-radius: 7px;
@@ -1616,17 +1625,37 @@
   .slv-white::before {
     content: '';
     width: 100%;
-    background: #dff4ec;
+    /* background: #dff4ec; */
+    /* background: #eee; */
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1;
     height: 100%;
-   border-radius: 15px;
-    opacity: 0.85;
-    border: 1px solid #242460;
+    border-radius: 15px;
+
+    /* border: 1px solid #242460; */
   }
 
+  .slv-white img {
 
+    object-position: inherit;
+    opacity: 1;
+  }
+
+}
+
+
+@media screen and (max-width: 640px) {
+  .slv-blue img {
+ 
+    object-position: bottom;
+    opacity: 1;
+  }
+
+  .slv-white img {
+    object-position: bottom;
+    opacity: 1;
+  }
 }

@@ -60,7 +60,8 @@ export default function PortalSlider() {
               </ul>
             </div>
             <img
-              src={assets.images.landBanner}
+              // src={assets.images.landBanner}
+                   src={assets.images.portSlide1}
               alt="banner"
               className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10     "
             />
@@ -100,7 +101,7 @@ export default function PortalSlider() {
               </ul>
             </div>
             <img
-              src={assets.images.mangerBanner}
+             src={assets.images.portSlide2}
               alt="banner"
               className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10      max-[676px]:opacity-100"
             />
@@ -139,7 +140,7 @@ export default function PortalSlider() {
               </ul>
             </div>
             <img
-              src={assets.images.tenantBanner}
+             src={assets.images.portSlide3}
               alt="banner"
               className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10     max-[676px]:opacity-100"
             />
@@ -174,7 +175,7 @@ export default function PortalSlider() {
               </ul>
             </div>
             <img
-              src={assets.images.adminBanner}
+            src={assets.images.portSlide4}
               alt="banner"
               className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10     max-[676px]:opacity-100"
             />

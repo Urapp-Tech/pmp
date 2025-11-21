@@ -39,7 +39,8 @@ export default function MobileSlider() {
               </p>
             </div>
             <img
-              src={assets.images.highBan1}
+              // src={assets.images.highBan1}
+              src={assets.images.mobSlide1}
               alt="banner"
               className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   "
             />
@@ -59,7 +60,7 @@ export default function MobileSlider() {
               </p>
             </div>
             <img
-              src={assets.images.highBan2}
+                src={assets.images.mobSlide2}
               alt="banner"
               className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   "
             />
@@ -79,7 +80,7 @@ export default function MobileSlider() {
               </p>
             </div>
             <img
-              src={assets.images.highBan3}
+                 src={assets.images.mobSlide3}
               alt="banner"
               className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90    "
             />
@@ -99,7 +100,7 @@ export default function MobileSlider() {
               </p>
             </div>
             <img
-              src={assets.images.highBan4}
+               src={assets.images.mobSlide4}
               alt="banner"
               className="absolute top-0 w-full h-full object-cover rounded-2xl -z-10 opacity-90   "
             />
