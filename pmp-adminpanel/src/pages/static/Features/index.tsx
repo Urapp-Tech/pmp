@@ -54,7 +54,7 @@ const Features = () => {
     target: heroRef,
     offset: ['start start', 'end start'],
   });
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, -400]);
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, -200]);
   const bgY = useTransform(scrollYProgress, [0, 0.6, 1], [0, 0, -120]);
   const reveal = {
     initial: { opacity: 0, y: 50 },
