@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import assets from '@/assets/images';
 import Footer from '@/components/Static/Footer';
@@ -8,6 +8,8 @@ import plan from '@/services/adminapp/static';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useSelector } from 'react-redux';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import ReactLenis from 'lenis/react';
 
 type BillingCycle = 'annual' | 'monthly';
 
@@ -85,6 +87,12 @@ const Pricing = () => {
   const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
+  const [showHeader, setShowHeader] = useState(true);
+  const lastYRef = useRef<number>(
+    typeof window !== 'undefined' ? window.scrollY : 0
+  );
+  const tickingRef = useRef(false);
+
   const ToastHandler = (text: string, color = 'red') =>
     toast({
       description: text,
@@ -151,187 +159,386 @@ const Pricing = () => {
     setIsModalOpen(true);
   };
 
+  // animations
+  useEffect(() => {
+    const handle = () => {
+      const y = window.scrollY;
+      const dy = y - lastYRef.current;
+
+      if (Math.abs(dy) < 6) return;
+
+      if (y < 64) {
+        setShowHeader(true);
+        lastYRef.current = y;
+        return;
+      }
+
+      setShowHeader(dy <= 0);
+      lastYRef.current = y;
+    };
+
+    const onScroll = () => {
+      if (tickingRef.current) return;
+      tickingRef.current = true;
+      requestAnimationFrame(() => {
+        handle();
+        tickingRef.current = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const slowScrollState = useRef({
+    targetY: typeof window !== 'undefined' ? window.scrollY : 0,
+    rafId: 0 as number | 0,
+    animating: false,
+    paused: false,
+  });
+
+  const heroRef = useRef<HTMLElement | null>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, -200]);
+  const bgY = useTransform(scrollYProgress, [0, 0.6, 1], [0, 0, -120]);
+  // const reveal = {
+  //   initial: { opacity: 0, y: 50 },
+  //   whileInView: { opacity: 1, y: 0 },
+  //   viewport: { once: true, amount: 0.2 },
+  //   transition: { duration: 0.6, ease: 'easeOut' },
+  // };
+
+  useEffect(() => {
+    const isHTMLElement = (el: any): el is HTMLElement =>
+      el && typeof el === 'object' && 'closest' in el;
+
+    const isManagedZone = (t: EventTarget | null) => {
+      if (!isHTMLElement(t)) return false;
+      return !!(t.closest(' ') || t.closest(''));
+    };
+
+    const stopAnimationIfRunning = () => {
+      const st = slowScrollState.current;
+      if (st.animating && st.rafId) {
+        cancelAnimationFrame(st.rafId);
+        st.rafId = 0;
+        st.animating = false;
+      }
+    };
+
+    const step = () => {
+      const st = slowScrollState.current;
+      if (st.paused) {
+        stopAnimationIfRunning();
+        return;
+      }
+      const { targetY } = st;
+      const currentY = window.scrollY;
+      const nextY = currentY + (targetY - currentY) * 0.12;
+      window.scrollTo(0, nextY);
+
+      if (Math.abs(targetY - nextY) > 0.5) {
+        st.rafId = requestAnimationFrame(step);
+        st.animating = true;
+      } else {
+        window.scrollTo(0, targetY);
+        st.animating = false;
+        if (st.rafId) cancelAnimationFrame(st.rafId);
+        st.rafId = 0;
+      }
+
+      const onEnterManaged = () => {
+        slowScrollState.current.paused = true;
+
+        if (
+          slowScrollState.current.animating &&
+          slowScrollState.current.rafId
+        ) {
+          cancelAnimationFrame(slowScrollState.current.rafId);
+          slowScrollState.current.rafId = 0;
+          slowScrollState.current.animating = false;
+        }
+      };
+      const onLeaveManaged = () => {
+        slowScrollState.current.paused = false;
+        slowScrollState.current.targetY = window.scrollY;
+      };
+
+      window.addEventListener(
+        'rento:enterManaged',
+        onEnterManaged as EventListener
+      );
+      window.addEventListener(
+        'rento:leaveManaged',
+        onLeaveManaged as EventListener
+      );
+
+      return () => {
+        window.removeEventListener(
+          'rento:enterManaged',
+          onEnterManaged as EventListener
+        );
+        window.removeEventListener(
+          'rento:leaveManaged',
+          onLeaveManaged as EventListener
+        );
+      };
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.defaultPrevented) return;
+
+      if (isManagedZone(e.target)) {
+        stopAnimationIfRunning();
+        return;
+      }
+
+      if (slowScrollState.current.paused) return;
+
+      e.preventDefault();
+
+      const scale = 0.18;
+
+      const dy = e.deltaY;
+      const moderated = Math.sign(dy) * Math.min(Math.abs(dy), 140);
+
+      const docHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      const viewport = window.innerHeight;
+
+      const nextTarget = Math.max(
+        0,
+        Math.min(
+          docHeight - viewport,
+          slowScrollState.current.targetY + moderated * scale
+        )
+      );
+
+      slowScrollState.current.targetY = nextTarget;
+
+      if (!slowScrollState.current.animating) {
+        slowScrollState.current.animating = true;
+        slowScrollState.current.rafId = requestAnimationFrame(step);
+      }
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    slowScrollState.current.targetY = window.scrollY;
+
+    return () => {
+      window.removeEventListener('wheel', onWheel as any);
+      stopAnimationIfRunning();
+    };
+  }, []);
+
   return (
-    <div className="">
-      <Header />
-      <div className="h-[800px] flex justify-start max-[1260px]:items-center max-[992px]:h-[700px]">
-        <img
-          src={assets.images.priceBanner}
-          className="w-full object-cover absolute top-0 z-[-1] max-[1260px]:h-[900px] max-[992px]:h-[650px]"
-          alt="Pricing banner"
-        />
-        <div className="relative h-full flex-1 flex w-full">
-          <div className="w-full flex-1 flex absolute bottom-40 gap-10 items-center justify-between px-4 max-[1260px]:flex-col max-[1260px]:items-start">
-            <div className="flex-1 flex  absolute bottom-40  max-w-[1200px] gap-10 items-center justify-between px-4 max-[1260px]:flex-col max-[1260px]:items-start">
-              <h1 className="capitalize text-[100px] font-normal leading-1 text-primary max-[1260px]:text-[70px] max-[1024px]:text-[50px]">
-                Pricing
-              </h1>
-              <p className="max-w-[593px] font-light text-[24px] text-primary max-[1024px]:text-[20px]">
+    <>
+      <ReactLenis root />
+      <div className="w-full relative bg-[#DFF4EC]">
+        <motion.div
+          initial={{ y: 0, opacity: 1 }}
+          animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+          className="fixed top-0 left-0 right-0 z-[1000] will-change-transform py-0"
+        >
+          <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
+        </motion.div>
+        <div className="h-[62px]" />
+        <motion.section
+          ref={heroRef}
+          className="relative h-[100vh] flex justify-start max-xl:h-[650px] max-[1260px]:flex-col   max-[1260px]:items-center  "
+          style={{ y: bgY }}
+        >
+          {/* <img
+            src={assets.images.priceBanner}
+            className="w-full h-[100vh] object-cover absolute top-0 z-1 max-[1260px]:h-[900px] max-[992px]:h-[650px] max-[992px]:object-right  max-md:object-center"
+          /> */}
+          <img
+            src={assets.images.priceBanner}
+            className="w-full h-[100vh] object-cover absolute top-0 z-1 max-[1260px]:h-[900px] max-[992px]:h-[650px] max-[992px]:object-right  max-md:object-center"
+          />
+          {/* <img
+            src={assets.images.contactBanner}
+            className="w-full max-w-full h-[540px] object-cover object-right absolute top-0 z-[-1] max-[992px]:object-bottom max-[992px]:opacity-[0.3] max-[768px]:object-right"
+            alt="Contact Banner"
+          /> */}
+          <div className="relative h-full flex-1 flex w-full">
+            <motion.div
+              className="flex-1 flex absolute bottom-40 max-w-[1200px] gap-10 items-center justify-between px-4 max-xl:gap-y-1 max-[1260px]:flex-col max-[1260px]:items-start  "
+              style={{ y: contentY }}
+            >
+              <motion.h1
+                className="capitalize text-[95px] font-normal leading-1 text-primary max-[1260px]:text-[70px] max-[1024px]:text-[40px]"
+                initial={{ opacity: 0, y: 80 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: 'easeOut', delay: 0.6 }}
+              >
+                Pricing{' '}
+              </motion.h1>
+              <motion.p
+                className="max-w-[593px] font-light text-[24px] text-primary  max-[1024px]:text-[20px] max-[768px]:text-[18px]"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: 'easeOut', delay: 1.0 }}
+              >
                 Simple pricing. No hidden fees. Pay only for the properties you
                 manage.
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-2 max-[1440px]:w-full max-[1440px]:justify-end">
-              {/* <div
-                className={cn(
-                  'w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300',
-                  billingCycle === 'annual'
-                    ? 'bg-gradient-to-r from-green-500 to-blue-500'
-                    : 'bg-gray-300'
-                )}
-                onClick={handleToggle}
-                role="switch"
-                aria-checked={billingCycle === 'annual'}
-                aria-label="Toggle billing cycle"
-              >
-                <div
-                  className={cn(
-                    'bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300',
-                    billingCycle === 'annual'
-                      ? 'translate-x-6'
-                      : 'translate-x-0'
-                  )}
-                />
-              </div> */}
-              {/* <span className="text-primary font-light text-[20px] select-none">
-                Annually (Save up to 50%)
-              </span> */}
-            </div>
+              </motion.p>
+            </motion.div>
           </div>
-        </div>
-      </div>
+        </motion.section>
 
-      <div className="w-full pb-5 bg-[#DFF4EC]">
-        <div className="flex justify-center gap-3 items-center p-4 max-[992px]:flex-col translate-y-[-100px]">
-          {loadingPlans ? (
-            <div className="text-primary text-lg py-10">Loading plans…</div>
-          ) : (
-            plans.slice(0, 3).map((p) => (
-              <div key={p.id} className="flex-1 min-w-[280px]">
-                <div className="w-full rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group max-[992px]:max-w-full">
-                  <div className="space-y-4 mb-8">
-                    <h2 className="text-[36px] m-0 font-medium">{p.name}</h2>
-                    <h1 className="text-[64px] m-0 font-medium tracking-tight">
-                      {priceFor(p)}
-                      {p.currency}
-                    </h1>
-                    <p className="text-[20px] font-normal text-white">
-                      {cycleNote}
-                    </p>
+        <div className="w-full pb-5 bg-[#DFF4EC]">
+          <div className="flex justify-center gap-3 items-center p-4 max-[992px]:flex-col translate-y-[-100px]">
+            {loadingPlans ? (
+              <div className="text-primary text-lg py-10">Loading plans…</div>
+            ) : (
+              plans.slice(0, 3).map((p, index) => (
+                <motion.div
+                  key={p.id}
+                  className="flex-1 min-w-[280px]"
+                  initial={{ opacity: 0, x: -50 }} // start from left
+                  whileInView={{ opacity: 1, x: 0 }} // slide in to original position
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 70,
+                    damping: 20,
+                    delay: index * 0.2, // stagger effect
+                  }}
+                >
+                  <div className="flex-1 min-w-[280px]">
+                    <div className="w-full rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group max-[992px]:max-w-full">
+                      <div className="space-y-4 mb-8">
+                        <h2 className="text-[36px] m-0 font-medium">
+                          {p.name}
+                        </h2>
+                        <h1 className="text-[64px] m-0 font-medium tracking-tight">
+                          {priceFor(p)}
+                          {p.currency}
+                        </h1>
+                        <p className="text-[20px] font-normal text-white">
+                          {cycleNote}
+                        </p>
+                      </div>
+
+                      <ul className="space-y-4 mb-8 text-white">
+                        {(p.features?.length
+                          ? p.features
+                          : defaultPlans.find((d) => d.code === p.code)
+                              ?.features || []
+                        ).map((f, i) => (
+                          <li className="flex items-start" key={i}>
+                            <span className="text-xl mr-2 leading-none">•</span>
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <p className="text-[20px] font-light text-white mb-8">
+                        {p.description ||
+                          defaultPlans.find((d) => d.code === p.code)
+                            ?.description ||
+                          'Flexible plan tailored for property managers and landlords.'}
+                      </p>
+
+                      <button
+                        className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
+                        onClick={() => {
+                          if (!authState.user) {
+                            navigate('/admin-panel/auth/login'); // 🔹 login page redirect
+                          } else {
+                            openSubscribe(p);
+                          }
+                        }}
+                      >
+                        Subscribe Now
+                      </button>
+                    </div>
                   </div>
+                </motion.div>
+              ))
+            )}
+          </div>
 
-                  <ul className="space-y-4 mb-8 text-white">
-                    {(p.features?.length
-                      ? p.features
-                      : defaultPlans.find((d) => d.code === p.code)?.features ||
-                        []
-                    ).map((f, i) => (
-                      <li className="flex items-start" key={i}>
-                        <span className="text-xl mr-2 leading-none">•</span>
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <p className="text-[20px] font-light text-white mb-8">
-                    {p.description ||
-                      defaultPlans.find((d) => d.code === p.code)
-                        ?.description ||
-                      'Flexible plan tailored for property managers and landlords.'}
-                  </p>
-
-                  <button
-                    className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
-                    onClick={() => {
-                      if (!authState.user) {
-                        navigate('/admin-panel/auth/login'); // 🔹 login page redirect
-                      } else {
-                        openSubscribe(p);
-                      }
-                    }}
-                  >
-                    Subscribe Now
-                  </button>
+          {/* --- All plans include --- */}
+          <div className="max-w-[1372px] mx-auto px-5">
+            <h3 className="mt-5 text-primary text-[100px] font-normal leading-norma max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
+              All plans include
+            </h3>
+            <div className="mt-18 mb-5 flex justify-between gap-x-5 gap-y-10  flex-wrap">
+              <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+                <div className="w-[50px] mb-4">
+                  <img
+                    src={assets.images.icon1}
+                    className="w-full h-full"
+                    alt="icon"
+                  />
                 </div>
+                <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                  Property Dashboard
+                </h4>
+                <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                  Manage all your properties in one place. From rent collection
+                  to tenant details, everything is organized in a clean,
+                  easy-to-use dashboard designed to save you time.
+                </p>
               </div>
-            ))
-          )}
-        </div>
-
-        {/* --- All plans include --- */}
-        <div className="max-w-[1372px] mx-auto px-5">
-          <h3 className="mt-5 text-primary text-[100px] font-normal leading-norma max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
-            All plans include
-          </h3>
-          <div className="mt-18 mb-5 flex justify-between gap-x-5 gap-y-10  flex-wrap">
-            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
-              <div className="w-[50px] mb-4">
-                <img
-                  src={assets.images.icon1}
-                  className="w-full h-full"
-                  alt="icon"
-                />
+              <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+                <div className="w-[50px] mb-4">
+                  <img
+                    src={assets.images.icon2}
+                    className="w-full h-full"
+                    alt="icon"
+                  />
+                </div>
+                <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                  Secure Listings
+                </h4>
+                <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                  Your property details are fully protected. You decide who has
+                  access whether it’s just you or selected managers with
+                  customized permissions.
+                </p>
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
-                Property Dashboard
-              </h4>
-              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
-                Manage all your properties in one place. From rent collection to
-                tenant details, everything is organized in a clean, easy-to-use
-                dashboard designed to save you time.
-              </p>
-            </div>
-            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
-              <div className="w-[50px] mb-4">
-                <img
-                  src={assets.images.icon2}
-                  className="w-full h-full"
-                  alt="icon"
-                />
+              <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+                <div className="w-[50px] mb-4">
+                  <img
+                    src={assets.images.icon3}
+                    className="w-full h-full"
+                    alt="icon"
+                  />
+                </div>
+                <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                  Multi-device Access
+                </h4>
+                <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                  Work the way you want. Whether you’re at your desk or on the
+                  go, you can access your account on mobile, tablet, or desktop.
+                </p>
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
-                Secure Listings
-              </h4>
-              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
-                Your property details are fully protected. You decide who has
-                access whether it’s just you or selected managers with
-                customized permissions.
-              </p>
-            </div>
-            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
-              <div className="w-[50px] mb-4">
-                <img
-                  src={assets.images.icon3}
-                  className="w-full h-full"
-                  alt="icon"
-                />
+              <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+                <div className="w-[50px] mb-4">
+                  <img
+                    src={assets.images.icon4}
+                    className="w-full h-full"
+                    alt="icon"
+                  />
+                </div>
+                <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                  Photo & Video Uploads
+                </h4>
+                <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                  Upload photos of your buildings and units so you always have a
+                  clear record of your properties right inside the platform.
+                </p>
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
-                Multi-device Access
-              </h4>
-              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
-                Work the way you want. Whether you’re at your desk or on the go,
-                you can access your account on mobile, tablet, or desktop.
-              </p>
-            </div>
-            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
-              <div className="w-[50px] mb-4">
-                <img
-                  src={assets.images.icon4}
-                  className="w-full h-full"
-                  alt="icon"
-                />
-              </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
-                Photo & Video Uploads
-              </h4>
-              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
-                Upload photos of your buildings and units so you always have a
-                clear record of your properties right inside the platform.
-              </p>
-            </div>
-            {/* <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+              {/* <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
                             <div className="w-[50px] mb-4">
                                 <img src={assets.images.icon5} className="w-full h-full" alt="icon" />
                             </div>
@@ -342,23 +549,23 @@ const Pricing = () => {
                                 Lorem ipsum dolor sit amet consectetur. Placerat maecenas est et nulla a eu netus libero neque. Tortor integer eu sed facilisis. Risus diam at eget enim eros condimentum. Nisi vestibulum diam in mattis morbi elit sed cursus ornare.
                             </p>
                         </div> */}
-            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
-              <div className="w-[50px] mb-4">
-                <img
-                  src={assets.images.icon6}
-                  className="w-full h-full"
-                  alt="icon"
-                />
+              <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+                <div className="w-[50px] mb-4">
+                  <img
+                    src={assets.images.icon6}
+                    className="w-full h-full"
+                    alt="icon"
+                  />
+                </div>
+                <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                  Direct Inquiries
+                </h4>
+                <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                  Stay connected with your tenants. They can reach you directly
+                  through the platform, making communication simple and secure.
+                </p>
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
-                Direct Inquiries
-              </h4>
-              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
-                Stay connected with your tenants. They can reach you directly
-                through the platform, making communication simple and secure.
-              </p>
-            </div>
-            {/* <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+              {/* <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
                             <div className="w-[50px] mb-4">
                                 <img src={assets.images.icon7} className="w-full h-full" alt="icon" />
                             </div>
@@ -369,34 +576,35 @@ const Pricing = () => {
                                 Lorem ipsum dolor sit amet consectetur. Placerat maecenas est et nulla a eu netus libero neque. Tortor integer eu sed facilisis. Risus diam at eget enim eros condimentum. Nisi vestibulum diam in mattis morbi elit sed cursus ornare.
                             </p>
                         </div> */}
-            <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
-              <div className="w-[50px] mb-4">
-                <img
-                  src={assets.images.icon8}
-                  className="w-full h-full"
-                  alt="icon"
-                />
+              <div className="flex-basis-[40%] max-w-[593px] max-[1260px]:max-w-full">
+                <div className="w-[50px] mb-4">
+                  <img
+                    src={assets.images.icon8}
+                    className="w-full h-full"
+                    alt="icon"
+                  />
+                </div>
+                <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+                  Property Insights
+                </h4>
+                <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
+                  Track rent income, expenses, and overall property performance
+                  to stay in control of your finances.
+                </p>
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
-                Property Insights
-              </h4>
-              <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
-                Track rent income, expenses, and overall property performance to
-                stay in control of your finances.
-              </p>
             </div>
           </div>
         </div>
-      </div>
 
-      <SelectedPlanModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        plan={selectedPlan}
-        billingCycle={billingCycle}
-      />
-      <Footer />
-    </div>
+        <SelectedPlanModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          plan={selectedPlan}
+          billingCycle={billingCycle}
+        />
+        <Footer />
+      </div>
+    </>
   );
 };
 
