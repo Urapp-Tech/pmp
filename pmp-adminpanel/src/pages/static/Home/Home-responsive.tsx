@@ -5,10 +5,10 @@ import Header from '@/components/Static/Header';
 import SelectedPlanModal from '@/components/Static/Model';
 import MobileSlider from '@/components/Static/Slider/MobileSlider';
 import PortalSlider from '@/components/Static/Slider/PortalSlider';
-import plan from '@/services/adminapp/static';
-import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
+// import plan from '@/services/adminapp/static';
+import { useState } from 'react';
+// import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import PricingSection from './PricingSection';
 
 export type BillingCycle = 'annual' | 'monthly';
@@ -23,61 +23,28 @@ export type Plan = {
   features?: string[];
 };
 
-const defaultPlans: Plan[] = [
-  {
-    id: 'building',
-    code: 'building',
-    name: 'Building',
-    description: '',
-    currency: 'KD',
-    monthlyPrice: 40,
-    annualPrice: 40,
-    features: [
-      'Post One Property Each package.',
-      'Option to add high-quality photos/videos',
-      'Easy property management dashboard',
-    ],
-  },
-  {
-    id: 'villa_house',
-    code: 'villa_house',
-    name: 'Villa/House',
-    description: '',
-    currency: 'KD',
-    monthlyPrice: 20,
-    annualPrice: 20,
-    features: [
-      'Post One Property Each package.',
-      'Option to add high-quality photos/videos',
-      'Easy property management dashboard',
-    ],
-  },
-  {
-    id: 'apartment',
-    code: 'apartment',
-    name: 'Apartment',
-    description: '',
-    currency: 'KD',
-    monthlyPrice: 10,
-    annualPrice: 10,
-    features: [
-      'Post One Property Each package.',
-      'Option to add high-quality photos/videos',
-      'Easy property management dashboard',
-    ],
-  },
-];
+type HomeResposiveProps = {
+  loadingPlans: boolean;
+  defaultPlans: Array<Plan>;
+  plans: Array<Plan>;
+  authState: any;
+  // openSubscribe: (p: Plan) => void;
+};
 
-
-const HomeResponsive = () => {
-  const authState: any = useSelector((state: any) => state.authState);
+const HomeResponsive = ({
+  loadingPlans,
+  defaultPlans,
+  plans,
+  authState,
+}: HomeResposiveProps) => {
+  // const authState: any = useSelector((state: any) => state.authState);
   const [isModalOpen, setIsModalOpen] = useState(false);
   // const [isToggled, setIsToggled] = useState(true);
   const navigate = useNavigate();
 
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual');
-  const [plans, setPlans] = useState<Plan[]>(defaultPlans);
-  const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
+  // const [plans, setPlans] = useState<Plan[]>(defaultPlans);
+  // const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
   const openSubscribe = (p: Plan) => {
@@ -89,34 +56,37 @@ const HomeResponsive = () => {
     setIsModalOpen(true);
   };
 
-  const nameKey = (s: string) => (s || '').trim().toLowerCase();
+  // const nameKey = (s: string) => (s || '').trim().toLowerCase();
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await plan.planService();
-        if (!mounted) return;
-        const items = res?.data?.items ?? res?.data?.plans ?? res?.data ?? [];
-        const map: Record<string, string> = {};
-        (Array.isArray(items) ? items : []).forEach((it: any) => {
-          const nm = (it?.plan_name ?? '').toString();
-          const id = it?.id != null ? String(it.id) : '';
-          if (nm && id) map[nameKey(nm)] = id;
-        });
-        setPlans(
-          defaultPlans.map((p) => ({ ...p, id: map[nameKey(p.name)] ?? p.id }))
-        );
-      } catch {
-        setPlans(defaultPlans);
-      } finally {
-        setLoadingPlans(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // useEffect(() => {
+  //   // let mounted = true;
+  //   (async () => {
+  //     try {
+  //       const res =  plan.planService();
+  //       console.log('not woring');
+  //       // if (!mounted) return;
+  //       console.log('woring fine');
+
+  //       const items = res?.data?.items ?? res?.data?.plans ?? res?.data ?? [];
+  //       const map: Record<string, string> = {};
+  //       (Array.isArray(items) ? items : []).forEach((it: any) => {
+  //         const nm = (it?.plan_name ?? '').toString();
+  //         const id = it?.id != null ? String(it.id) : '';
+  //         if (nm && id) map[nameKey(nm)] = id;
+  //       });
+  //       setPlans(
+  //         defaultPlans.map((p) => ({ ...p, id: map[nameKey(p.name)] ?? p.id }))
+  //       );
+  //     } catch {
+  //       setPlans(defaultPlans);
+  //     } finally {
+  //       setLoadingPlans(false);
+  //     }
+  //   })();
+  //   // return () => {
+  //   //   mounted = false;
+  //   // };
+  // }, []);
   // const handleToggle = () => {
   //   setIsToggled(!isToggled);
   // };
@@ -159,7 +129,9 @@ const HomeResponsive = () => {
             alt="icon"
             className="w-[45px] h-[45px]"
           />
-          <div className="font-normal text-[34px] text-primary ">Highlights</div>
+          <div className="font-normal text-[34px] text-primary ">
+            Highlights
+          </div>
         </div>
         <div className="my-5">
           <p className="text-[18px] text-center font-light mx-auto text-primary max-w-[445px] leading-normal">
@@ -470,7 +442,6 @@ const HomeResponsive = () => {
         setBillingCycle={setBillingCycle}
       />
 
-
       {/* contact */}
       <div className="my-10 p-5">
         <h3 className="text-center text-[28px] leading-tight text-primary font-normal mb-6">
@@ -525,7 +496,11 @@ const HomeResponsive = () => {
           </div>
         </div>
         <div className="  mx-auto mt-4">
-          <img src={assets.images.phoneBanner} alt="banner" className="max-w-full object-contain h-full w-full" />
+          <img
+            src={assets.images.phoneBanner}
+            alt="banner"
+            className="max-w-full object-contain h-full w-full"
+          />
         </div>
       </div>
       <SelectedPlanModal
@@ -536,7 +511,6 @@ const HomeResponsive = () => {
       />
       <Footer />
     </div>
-
   );
 };
 

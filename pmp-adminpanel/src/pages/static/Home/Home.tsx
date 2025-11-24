@@ -558,7 +558,13 @@ const Home: React.FC = () => {
                         overflow: auto !important;
                     }
                 `}</style>
-            <HomeResponsive />
+            <HomeResponsive
+            plans= {plans}
+            authState={authState}
+            defaultPlans= {defaultPlans}
+            loadingPlans= {loadingPlans}
+            // openSubscribe= {openSubscribe}
+            />
 
           
           </div>
