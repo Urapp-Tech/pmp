@@ -59,17 +59,19 @@ def authenticate_user(db: Session, login_data: UserLogin, request: Request):
     )
 
     landlord_role_id = db.query(Role.id).filter(Role.name == "Landlord").scalar()
-    if landlord_role_id and user.role_id == landlord_role_id and not user.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Your landlord account is not verified yet. Please contact support.",
-        )
-
+    
     if not user or not verify_password(login_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
+
+    if   landlord_role_id and user.role_id == landlord_role_id and not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your landlord account is not verified yet. Please contact support.",
+        )
+
 
     if not user.is_active:
         raise HTTPException(
