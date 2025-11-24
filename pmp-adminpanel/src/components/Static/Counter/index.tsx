@@ -1,4 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+
+const stats = [
+  { targetValue: 25, label: 'Team Members' },
+  { targetValue: 12, label: 'Property Listed' },
+  { targetValue: 100, label: 'Happy Clients' },
+  { targetValue: 20, label: 'Projects Completed' },
+];
 
 // A custom hook for the counting animation
 const useCounter = (targetValue: number, run: boolean) => {
@@ -84,14 +92,36 @@ const StatItem = ({
 
 // Main component that combines the stat items
 const CounterSection = () => {
+  // return (
+  //   <div className="bg-[#DFF4EC]  py-16 sm:py-24 rounded-lg  ">
+  //     <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
+  //       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+  //         <StatItem targetValue={25} label="Team Members" />
+  //         <StatItem targetValue={12} label="Property Listed" />
+  //         <StatItem targetValue={100} label="Happy Clients" />
+  //         <StatItem targetValue={20} label="Projects Completed" />
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
   return (
-    <div className="bg-[#DFF4EC]  py-16 sm:py-24 rounded-lg  ">
+    <div className="bg-[#DFF4EC] py-16 sm:py-24 rounded-lg">
       <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-          <StatItem targetValue={25} label="Team Members" />
-          <StatItem targetValue={12} label="Property Listed" />
-          <StatItem targetValue={100} label="Happy Clients" />
-          <StatItem targetValue={20} label="Projects Completed" />
+          {stats.map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{
+                duration: 0.6,
+                delay: index * 0.25, // ⭐ each item animates one-by-one
+              }}
+            >
+              <StatItem targetValue={item.targetValue} label={item.label} />
+            </motion.div>
+          ))}
         </div>
       </div>
     </div>
