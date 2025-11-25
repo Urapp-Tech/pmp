@@ -670,6 +670,8 @@ import { cn } from '@/lib/utils';
 import { useSelector } from 'react-redux';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import ReactLenis from 'lenis/react';
+import { Pagination } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/react';
 
 type BillingCycle = 'annual' | 'monthly';
 
@@ -1071,73 +1073,136 @@ return (
 
       {/* PLANS */}
       <div className="w-full pb-5 bg-[#DFF4EC]">
-        <div className="flex justify-center gap-3 items-center p-4 max-[992px]:flex-col translate-y-[-100px]">
+        <div className="translate-y-[-100px]">
           {loadingPlans ? (
-            <div className="text-primary text-lg py-10">Loading plans…</div>
+            <div className="text-primary text-lg py-10 text-center">
+              Loading plans…
+            </div>
           ) : (
-            plans.slice(0, 3).map((p, index) => (
-              <motion.div
-                key={p.id}
-                className="flex-1 min-w-[280px]"
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 70,
-                  damping: 20,
-                  delay: index * 0.2,
-                }}
-              >
-                <div className="flex-1 min-w-[280px]">
-                  <div className="w-full rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group max-[992px]:max-w-full">
-                    <div className="space-y-4 mb-8">
-                      <h2 className="text-[36px] m-0 font-medium">{p.name}</h2>
-                      <h1 className="text-[64px] m-0 font-medium tracking-tight">
-                        {priceFor(p)}
-                        {p.currency}
-                      </h1>
-                      <p className="text-[20px] font-normal text-white">
-                        {cycleNote}
-                      </p>
+            <>
+              <div className="flex justify-center gap-3 items-center p-4 max-[992px]:hidden">
+                {plans.slice(0, 3).map((p, index) => (
+                  <motion.div
+                    key={p.id}
+                    className="flex-1 min-w-[280px]"
+                    initial={{ opacity: 0, x: -50 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 70,
+                      damping: 20,
+                      delay: index * 0.2,
+                    }}
+                  >
+                    <div className="flex-1 min-w-[280px]">
+                      <div className="w-full rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group max-[992px]:max-w-full">
+                        <div className="space-y-4 mb-8">
+                          <h2 className="text-[36px] m-0 font-medium">
+                            {p.name}
+                          </h2>
+                          <h1 className="text-[64px] m-0 font-medium tracking-tight">
+                            {priceFor(p)}
+                            {p.currency}
+                          </h1>
+                          <p className="text-[20px] font-normal text-white">
+                            {cycleNote}
+                          </p>
+                        </div>
+
+                        <ul className="space-y-4 mb-8 text-white">
+                          {(p.features?.length
+                            ? p.features
+                            : defaultPlans.find((d) => d.code === p.code)
+                                ?.features || []
+                          ).map((f, i) => (
+                            <li className="flex items-start" key={i}>
+                              <span className="text-xl mr-2 leading-none">
+                                •
+                              </span>
+                              <span>{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <p className="text-[20px] font-light text-white mb-8">
+                          {p.description ||
+                            defaultPlans.find((d) => d.code === p.code)
+                              ?.description ||
+                            'Flexible plan tailored for property managers and landlords.'}
+                        </p>
+
+                        <button
+                          className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
+                          onClick={() => {
+                            if (!authState.user) {
+                              navigate('/admin-panel/auth/login');
+                            } else {
+                              openSubscribe(p);
+                            }
+                          }}
+                        >
+                          Subscribe Now
+                        </button>
+                      </div>
                     </div>
+                  </motion.div>
+                ))}
+              </div>
 
-                    <ul className="space-y-4 mb-8 text-white">
-                      {(p.features?.length
-                        ? p.features
-                        : defaultPlans.find((d) => d.code === p.code)
-                            ?.features || []
-                      ).map((f, i) => (
-                        <li className="flex items-start" key={i}>
-                          <span className="text-xl mr-2 leading-none">•</span>
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
+              <div className="hidden max-[992px]:block px-4">
+                <Swiper
+                  slidesPerView={1}
+                  spaceBetween={20}
+                  pagination={{ clickable: true }}
+                  modules={[Pagination]}
+                  className="pricing-swiper"
+                >
+                  {plans.slice(0, 3).map((p) => (
+                    <SwiperSlide key={p.id}>
+                      <div className="flex justify-center items-stretch py-4">
+                        <div className="flex-1 min-w-[260px]">
+                          <div className="w-full rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-6 shadow-xl group">
+                            <div className="space-y-3 mb-6">
+                              <h2 className="text-[28px] m-0 font-medium">
+                                {p.name}
+                              </h2>
+                              <h1 className="text-[42px] m-0 font-medium tracking-tight">
+                                {priceFor(p)}
+                                {p.currency}
+                              </h1>
+                              <p className="text-[18px] font-normal text-white">
+                                {cycleNote}
+                              </p>
+                            </div>
 
-                    <p className="text-[20px] font-light text-white mb-8">
-                      {p.description ||
-                        defaultPlans.find((d) => d.code === p.code)
-                          ?.description ||
-                        'Flexible plan tailored for property managers and landlords.'}
-                    </p>
+                            <p className="text-[18px] font-light text-white mb-6">
+                              {p.description ||
+                                defaultPlans.find((d) => d.code === p.code)
+                                  ?.description ||
+                                'Flexible plan tailored for property managers and landlords.'}
+                            </p>
 
-                    <button
-                      className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
-                      onClick={() => {
-                        if (!authState.user) {
-                          navigate('/admin-panel/auth/login');
-                        } else {
-                          openSubscribe(p);
-                        }
-                      }}
-                    >
-                      Subscribe Now
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))
+                            <button
+                              className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00d494] to-[#00b5e2] group-hover:bg-none group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
+                              onClick={() => {
+                                if (!authState.user) {
+                                  navigate('/admin-panel/auth/login');
+                                } else {
+                                  openSubscribe(p);
+                                }
+                              }}
+                            >
+                              Subscribe Now
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+            </>
           )}
         </div>
 
