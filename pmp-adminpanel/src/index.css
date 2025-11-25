@@ -1582,6 +1582,13 @@
 
 @media screen and (max-width: 999.98px) {
 
+.price-step .swiper-pagination {
+ 
+    margin-top: 80px;
+}
+
+
+
   .slv-blue {
     position: relative;
   }

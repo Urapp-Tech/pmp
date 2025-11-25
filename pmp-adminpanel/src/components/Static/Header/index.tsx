@@ -45,7 +45,8 @@ export default function Header({ customClass }: Props) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/">
+          <Link  to="/"
+                  onClick={() => window.scrollTo(0, 0)}  >
               <img
                 src={assets.images.darklogo}
                 alt="Logo"

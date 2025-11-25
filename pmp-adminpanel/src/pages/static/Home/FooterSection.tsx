@@ -33,11 +33,20 @@ function FooterSection() {
         <div className="bg-primary px-10 pt-10 pb-3">
           <div className="flex flex-col gap-10">
             <div className="flex justify-between items-center max-[768px]:flex-col max-[768px]:gap-5">
-              <img
-                src={assets.images.logo}
-                alt="Logo"
-                className="w-[105px] h-[20px] object-contain"
-              />
+              <Link
+                to="/"
+                onClick={() => window.scrollTo(0, 0)}
+                className="flex items-center mb-4"
+              >
+                <img
+                  src={assets.images.logo}
+                  alt="Logo"
+                  className="w-[105px] h-[20px] object-contain"
+                />
+
+
+              </Link>
+
               <ul className="flex justify-end gap-8 items-center text-[20px] font-light text-white max-[576px]:flex-col max-[576px]:gap-4 max-[576px]:items-start">
                 <li>
                   <Link
@@ -69,7 +78,7 @@ function FooterSection() {
                 <li>
                   <Link
                     onClick={() => window.scrollTo(0, 0)}
-                    to="/contact"
+                    to="/contact-us"
                     className="hover:opacity-90"
                   >
                     Contact
