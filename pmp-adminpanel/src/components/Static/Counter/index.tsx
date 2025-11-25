@@ -80,10 +80,10 @@ const StatItem = ({
 
   return (
     <div ref={ref} className="flex flex-col items-center">
-      <div className="text-[120px]  font-normal text-[#1a2e58] max-[1440px]:text-[90px]">
+      <div className="text-[120px]  font-normal text-[#1a2e58] max-[1440px]:text-[90px] max-[768px]:text-[50px]">
         {count}k
       </div>
-      <div className="mt-2 text-[30px] font-normal  text-[#1a2e58] max-[1440px]:text-[24px]">
+      <div className="mt-2 text-[30px] font-normal  text-[#1a2e58] max-[1440px]:text-[24px] max-[768px]:text-[18px] ">
         {label}
       </div>
     </div>
@@ -105,7 +105,7 @@ const CounterSection = () => {
   //   </div>
   // );
   return (
-    <div className="bg-[#DFF4EC] py-16 sm:py-24 rounded-lg">
+    <div className="bg-[#DFF4EC] py-16  max-lg:py-8 rounded-lg">
       <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {stats.map((item, index) => (

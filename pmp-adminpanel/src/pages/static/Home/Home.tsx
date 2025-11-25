@@ -233,6 +233,9 @@ const Home: React.FC = () => {
       const scale = 0.18;
 
       const dy = e.deltaY;
+      if (dy < 0) {
+        setShowHeader(true);
+      }
       const moderated = Math.sign(dy) * Math.min(Math.abs(dy), 140);
 
       const docHeight = Math.max(
@@ -560,14 +563,14 @@ const Home: React.FC = () => {
                     }
                 `}</style>
             <HomeResponsive
-            plans= {plans}
-            authState={authState}
-            defaultPlans= {defaultPlans}
-            loadingPlans= {loadingPlans}
+              plans={plans}
+              authState={authState}
+              defaultPlans={defaultPlans}
+              loadingPlans={loadingPlans}
             // openSubscribe= {openSubscribe}
             />
 
-          
+
           </div>
         )}
       </div>

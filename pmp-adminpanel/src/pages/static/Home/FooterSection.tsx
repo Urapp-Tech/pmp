@@ -132,12 +132,14 @@ function FooterSection() {
             <div className="flex justify-between items-center">
               <div className="flex gap-4 max-[768px]:mt-5">
                 <Link
+                 onClick={() => window.scrollTo(0, 0)}
                   to="/privacy"
                   className="text-white/50 text-[16px] hover:text-white"
                 >
                   Privacy Policy
                 </Link>
                 <Link
+                 onClick={() => window.scrollTo(0, 0)}
                   to="/terms"
                   className="text-white/50 text-[16px]  hover:text-white"
                 >

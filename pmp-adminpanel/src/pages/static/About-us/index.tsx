@@ -296,7 +296,7 @@ const About = () => {
 
             {/* Paragraph */}
             <motion.p
-              className="text-[24px] font-light text-primary mt-6"
+              className="text-[24px] font-light text-primary mt-6 max-[768px]:text-[18px]"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
@@ -355,7 +355,7 @@ const About = () => {
 
             {/* Paragraph */}
             <motion.p
-              className="text-[24px] font-light text-primary mt-6"
+              className="text-[24px] font-light text-primary mt-6 max-[768px]:text-[18px]"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
@@ -621,7 +621,7 @@ const About = () => {
               partner in property management.
             </p> */}
             <motion.h4
-              className="capitalize text-[100px] font-normal text-primary max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]"
+              className="capitalize text-[100px] font-normal text-primary max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px] max-[768px]:mt-5"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
@@ -637,7 +637,7 @@ const About = () => {
 
             {/* Paragraph */}
             <motion.p
-              className="text-[24px] font-light text-primary mt-6"
+              className="text-[24px] font-light text-primary mt-6 max-[768px]:text-[18px]"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
