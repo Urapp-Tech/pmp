@@ -1,4 +1,5 @@
 import SelectedPlanModal from '@/components/Static/Model';
+import Header from '@/components/Static/Header';
 import { useToast } from '@/hooks/use-toast';
 import plan from '@/services/adminapp/static';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -487,8 +488,16 @@ const Home: React.FC = () => {
       <div className="w-full relative bg-[#DFF4EC]">
         {!isMobile ? (
           <div className="w-full h-auto relative overflow-visible">
+            <motion.div
+              initial={{ y: 0, opacity: 1 }}
+              animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
+              transition={{ duration: 0.9, ease: 'easeOut' }}
+              className="fixed top-0 left-0 right-0 z-[1000] will-change-transform py-0"
+            >
+              <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
+            </motion.div>
             <AnimatePresence mode="wait">
-              <HeroSection showHeader={showHeader} />
+              <HeroSection />
               <HighlightSection />
               <PartnerSection />
               <WhyChooseSection />
