@@ -76,6 +76,15 @@ const defaultPlans: Plan[] = [
   },
 ];
 
+const sideNavItems = [
+  { key: 'highlights', label: 'Highlights' },
+  { key: 'why', label: 'Why Choose Us' },
+  { key: 'how', label: 'How It Works' },
+  { key: 'about', label: 'About' },
+  { key: 'pricing', label: 'Pricing' },
+  { key: 'contact', label: 'Contact' },
+];
+
 const Home: React.FC = () => {
   const authState: any = useSelector((state: any) => state.authState);
 
@@ -415,58 +424,57 @@ const Home: React.FC = () => {
   }, []);
 
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const sectionVisibilityRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
-    const ids = [
-      'hero',
-      'highlights',
-      'why',
-      'how',
-      'about',
-      'pricing',
-      'contact',
-    ];
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const id = (entry.target as HTMLElement).id;
-          if (!id) return;
-          sectionVisibilityRef.current[id] = entry.isIntersecting
-            ? entry.intersectionRatio
-            : 0;
-        });
+    const ids = sideNavItems.map((it) => it.key);
+    let raf = 0;
 
-        let bestId: string | null = null;
-        let bestRatio = 0;
+    const computeActive = () => {
+      const focusY = window.scrollY + window.innerHeight * 0.25;
+      const sections = ids
+        .map((id) => {
+          const el = document.getElementById(id);
+          if (!el) return null;
+          const top = el.getBoundingClientRect().top + window.scrollY;
+          return { id, top };
+        })
+        .filter(Boolean) as { id: string; top: number }[];
 
-        ids.forEach((id) => {
-          const ratio = sectionVisibilityRef.current[id] ?? 0;
-          if (ratio > bestRatio) {
-            bestRatio = ratio;
-            bestId = id;
-          }
-        });
+      if (!sections.length) {
+        setActiveSection(null);
+        return;
+      }
 
-        if (!bestId) {
-          setActiveSection(null);
-          return;
+      let current = sections[0].id;
+      for (let i = 0; i < sections.length; i++) {
+        const start = sections[i].top;
+        const end = sections[i + 1]?.top ?? Number.POSITIVE_INFINITY;
+        if (focusY >= start && focusY < end) {
+          current = sections[i].id;
+          break;
         }
+      }
+      setActiveSection(current);
+    };
 
-        if (bestId === 'hero' && bestRatio > 0.6) {
-          setActiveSection(null);
-        } else if (bestId !== 'hero') {
-          setActiveSection(bestId);
-        }
-      },
-      { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] }
-    );
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-  }, []);
+    const onScrollOrResize = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        computeActive();
+        raf = 0;
+      });
+    };
+
+    computeActive();
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize);
+
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize);
+      window.removeEventListener('resize', onScrollOrResize);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [sideNavItems]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -507,14 +515,7 @@ const Home: React.FC = () => {
                     transition={{ duration: 0.25, ease: 'easeOut' }}
                     className="fixed right-2 bottom-6 z-[1000] flex flex-col gap-2 items-end"
                   >
-                    {[
-                      { key: 'highlights', label: 'Highlights' },
-                      { key: 'why', label: 'Why Choose Us' },
-                      { key: 'how', label: 'How It Works' },
-                      { key: 'about', label: 'About' },
-                      { key: 'pricing', label: 'Pricing' },
-                      { key: 'contact', label: 'Contact' },
-                    ].map((item) => {
+                    {sideNavItems.map((item) => {
                       const isActive = activeSection === item.key;
                       const base =
                         'px-3 py-3 rounded-md text-[12px] font-medium shadow transition-colors duration-200 w-[150px]';
