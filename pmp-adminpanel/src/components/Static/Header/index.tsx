@@ -13,6 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
+import { useLocation } from 'react-router-dom';
 
 type Props = {
   customClass?: string;
@@ -30,6 +31,16 @@ export default function Header({ customClass }: Props) {
   const role = user?.role.name == 'User' ? 'Tenant' : user?.role?.name || '';
   const email = user?.email || 'a2@gmail.com'; // replace with real email if available
   const initial = name?.trim()?.[0] ?? 'A';
+  const location = useLocation();
+
+  const navLinkClass = (path: string) =>
+    `hover:opacity-90 text-[18px] font-light max-lg:text-[16px] ${
+      location.pathname === path ? 'text-[#40a186]' : ''
+    }`;
+
+  const mobileNavClass = (path: string) =>
+    `hover:opacity-90 ${location.pathname === path ? 'text-[#40a186]' : ''}`;
+
   useEffect(() => {
     if (!authState.user) {
       setIsLogin(true);
@@ -64,7 +75,7 @@ export default function Header({ customClass }: Props) {
                 <Link
                   onClick={() => window.scrollTo(0, 0)}
                   to="/features"
-                  className="hover:opacity-90 text-[18px] font-light max-lg:text-[16px]"
+                  className={navLinkClass('/features')}
                 >
                   Features
                 </Link>
@@ -73,7 +84,7 @@ export default function Header({ customClass }: Props) {
                 <Link
                   onClick={() => window.scrollTo(0, 0)}
                   to="/pricing"
-                  className="hover:opacity-90 text-[18px] font-light max-lg:text-[16px]"
+                  className={navLinkClass('/pricing')}
                 >
                   Pricing
                 </Link>
@@ -82,7 +93,7 @@ export default function Header({ customClass }: Props) {
                 <Link
                   onClick={() => window.scrollTo(0, 0)}
                   to="/about-us"
-                  className="hover:opacity-90 text-[18px] font-light max-lg:text-[16px]"
+                  className={navLinkClass('/about-us')}
                 >
                   About Us
                 </Link>
@@ -91,7 +102,7 @@ export default function Header({ customClass }: Props) {
                 <Link
                   onClick={() => window.scrollTo(0, 0)}
                   to="/contact-us"
-                  className="hover:opacity-90 text-[18px] font-light max-lg:text-[16px]"
+                  className={navLinkClass('/contact-us')}
                 >
                   Contact Us
                 </Link>
@@ -256,22 +267,22 @@ export default function Header({ customClass }: Props) {
           <div className="md:hidden mt-2 border-t border-gray-200 py-5">
             <ul className="flex flex-col gap-4 text-[20px] font-light text-primary">
               <li>
-                <Link to="/features" className="hover:opacity-90">
+                <Link to="/features" className={mobileNavClass('/features')}>
                   Features
                 </Link>
               </li>
               <li>
-                <Link to="/pricing" className="hover:opacity-90">
+                <Link to="/pricing" className={mobileNavClass('/pricing')}>
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link to="/about-us" className="hover:opacity-90">
+                <Link to="/about-us" className={mobileNavClass('/about-us')}>
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/contact-us" className="hover:opacity-90">
+                <Link to="/contact-us" className={mobileNavClass('/contact-us')}>
                   Contact Us
                 </Link>
               </li>
