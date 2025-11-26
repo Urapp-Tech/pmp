@@ -878,7 +878,7 @@ const includeSectionVariants = {
 };
 
 const includeGridVariants = {
-  hidden: { opacity: 0, y: 20 },
+  // hidden: { opacity: 0, y: 20 },
   show: {
     opacity: 1,
     y: 0,
@@ -887,7 +887,7 @@ const includeGridVariants = {
 };
 
 const includeItemVariants = {
-  hidden: { opacity: 0, y: 24 },
+  // hidden: { opacity: 0, y: 24 },
   show: {
     opacity: 1,
     y: 0,
@@ -908,6 +908,19 @@ const bgY = useTransform(scrollYProgress, [0, 0.6, 1], [0, 0, -120]);
 /* ----------------- CUSTOM SMOOTH SCROLL (FIXED) ----------------- */
 
 useEffect(() => {
+  const isAppleDevice =
+    typeof navigator !== 'undefined' &&
+    /mac|iphone|ipod|ipad/i.test(
+      (navigator.platform || navigator.userAgent || '').toLowerCase()
+    );
+
+  // Safari/macOS + trackpad were fighting the custom wheel handler; fall back to native scroll there
+  if (isAppleDevice) {
+    slowScrollState.current.targetY =
+      typeof window !== 'undefined' ? window.scrollY : 0;
+    return;
+  }
+
   const isHTMLElement = (el: any): el is HTMLElement =>
     el && typeof el === 'object' && 'closest' in el;
 
@@ -1212,7 +1225,7 @@ return (
           variants={includeSectionVariants}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.25 }}
+          viewport={{ once: true, amount: 0 }}
         >
           <motion.h3
             className="my-5 text-primary text-[100px] font-normal leading-norma max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]"
