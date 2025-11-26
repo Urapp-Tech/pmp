@@ -482,6 +482,24 @@ const Home: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const jumpToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (slowScrollState.current.animating && slowScrollState.current.rafId) {
+      cancelAnimationFrame(slowScrollState.current.rafId);
+      slowScrollState.current.animating = false;
+      slowScrollState.current.rafId = 0;
+    }
+
+    const target = Math.max(
+      0,
+      el.getBoundingClientRect().top + window.scrollY
+    );
+    slowScrollState.current.targetY = target;
+    window.scrollTo({ top: target, behavior: 'auto' });
+  };
+
   return (
     <>
       <ReactLenis root />
@@ -538,14 +556,7 @@ const Home: React.FC = () => {
                       return (
                         <button
                           key={item.key}
-                          onClick={() => {
-                            const el = document.getElementById(item.key);
-                            if (el)
-                              el.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start',
-                              });
-                          }}
+                          onClick={() => jumpToSection(item.key)}
                           className={`${base} ${isActive ? activeCls : normalCls}`}
                         >
                           {item.label}
