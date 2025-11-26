@@ -146,7 +146,7 @@ function FooterSection() {
                   Terms & Conditions
                 </Link>
               </div>
-              <p className="text-white/50 text-[16px] text-center mt-5">
+              <p className="text-white/50 text-[16px] text-center ">
                 Copyright © 2025 Rento. All rights reserved.
               </p>
             </div>

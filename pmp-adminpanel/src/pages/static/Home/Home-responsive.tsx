@@ -144,7 +144,7 @@ const HomeResponsive = ({
         </div>
 
         <MobileSlider />
-        <div className="my-20 max-w-[1530px] mx-auto px-4 bg-primary py-10 rounded-[10px]">
+        <div className="my-10 max-w-[1530px] mx-auto px-4 bg-primary py-10 rounded-[10px]">
           <p className="text-white text-[96px] leading-tight font-normal text-center max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">
             Rento is more than just property management software,{' '}
             <span className="text-[96px]  font-normal bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]">

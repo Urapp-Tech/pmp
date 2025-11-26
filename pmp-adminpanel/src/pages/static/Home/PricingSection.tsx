@@ -69,7 +69,7 @@ function PricingSection({
       id="pricing"
       className="relative inset-0 w-full   bg-primary flex items-center justify-center overflow-hidden max-lg:min-h-auto"
     >
-      <div className="w-full h-screen relative min-h-[650px] flex items-center justify-center price-step max-lg:h-auto">
+      <div className="w-full relative min-h-[650px] flex items-center justify-center price-step  h-auto  ">
         {pricingStep === 1 && (
           <>
             {/* Heading + toggle */}
@@ -178,7 +178,7 @@ function PricingSection({
                     </span>
                   </div> */}
                 </div>
-                <p className="text-[18px] font-light text-[#DFF4EC] mt-[-25px] leading-snug max-[991px]:text-center">
+                <p className="text-[18px] font-light text-[#DFF4EC]   leading-snug card-gap max-[991px]:text-center">
                   Simple pricing. No hidden fees. Pay only for the properties
                   you manage.
                 </p>
@@ -188,7 +188,7 @@ function PricingSection({
             {/* Pricing cards */}
             <motion.div
               style={{ y: cardsY, opacity: cardsOpacity }}
-              className="absolute bottom-[40px] w-full overflow-auto max-md:bottom-[20px] "
+              className="absolute bottom-[40px] w-full overflow-auto max-md:bottom-[20px] main-card "
             >
               <div className="flex justify-center gap-6 items-center flex-nowrap p-4 max-w-[1200px] mx-auto mt-5 max-[991px]:hidden">
                 {loadingPlans ? (

@@ -290,7 +290,7 @@ export default function Header({ customClass }: Props) {
                 <li>
                   <Link
                     to="/admin-panel/auth/login"
-                    className="text-primary hover:underline"
+                    className="text-primary no-underline"
                   >
                     Sign In
                   </Link>

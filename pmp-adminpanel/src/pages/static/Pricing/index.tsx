@@ -1038,7 +1038,7 @@ return (
       {/* HERO */}
       <motion.section
         ref={heroRef}
-        className="relative h-[100vh] flex justify-start max-xl:h-[650px] max-[1260px]:flex-col max-[1260px]:items-center"
+        className="relative h-[100vh] flex justify-start max-xl:h-[650px] max-lg:h-[500px] max-[1260px]:flex-col max-[1260px]:items-center"
         style={{ y: bgY }}
       >
         <img
@@ -1073,7 +1073,7 @@ return (
 
       {/* PLANS */}
       <div className="w-full pb-5 bg-[#DFF4EC]">
-        <div className="translate-y-[-100px]">
+        <div className="translate-y-[-100px] max-[992px]:translate-y-[-50px]">
           {loadingPlans ? (
             <div className="text-primary text-lg py-10 text-center">
               Loading plans…
@@ -1095,8 +1095,8 @@ return (
                       delay: index * 0.2,
                     }}
                   >
-                    <div className="flex-1 min-w-[280px]">
-                      <div className="w-full rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group max-[992px]:max-w-full">
+               
+                      <div className="w-full rounded-3xl bg-gradient-to-br from-[#1b1c3c] to-[#2a2c58] hover:from-[#1665D8] hover:to-[#1665D8] transition-all duration-500 text-white p-8 shadow-xl group  min-h-[800px]   max-xl:min-h-[850px] max-[992px]:max-w-full flex flex-col justify-between">
                         <div className="space-y-4 mb-8">
                           <h2 className="text-[36px] m-0 font-medium">
                             {p.name}
@@ -1105,7 +1105,7 @@ return (
                             {priceFor(p)}
                             {p.currency}
                           </h1>
-                          <p className="text-[20px] font-normal text-white">
+                          <p className="text-[20px] font-normal text-white truncate text-ellipsis line-clamp-3 max-xl:text-[18px]">
                             {cycleNote}
                           </p>
                         </div>
@@ -1145,7 +1145,7 @@ return (
                           Subscribe Now
                         </button>
                       </div>
-                    </div>
+               
                   </motion.div>
                 ))}
               </div>
