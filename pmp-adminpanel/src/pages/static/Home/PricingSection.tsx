@@ -67,7 +67,7 @@ function PricingSection({
     <section
       ref={sectionRef}
       id="pricing"
-      className="relative inset-0 w-full min-h-screen  bg-primary flex items-center justify-center overflow-hidden max-lg:min-h-auto"
+      className="relative inset-0 w-full   bg-primary flex items-center justify-center overflow-hidden max-lg:min-h-auto"
     >
       <div className="w-full h-screen relative min-h-[650px] flex items-center justify-center price-step max-lg:h-auto">
         {pricingStep === 1 && (
