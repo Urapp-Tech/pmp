@@ -8,7 +8,7 @@ import PortalSlider from '@/components/Static/Slider/PortalSlider';
 // import plan from '@/services/adminapp/static';
 import { useState } from 'react';
 // import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PricingSection from './PricingSection';
 
 export type BillingCycle = 'annual' | 'monthly';
@@ -107,18 +107,21 @@ const HomeResponsive = ({
           </h3>
 
           <div className="flex gap-4 mt-6 justify-end md:justify-start  ">
-            <button
-              onClick={() => navigate('/about-us')}
+            <Link
+              onClick={() => window.scrollTo(0, 0)}
+              to="/about-us"
               className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold shadow-md hover:opacity-90 transition max-[768px]:text-[14px] max-[768px]:p-[14px] max-sm:text-[12px]"
             >
               Start Free Trial
-            </button>
-            <button
-              onClick={() => navigate('/contact-us')}
-              className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[768px]:text-[14px]  max-[768px]:p-[14px] max-sm:text-[12px]"
+            </Link>
+            <Link
+              onClick={() => window.scrollTo(0, 0)}
+              to="/contact-us"
+               className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[768px]:text-[14px]  max-[768px]:p-[14px] max-sm:text-[12px]"
             >
-              Book a Demo
-            </button>
+               Book a Demo
+            </Link>
+            
           </div>
         </div>
       </div>
@@ -248,9 +251,17 @@ const HomeResponsive = ({
             designed to save you time, reduce paperwork, and improve
             communication.
           </p>
+          {/* <Link
+                  onClick={() => window.scrollTo(0, 0)}
+                  to="/pricing"
+                  className={navLinkClass('/pricing')}
+                >
+                  Pricing
+                </Link> */}
+          <Link
+            onClick={() => window.scrollTo(0, 0)}
 
-          <button
-            onClick={() => navigate('/about-us')}
+            to="/about-us"
             className="text-[#5EBFA1] flex gap-3 items-center"
           >
             Read more
@@ -261,7 +272,7 @@ const HomeResponsive = ({
                 className="w-[20px] h-[20px]"
               />
             </span>
-          </button>
+          </Link>
 
           <div className="mt-5">
             <img src={assets.images.aboutFix} alt="icon" />

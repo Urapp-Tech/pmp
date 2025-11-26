@@ -1215,7 +1215,7 @@ return (
           viewport={{ once: true, amount: 0.25 }}
         >
           <motion.h3
-            className="mt-5 text-primary text-[100px] font-normal leading-norma max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]"
+            className="my-5 text-primary text-[100px] font-normal leading-norma max-[1440px]:text-[80px] max-[1260px]:text-[60px] max-[1024px]:text-[40px] max-[768px]:text-[26px]"
             variants={includeItemVariants}
           >
             All plans include
@@ -1237,7 +1237,7 @@ return (
                   alt="icon"
                 />
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[28px]">
                 Property Dashboard
               </h4>
               <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
@@ -1259,7 +1259,7 @@ return (
                   alt="icon"
                 />
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[28px]">
                 Secure Listings
               </h4>
               <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
@@ -1281,7 +1281,7 @@ return (
                   alt="icon"
                 />
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[28px]">
                 Multi-device Access
               </h4>
               <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
@@ -1302,7 +1302,7 @@ return (
                   alt="icon"
                 />
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[28px]">
                 Photo & Video Uploads
               </h4>
               <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
@@ -1323,7 +1323,7 @@ return (
                   alt="icon"
                 />
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[28px]">
                 Direct Inquiries
               </h4>
               <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
@@ -1344,7 +1344,7 @@ return (
                   alt="icon"
                 />
               </div>
-              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[34px]">
+              <h4 className="text-[45px] font-light text-primary mb-4 max-[1024px]:text-[28px]">
                 Property Insights
               </h4>
               <p className="text-[24px] font-light text-primary max-[992px]:text-[18px]">
