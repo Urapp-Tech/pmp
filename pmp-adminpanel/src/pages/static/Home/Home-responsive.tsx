@@ -117,11 +117,11 @@ const HomeResponsive = ({
             <Link
               onClick={() => window.scrollTo(0, 0)}
               to="/contact-us"
-               className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[768px]:text-[14px]  max-[768px]:p-[14px] max-sm:text-[12px]"
+              className="px-6 py-3 rounded-lg border border-blue-400 text-blue-600 font-semibold hover:bg-blue-50 transition max-[768px]:text-[14px]  max-[768px]:p-[14px] max-sm:text-[12px]"
             >
-               Book a Demo
+              Book a Demo
             </Link>
-            
+
           </div>
         </div>
       </div>
@@ -505,7 +505,18 @@ const HomeResponsive = ({
               className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
             ></textarea>
           </div>
+               <button
+          type="submit"
+          className="w-full h-12 rounded-[14px] bg-gradient-to-r from-[#00D494] to-[#00B5E2] group-hover:bg-white text-white group-hover:text-[#1665D8] font-semibold text-lg transition-all duration-500"
+        >
+          Submit
+        </button>
         </div>
+
+
+   
+
+
         <div className="  mx-auto mt-4">
           <img
             src={assets.images.phoneBanner}
