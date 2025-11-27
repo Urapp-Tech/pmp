@@ -10,6 +10,7 @@ import { useState } from 'react';
 // import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import PricingSection from './PricingSection';
+import ContactResposiveSection from './ContactResposiveSection';
 
 export type BillingCycle = 'annual' | 'monthly';
 export type Plan = {
@@ -442,67 +443,7 @@ const HomeResponsive = ({
         setBillingCycle={setBillingCycle}
       />
 
-      {/* contact */}
-      <div className="my-10 p-5">
-        <h3 className="text-center text-[28px] leading-tight text-primary font-normal mb-6">
-          We're here to help.
-        </h3>
-        <div className=" p-3 rounded-md">
-          {/* First Name */}
-          <div className="mb-4">
-            <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
-              Name
-            </label>
-            <input
-              type="text"
-              placeholder="Rashid Hamad"
-              className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          {/* Email */}
-          <div className="mb-4">
-            <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              placeholder="Faisal Khamees"
-              className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
-              Phone No.
-            </label>
-            <input
-              type="tel"
-              placeholder="+971527992240"
-              className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          {/* Message */}
-          <div className="mb-4">
-            <label className="block text-sm font-normal text-[#1d1b4c] mb-2">
-              Message
-            </label>
-            <textarea
-              rows={4}
-              placeholder="write a message"
-              className="w-full rounded-lg border font-light border-transparent bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            ></textarea>
-          </div>
-        </div>
-        <div className="  mx-auto mt-4">
-          <img
-            src={assets.images.phoneBanner}
-            alt="banner"
-            className="max-w-full object-contain h-full w-full"
-          />
-        </div>
-      </div>
+      <ContactResposiveSection />
       <SelectedPlanModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

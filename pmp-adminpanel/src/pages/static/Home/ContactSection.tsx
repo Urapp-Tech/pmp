@@ -429,67 +429,6 @@ function ContactSection() {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="flex items-center justify-center h-full gap-3 pt-3 pb-3 relative z-11">
             <div className="flex-1">
-              <div className="flex gap-3">
-                <div className="mb-4 flex-1">
-                  <label className="block text-sm font-normal text-[#1D1B4C] mb-2">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Rashid Hamad"
-                    className={`w-full rounded-lg border font-light ${
-                      errors.fname ? 'border-red-400' : 'border-transparent'
-                    } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                      errors.fname
-                        ? 'focus:ring-red-400'
-                        : 'focus:ring-blue-400'
-                    }`}
-                    {...register('fname', {
-                      required: 'First name is required.',
-                      minLength: {
-                        value: 2,
-                        message: 'Please enter a valid first name.',
-                      },
-                    })}
-                    aria-invalid={!!errors.fname}
-                  />
-                  {errors.fname && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {errors.fname.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-4 flex-1">
-                  <label className="block text-sm font-normal text-[#1D1B4C] mb-2">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Rashid Hamad"
-                    className={`w-full rounded-lg border font-light ${
-                      errors.lname ? 'border-red-400' : 'border-transparent'
-                    } bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                      errors.lname
-                        ? 'focus:ring-red-400'
-                        : 'focus:ring-blue-400'
-                    }`}
-                    {...register('lname', {
-                      required: 'Last name is required.',
-                      minLength: {
-                        value: 2,
-                        message: 'Please enter a valid last name.',
-                      },
-                    })}
-                    aria-invalid={!!errors.lname}
-                  />
-                  {errors.lname && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {errors.lname.message}
-                    </p>
-                  )}
-                </div>
-              </div>
 
               <div className="mb-4 flex gap-3">
                 <div className="mb-4 flex-1">
@@ -619,7 +558,7 @@ function ContactSection() {
             />
             Kuwait
           </li>
-          <li className="flex items-center gap-2 text-primary">
+          <li className="flex items-center gap-2  text-primary">
             <img
               src={assets.images.phoneIcon}
               alt="icon"
