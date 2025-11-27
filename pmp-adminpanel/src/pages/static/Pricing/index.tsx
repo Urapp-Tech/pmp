@@ -908,14 +908,14 @@ const bgY = useTransform(scrollYProgress, [0, 0.6, 1], [0, 0, -120]);
 /* ----------------- CUSTOM SMOOTH SCROLL (FIXED) ----------------- */
 
 useEffect(() => {
-  const isAppleDevice =
+  const shouldUseNativeScroll =
     typeof navigator !== 'undefined' &&
-    /mac|iphone|ipod|ipad/i.test(
+    /mac|iphone|ipod|ipad|win/i.test(
       (navigator.platform || navigator.userAgent || '').toLowerCase()
     );
 
-  // Safari/macOS + trackpad were fighting the custom wheel handler; fall back to native scroll there
-  if (isAppleDevice) {
+  // Safari/macOS and Windows users were fighting the custom wheel handler; fall back to native scroll there
+  if (shouldUseNativeScroll) {
     slowScrollState.current.targetY =
       typeof window !== 'undefined' ? window.scrollY : 0;
     return;
