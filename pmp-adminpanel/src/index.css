@@ -1463,6 +1463,20 @@
         display: block !important;
     } */
 
+@media screen and (min-width: 1550.98px) {
+  .price-step {
+    height: 100vh !important;
+    padding-top: 50px !important;
+  }
+  .card-gap{
+    margin-top: -25px !important;
+  }
+  .main-card{
+    bottom: 27px !important;
+  }
+}
+
+
 @media screen and (min-width: 992px) {
   .desktop-mode {
     display: block !important;
@@ -1505,6 +1519,11 @@
   .mobile-mode {
     display: block !important;
   }
+  .pricing-swiper .swiper-pagination
+ 
+ {
+    margin-top: 40px !important;
+}
 }
 
 /* .flex-1.min-w-\[280px\].h-full:hover {
@@ -1581,6 +1600,13 @@
 
 
 @media screen and (max-width: 999.98px) {
+
+.price-step .swiper-pagination {
+ 
+    margin-top: 80px;
+}
+
+
 
   .slv-blue {
     position: relative;

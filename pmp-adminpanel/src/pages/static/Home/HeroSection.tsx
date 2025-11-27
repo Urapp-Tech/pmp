@@ -1,12 +1,8 @@
-import Header from '@/components/Static/Header';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { useNavigate } from 'react-router';
 
-type HeroSectionProps = {
-  showHeader: boolean;
-};
-function HeroSection({ showHeader }: HeroSectionProps) {
+function HeroSection() {
   const navigate = useNavigate();
   const ref = useRef<HTMLElement | null>(null);
   const { scrollYProgress } = useScroll({
@@ -28,14 +24,6 @@ function HeroSection({ showHeader }: HeroSectionProps) {
       transition={{ duration: 0.8, ease: 'easeOut' }}
       style={{ y: bgY }}
     >
-      <motion.div
-        initial={{ y: 0, opacity: 1 }}
-        animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
-        transition={{ duration: 0.9, ease: 'easeOut' }}
-        className="fixed top-0 left-0 right-0 z-[1000] will-change-transform py-0"
-      >
-        <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
-      </motion.div>
       <div className="h-[72px]" />
 
       <motion.div

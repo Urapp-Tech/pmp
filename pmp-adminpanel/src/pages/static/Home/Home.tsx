@@ -1,4 +1,5 @@
 import SelectedPlanModal from '@/components/Static/Model';
+import Header from '@/components/Static/Header';
 import { useToast } from '@/hooks/use-toast';
 import plan from '@/services/adminapp/static';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -74,6 +75,15 @@ const defaultPlans: Plan[] = [
       'Easy property management dashboard',
     ],
   },
+];
+
+const sideNavItems = [
+  { key: 'highlights', label: 'Highlights' },
+  { key: 'why', label: 'Why Choose Us' },
+  { key: 'how', label: 'How It Works' },
+  { key: 'about', label: 'About' },
+  { key: 'pricing', label: 'Pricing' },
+  { key: 'contact', label: 'Contact' },
 ];
 
 const Home: React.FC = () => {
@@ -224,6 +234,9 @@ const Home: React.FC = () => {
       const scale = 0.18;
 
       const dy = e.deltaY;
+      if (dy < 0) {
+        setShowHeader(true);
+      }
       const moderated = Math.sign(dy) * Math.min(Math.abs(dy), 140);
 
       const docHeight = Math.max(
@@ -415,60 +428,77 @@ const Home: React.FC = () => {
   }, []);
 
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const sectionVisibilityRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
-    const ids = [
-      'hero',
-      'highlights',
-      'why',
-      'how',
-      'about',
-      'pricing',
-      'contact',
-    ];
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const id = (entry.target as HTMLElement).id;
-          if (!id) return;
-          sectionVisibilityRef.current[id] = entry.isIntersecting
-            ? entry.intersectionRatio
-            : 0;
-        });
+    const ids = sideNavItems.map((it) => it.key);
+    let raf = 0;
 
-        let bestId: string | null = null;
-        let bestRatio = 0;
+    const computeActive = () => {
+      const focusY = window.scrollY + window.innerHeight * 0.25;
+      const sections = ids
+        .map((id) => {
+          const el = document.getElementById(id);
+          if (!el) return null;
+          const top = el.getBoundingClientRect().top + window.scrollY;
+          return { id, top };
+        })
+        .filter(Boolean) as { id: string; top: number }[];
 
-        ids.forEach((id) => {
-          const ratio = sectionVisibilityRef.current[id] ?? 0;
-          if (ratio > bestRatio) {
-            bestRatio = ratio;
-            bestId = id;
-          }
-        });
+      if (!sections.length) {
+        setActiveSection(null);
+        return;
+      }
 
-        if (!bestId) {
-          setActiveSection(null);
-          return;
+      let current = sections[0].id;
+      for (let i = 0; i < sections.length; i++) {
+        const start = sections[i].top;
+        const end = sections[i + 1]?.top ?? Number.POSITIVE_INFINITY;
+        if (focusY >= start && focusY < end) {
+          current = sections[i].id;
+          break;
         }
+      }
+      setActiveSection(current);
+    };
 
-        if (bestId === 'hero' && bestRatio > 0.6) {
-          setActiveSection(null);
-        } else if (bestId !== 'hero') {
-          setActiveSection(bestId);
-        }
-      },
-      { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] }
-    );
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-  }, []);
+    const onScrollOrResize = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        computeActive();
+        raf = 0;
+      });
+    };
+
+    computeActive();
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize);
+
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize);
+      window.removeEventListener('resize', onScrollOrResize);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [sideNavItems]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const jumpToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (slowScrollState.current.animating && slowScrollState.current.rafId) {
+      cancelAnimationFrame(slowScrollState.current.rafId);
+      slowScrollState.current.animating = false;
+      slowScrollState.current.rafId = 0;
+    }
+
+    const target = Math.max(
+      0,
+      el.getBoundingClientRect().top + window.scrollY
+    );
+    slowScrollState.current.targetY = target;
+    window.scrollTo({ top: target, behavior: 'auto' });
+  };
 
   return (
     <>
@@ -476,8 +506,16 @@ const Home: React.FC = () => {
       <div className="w-full relative bg-[#DFF4EC]">
         {!isMobile ? (
           <div className="w-full h-auto relative overflow-visible">
+            <motion.div
+              initial={{ y: 0, opacity: 1 }}
+              animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
+              transition={{ duration: 0.9, ease: 'easeOut' }}
+              className="fixed top-0 left-0 right-0 z-[1000] will-change-transform py-0"
+            >
+              <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
+            </motion.div>
             <AnimatePresence mode="wait">
-              <HeroSection showHeader={showHeader} />
+              <HeroSection />
               <HighlightSection />
               <PartnerSection />
               <WhyChooseSection />
@@ -507,14 +545,7 @@ const Home: React.FC = () => {
                     transition={{ duration: 0.25, ease: 'easeOut' }}
                     className="fixed right-2 bottom-6 z-[1000] flex flex-col gap-2 items-end"
                   >
-                    {[
-                      { key: 'highlights', label: 'Highlights' },
-                      { key: 'why', label: 'Why Choose Us' },
-                      { key: 'how', label: 'How It Works' },
-                      { key: 'about', label: 'About' },
-                      { key: 'pricing', label: 'Pricing' },
-                      { key: 'contact', label: 'Contact' },
-                    ].map((item) => {
+                    {sideNavItems.map((item) => {
                       const isActive = activeSection === item.key;
                       const base =
                         'px-3 py-3 rounded-md text-[12px] font-medium shadow transition-colors duration-200 w-[150px]';
@@ -525,14 +556,7 @@ const Home: React.FC = () => {
                       return (
                         <button
                           key={item.key}
-                          onClick={() => {
-                            const el = document.getElementById(item.key);
-                            if (el)
-                              el.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start',
-                              });
-                          }}
+                          onClick={() => jumpToSection(item.key)}
                           className={`${base} ${isActive ? activeCls : normalCls}`}
                         >
                           {item.label}
@@ -559,14 +583,14 @@ const Home: React.FC = () => {
                     }
                 `}</style>
             <HomeResponsive
-            plans= {plans}
-            authState={authState}
-            defaultPlans= {defaultPlans}
-            loadingPlans= {loadingPlans}
+              plans={plans}
+              authState={authState}
+              defaultPlans={defaultPlans}
+              loadingPlans={loadingPlans}
             // openSubscribe= {openSubscribe}
             />
 
-          
+
           </div>
         )}
       </div>

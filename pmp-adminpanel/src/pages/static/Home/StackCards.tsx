@@ -203,6 +203,7 @@ export const StackedCards: FC<StackedCardsProps> = ({ cards }) => {
         .stacked-card__description {
           margin: 0;
           color: #555555;
+          opacity: 0.7;
         }
 
         .stacked-card__media {

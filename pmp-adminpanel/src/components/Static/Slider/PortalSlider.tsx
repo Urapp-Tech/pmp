@@ -31,7 +31,7 @@ export default function PortalSlider() {
               <h3 className="text-[20px] font-normal mb-2  text-white   ">
                 Landlord Portal
               </h3>
-              <p className=" text-white text-[16px] font-light   ">
+              <p className=" text-white text-[16px] font-light   opacity-70">
                 Control your property portfolio
               </p>
 
@@ -113,7 +113,7 @@ export default function PortalSlider() {
               <h3 className=" text-white text-[20px] font-normal mb-2   ">
                 Tenant Portal
               </h3>
-              <p className=" text-white text-[16px] font-light   ">
+              <p className=" text-white text-[16px] font-light opacity-70">
                 Designed for convenience
               </p>
               <ul className="my-3 list-disc   pl-[16px]  marker:text-white ">

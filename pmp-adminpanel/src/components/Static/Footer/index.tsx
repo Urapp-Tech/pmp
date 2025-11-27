@@ -19,7 +19,8 @@ const Footer = () => {
 
       <div className="bg-primary px-10 pt-10 pb-3">
         <div className="flex justify-between items-center max-[768px]:flex-col max-[768px]:gap-5 max-[576px]:items-start">
-          <div className="flex items-center mb-4">
+            <Link  to="/"
+                  onClick={() => window.scrollTo(0, 0)} className="flex items-center mb-4">
             <img
               src={assets.images.logo}
               alt="Logo"
@@ -27,7 +28,7 @@ const Footer = () => {
               width={105}
               height={20}
             />
-          </div>
+          </Link>
 
           {/* Navigation Links */}
           <div>
@@ -131,25 +132,25 @@ const Footer = () => {
         </div>
 
         {/* Bottom Row */}
-        <div className="mt-10 flex justify-between items-center w-full max-[992px]:flex-col max-[992px]:gap-2 max-[380px]:items-start">
+        <div className="mt-10 flex justify-between items-center w-full max-[992px]:flex-col max-[992px]:gap-2 max-[576px]:items-start">
           <div className="flex-1 flex gap-3 max-[380px]:flex-col max-[380px]:justify-start">
             <Link
               onClick={() => window.scrollTo(0, 0)}
               to="/privacy"
-              className="text-white/50 text-[20px] font-normal leading-normal max-[992px]:text-[16px]"
+              className="text-white/50 text-[16px] font-normal leading-normal "
             >
               Privacy Policy
             </Link>
             <Link
               onClick={() => window.scrollTo(0, 0)}
               to="/terms"
-              className="text-white/50 text-[20px] font-normal leading-normal max-[992px]:text-[16px]"
+              className="text-white/50 text-[16px] font-normal leading-normal "
             >
               Terms & Conditions
             </Link>
           </div>
           <div className="flex-1 flex gap-3 justify-end">
-            <p className="text-white/50 text-[20px] font-normal leading-normal max-[992px]:text-[16px]">
+            <p className="text-white/50 text-[16px] font-normal leading-normal ">
               Copyright © 2025 Rento. All rights reserved.
             </p>
           </div>

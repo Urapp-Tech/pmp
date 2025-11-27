@@ -1,41 +1,238 @@
 import assets from '@/assets/images';
 import Footer from '@/components/Static/Footer';
 import Header from '@/components/Static/Header';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import ReactLenis from 'lenis/react';
+import { useEffect, useRef, useState } from 'react';
 
 const Privacy = () => {
+  const [showHeader, setShowHeader] = useState(true);
+  const lastYRef = useRef<number>(
+    typeof window !== 'undefined' ? window.scrollY : 0
+  );
+  const tickingRef = useRef(false);
+
+  useEffect(() => {
+    const handle = () => {
+      const y = window.scrollY;
+      const dy = y - lastYRef.current;
+
+      if (Math.abs(dy) < 6) return;
+
+      if (y < 64) {
+        setShowHeader(true);
+        lastYRef.current = y;
+        return;
+      }
+
+      setShowHeader(dy <= 0);
+      lastYRef.current = y;
+    };
+
+    const onScroll = () => {
+      if (tickingRef.current) return;
+      tickingRef.current = true;
+      requestAnimationFrame(() => {
+        handle();
+        tickingRef.current = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const slowScrollState = useRef({
+    targetY: typeof window !== 'undefined' ? window.scrollY : 0,
+    rafId: 0 as number | 0,
+    animating: false,
+    paused: false,
+  });
+
+  const heroRef = useRef<HTMLElement | null>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, -200]);
+  const bgY = useTransform(scrollYProgress, [0, 0.6, 1], [0, 0, -120]);
+
+  useEffect(() => {
+    const isHTMLElement = (el: any): el is HTMLElement =>
+      el && typeof el === 'object' && 'closest' in el;
+
+    const isManagedZone = (t: EventTarget | null) => {
+      if (!isHTMLElement(t)) return false;
+      return !!(t.closest(' ') || t.closest(''));
+    };
+
+    const stopAnimationIfRunning = () => {
+      const st = slowScrollState.current;
+      if (st.animating && st.rafId) {
+        cancelAnimationFrame(st.rafId);
+        st.rafId = 0;
+        st.animating = false;
+      }
+    };
+
+    const step = () => {
+      const st = slowScrollState.current;
+      if (st.paused) {
+        stopAnimationIfRunning();
+        return;
+      }
+      const { targetY } = st;
+      const currentY = window.scrollY;
+      const nextY = currentY + (targetY - currentY) * 0.12;
+      window.scrollTo(0, nextY);
+
+      if (Math.abs(targetY - nextY) > 0.5) {
+        st.rafId = requestAnimationFrame(step);
+        st.animating = true;
+      } else {
+        window.scrollTo(0, targetY);
+        st.animating = false;
+        if (st.rafId) cancelAnimationFrame(st.rafId);
+        st.rafId = 0;
+      }
+
+      const onEnterManaged = () => {
+        slowScrollState.current.paused = true;
+
+        if (
+          slowScrollState.current.animating &&
+          slowScrollState.current.rafId
+        ) {
+          cancelAnimationFrame(slowScrollState.current.rafId);
+          slowScrollState.current.rafId = 0;
+          slowScrollState.current.animating = false;
+        }
+      };
+      const onLeaveManaged = () => {
+        slowScrollState.current.paused = false;
+        slowScrollState.current.targetY = window.scrollY;
+      };
+
+      window.addEventListener(
+        'rento:enterManaged',
+        onEnterManaged as EventListener
+      );
+      window.addEventListener(
+        'rento:leaveManaged',
+        onLeaveManaged as EventListener
+      );
+
+      return () => {
+        window.removeEventListener(
+          'rento:enterManaged',
+          onEnterManaged as EventListener
+        );
+        window.removeEventListener(
+          'rento:leaveManaged',
+          onLeaveManaged as EventListener
+        );
+      };
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.defaultPrevented) return;
+
+      if (isManagedZone(e.target)) {
+        stopAnimationIfRunning();
+        return;
+      }
+
+      if (slowScrollState.current.paused) return;
+
+      e.preventDefault();
+
+      const scale = 0.18;
+
+      const dy = e.deltaY;
+      const moderated = Math.sign(dy) * Math.min(Math.abs(dy), 140);
+
+      const docHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      const viewport = window.innerHeight;
+
+      const nextTarget = Math.max(
+        0,
+        Math.min(
+          docHeight - viewport,
+          slowScrollState.current.targetY + moderated * scale
+        )
+      );
+
+      slowScrollState.current.targetY = nextTarget;
+
+      if (!slowScrollState.current.animating) {
+        slowScrollState.current.animating = true;
+        slowScrollState.current.rafId = requestAnimationFrame(step);
+      }
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    slowScrollState.current.targetY = window.scrollY;
+
+    return () => {
+      window.removeEventListener('wheel', onWheel as any);
+      stopAnimationIfRunning();
+    };
+  }, []);
+
   return (
-    <div>
-      <Header />
-      {/* <Banner
-                bannerImage={assets.images.contactBanner}
-                title='Privacy Policy'
-                subTitle='This document contains the Terms & Conditions and Privacy Policy for Rento in both English and Arabic.'
-            /> */}
-      <div className="h-[540px] flex justify-start max-[1260px]:items-center">
-        <img
-          src={assets.images.termsBanner}
-          className="w-full max-w-full h-[540px] object-cover object-right  absolute top-0 z-[-1]   max-[992px]:object-bottom max-[992px]:opacity-[0.6]"
-        />
-        <div className="relative h-full flex-1 flex">
-          <div className="flex-1 flex  absolute bottom-5   gap-10 items-end justify-between px-4 max-[1260px]:flex-col max-[1260px]:items-start">
-            <h1 className="capitalize text-[80px] max-w-[543px] font-normal leading-tight text-primary max-[1260px]:text-[50px] max-[1024px]:text-[50px] max-[768px]:text-[34px]">
-              Privacy Policy
-            </h1>
+    <>
+      <ReactLenis root />
+      <div className="w-full relative bg-[#DFF4EC]">
+        <motion.div
+          initial={{ y: 0, opacity: 1 }}
+          animate={{ y: showHeader ? 0 : -90, opacity: showHeader ? 1 : 0.98 }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+          className="fixed top-0 left-0 right-0 z-[1000] will-change-transform py-0"
+        >
+          <Header customClass="bg-white/80 backdrop-blur-xl shadow-sm py-0" />
+        </motion.div>
+        <div className="h-[62px]" />
+        <motion.section
+          ref={heroRef}
+          className="relative h-[90vh] flex justify-start max-xl:h-[650px] max-[992px]:h-[50vh] max-[992px]:min-h-[450px] max-[1260px]:flex-col max-[1260px]:items-center"
+          style={{ y: bgY }}
+        >
+          <img
+            src={assets.images.termsBanner}
+              className="w-full h-[90vh] lg:max-h-[500px] object-cover absolute top-0 left-0 z-1 max-[992px]:h-[50vh] max-[992px]:min-h-[450px]  max-[992px]:object-right max-md:object-center"
+          />
+          <div className="relative h-full flex-1 flex w-full">
+            <motion.div
+              className="flex-1 flex absolute bottom-[20%] pb-10  max-w-[1200px] gap-10 items-center justify-between px-4 max-xl:gap-y-1 max-[1260px]:flex-col max-[1260px]:items-start"
+              style={{ y: contentY }}
+            >
+              <motion.h1
+                className="capitalize text-[95px] font-normal leading-tight text-primary max-[1260px]:text-[70px] max-[1024px]:text-[48px] max-[768px]:text-[34px]"
+                initial={{ opacity: 0, y: 60 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: 'easeOut', delay: 0.5 }}
+              >
+                Privacy Policy
+              </motion.h1>
+            
+            </motion.div>
           </div>
-        </div>
-      </div>
-      <div className="w-full  bg-[#DFF4EC] px-10">
-        <div className="text-primary font-light text-[14px] py-6 max-[768px]:pl-0">
-          Effective Date: 01-10-2025
-          <br />
-          Last Updated: 17-10-2025
-        </div>
-        <div className="space-y-4 text-primary max-w-[1216px] mx-auto pb-20">
-          <p className="text-base font-light mb-6">
-            Rento respects your privacy. This Privacy Policy explains how we
-            collect, use, and protect your information. By using Rento, you
-            consent to the practices described here.
-          </p>
+        </motion.section>
+        <div className="w-full bg-[#DFF4EC] px-10">
+          <div className="text-primary font-light text-[14px] py-6 max-[768px]:pl-0">
+            Effective Date: 01-10-2025
+            <br />
+            Last Updated: 17-10-2025
+          </div>
+          <div className="space-y-4 text-primary max-w-[1216px] mx-auto pb-20">
+            <p className="text-base font-light mb-6">
+              Rento respects your privacy. This Privacy Policy explains how we
+              collect, use, and protect your information. By using Rento, you
+              consent to the practices described here.
+            </p>
 
           {/* Section 1 */}
           <h2 className="text-[20px] font-semibold mb-2">
@@ -261,6 +458,7 @@ const Privacy = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 
